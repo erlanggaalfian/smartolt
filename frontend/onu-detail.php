@@ -1126,7 +1126,7 @@ sort($cached_vlans);
 <div class="modal" id="update-onu-mode-modal">
     <div class="modal-content" style="max-width: 650px; width: 90%; border-radius: 6px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
         <div class="modal-header" style="padding: 15px 24px; display: flex; justify-content: space-between; align-items: center;">
-            <h3 style="margin:0; font-size:1.4rem; font-weight:700; color:var(--text-main); font-family: 'Poppins', sans-serif;">Update Mode ONU</h3>
+            <h3 style="margin:0; font-size:1.4rem; font-weight:700; color:var(--text-main);">Update Mode ONU</h3>
             <button type="button" class="close-btn" onclick="document.getElementById('update-onu-mode-modal').classList.remove('open')" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text-muted); line-height: 1;">&times;</button>
         </div>
         <form action="action/update-onu-mode.php" method="POST">
@@ -1315,7 +1315,7 @@ sort($cached_vlans);
 <div class="modal" id="edit-onu-type-modal">
     <div class="modal-content" style="max-width: 450px; width: 90%; border-radius: 6px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
         <div class="modal-header" style="padding: 15px 24px; display: flex; justify-content: space-between; align-items: center;">
-            <h3 style="margin:0; font-size:1.2rem; font-weight:700; color:var(--text-main); font-family: 'Poppins', sans-serif;">Edit Tipe ONU</h3>
+            <h3 style="margin:0; font-size:1.2rem; font-weight:700; color:var(--text-main);">Edit Tipe ONU</h3>
             <button type="button" class="close-btn" onclick="document.getElementById('edit-onu-type-modal').classList.remove('open')" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text-muted); line-height: 1;">&times;</button>
         </div>
         <form action="action/update-onu-mode.php" method="POST">
@@ -1347,7 +1347,7 @@ sort($cached_vlans);
 <div class="modal" id="edit-config-preset-modal">
     <div class="modal-content" style="max-width: 450px; width: 90%; border-radius: 6px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
         <div class="modal-header" style="padding: 15px 24px; display: flex; justify-content: space-between; align-items: center;">
-            <h3 style="margin:0; font-size:1.2rem; font-weight:700; color:var(--text-main); font-family: 'Poppins', sans-serif;">Edit Preset Konfigurasi</h3>
+            <h3 style="margin:0; font-size:1.2rem; font-weight:700; color:var(--text-main);">Edit Preset Konfigurasi</h3>
             <button type="button" class="close-btn" onclick="document.getElementById('edit-config-preset-modal').classList.remove('open')" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text-muted); line-height: 1;">&times;</button>
         </div>
         <form action="action/update-onu-mode.php" method="POST">
@@ -1755,7 +1755,7 @@ sort($cached_vlans);
         <div class="modal-header" style="padding: 15px 24px; display: flex; justify-content: space-between; align-items: center;">
             <div style="display:flex; align-items:center; gap:10px;">
                 <i data-lucide="refresh-cw" style="width:18px;height:18px; color:var(--text-accent);"></i>
-                <h3 style="margin:0; font-size:1.2rem; font-weight:700; color:var(--text-main); font-family: 'Poppins', sans-serif;">Replace ONU / Ganti SN</h3>
+                <h3 style="margin:0; font-size:1.2rem; font-weight:700; color:var(--text-main);">Replace ONU / Ganti SN</h3>
             </div>
             <button type="button" class="close-btn" onclick="document.getElementById('replace-onu-modal').classList.remove('open')" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text-muted); line-height: 1;">&times;</button>
         </div>

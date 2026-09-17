@@ -20,6 +20,7 @@ $filter_zone = isset($_GET['zone']) ? trim($_GET['zone']) : '';
 $filter_odb  = isset($_GET['odb'])  ? trim($_GET['odb'])  : '';
 $filter_pon     = isset($_GET['pon_port']) ? trim($_GET['pon_port']) : '';
 $filter_signal  = isset($_GET['signal']) ? $_GET['signal'] : '';
+$filter_type    = isset($_GET['onu_type']) ? trim($_GET['onu_type']) : '';
 
 // Catatan: Sinkronisasi otomatis OLT kini dijalankan di latar belakang oleh cron job (backend/python_engine/cron_sync.py).
 // Halaman ini memuat data secara instan dari database lokal MySQL.
@@ -37,6 +38,7 @@ if ($selected_olt_id !== '') {
 $available_zones = $pdo->query($zone_query_base . " ORDER BY zone ASC")->fetchAll(PDO::FETCH_COLUMN);
 $available_odbs  = $pdo->query($odb_query_base  . " ORDER BY splitter ASC")->fetchAll(PDO::FETCH_COLUMN);
 $available_pons  = $pdo->query($pon_query_base  . " ORDER BY pon_port ASC")->fetchAll(PDO::FETCH_COLUMN);
+$available_types = $pdo->query("SELECT DISTINCT onu_type FROM onus WHERE onu_type IS NOT NULL AND onu_type != ''" . ($selected_olt_id !== '' ? " AND olt_id = " . (int)$selected_olt_id : " AND olt_id IN ($allowed_ids_str)") . " ORDER BY onu_type ASC")->fetchAll(PDO::FETCH_COLUMN);
 
 // Pagination limit logic (default to 100)
 $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 100;
@@ -102,6 +104,10 @@ if ($filter_signal !== '') {
             $params[] = $range['min'];
         }
     }
+}
+if ($filter_type !== '') {
+    $filter_sql .= " AND onus.onu_type = ?";
+    $params[] = $filter_type;
 }
 // Simpan filter TANPA kondisi status untuk stats summary (Online/Offline/Disabled count).
 // Harus diambil SETELAH zone/odb/pon/signal filter tapi SEBELUM status filter.
@@ -211,13 +217,21 @@ $onus = $stmt_data->fetchAll();
                 <option value="good" <?php echo $filter_signal === 'good' ? 'selected' : ''; ?>>Sinyal Bagus (&gt; -25 dBm)</option>
             </select>
         </div>
+        <div class="filter-item">
+            <select name="onu_type" class="form-control" onchange="this.form.submit()">
+                <option value="">Semua Tipe</option>
+                <?php foreach ($available_types as $t): ?>
+                    <option value="<?php echo htmlspecialchars($t); ?>" <?php echo $filter_type === $t ? 'selected' : ''; ?>><?php echo htmlspecialchars($t); ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
 
         <div class="filter-item">
             <button type="submit" class="btn btn-primary btn-block">
                 <i data-lucide="filter"></i> Filter
             </button>
         </div>
-        <?php if (!empty($filter_zone) || !empty($filter_odb) || !empty($filter_pon) || !empty($search) || !empty($status) || !empty($filter_signal) || $limit !== 100): ?>
+        <?php if (!empty($filter_zone) || !empty($filter_odb) || !empty($filter_pon) || !empty($search) || !empty($status) || !empty($filter_signal) || !empty($filter_type) || $limit !== 100): ?>
         <div class="filter-item">
             <a href="configured.php?olt_id=<?php echo htmlspecialchars($selected_olt_id); ?>" class="btn btn-outline" style="text-decoration:none;">
                 <i data-lucide="x"></i> Reset
@@ -233,6 +247,7 @@ $onus = $stmt_data->fetchAll();
                 'odb' => $filter_odb ?: null,
                 'pon_port' => $filter_pon ?: null,
                 'signal' => $filter_signal ?: null,
+                'onu_type' => $filter_type ?: null,
             ], fn($v) => $v !== null && $v !== '')); ?>" class="btn btn-outline" style="text-decoration:none;" title="Download CSV dengan filter saat ini">
                 <i data-lucide="download"></i> CSV
             </a>
@@ -712,6 +727,7 @@ $onus = $stmt_data->fetchAll();
                 'odb' => $filter_odb,
                 'pon_port' => $filter_pon,
                 'signal' => $filter_signal,
+                'onu_type' => $filter_type,
                 'limit' => $limit
             ];
             $base_query = http_build_query($link_params);
