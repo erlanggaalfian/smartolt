@@ -1,0 +1,10 @@
+[Unit]
+Description=SmartOLT - Batch flush pending 'write' ke OLT (skip-write per-aksi)
+After=network.target
+
+[Service]
+Type=oneshot
+User=www-data
+EnvironmentFile=/var/www/smartolt.netbackup.web.id/.env
+WorkingDirectory=/var/www/smartolt.netbackup.web.id/backend/python_engine
+ExecStart=/var/www/smartolt.netbackup.web.id/backend/python_engine/venv/bin/python flush_pending_write.py

@@ -1,0 +1,10 @@
+[Unit]
+Description=SmartOLT - Timer batch flush pending write (tiap 10 menit)
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=10min
+Persistent=true
+
+[Install]
+WantedBy=timers.target
