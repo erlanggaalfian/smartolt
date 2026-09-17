@@ -1,3 +1,13 @@
+## 2026-09-18 — Fix: onu_type missing from live polling response
+
+**Files:** `frontend/action/get-signals-db.php`
+**Commit:** e94d9c0
+
+**Masalah:** `get-signals-db.php` SELECT tidak include `onu_type` — configured.php's live polling (`updateAllOnuSignals()` tiap 60 detik) tidak pernah update kolom Tipe ONU setelah user edit via modal di onu-detail.php. Tabel configured.php tetap menampilkan tipe lama sampai full page reload. `config_method` juga tidak ada di response.
+**Fix:** Tambah `onu_type` dan `config_method` ke SELECT query dan JSON response. (Cascade — `update-onu-mode.php` sudah update kolom ini ke DB, hanya endpoint polling yang tidak mengirimnya ke frontend.)
+
+---
+
 ## 2026-09-18 — Fix: cli_safe_password newline injection + rescan button UX
 
 **Files:** `backend/config.php`, `frontend/unconfigured.php`
