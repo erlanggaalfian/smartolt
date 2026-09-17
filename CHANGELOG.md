@@ -1,3 +1,11 @@
+
+## 2026-09-18 — Fix CSV export missing onu_type filter
+
+**File:** `frontend/action/export-csv.php`
+**Masalah:** configured.php mengirim param `onu_type` ke link CSV export saat user filter by tipe ONU, tapi export-csv.php tidak pernah membaca/menerapkan filter tersebut. CSV export selalu berisi SEMUA tipe ONU meski user sudah filter spesifik di halaman configured.
+**Fix:** Tambah `$filter_type = $_GET['onu_type']` + `AND onus.onu_type = ?` filter clause, sama pattern dengan filter zone/signal yang sudah ada.
+**Scope:** App-side only, zero OLT impact. Desktop + mobile (tidak ada perubahan layout).
+**Commit:** ca845ee
 ## 2026-09-18 — Fix onu_type sanitizer + stats number format consistency
 
 **File:** `frontend/action/auth-onu.php`, `frontend/action/update-onu-mode.php`, `frontend/configured.php`
