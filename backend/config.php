@@ -151,7 +151,10 @@ function cli_safe_strict(?string $str): string {
  */
 function cli_safe_password(?string $str): string {
     if ($str === null) return '';
-    return preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $str);
+    // Strip ALL control chars including \n (\x0A) and \r (\x0D) to prevent
+    // CLI command injection when password is interpolated into OLT telnet commands
+    // (e.g. "pppoe 1 nat enable user X password Y\nmalicious_cmd").
+    return preg_replace('/[\x00-\x1F\x7F]/', '', $str);
 }
 
 /**

@@ -197,9 +197,12 @@ if (!in_array($limit, [20, 50, 100, 200])) $limit = 100;
         }
 
         function fetchAllOlts() {
-            document.querySelectorAll('.autofind-olt-section').forEach(section => {
-                fetchSection(section);
-            });
+            const sections = document.querySelectorAll('.autofind-olt-section');
+            const rescanBtn = document.getElementById('btn-rescan-autofind');
+            if (rescanBtn) rescanBtn.disabled = true;
+            let pending = sections.length;
+            const done = () => { if (--pending <= 0 && rescanBtn) rescanBtn.disabled = false; };
+            sections.forEach(section => { fetchSection(section).finally(done); });
         }
 
         if (document.querySelector('.autofind-olt-section')) fetchAllOlts();
