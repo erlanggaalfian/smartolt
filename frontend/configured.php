@@ -451,7 +451,7 @@ $onus = $stmt_data->fetchAll();
 
                     // Update stats cards from full ONU dataset (only when no extra filters active)
                     // get-signals-db.php returns full OLT data, not filtered subset
-                    const hasExtraFilters = <?php echo (!empty($filter_zone) || !empty($filter_odb) || !empty($filter_pon) || !empty($filter_signal) || !empty($filter_type) || $status !== '') ? 'true' : 'false'; ?>;
+                    const hasExtraFilters = <?php echo ($search !== '' || !empty($filter_zone) || !empty($filter_odb) || !empty($filter_pon) || !empty($filter_signal) || !empty($filter_type) || $status !== '') ? 'true' : 'false'; ?>;
                     if (!hasExtraFilters) {
                         const statusCounts = { online: 0, offline: 0, disabled: 0 };
                         data.onus.forEach(o => {
