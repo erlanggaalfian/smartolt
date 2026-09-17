@@ -1155,3 +1155,22 @@ tidak di-serve Apache, hanya clutter di repo.
 - **REVIEW.md:** Proposal #5 CSRF ditolak — `backend/config.php` middleware (lines 77-97)
   sudah verifikasi CSRF otomatis untuk SEMUA POST action handlers. Proposal berdasarkan
   asumsi keliru bahwa hanya `onu-types.php`/`splitters.php` yang punya CSRF check.
+
+## [2026-09-17] Live-update customer name in configured.php table
+
+**Commit:** 2cfc0cf
+**Tier:** 1 (app-side, non-driver)
+
+**Masalah:** `get-signals-db.php` tidak include kolom `name` di query, response JSON,
+atau ETag CRC32 hash. Saat cron sync memperbarui nama ONU dari placeholder (`ONU_xxxx`)
+menjadi nama pelanggan sesungguhnya, tabel configured.php tidak pernah menampilkan nama
+baru — browser dapat 304 Not Modified (ETag unchanged karena name tidak di-hash), dan
+JS live-refresh tidak punya data `name` di response. User harus manual refresh halaman.
+
+**Fix:**
+1. `get-signals-db.php`: tambah `name` ke ETag CRC32 hash, SELECT query, dan JSON
+   response (termasuk `customer_name` pre-extracted via `extract_customer_name()`).
+2. `configured.php`: tambah `data-name` attribute ke `<tr>`, `.name-cell` class ke
+   `<td>` nama pelanggan, dan JS live-update block yang meng-update nama dari response.
+   
+**Cakupan:** Desktop + mobile (tabel responsive yang sama).
