@@ -1,3 +1,16 @@
+## 2026-09-17 — Restore Zone/Splitter/Profil DL/Profil UL columns in configured.php table
+
+**Commit:** a716673
+**File:** `frontend/configured.php`
+**Masalah:** SELECT query sudah fetch `onus.zone`, `onus.splitter`, `onus.download_profile`,
+`onus.upload_profile` tapi HTML table hanya render 11 kolom — data ke-4 field tsb
+di-fetch tapi tidak pernah ditampilkan di tabel. Kolom pernah ditambah (commit 6a502a2,
+fe1a1d2, 8185ca3) tapi hilang dari file — kemungkinan ter-overwrite saat sync.
+**Fix:** Tambah4 `<th>` header + 4 `<td>` cell per row (Zone, Splitter after Nama;
+Profil DL/Profil UL after WAN). Update colspan empty-state 11→15. Kolom Zone/Splitter
+pakai font kecil muted; Profil DL/UL pakai tooltip untuk nama panjang.
+**Scope:** UI display only, zero OLT impact. Desktop + mobile (horizontal scroll).
+
 ## 2026-09-17 — Fix: wan_mode 'Static IP' vs 'Static' mismatch (drivers + DB)
 
 - **Bug**: Python drivers (zte_c300, zte_c320, cdata_fd1602sb1) mendeteksi
