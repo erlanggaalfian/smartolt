@@ -113,46 +113,11 @@ $stmt_count = $pdo->prepare($sql_count . $filter_sql);
 $stmt_count->execute($params);
 $total_items = (int)$stmt_count->fetchColumn();
 
-// Stats summary: count by status (gunakan filter TANPA status, supaya stats menampilkan gambaran utuh)
-$stats_params = [];
-$stats_sql = "";
-if ($search !== '') {
-    $stats_sql .= " AND (onus.name LIKE ? OR onus.serial_number LIKE ? OR onus.onu_id LIKE ? OR onus.pppoe_username LIKE ? OR onus.address LIKE ? OR onus.description LIKE ? OR onus.external_id LIKE ? OR onus.contact LIKE ? OR olts.name LIKE ? OR olts.ip LIKE ? OR onus.vlan LIKE ? OR onus.pon_port LIKE ? OR onus.wan_mode LIKE ? OR onus.onu_type LIKE ? OR onus.last_down_cause LIKE ? OR onus.splitter LIKE ? OR onus.zone LIKE ? OR onus.download_profile LIKE ? OR onus.upload_profile LIKE ? OR onus.config_preset LIKE ? OR onus.mgmt_ip LIKE ? OR onus.odb_port LIKE ? OR onus.pppoe_ip LIKE ?)";
-    for ($i = 0; $i < 23; $i++) $stats_params[] = "%{$search}%";
-}
-if ($selected_olt_id !== '') {
-    $stats_sql .= " AND onus.olt_id = ?";
-    $stats_params[] = $selected_olt_id;
-} else {
-    $stats_sql .= " AND onus.olt_id IN ($allowed_ids_str)";
-}
-if ($filter_zone !== '') {
-    if (strtolower($filter_zone) === 'none') {
-        $stats_sql .= " AND (onus.zone IS NULL OR onus.zone = '' OR onus.zone = 'None')";
-    } else { $stats_sql .= " AND onus.zone = ?"; $stats_params[] = $filter_zone; }
-}
-if ($filter_odb !== '') {
-    if (strtolower($filter_odb) === 'none') {
-        $stats_sql .= " AND (onus.splitter IS NULL OR onus.splitter = '' OR onus.splitter = 'None')";
-    } else { $stats_sql .= " AND onus.splitter = ?"; $stats_params[] = $filter_odb; }
-}
-if ($filter_pon !== '') { $stats_sql .= " AND onus.pon_port = ?"; $stats_params[] = $filter_pon; }
-if ($filter_signal !== '') {
-    if (isset($signal_ranges[$filter_signal])) {
-        $range = $signal_ranges[$filter_signal];
-        if (isset($range['min']) && isset($range['max'])) {
-            $stats_sql .= " AND onus.last_rx_power IS NOT NULL AND onus.last_rx_power >= ? AND onus.last_rx_power < ?";
-            $stats_params[] = $range['min']; $stats_params[] = $range['max'];
-        } elseif (isset($range['max'])) {
-            $stats_sql .= " AND onus.last_rx_power IS NOT NULL AND onus.last_rx_power < ?";
-            $stats_params[] = $range['max'];
-        } else {
-            $stats_sql .= " AND onus.last_rx_power IS NOT NULL AND onus.last_rx_power >= ?";
-            $stats_params[] = $range['min'];
-        }
-    }
-}
-$stmt_stats = $pdo->prepare("SELECT onus.status, COUNT(*) as cnt FROM onus JOIN olts ON onus.olt_id = olts.id WHERE 1=1" . $stats_sql . " GROUP BY onus.status");
+// Stats summary: count by status — reuse $filter_sql (TANPA kondisi status) supaya
+// filter logic hanya didefinisikan SEKALI dan tidak bisa drift antara query stats/data.
+$stats_filter_sql = $filter_sql; // $filter_sql belum termasuk kondisi status
+$stats_params = $params;
+$stmt_stats = $pdo->prepare("SELECT onus.status, COUNT(*) as cnt FROM onus JOIN olts ON onus.olt_id = olts.id WHERE 1=1" . $stats_filter_sql . " GROUP BY onus.status");
 $stmt_stats->execute($stats_params);
 $stats_map = ['online' => 0, 'offline' => 0, 'disabled' => 0];
 foreach ($stmt_stats->fetchAll() as $sr) { $stats_map[$sr['status']] = (int)$sr['cnt']; }
@@ -187,7 +152,7 @@ $onus = $stmt_data->fetchAll();
     <form method="GET" id="form-filter" action="configured.php" class="filter-row" style="margin:0;">
         <input type="hidden" name="limit" id="filter-limit" value="<?php echo $limit; ?>">
         <div class="filter-item search-item">
-            <input type="text" name="search" class="form-control" placeholder="Cari SN, ID, Nama, Alamat, Kontak, PPPoE, OLT, IP, VLAN, PON, WAN, Tipe ONU, Splitter, Zone, Last Down, Profil, Preset, External ID, IP Mgmt, ODB Port..." value="<?php echo htmlspecialchars($search); ?>">
+            <input type="text" name="search" class="form-control" placeholder="Cari nama, SN, alamat, PPPoE, OLT, VLAN, splitter, zone..." value="<?php echo htmlspecialchars($search); ?>">
         </div>
         <div class="filter-item">
             <select name="olt_id" class="form-control" onchange="this.closest('form').querySelectorAll('[name=zone],[name=odb],[name=pon_port]').forEach(i=>i.value='');this.closest('form').submit();">
