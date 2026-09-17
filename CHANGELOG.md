@@ -1,3 +1,28 @@
+## 2026-09-17 — Fix fragile cell[N] indices in configured.php live-polling
+
+**Commit:** ea280ff
+**Files:** `frontend/configured.php`
+**Masalah:** JS live-polling di configured.php pakai hardcoded `cells[7]`, `cells[8]`,
+`cells[9]`, `cells[13]` untuk update WAN, DL/UL profile, dan ONU type. Kalau kolom
+di-reorder, update salah cell secara silent.
+**Fix:** Tambah CSS class (`wan-cell`, `dl-profile-cell`, `ul-profile-cell`, `onu-type-cell`)
+ke `<td>` terkait. JS ganti ke `row.querySelector('.class')` — tidak tergantung urutan kolom.
+**Coverage:** Desktop + mobile (table-responsive, perubahan murni atribut class).
+
+---
+
+## 2026-09-17 — (REVIEW) CSRF token verification gap on POST action handlers
+
+**Commit:** 97a2639
+**Proposal:** `REVIEW.md` #5
+**Status:** MENUNGGU KEPUTUSAN
+**Masalah:** `header.php` inject CSRF token ke semua form/fetch POST, tapi hanya 2 dari ~12
+action handler yang verify server-side (`onu-types.php`, `splitters.php`). Sisanya
+(auth-onu, update-onu-mode, onu-state, delete-onu, dll) tidak cek — token CSRF yang
+di-inject client-side tidak berguna tanpa verifikasi server-side.
+
+---
+
 ## 2026-09-17 — Fix placeholder violations & theme-safe toast notifications
 
 **Files:** `frontend/onu-detail.php`, `frontend/configured.php`
