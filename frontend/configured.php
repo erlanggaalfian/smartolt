@@ -60,6 +60,11 @@ if ($selected_olt_id !== '') {
 } else {
     $filter_sql .= " AND onus.olt_id IN ($allowed_ids_str)";
 }
+// Simpan filter TANPA kondisi status untuk stats summary (Online/Offline/Disabled count).
+// Harus diambil SEBELUM status filter ditambahkan supaya stats menunjukkan semua status.
+$stats_filter_sql = $filter_sql;
+$stats_params = $params;
+
 if ($status !== '') {
     $filter_sql .= " AND onus.status = ?";
     $params[] = $status;
@@ -113,10 +118,8 @@ $stmt_count = $pdo->prepare($sql_count . $filter_sql);
 $stmt_count->execute($params);
 $total_items = (int)$stmt_count->fetchColumn();
 
-// Stats summary: count by status — reuse $filter_sql (TANPA kondisi status) supaya
-// filter logic hanya didefinisikan SEKALI dan tidak bisa drift antara query stats/data.
-$stats_filter_sql = $filter_sql; // $filter_sql belum termasuk kondisi status
-$stats_params = $params;
+// Stats summary: count by status — $stats_filter_sql sudah disimpan SEBELUM status filter
+// ditambahkan (di atas), jadi stats menunjukkan semua status meski user filter by status.
 $stmt_stats = $pdo->prepare("SELECT onus.status, COUNT(*) as cnt FROM onus JOIN olts ON onus.olt_id = olts.id WHERE 1=1" . $stats_filter_sql . " GROUP BY onus.status");
 $stmt_stats->execute($stats_params);
 $stats_map = ['online' => 0, 'offline' => 0, 'disabled' => 0];

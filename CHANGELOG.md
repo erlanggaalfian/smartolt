@@ -1,3 +1,20 @@
+## 2026-09-17 — Fix stats cards showing only filtered status when status filter active
+
+**Commit:** (this commit)
+**File:** `frontend/configured.php`
+**Masalah:** Stats summary (Online/Offline/Disabled count) menggunakan `$filter_sql` yang
+SUDAH termasuk kondisi status. Ketika user filter by "Online", stats menampilkan
+"Online: 200, Offline: 0, Disabled: 0" — seharusnya menampilkan semua status untuk
+filter non-status yang aktif (OLT, zone, search, dll).
+**Root cause:** Commit 1c604c0 (consolidate duplicate filter logic) menyalin `$filter_sql`
+ke `$stats_filter_sql` SETELAH status filter ditambahkan, padahal komentar asli bilang
+"belum termasuk kondisi status" — komentar salah.
+**Fix:** Simpan `$stats_filter_sql` dan `$stats_params` SEBELUM blok status filter, sehingga
+stats query tidak terpengaruh oleh filter status. Komentar lama dihapus, diganti yang akurat.
+**Scope:** Desktop + mobile (filter panel + stats bar, perubahan murni PHP backend logic).
+
+---
+
 ## 2026-09-17 — Consolidate duplicate filter logic in configured.php stats query
 
 **Commit:** 1c604c0
