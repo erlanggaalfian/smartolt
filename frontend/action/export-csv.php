@@ -29,6 +29,7 @@ $filter_zone = isset($_GET['zone']) ? trim($_GET['zone']) : '';
 $filter_odb  = isset($_GET['odb'])  ? trim($_GET['odb'])  : '';
 $filter_pon     = isset($_GET['pon_port']) ? trim($_GET['pon_port']) : '';
 $filter_signal  = isset($_GET['signal']) ? $_GET['signal'] : '';
+$filter_type    = isset($_GET['onu_type']) ? trim($_GET['onu_type']) : '';
 
 $filter_sql = "";
 $params = [];
@@ -88,6 +89,10 @@ if ($filter_signal !== '') {
             $params[] = $range['min'];
         }
     }
+}
+if ($filter_type !== '') {
+    $filter_sql .= " AND onus.onu_type = ?";
+    $params[] = $filter_type;
 }
 
 $sql = "SELECT onus.name, onus.serial_number, onus.onu_id, onus.pon_port,
