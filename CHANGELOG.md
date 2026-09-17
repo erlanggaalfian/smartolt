@@ -1,3 +1,17 @@
+## 2026-09-17 — Add distance_m to SNMP polling mode
+
+**Commit:** 71c1853
+**File:** `backend/python_engine/snmp_module.py`, `frontend/action/onu-data.php`
+**Masalah:** Distance optik ONU (jarak meter) hanya terisi saat full sync (page load).
+Selama polling 15 detik (SNMP-lite mode), `distance_m` selalu null → UI
+menampilkan "(N/A)" terus-menerus meski data tersedia via SNMP.
+**Fix:** Tambah `get_onu_distance_zte()`/`get_onu_distance_cdata()` (1 SNMP OID get,
+~50ms overhead) ke `get_onu_signal_snmp()`. `onu-data.php` pass result ke response.
+JS onu-detail.php sudah handle `data.distance_m` — tidak perlu ubah frontend.
+**Scope:** App-side only, tidak sentuh OLT config. Desktop + mobile (sama element).
+
+---
+
 ## 2026-09-17 — Fix stats ignoring zone/odb/pon/signal filters
 
 **Commit:** e92ed25
