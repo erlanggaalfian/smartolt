@@ -984,6 +984,7 @@ if (!empty($onu['onu_type'])) {
                 })
                 .catch(err => {
                     console.error('Error fetching realtime signal:', err);
+                    needFullSync = true; // retry full sync on next poll so VLAN/PPPoE/distance aren't stuck
                     const banner = document.getElementById('sync-loading-banner');
                     if (banner) {
                         banner.style.background = 'rgba(239, 68, 68, 0.1)';
