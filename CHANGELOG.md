@@ -1,3 +1,15 @@
+## 2026-09-17 — Fix splitter dropdown reset on zone change in onu-detail.php
+
+**File:** `frontend/onu-detail.php`
+**Masalah:** Modal Edit Identitas di halaman ONU Detail: saat user mengganti zone,
+dropdown splitter di-reset ke opsi pertama tanpa mempertahankan pilihan valid yang
+sama. User bisa tanpa sadar menyimpan kombinasi zone+splitter yang salah.
+**Fix:** `loadSplitters(zone, true)` saat zone berubah — splitter yang valid di zone
+baru tetap terpilih otomatis.
+**Scope:** UI only, desktop & mobile modal.
+
+---
+
 ## 2026-09-17 — Fix preset speed profile deferred handling in auth-onu.php
 
 **File:** `frontend/auth-onu.php`
