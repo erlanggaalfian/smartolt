@@ -1,3 +1,15 @@
+## 2026-09-18 — Fix: cli_safe_password newline injection + rescan button UX
+
+**Files:** `backend/config.php`, `frontend/unconfigured.php`
+**Commit:** c0b5eb4
+
+**Masalah 1 (Security):** `cli_safe_password()` tidak strip `\n` (\x0A) dan `\r` (\x0D). PPPoE password dikirim ke OLT via `pppoe 1 nat enable user X password Y` — karakter newline di password bisa inject CLI command baru. `cli_safe_email()` aman (whitelist approach), tapi `cli_safe_password()` blacklist approach dan melewatkan `\n`/`\r`.
+**Fix:** Strip semua control chars `\x00-\x1F` dan `\x7F` (termasuk `\n`, `\r`, `\t`). Tidak ada PPPoE password legitimate yang butuh control characters.
+
+**Masalah 2 (UX):** Tombol "Scan Ulang" di `unconfigured.php` tidak disable saat scan berlangsung. Klik berkali-kali firing concurrent scan request ke OLT, buang-buang session VTY.
+**Fix:** Disable tombol saat scan, re-enable setelah semua section OLT selesai (atau error).
+
+---
 ## 2026-09-18 — Fix: stats cards jump to all-ONU counts when search active
 
 **File:** `frontend/configured.php`
