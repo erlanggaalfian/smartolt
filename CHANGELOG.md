@@ -1,3 +1,16 @@
+## 2026-09-17 — Fix signal display false-negative for 0.00 dBm in configured.php
+
+**Commit:** 81db9cb
+**File:** `frontend/configured.php`
+**Masalah:** PHP truthiness check `$onu['last_rx_power']` memperlakukan string `"0"` sebagai falsy.
+Sama dengan bug class yang sudah diperbaiki di onu-detail.php (commit fcdb17c). ONU dengan
+last_rx_power = 0.00 dBm salah tampil sebagai "N/A" bukan nilai aktual.
+**Fix:** Ubah `if ($onu['last_rx_power'])` menjadi `if ($onu['last_rx_power'] !== null)` untuk Rx ONU
+dan Rx OLT (2 baris di lines 690 dan 706).
+**Tier:** 1 (frontend PHP, no OLT impact)
+
+---
+
 ## 2026-09-17 — Restore Zone/Splitter/Profil DL/Profil UL columns in configured.php table
 
 **Commit:** a716673
