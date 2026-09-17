@@ -1,3 +1,14 @@
+## 2026-09-18 — Fix onu_type sanitizer + stats number format consistency
+
+**File:** `frontend/action/auth-onu.php`, `frontend/action/update-onu-mode.php`, `frontend/configured.php`
+**Masalah 1:** `onu_type` memakai `cli_safe_strict()` yang strip spasi dari nilai — berisiko corrupt nama ONU type yang mengandung spasi (saat ini tidak ada type dengan spasi, tapi ini bug latensi yang bisa muncul kapan saja user menambah type baru).
+**Fix 1:** Ganti `cli_safe_strict` → `cli_safe` untuk `onu_type` di kedua action handler. `cli_safe` tetap filter karakter berbahaya tapi izinkan spasi.
+**Masalah 2:** Stats cards di configured.php dirender PHP dengan `number_format()` (format English: `1,500`) tapi live-poll JS pakai `toLocaleString('id-ID')` (format Indonesian: `1.500`). Angka berubah format separator ribuan setelah 60 detik.
+**Fix 2:** JS stats pakai `toLocaleString('en-US')` supaya konsisten dengan server-rendered value.
+**Scope:** App-side only, zero OLT impact. Desktop + mobile (tidak ada perubahan layout).
+
+---
+
 ## 2026-09-18 — Fix mobile responsiveness for Update ONU Mode modal
 
 **File:** `frontend/onu-detail-css.php`
