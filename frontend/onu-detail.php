@@ -349,7 +349,7 @@ if (!empty($onu['onu_type'])) {
             <?php
             $has_coords = ($onu['latitude'] ?? null) && ($onu['longitude'] ?? null);
             ?>
-            <div class="detail-plain-row" <?php if ($has_coords) echo 'data-clickable onclick="window.open(\'https://www.google.com/maps?q=' . $onu['latitude'] . ',' . $onu['longitude'] . '\', \'_blank\')"'; ?>>
+            <div class="detail-plain-row" <?php if ($has_coords) echo 'data-clickable onclick="window.open(\'https://www.google.com/maps?q=' . htmlspecialchars($onu['latitude']) . ',' . htmlspecialchars($onu['longitude']) . '\', \'_blank\')"'; ?>>
                 <span class="detail-plain-label">Lokasi</span>
                 <span class="detail-plain-value">
                     <?php if ($has_coords): ?>
