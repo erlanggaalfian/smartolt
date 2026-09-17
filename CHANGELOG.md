@@ -1,3 +1,20 @@
+## 2026-09-17 — Fix needFullSync retry on OLT error + mgmt_ip auto-refresh
+
+**File:** `frontend/onu-detail.php`
+**Masalah 1:** `needFullSync` hanya di-reset saat network error (`.catch()`), tapi
+tidak saat OLT mengembalikan error HTTP 502 (`data.success === false`). Akibat: jika
+full sync pertama gagal karena OLT timeout/unreachable, polling berikutnya selalu
+menggunakan snmp mode dan VLAN/PPPoE/distance tidak pernah ter-sync ulang sampai
+manual page reload.
+**Masalah 2:** Field IP Manajemen (`#detail-mgmt-ip`) tidak di-update oleh auto-refresh
+polling 15 detik, padahal `data.mgmt_ip` tersedia di response JSON onu-data.php.
+**Fix 1:** Tambah `needFullSync = true` di else block (OLT error handler) supaya
+retry full sync pada poll cycle berikutnya.
+**Fix 2:** Tambah update `mgmt_ip` di auto-refresh JS, termasuk link eksternal.
+**Scope:** ONU Detail page only, no OLT interaction.
+
+---
+
 ## 2026-09-17 — Fix splitter dropdown reset on zone change in onu-detail.php
 
 **File:** `frontend/onu-detail.php`
