@@ -607,10 +607,14 @@ $onus = $stmt_data->fetchAll();
                     <tr>
                         <th>Status</th>
                         <th>Nama Pelanggan</th>
+                        <th>Zone</th>
+                        <th>Splitter</th>
                         <th>Serial Number</th>
                         <th>Koneksi OLT & PON</th>
                         <th>VLAN</th>
                         <th>WAN</th>
+                        <th>Profil DL</th>
+                        <th>Profil UL</th>
                         <th>Sinyal Rx ONU</th>
                         <th>Sinyal Rx OLT</th>
                         <th>Last Down</th>
@@ -621,7 +625,7 @@ $onus = $stmt_data->fetchAll();
                 <tbody>
                     <?php if (empty($onus)): ?>
                         <tr>
-                            <td colspan="11" style="text-align:center;color:var(--text-muted);padding:16px;">Tidak ada ONU terdaftar yang sesuai dengan kriteria filter.</td>
+                            <td colspan="15" style="text-align:center;color:var(--text-muted);padding:16px;">Tidak ada ONU terdaftar yang sesuai dengan kriteria filter.</td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($onus as $onu): ?>
@@ -636,6 +640,8 @@ $onus = $stmt_data->fetchAll();
                                     <?php endif; ?>
                                 </td>
                                 <td><strong><?php echo htmlspecialchars(extract_customer_name($onu['name'])); ?></strong></td>
+                                <td style="font-size:0.8rem;color:var(--text-muted);"><?php echo htmlspecialchars($onu['zone'] ?: '-'); ?></td>
+                                <td style="font-size:0.8rem;color:var(--text-muted);"><?php echo htmlspecialchars($onu['splitter'] ?: '-'); ?></td>
                                 <td><code><?php echo htmlspecialchars($onu['serial_number']); ?></code></td>
                                 <td>
                                     <?php echo htmlspecialchars($onu['olt_name']); ?><br>
@@ -643,6 +649,8 @@ $onus = $stmt_data->fetchAll();
                                 </td>
                                 <td class="vlan-cell"><span class="badge bg-green"><?php echo htmlspecialchars($onu['vlan'] ?: '-'); ?></span></td>
                                 <td><span class="badge bg-blue"><?php echo htmlspecialchars($onu['wan_mode'] === 'Static' ? 'Static IP' : ($onu['wan_mode'] ?: '-')); ?></span></td>
+                                <td style="font-size:0.8rem;color:var(--text-muted);" title="<?php echo htmlspecialchars($onu['download_profile'] ?: ''); ?>"><?php echo htmlspecialchars($onu['download_profile'] ?: '-'); ?></td>
+                                <td style="font-size:0.8rem;color:var(--text-muted);" title="<?php echo htmlspecialchars($onu['upload_profile'] ?: ''); ?>"><?php echo htmlspecialchars($onu['upload_profile'] ?: '-'); ?></td>
                                 <td class="signal-cell">
                                     <?php if ($onu['status'] === 'online' && $onu['last_rx_power']): ?>
                                         <?php 
