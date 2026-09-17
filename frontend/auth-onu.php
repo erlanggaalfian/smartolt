@@ -43,6 +43,12 @@ $board_port_display = count($pon_parts) === 3 ? "Shelf {$pon_parts[0]} / Slot {$
     .btn-icon-square { width:38px; height:38px; flex:0 0 38px; display:inline-flex; align-items:center; justify-content:center; border:1px solid var(--border-color); border-radius:6px; background:var(--bg-tertiary); cursor:pointer; }
     .btn-link-plain { color:var(--color-accent); background:none; border:none; padding:0; cursor:pointer; font-weight:600; text-decoration:none; }
     #gps-fields { margin-top:10px; display:flex; gap:8px; }
+    @media (max-width: 600px) {
+        .auth-form-row { flex-direction:column; gap:4px; }
+        .auth-form-row label { flex:0 0 auto; padding-top:0; font-size:0.85rem; }
+        .auth-preset-row { flex-direction:column; align-items:stretch; }
+        #gps-fields { flex-direction:column; }
+    }
 </style>
 
 <div class="content-card">

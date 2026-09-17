@@ -1,3 +1,10 @@
+## 2026-09-17 — auth-onu.php mobile responsive fix
+
+**File:** `frontend/auth-onu.php`
+**Masalah:** Form otorisasi punya label `flex:0 0 200px` tanpa media query — di mobile (<600px), input field terkompresi jadi ~100px, sulit diisi.
+**Fix:** Tambah `@media (max-width: 600px)` — form row jadi vertikal (label di atas, input full-width), preset row juga stacked, GPS fields stacked. Desktop unchanged.
+**Cakupan:** Mobile only (≤600px). Desktop layout tidak berubah.
+
 ## 2026-09-17 — ONU Type filter dropdown + inline font-family cleanup
 
 **Commit:** e49377a
