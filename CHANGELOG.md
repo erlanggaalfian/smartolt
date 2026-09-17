@@ -1,3 +1,16 @@
+## 2026-09-17 — Consolidate duplicate filter logic in configured.php stats query
+
+**Commit:** 1c604c0
+**Files:** `frontend/configured.php`
+**Masalah:** Stats query (Online/Offline/Disabled count) menyalin ulang seluruh filter logic
+(23-kolom LIKE search + zone/odb/pon/signal/OLT filters) dari main query — 37 baris duplikat.
+Kalau filter baru ditambah ke satu tapi lupa yang lain, stats bisa diverge dari data aktual.
+**Fix:** Reuse `$filter_sql` + `$params` yang sudah dibangun untuk main query, hapus duplikasi.
+Placeholder search juga disingkat dari daftar 23 kolom menjadi ringkas (simpel, padat).
+**Scope:** Desktop + mobile (table layout unchanged, only PHP backend logic + placeholder text).
+
+---
+
 ## 2026-09-17 — Fix fragile cell[N] indices in configured.php live-polling
 
 **Commit:** ea280ff
