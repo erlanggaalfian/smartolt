@@ -448,7 +448,7 @@ if (!empty($onu['onu_type'])) {
             <div class="detail-plain-row" data-clickable onclick="document.getElementById('update-onu-mode-modal').classList.add('open')">
                 <span class="detail-plain-label">Mode setup WAN</span>
                 <span class="detail-plain-value" id="detail-wan-setup">
-                    <i data-lucide="pencil" style="width:11px;height:11px;"></i> <?php echo htmlspecialchars($onu['wan_mode'] ?: 'Setup via ONU webpage'); ?> (<?php echo htmlspecialchars($onu['config_method'] ?: 'OMCI'); ?>)
+                    <i data-lucide="pencil" style="width:11px;height:11px;"></i> <?php echo htmlspecialchars($onu['wan_mode'] === 'Static' ? 'Static IP' : ($onu['wan_mode'] ?: 'Setup via ONU webpage')); ?> (<?php echo htmlspecialchars($onu['config_method'] ?: 'OMCI'); ?>)
 
                     <span id="detail-pppoe-ip-wrapper">
                         <?php if (!empty($onu['pppoe_ip'])): ?>

@@ -642,7 +642,7 @@ $onus = $stmt_data->fetchAll();
                                     PON <?php echo htmlspecialchars($onu['pon_port'] . ':' . $onu['onu_id']); ?>
                                 </td>
                                 <td class="vlan-cell"><span class="badge bg-green"><?php echo htmlspecialchars($onu['vlan'] ?: '-'); ?></span></td>
-                                <td><span class="badge bg-blue"><?php echo htmlspecialchars($onu['wan_mode'] ?: '-'); ?></span></td>
+                                <td><span class="badge bg-blue"><?php echo htmlspecialchars($onu['wan_mode'] === 'Static' ? 'Static IP' : ($onu['wan_mode'] ?: '-')); ?></span></td>
                                 <td class="signal-cell">
                                     <?php if ($onu['status'] === 'online' && $onu['last_rx_power']): ?>
                                         <?php 
