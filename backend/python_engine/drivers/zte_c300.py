@@ -1018,6 +1018,12 @@ class OltZteC300Driver(BaseDriver):
                 'pon_port': pon_port
             }
 
+        # Sanitize profile names before CLI interpolation (command injection prevention)
+        if upload_profile:
+            upload_profile = self._sanitize_profile_name(upload_profile)
+        if download_profile:
+            download_profile = self._sanitize_profile_name(download_profile)
+
         # 1. Cari ONU ID berikutnya yang kosong jika onu_id = None
         if onu_id is None:
             raw_ids = execute_ssh_commands(olt, [f"show gpon onu uncfg gpon-olt_{pon_port}"])
