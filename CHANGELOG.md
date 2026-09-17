@@ -999,3 +999,11 @@ backup_configs.py, auth.py, registry.py, plus drivers/ subdir). Ini salinan
 lama dari file asli di `backend/python_engine/` — tidak dipakai oleh PHP manapun,
 tidak di-serve Apache, hanya clutter di repo.
 **Scope:** Repo cleanup only, no live impact.
+
+## 2026-09-17 — sync-olt.php GET trigger removal + CSRF #5 closure
+- **Fix:** `sync-olt.php` accept GET request (`isset($_GET['olt_id'])`) yang bypass
+  CSRF middleware. Frontend configured.php sudah pakai POST, GET path = dead code.
+  Dihapus, sekarang POST-only (commit 5848700).
+- **REVIEW.md:** Proposal #5 CSRF ditolak — `backend/config.php` middleware (lines 77-97)
+  sudah verifikasi CSRF otomatis untuk SEMUA POST action handlers. Proposal berdasarkan
+  asumsi keliru bahwa hanya `onu-types.php`/`splitters.php` yang punya CSRF check.
