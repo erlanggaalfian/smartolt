@@ -1,3 +1,11 @@
+## 2026-09-17 — Fix pending-write tracking in 6 action handlers
+
+**File:** `frontend/action/{update-onu-mode,delete-onu,onu-state,restore-factory,reboot-onu,replace-onu}.php`
+**Masalah:** Array `$olt` di 6 action handler tidak punya key `'id'`. Saat handler mengirim command config ke OLT (configureOnuFull, deleteOnu, enable/disable, restoreFactory, replaceOnu), `helper.py`'s `_mark_pending_write(olt)` gagal menyimpan marker karena `olt.get('id')` mengembalikan `None`. Akibat: config yang dikirim lewat jalur ini tidak pernah auto-flush ke flash oleh `smartolt-flush-write` timer (tiap 10 menit). Jika OLT restart sebelum flush manual, config hilang.
+**Fix:** Tambah `'id' => (int)$olt_id` ke setiap array `$olt`. `auth-onu.php` sudah benar (pakai `SELECT *` dari olts).
+
+---
+
 ## 2026-09-17 — Chart colors theme-aware (light mode fix)
 
 **File:** `frontend/onu-detail.php`
