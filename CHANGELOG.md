@@ -1,3 +1,17 @@
+## 2026-09-18 — Fix mobile responsiveness for Update ONU Mode modal
+
+**File:** `frontend/onu-detail-css.php`
+**Masalah:** Table-based form layout di update-onu-mode-modal (onu-detail.php)
+cramp/overflow horizontal pada layar <500px — kolom label 160px + input max 320px
+tidak muat di modal width 90% (≈324px di viewport 360px), menyebabkan layout
+terpotong atau perlu scroll horizontal.
+**Fix:** Tambah media query `@media (max-width:500px)` yang convert table/tr/td
+jadi `display:block` (stacked layout: label di atas, input di bawah). Label `height`
+inline di-override ke `auto`. Desktop/tablet layout tidak terpengaruh.
+**Commit:** 9d5f75d
+
+---
+
 ## 2026-09-17 — Fix zone→splitter cascade in edit-identity modal (desktop+mobile)
 
 **File:** `frontend/onu-detail.php`
