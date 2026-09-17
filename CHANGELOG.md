@@ -1,3 +1,12 @@
+## 2026-09-17 — ONU Type filter dropdown + inline font-family cleanup
+
+**Commit:** e49377a
+**File:** `frontend/configured.php`, `frontend/onu-detail.php`
+**Masalah:** configured.php punya filter untuk OLT/status/zone/ODB/PON/sinyal tapi tidak ada filter per Tipe ONU (e.g. ZTE F670L, CDATA). Juga ada 4 modal h3 dengan inline `font-family: 'Poppins'` yang redundan dengan CSS `--font-heading`.
+**Fix:** (1) Tambah dropdown filter "Tipe ONU" di configured.php — query DISTINCT onu_type dari DB, scoped per-OLT, dengan SQL prepared statement. Filter ikut terbawa di pagination, CSV export, dan tombol Reset. (2) Hapus inline `font-family` dari 4 modal h3 di onu-detail.php supaya pakai CSS var(--font-heading) — mencegah font hardcoded kalau tema berubah.
+**Tier:** 1 (UI only, zero OLT impact)
+**Scope:** Desktop + mobile (filter dropdown responsif via filter-row flex-wrap)
+**Dampak OLT/ONU:** Tidak ada. Filter murni query DB lokal.
 ## 2026-09-17 — Add distance_m to SNMP polling mode
 
 **Commit:** 71c1853
