@@ -255,6 +255,8 @@ $board_port_display = count($pon_parts) === 3 ? "Shelf {$pon_parts[0]} / Slot {$
         let splitterDataMap = {};
         let pendingPresetVlan = null;   // deferred VLAN from preset if list not loaded yet
         let pendingPresetSplitter = null; // deferred splitter from preset if zone load not done yet
+        let pendingPresetDl = null;     // deferred download profile from preset
+        let pendingPresetUl = null;     // deferred upload profile from preset
 
         function updateSplitterUsage() {
             const s = splitterDataMap[authSplitterSelect.value];
@@ -409,6 +411,15 @@ $board_port_display = count($pon_parts) === 3 ? "Shelf {$pon_parts[0]} / Slot {$
                         : '<option value="" disabled selected>Belum ada profile di OLT ini</option>';
                     downloadSelect.innerHTML = mk(downs);
                     uploadSelect.innerHTML = mk(ups);
+                    // Apply deferred preset speed profiles if pending
+                    if (pendingPresetDl) {
+                        if ([...downloadSelect.options].some(o => o.value === pendingPresetDl)) downloadSelect.value = pendingPresetDl;
+                        pendingPresetDl = null;
+                    }
+                    if (pendingPresetUl) {
+                        if ([...uploadSelect.options].some(o => o.value === pendingPresetUl)) uploadSelect.value = pendingPresetUl;
+                        pendingPresetUl = null;
+                    }
                 })
                 .catch(() => {
                     downloadSelect.innerHTML = '<option value="" disabled selected>Error</option>';
@@ -452,9 +463,13 @@ $board_port_display = count($pon_parts) === 3 ? "Shelf {$pon_parts[0]} / Slot {$
             }
             if (p.download_profile && [...downloadSelect.options].some(o => o.value === p.download_profile)) {
                 downloadSelect.value = p.download_profile;
+            } else if (p.download_profile) {
+                pendingPresetDl = p.download_profile; // profiles not loaded yet, defer
             }
             if (p.upload_profile && [...uploadSelect.options].some(o => o.value === p.upload_profile)) {
                 uploadSelect.value = p.upload_profile;
+            } else if (p.upload_profile) {
+                pendingPresetUl = p.upload_profile; // profiles not loaded yet, defer
             }
             // Zone -> set + trigger splitter load
             if (p.zone) {

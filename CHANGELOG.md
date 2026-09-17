@@ -1,3 +1,11 @@
+## 2026-09-17 — Fix preset speed profile deferred handling in auth-onu.php
+
+**File:** `frontend/auth-onu.php`
+**Masalah:** Saat user memilih preset sebelum daftar speed profile selesai dimuat (koneksi lambat), download/upload profile select tidak ter-apply — silent no-op, tidak ada deferred mechanism seperti yang sudah ada untuk VLAN (`pendingPresetVlan`) dan Splitter (`pendingPresetSplitter`).
+**Fix:** Tambah `pendingPresetDl`/`pendingPresetUl` deferred variables. Saat preset dipilih dan profile belum loaded, nilainya disimpan. Saat `fetchSpeed_profiles()` selesai, deferred values langsung di-apply.
+
+---
+
 ## 2026-09-17 — Live-update stats cards (Online/Offline/Disabled/Total) on configured.php
 
 **File:** `frontend/configured.php`
