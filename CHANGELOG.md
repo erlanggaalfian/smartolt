@@ -1,3 +1,17 @@
+## 2026-09-17 — Sanitize profile names in authorize_onu() (command injection prevention)
+
+**Commit:** 6ff4799
+**Files:** `backend/python_engine/drivers/zte_c300.py`, `backend/python_engine/drivers/zte_c320.py`
+**Masalah:** `authorize_onu()` interpolasi `upload_profile`/`download_profile` langsung ke CLI
+command string tanpa sanitasi. `assign_speed_profile()` sudah panggil `_sanitize_profile_name()`
+tapi `authorize_onu()` belum — celah command injection via POST forged (profile name containing
+newlines/command chars).
+**Fix:** Tambah `_sanitize_profile_name()` untuk kedua parameter di awal `authorize_onu()`.
+Konsisten dengan `assign_speed_profile()`.
+**Tier:** 1 (driver Python, hardening, no OLT config change)
+
+---
+
 ## 2026-09-17 — Fix signal display false-negative for 0.00 dBm in configured.php
 
 **Commit:** 81db9cb
