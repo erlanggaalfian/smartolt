@@ -323,7 +323,8 @@ $onus = $stmt_data->fetchAll();
                         if (!onu) return;
 
                         // Skip update if nothing changed for this ONU
-                        if (row.getAttribute('data-status') === onu.status &&
+                        if (row.getAttribute('data-name') === (onu.name || '') &&
+                            row.getAttribute('data-status') === onu.status &&
                             row.getAttribute('data-vlan') === String(onu.vlan || 'None') &&
                             row.getAttribute('data-rx-onu') === String(onu.rx_onu) &&
                             row.getAttribute('data-rx-olt') === String(onu.rx_olt) &&
@@ -348,6 +349,14 @@ $onus = $stmt_data->fetchAll();
                             }
                         }
                         row.setAttribute('data-status', onu.status);
+                        row.setAttribute('data-name', onu.name || '');
+
+                        // Update customer name
+                        const nameCell = row.querySelector('.name-cell');
+                        if (nameCell) {
+                            nameCell.innerHTML = `<strong>${esc(onu.customer_name || '-')}</strong>`;
+                        }
+
                         row.setAttribute('data-vlan', onu.vlan || 'None');
                         row.setAttribute('data-rx-onu', onu.rx_onu);
                         row.setAttribute('data-rx-olt', onu.rx_olt);
@@ -667,7 +676,7 @@ $onus = $stmt_data->fetchAll();
                         </tr>
                     <?php else: ?>
                         <?php foreach ($onus as $onu): ?>
-                            <tr class="onu-row" data-onu-id="<?php echo (int)$onu['id']; ?>" data-status="<?php echo htmlspecialchars($onu['status']); ?>" data-vlan="<?php echo htmlspecialchars($onu['vlan'] ?: 'None'); ?>" data-rx-onu="<?php echo htmlspecialchars($onu['last_rx_power'] ?? 'N/A'); ?>" data-rx-olt="<?php echo htmlspecialchars($onu['last_rx_olt_power'] ?? 'N/A'); ?>" data-down-cause="<?php echo htmlspecialchars($onu['last_down_cause'] ?? '-'); ?>" data-wan="<?php echo htmlspecialchars($onu['wan_mode'] ?? ''); ?>" data-dl-prof="<?php echo htmlspecialchars($onu['download_profile'] ?? ''); ?>" data-ul-prof="<?php echo htmlspecialchars($onu['upload_profile'] ?? ''); ?>" data-onu-type="<?php echo htmlspecialchars($onu['onu_type'] ?? ''); ?>">
+                            <tr class="onu-row" data-onu-id="<?php echo (int)$onu['id']; ?>" data-name="<?php echo htmlspecialchars($onu['name'] ?? ''); ?>" data-status="<?php echo htmlspecialchars($onu['status']); ?>" data-vlan="<?php echo htmlspecialchars($onu['vlan'] ?: 'None'); ?>" data-rx-onu="<?php echo htmlspecialchars($onu['last_rx_power'] ?? 'N/A'); ?>" data-rx-olt="<?php echo htmlspecialchars($onu['last_rx_olt_power'] ?? 'N/A'); ?>" data-down-cause="<?php echo htmlspecialchars($onu['last_down_cause'] ?? '-'); ?>" data-wan="<?php echo htmlspecialchars($onu['wan_mode'] ?? ''); ?>" data-dl-prof="<?php echo htmlspecialchars($onu['download_profile'] ?? ''); ?>" data-ul-prof="<?php echo htmlspecialchars($onu['upload_profile'] ?? ''); ?>" data-onu-type="<?php echo htmlspecialchars($onu['onu_type'] ?? ''); ?>">
                                 <td class="status-cell">
                                     <?php if ($onu['status'] === 'online'): ?>
                                         <span class="badge bg-green"><i data-lucide="globe" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:4px;"></i> Online</span>
@@ -677,7 +686,7 @@ $onus = $stmt_data->fetchAll();
                                         <span class="badge bg-red"><i data-lucide="plug" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:4px;"></i> Offline</span>
                                     <?php endif; ?>
                                 </td>
-                                <td><strong><?php echo htmlspecialchars(extract_customer_name($onu['name'])); ?></strong></td>
+                                <td class="name-cell"><strong><?php echo htmlspecialchars(extract_customer_name($onu['name'])); ?></strong></td>
                                 <td style="font-size:0.8rem;color:var(--text-muted);"><?php echo htmlspecialchars($onu['zone'] ?: '-'); ?></td>
                                 <td style="font-size:0.8rem;color:var(--text-muted);"><?php echo htmlspecialchars($onu['splitter'] ?: '-'); ?></td>
                                 <td><code><?php echo htmlspecialchars($onu['serial_number']); ?></code></td>

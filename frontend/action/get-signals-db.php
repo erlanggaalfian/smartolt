@@ -26,8 +26,8 @@ try {
     // Lightweight ETag check: XOR-CRC32 per row avoids GROUP_CONCAT 1024-byte limit.
     // Cron bumps updated_at every cycle but signal data rarely changes.
     $hash_sql = $olt_id !== ''
-        ? "SELECT BIT_XOR(CRC32(CONCAT_WS('|',status,COALESCE(last_rx_power,''),COALESCE(last_rx_olt_power,''),COALESCE(last_down_cause,''),COALESCE(vlan,''),COALESCE(wan_mode,''),COALESCE(download_profile,''),COALESCE(upload_profile,''),COALESCE(onu_type,'')))) AS data_crc, COUNT(*) AS cnt FROM onus WHERE olt_id = ?"
-        : "SELECT BIT_XOR(CRC32(CONCAT_WS('|',status,COALESCE(last_rx_power,''),COALESCE(last_rx_olt_power,''),COALESCE(last_down_cause,''),COALESCE(vlan,''),COALESCE(wan_mode,''),COALESCE(download_profile,''),COALESCE(upload_profile,''),COALESCE(onu_type,'')))) AS data_crc, COUNT(*) AS cnt FROM onus WHERE olt_id IN ($allowed_ids_str)";
+        ? "SELECT BIT_XOR(CRC32(CONCAT_WS('|',status,COALESCE(last_rx_power,''),COALESCE(last_rx_olt_power,''),COALESCE(last_down_cause,''),COALESCE(vlan,''),COALESCE(wan_mode,''),COALESCE(download_profile,''),COALESCE(upload_profile,''),COALESCE(onu_type,''),COALESCE(name,'')))) AS data_crc, COUNT(*) AS cnt FROM onus WHERE olt_id = ?"
+        : "SELECT BIT_XOR(CRC32(CONCAT_WS('|',status,COALESCE(last_rx_power,''),COALESCE(last_rx_olt_power,''),COALESCE(last_down_cause,''),COALESCE(vlan,''),COALESCE(wan_mode,''),COALESCE(download_profile,''),COALESCE(upload_profile,''),COALESCE(onu_type,''),COALESCE(name,'')))) AS data_crc, COUNT(*) AS cnt FROM onus WHERE olt_id IN ($allowed_ids_str)";
     $meta_sth = $olt_id !== '' ? $pdo->prepare($hash_sql) : $pdo->query($hash_sql);
     if ($olt_id !== '') $meta_sth->execute([$olt_id]);
     $meta = $meta_sth->fetch(PDO::FETCH_ASSOC);
@@ -42,10 +42,10 @@ try {
     }
 
     if ($olt_id !== '') {
-        $stmt = $pdo->prepare("SELECT id, status, vlan, last_rx_power, last_rx_olt_power, last_down_cause, wan_mode, download_profile, upload_profile, onu_type FROM onus WHERE olt_id = ?");
+        $stmt = $pdo->prepare("SELECT id, name, status, vlan, last_rx_power, last_rx_olt_power, last_down_cause, wan_mode, download_profile, upload_profile, onu_type FROM onus WHERE olt_id = ?");
         $stmt->execute([$olt_id]);
     } else {
-        $stmt = $pdo->query("SELECT id, status, vlan, last_rx_power, last_rx_olt_power, last_down_cause, wan_mode, download_profile, upload_profile, onu_type FROM onus WHERE olt_id IN ($allowed_ids_str)");
+        $stmt = $pdo->query("SELECT id, name, status, vlan, last_rx_power, last_rx_olt_power, last_down_cause, wan_mode, download_profile, upload_profile, onu_type FROM onus WHERE olt_id IN ($allowed_ids_str)");
     }
 
     $onus = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -55,6 +55,8 @@ try {
     foreach ($onus as $onu) {
         $data[] = [
             'id' => (int)$onu['id'],
+            'name' => $onu['name'] ?? '',
+            'customer_name' => extract_customer_name($onu['name'] ?? ''),
             'status' => $onu['status'],
             'vlan' => $onu['vlan'] !== null ? (int)$onu['vlan'] : null,
             'rx_onu' => $onu['last_rx_power'] !== null ? number_format((float)$onu['last_rx_power'], 2) : 'N/A',
