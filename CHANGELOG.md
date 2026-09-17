@@ -1,3 +1,11 @@
+## 2026-09-17 — Live-update stats cards (Online/Offline/Disabled/Total) on configured.php
+
+**File:** `frontend/configured.php`
+**Masalah:** Stats cards (Total/Online/Offline/Disabled) di atas tabel configured.php hanya di-render server-side saat page load. Live-polling (tiap 60 detik) sudah update baris tabel per-ONU tapi tidak pernah refresh angka stats — user bisa lihat "Online: 1500" padahal tabel sudah menunjukkan perubahan status.
+**Fix:** Tambah `id` atribut ke stats card value spans. Di `updateAllOnuSignals()`, hitung status counts dari data ONU yang sudah dikembalikan endpoint (full dataset, bukan hanya current page) dan update stats cards setiap poll cycle. Zero extra DB query — data sudah ada di response.
+
+---
+
 ## 2026-09-17 — Fix pending-write tracking in 6 action handlers
 
 **File:** `frontend/action/{update-onu-mode,delete-onu,onu-state,restore-factory,reboot-onu,replace-onu}.php`

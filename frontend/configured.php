@@ -269,22 +269,22 @@ $onus = $stmt_data->fetchAll();
 <div style="display:flex; gap:16px; flex-wrap:wrap; margin-bottom:16px;">
     <div style="display:flex; align-items:center; gap:8px; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:8px; padding:10px 16px;">
         <span style="font-size:0.85rem; color:var(--text-muted);">Total</span>
-        <span style="font-size:1.25rem; font-weight:700; color:var(--text-main);"><?php echo number_format($stats_total); ?></span>
+        <span id="stat-total" style="font-size:1.25rem; font-weight:700; color:var(--text-main);"><?php echo number_format($stats_total); ?></span>
     </div>
     <div style="display:flex; align-items:center; gap:8px; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:8px; padding:10px 16px;">
         <span style="width:8px;height:8px;border-radius:50%;background:var(--color-success);display:inline-block;"></span>
         <span style="font-size:0.85rem; color:var(--text-muted);">Online</span>
-        <span style="font-size:1.25rem; font-weight:700; color:var(--color-success);"><?php echo number_format($stats_map['online']); ?></span>
+        <span id="stat-online" style="font-size:1.25rem; font-weight:700; color:var(--color-success);"><?php echo number_format($stats_map['online']); ?></span>
     </div>
     <div style="display:flex; align-items:center; gap:8px; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:8px; padding:10px 16px;">
         <span style="width:8px;height:8px;border-radius:50%;background:var(--color-danger);display:inline-block;"></span>
         <span style="font-size:0.85rem; color:var(--text-muted);">Offline</span>
-        <span style="font-size:1.25rem; font-weight:700; color:var(--color-danger);"><?php echo number_format($stats_map['offline']); ?></span>
+        <span id="stat-offline" style="font-size:1.25rem; font-weight:700; color:var(--color-danger);"><?php echo number_format($stats_map['offline']); ?></span>
     </div>
     <div style="display:flex; align-items:center; gap:8px; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:8px; padding:10px 16px;">
         <span style="width:8px;height:8px;border-radius:50%;background:var(--color-warning);display:inline-block;"></span>
         <span style="font-size:0.85rem; color:var(--text-muted);">Disabled</span>
-        <span style="font-size:1.25rem; font-weight:700; color:var(--color-warning);"><?php echo number_format($stats_map['disabled']); ?></span>
+        <span id="stat-disabled" style="font-size:1.25rem; font-weight:700; color:var(--color-warning);"><?php echo number_format($stats_map['disabled']); ?></span>
     </div>
 </div>
 
@@ -438,6 +438,24 @@ $onus = $stmt_data->fetchAll();
                     // Re-initialize Lucide icons only if DOM was actually modified
                     if (domChanged && typeof lucide !== 'undefined') {
                         lucide.createIcons();
+                    }
+
+                    // Update stats cards from full ONU dataset (only when no extra filters active)
+                    // get-signals-db.php returns full OLT data, not filtered subset
+                    const hasExtraFilters = <?php echo (!empty($filter_zone) || !empty($filter_odb) || !empty($filter_pon) || !empty($filter_signal) || !empty($filter_type) || $status !== '') ? 'true' : 'false'; ?>;
+                    if (!hasExtraFilters) {
+                        const statusCounts = { online: 0, offline: 0, disabled: 0 };
+                        data.onus.forEach(o => {
+                            if (statusCounts[o.status] !== undefined) statusCounts[o.status]++;
+                        });
+                        const statTotal = document.getElementById('stat-total');
+                        const statOnline = document.getElementById('stat-online');
+                        const statOffline = document.getElementById('stat-offline');
+                        const statDisabled = document.getElementById('stat-disabled');
+                        if (statTotal) statTotal.textContent = data.onus.length.toLocaleString('id-ID');
+                        if (statOnline) statOnline.textContent = statusCounts.online.toLocaleString('id-ID');
+                        if (statOffline) statOffline.textContent = statusCounts.offline.toLocaleString('id-ID');
+                        if (statDisabled) statDisabled.textContent = statusCounts.disabled.toLocaleString('id-ID');
                     }
                 }
             } catch (err) {
