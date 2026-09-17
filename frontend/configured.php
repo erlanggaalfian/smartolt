@@ -344,7 +344,11 @@ $onus = $stmt_data->fetchAll();
                             row.getAttribute('data-vlan') === String(onu.vlan || 'None') &&
                             row.getAttribute('data-rx-onu') === String(onu.rx_onu) &&
                             row.getAttribute('data-rx-olt') === String(onu.rx_olt) &&
-                            row.getAttribute('data-down-cause') === String(onu.last_down_cause || '-')) {
+                            row.getAttribute('data-down-cause') === String(onu.last_down_cause || '-') &&
+                            row.getAttribute('data-wan') === String(onu.wan_mode || '') &&
+                            row.getAttribute('data-dl-prof') === String(onu.download_profile || '') &&
+                            row.getAttribute('data-ul-prof') === String(onu.upload_profile || '') &&
+                            row.getAttribute('data-onu-type') === String(onu.onu_type || '')) {
                             return;
                         }
                         domChanged = true;
@@ -416,6 +420,37 @@ $onus = $stmt_data->fetchAll();
                         if (updatedCell) {
                             updatedCell.textContent = onu.last_down_cause || '-';
                         }
+
+                        // Update WAN mode badge (3rd-from-last <td>, profile cols are before it)
+                        const cells = row.querySelectorAll('td');
+                        const wanCell = cells[7]; // 0-indexed: status, nama, zone, splitter, SN, OLT&PON, VLAN, WAN, ...
+                        if (wanCell) {
+                            const wanDisplay = onu.wan_mode === 'Static' ? 'Static IP' : (onu.wan_mode || '-');
+                            wanCell.innerHTML = `<span class="badge bg-blue">${esc(wanDisplay)}</span>`;
+                        }
+                        // Update Profil DL
+                        const dlCell = cells[8];
+                        if (dlCell) {
+                            dlCell.textContent = onu.download_profile || '-';
+                            dlCell.title = onu.download_profile || '';
+                        }
+                        // Update Profil UL
+                        const ulCell = cells[9];
+                        if (ulCell) {
+                            ulCell.textContent = onu.upload_profile || '-';
+                            ulCell.title = onu.upload_profile || '';
+                        }
+                        // Update ONU Type
+                        const typeCell = cells[13]; // last-but-one before Aksi
+                        if (typeCell) {
+                            typeCell.textContent = onu.onu_type || '-';
+                        }
+
+                        // Update data-attributes for next comparison
+                        row.setAttribute('data-wan', onu.wan_mode || '');
+                        row.setAttribute('data-dl-prof', onu.download_profile || '');
+                        row.setAttribute('data-ul-prof', onu.upload_profile || '');
+                        row.setAttribute('data-onu-type', onu.onu_type || '');
                     });
 
                     // Re-initialize Lucide icons only if DOM was actually modified
@@ -629,7 +664,7 @@ $onus = $stmt_data->fetchAll();
                         </tr>
                     <?php else: ?>
                         <?php foreach ($onus as $onu): ?>
-                            <tr class="onu-row" data-onu-id="<?php echo (int)$onu['id']; ?>" data-status="<?php echo htmlspecialchars($onu['status']); ?>" data-vlan="<?php echo htmlspecialchars($onu['vlan'] ?: 'None'); ?>" data-rx-onu="<?php echo htmlspecialchars($onu['last_rx_power'] ?? 'N/A'); ?>" data-rx-olt="<?php echo htmlspecialchars($onu['last_rx_olt_power'] ?? 'N/A'); ?>" data-down-cause="<?php echo htmlspecialchars($onu['last_down_cause'] ?? '-'); ?>">
+                            <tr class="onu-row" data-onu-id="<?php echo (int)$onu['id']; ?>" data-status="<?php echo htmlspecialchars($onu['status']); ?>" data-vlan="<?php echo htmlspecialchars($onu['vlan'] ?: 'None'); ?>" data-rx-onu="<?php echo htmlspecialchars($onu['last_rx_power'] ?? 'N/A'); ?>" data-rx-olt="<?php echo htmlspecialchars($onu['last_rx_olt_power'] ?? 'N/A'); ?>" data-down-cause="<?php echo htmlspecialchars($onu['last_down_cause'] ?? '-'); ?>" data-wan="<?php echo htmlspecialchars($onu['wan_mode'] ?? ''); ?>" data-dl-prof="<?php echo htmlspecialchars($onu['download_profile'] ?? ''); ?>" data-ul-prof="<?php echo htmlspecialchars($onu['upload_profile'] ?? ''); ?>" data-onu-type="<?php echo htmlspecialchars($onu['onu_type'] ?? ''); ?>">
                                 <td class="status-cell">
                                     <?php if ($onu['status'] === 'online'): ?>
                                         <span class="badge bg-green"><i data-lucide="globe" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:4px;"></i> Online</span>
