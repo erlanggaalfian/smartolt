@@ -227,7 +227,8 @@ if ($configure_success) {
                 external_id = ?,
                 latitude = ?,
                 longitude = ?,
-                description = ?
+                description = ?,
+                updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
         ");
         $stmt_upd->execute([
