@@ -1,3 +1,14 @@
+## 2026-09-17 — Fix: needFullSync stuck false on network error (onu-detail.php)
+
+- **Bug**: Jika fetch pertama `onu-data.php?full=1` gagal (network error/timeout),
+  `needFullSync` langsung `false` dan tidak pernah di-reset. Polling berikutnya
+  selalu pakai mode ringan (SNMP only) — field VLAN, PPPoE, distance, speed profile
+  stuck di placeholder sampai user manual refresh halaman.
+- **Fix**: Tambah `needFullSync = true` di `.catch()` handler JS supaya poll
+  berikutnya retry full sync otomatis.
+- **File**: `frontend/onu-detail.php` (1 baris ditambah)
+- **Tier**: 1 (murni frontend JS, tidak pengaruh OLT/pelanggan)
+
 # CHANGELOG.md — Riwayat Perubahan Otomatis
 
 ## 2026-09-17 — Fix: splitter ellipsis truncation onu-detail.php
