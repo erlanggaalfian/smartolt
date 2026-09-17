@@ -1174,3 +1174,14 @@ JS live-refresh tidak punya data `name` di response. User harus manual refresh h
    `<td>` nama pelanggan, dan JS live-update block yang meng-update nama dari response.
    
 **Cakupan:** Desktop + mobile (tabel responsive yang sama).
+
+## [2026-09-17] Fix XSS in GPS onclick handler (onu-detail.php)
+
+**Commit:** 487e1c6
+**Tier:** 1 (app-side, security fix)
+
+**Masalah:** `onu-detail.php` line 352 — `latitude`/`longitude` tidak di-escape di
+onclick attribute div "Lokasi". Meskipun nilai di-validasi `is_numeric()` saat input,
+defense-in-depth mewajibkan escape di setiap output point.
+
+**Fix:** Tambah `htmlspecialchars()` pada kedua nilai koordinat di onclick handler.
