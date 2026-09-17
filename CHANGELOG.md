@@ -1,4 +1,12 @@
 
+## 2026-09-18 — Fix: bump updated_at on identity/preset/type edits
+
+**File:** `frontend/action/update-onu-mode.php`
+**Masalah:** UPDATE query di update-onu-mode.php tidak set `updated_at = CURRENT_TIMESTAMP`. Semua action handler lain (onu-data.php, onu-query.php, sync-olt.php, replace-onu.php) sudah set. Akibat: setelah edit identitas/preset/type ONU, `onu-detail.php` menganggap data stale (>30 detik sejak `updated_at`) dan trigger full SSH sync yang tidak perlu di kunjungan berikutnya, sia-sia slot VTY OLT.
+**Fix:** Tambah `updated_at = CURRENT_TIMESTAMP` ke query UPDATE.
+**Scope:** App-side only, zero OLT/pelanggan impact. Desktop + mobile (tidak ada perubahan layout).
+**Commit:** d842b03
+
 ## 2026-09-18 — Fix CSV export missing onu_type filter
 
 **File:** `frontend/action/export-csv.php`
