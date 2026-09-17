@@ -283,6 +283,21 @@ interpolation, pertahankan semua karakter password umum. Update kedua file handl
 **Alasan:** Operator tidak bisa lihat speed tier pelanggan dari tabel — harus klik Detail tiap ONU. Search+CSV sudah punya field ini, tabel belum.
 **Risiko:** N/A — UI only, tidak sentuh OLT.
 
+## 2026-09-17 — Add wan_mode/profiles/onu_type to configured.php live polling
+
+**Commit:** f0a98ab
+**File:** `frontend/action/get-signals-db.php`, `frontend/configured.php`
+**Masalah:** Live polling configured.php (get-signals-db.php, tiap 60 detik) hanya refresh
+status/VLAN/signal/last_down. Kolom WAN, Profil DL, Profil UL, dan Tipe ONU tetap stale
+sampai full page reload — kalau user ganti WAN mode/speed profile di ONU Detail, configured
+table tidak ikut update.
+**Fix:**
+1. `get-signals-db.php`: tambah `wan_mode`, `download_profile`, `upload_profile`, `onu_type`
+   ke ETag hash, SELECT query, dan JSON response.
+2. `configured.php`: tambah `data-wan`/`data-dl-prof`/`data-ul-prof`/`data-onu-type`
+   attributes ke row. Update skip-check + DOM update untuk 4 kolom baru.
+**Scope:** App-side polling endpoint + frontend JS. Zero OLT impact.
+
 Setiap perubahan yang diterapkan otomatis oleh agen analisa (lihat REVIEW.md untuk
 kriteria eksekusi-otomatis vs wajib-review). Tiap entri = 1 commit git di repo ini.
 
