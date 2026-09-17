@@ -680,6 +680,12 @@ if (!empty($onu['onu_type'])) {
     document.addEventListener('DOMContentLoaded', () => {
         const onuId = "<?php echo (int)$onu['id']; ?>";
 
+        // Theme-aware chart colors
+        const _cs = getComputedStyle(document.documentElement);
+        const _chartText = _cs.getPropertyValue('--text-muted').trim() || '#9ca3af';
+        const _chartGrid = document.documentElement.classList.contains('light-mode')
+            ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.05)';
+
         // Setup Charts
         const ctxSignal = document.getElementById('signalChart').getContext('2d');
         const ctxTraffic = document.getElementById('trafficChart').getContext('2d');
@@ -707,10 +713,10 @@ if (!empty($onu['onu_type'])) {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { labels: { color: '#9ca3af' } } },
+                plugins: { legend: { labels: { color: _chartText } } },
                 scales: {
-                    x: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#9ca3af' } },
-                    y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#9ca3af' }, suggestedMin: -35, suggestedMax: -15 }
+                    x: { grid: { color: _chartGrid }, ticks: { color: _chartText } },
+                    y: { grid: { color: _chartGrid }, ticks: { color: _chartText }, suggestedMin: -35, suggestedMax: -15 }
                 }
             }
         });
@@ -741,10 +747,10 @@ if (!empty($onu['onu_type'])) {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { labels: { color: '#9ca3af' } } },
+                plugins: { legend: { labels: { color: _chartText } } },
                 scales: {
-                    x: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#9ca3af' } },
-                    y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#9ca3af' } }
+                    x: { grid: { color: _chartGrid }, ticks: { color: _chartText } },
+                    y: { grid: { color: _chartGrid }, ticks: { color: _chartText } }
                 }
             }
         });

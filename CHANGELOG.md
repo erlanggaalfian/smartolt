@@ -1,3 +1,11 @@
+## 2026-09-17 — Chart colors theme-aware (light mode fix)
+
+**File:** `frontend/onu-detail.php`
+**Masalah:** Chart signal dan traffic di `onu-detail.php` pakai warna hardcoded dark-mode (`#9ca3af`, `rgba(255,255,255,0.05)`) — di light mode, grid invisible (putih di atas putih), tick text nyaris tak terbaca.
+**Fix:** Baca `--text-muted` CSS variable dan deteksi `.light-mode` class untuk grid color. Grid: `rgba(0,0,0,0.08)` di light mode, `rgba(255,255,255,0.05)` di dark mode. Text: langsung dari CSS variable. Desktop + mobile.
+
+---
+
 ## 2026-09-17 — auth-onu.php mobile responsive fix
 
 **File:** `frontend/auth-onu.php`
