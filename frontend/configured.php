@@ -687,7 +687,7 @@ $onus = $stmt_data->fetchAll();
                                 <td style="font-size:0.8rem;color:var(--text-muted);" title="<?php echo htmlspecialchars($onu['download_profile'] ?: ''); ?>"><?php echo htmlspecialchars($onu['download_profile'] ?: '-'); ?></td>
                                 <td style="font-size:0.8rem;color:var(--text-muted);" title="<?php echo htmlspecialchars($onu['upload_profile'] ?: ''); ?>"><?php echo htmlspecialchars($onu['upload_profile'] ?: '-'); ?></td>
                                 <td class="signal-cell">
-                                    <?php if ($onu['status'] === 'online' && $onu['last_rx_power']): ?>
+                                    <?php if ($onu['status'] === 'online' && $onu['last_rx_power'] !== null): ?>
                                         <?php 
                                         $rx = (float)$onu['last_rx_power'];
                                         $sig_class = 'bg-red';
@@ -703,7 +703,7 @@ $onus = $stmt_data->fetchAll();
                                     <?php endif; ?>
                                 </td>
                                 <td class="signal-olt-cell">
-                                    <?php if ($onu['status'] === 'online' && $onu['last_rx_olt_power']): ?>
+                                    <?php if ($onu['status'] === 'online' && $onu['last_rx_olt_power'] !== null): ?>
                                         <?php 
                                         $rx_olt = (float)$onu['last_rx_olt_power'];
                                         $sig_class_olt = 'bg-red';
