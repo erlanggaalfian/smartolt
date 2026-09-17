@@ -101,6 +101,7 @@ try {
                 $d['traffic_tx_octets'] = $snmp_result['traffic_tx_octets'] ?? null;
                 $d['traffic_rx_packets'] = $snmp_result['traffic_rx_packets'] ?? null;
                 $d['traffic_tx_packets'] = $snmp_result['traffic_tx_packets'] ?? null;
+                if (!empty($snmp_result['distance_m'])) $d['distance_m'] = $snmp_result['distance_m'];
             }
         }
     } else {

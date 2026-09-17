@@ -192,12 +192,14 @@ def get_onu_signal_snmp(ip: str, community: str, pon_port: str, onu_id: int,
     if vendor == 'cdata':
         # CDATA: Rx power not readily available as single-OID get; return traffic only
         traffic = get_onu_traffic_cdata(ip, community, pon_no, onu_id, port)
+        distance_m = get_onu_distance_cdata(ip, community, pon_no, onu_id, port)
         return {
             'success': True, 'rx_onu': None, 'rx_olt': None, 'status': 'unknown',
             'traffic_rx_octets': traffic.get('rx_octets'),
             'traffic_tx_octets': traffic.get('tx_octets'),
             'traffic_rx_packets': traffic.get('rx_packets'),
             'traffic_tx_packets': traffic.get('tx_packets'),
+            'distance_m': distance_m,
         }
 
     # ZTE: identity table ifIndex
@@ -233,6 +235,9 @@ def get_onu_signal_snmp(ip: str, community: str, pon_port: str, onu_id: int,
     # Traffic counters via performance table (separate ifIndex encoding)
     traffic = get_onu_traffic(ip, community, slot, pon_no, onu_id, port)
 
+    # Distance via SNMP (cheap single-OID get)
+    distance_m = get_onu_distance_zte(ip, community, slot, pon_no, onu_id, port)
+
     return {
         'success': True,
         'rx_onu': rx_dbm,
@@ -242,6 +247,7 @@ def get_onu_signal_snmp(ip: str, community: str, pon_port: str, onu_id: int,
         'traffic_tx_octets': traffic.get('tx_octets'),
         'traffic_rx_packets': traffic.get('rx_packets'),
         'traffic_tx_packets': traffic.get('tx_packets'),
+        'distance_m': distance_m,
     }
 
 
