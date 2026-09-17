@@ -820,6 +820,15 @@ if (!empty($onu['onu_type'])) {
                         const extIdEl = document.getElementById('detail-external-id');
                         if (extIdEl && data.external_id) extIdEl.textContent = data.external_id;
 
+                        const mgmtIpEl = document.getElementById('detail-mgmt-ip');
+                        if (mgmtIpEl && data.mgmt_ip !== undefined) {
+                            if (data.mgmt_ip) {
+                                mgmtIpEl.innerHTML = `${esc(data.mgmt_ip)} <a href="http://${esc(data.mgmt_ip)}" target="_blank"><i data-lucide="external-link" style="width:12px;height:12px;"></i></a>`;
+                            } else {
+                                mgmtIpEl.textContent = 'N/A';
+                            }
+                        }
+
                         const distEl = document.getElementById('detail-distance');
                         if (distEl && data.distance_m !== undefined && data.distance_m !== null) distEl.textContent = `(${data.distance_m}m)`;
 
@@ -980,6 +989,7 @@ if (!empty($onu['onu_type'])) {
                             trafficChart.update();
                         }
                     } else {
+                        needFullSync = true; // retry full sync on next poll so VLAN/PPPoE/distance aren't stuck
                         if (banner) {
                             banner.style.background = 'rgba(239, 68, 68, 0.1)';
                             banner.style.borderColor = 'rgba(239, 68, 68, 0.2)';
