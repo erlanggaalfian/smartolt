@@ -1,3 +1,16 @@
+## 2026-09-17 — Fix: wan_mode 'Static IP' vs 'Static' mismatch (drivers + DB)
+
+- **Bug**: Python drivers (zte_c300, zte_c320, cdata_fd1602sb1) mendeteksi
+  Static IP dari OLT config dan menyimpan `wan_mode='Static IP'` ke DB.
+  PHP UI (auth-onu.php, onu-detail.php, update-onu-mode.php) mengharapkan
+  nilai `'Static'`. Akibat:19 ONU dengan Static IP menampilkan radio button
+  yang TIDAK ter-select di modal Update ONU Mode, dan submit form tanpa
+  mengubah radio bisa meng-overwrite ke default 'Setup via ONU webpage'.
+- **Fix**: Normalisasi ketiga driver ke `'Static'` (konsisten dengan UI).
+  Backfill DB: `UPDATE onus SET wan_mode='Static' WHERE wan_mode='Static IP'`
+  (19 row). Restart `smartolt-python`.
+- **Commit**: 8a1ca15
+
 ## 2026-09-17 — Fix: needFullSync stuck false on network error (onu-detail.php)
 
 - **Bug**: Jika fetch pertama `onu-data.php?full=1` gagal (network error/timeout),
