@@ -1262,7 +1262,7 @@ class OltZteC300Driver(BaseDriver):
 
         m = re.search(r'ip-host\s+\d+\s+ip\s+(\S+)\s+mask\s+(\S+)\s+gateway\s+(\S+)', raw, re.IGNORECASE)
         if m:
-            result['wan_mode'] = 'Static IP'
+            result['wan_mode'] = 'Static'
             result['mgmt_ip'] = m.group(1)
         elif re.search(r'dhcp-ip\s+ethuni\s+\S+\s+from-onu', raw, re.IGNORECASE) and result['wan_mode'] is None:
             result['wan_mode'] = 'DHCP'
@@ -1848,8 +1848,8 @@ class OltZteC300Driver(BaseDriver):
                 m_static = re.search(r'ip-host\s+\d+\s+ip\s+(\S+)', line, re.I)
                 if m_static:
                     if current_onu not in ipconfig_map:
-                        ipconfig_map[current_onu] = {'vlan': None, 'pppoe_username': '', 'pppoe_password': '', 'wan_mode': 'Static IP'}
-                    ipconfig_map[current_onu]['wan_mode'] = 'Static IP'
+                        ipconfig_map[current_onu] = {'vlan': None, 'pppoe_username': '', 'pppoe_password': '', 'wan_mode': 'Static'}
+                    ipconfig_map[current_onu]['wan_mode'] = 'Static'
 
                 m_vlf = re.search(r'vlan-filter\s+iphost\s+1\s+(?:pri\s+\d+\s+)?vlan\s+(\d+)', line, re.I)
                 if m_vlf:

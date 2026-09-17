@@ -660,7 +660,7 @@ class OltCdataFd1602sb1Driver(BaseDriver):
                 'success': True,
                 'onus': [
                     {'pon_port': '0/1', 'onu_id': 1, 'serial_number': 'ZTEGC0B3458A', 'name': 'Roni Cikron', 'status': 'online'},
-                    {'pon_port': '0/1', 'onu_id': 2, 'serial_number': 'ZTEGC85ADC5F', 'name': 'Pelanggan Dua', 'status': 'offline'}
+                    {'pon_port': '0/1', 'onu_id': 2, 'serial_number': 'ZTEGC85ADC5F', 'name': 'Indah Ayu', 'status': 'offline'}
                 ]
             }
 
@@ -693,7 +693,7 @@ class OltCdataFd1602sb1Driver(BaseDriver):
                     if m_desc:
                         raw_desc = m_desc.group(1).strip('"\' ')
                         # Ekstrak nama bersih dari pola terstruktur.
-                        # "name_PelangganTiga_zone_ZONA_..." -> "PelangganTiga"
+                        # "name_CaffeFoodMie_zone_TMY_..." -> "CaffeFoodMie"
                         clean = re.match(r'^name_(.*?)(?:_(?:zone|descr|odb|authd|contact)_|$)', raw_desc, re.I)
                         name = clean.group(1).strip() if clean else raw_desc
                     elif len(row_parts) > sn_idx + 4:
@@ -752,8 +752,8 @@ class OltCdataFd1602sb1Driver(BaseDriver):
                 onu_id = int(m.group(2))
                 raw_desc = m.group(3).strip('"\' ')
                 # Ekstrak nama bersih dari deskripsi terstruktur.
-                # Pola: "name_PelangganTiga_zone_ZONA_descr_None_odb_..."
-                # Hasil: "PelangganTiga"
+                # Pola: "name_CaffeFoodMie_zone_TMY_descr_None_odb_..."
+                # Hasil: "CaffeFoodMie"
                 clean = re.match(r'^name_(.*?)(?:_(?:zone|descr|odb|authd|contact)_|$)', raw_desc, re.I)
                 name = clean.group(1).strip() if clean else raw_desc
                 full_pon_port = f"{current_interface}/{port_num}"
@@ -868,7 +868,7 @@ class OltCdataFd1602sb1Driver(BaseDriver):
                 elif mode == 'dhcp':
                     wan_mode = 'DHCP'
                 elif mode == 'static':
-                    wan_mode = 'Static IP'
+                    wan_mode = 'Static'
                 else:
                     wan_mode = 'PPPoE'
 
