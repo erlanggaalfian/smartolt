@@ -114,6 +114,7 @@ Arsitektur driver berbasis plug-in (`backend/python_engine/drivers/base_driver.p
 ### Lainnya
 - Log aktivitas & role admin
 - Worker async untuk operasi berat (tarik konfigurasi OLT besar) — form tetap responsif, hasil menyusul di background
+- Batch flush "pending write" ke OLT via systemd timer (tiap 10 menit) — aksi tertunda dieksekusi ulang otomatis
 
 ---
 
@@ -167,6 +168,7 @@ sudo ./install.sh
 
 [6/6] Mengonfigurasi Cron Job & Finalisasi...
       [OK] Cron job didaftarkan.        (sinkronisasi tiap menit)
+      [OK] Timer flush-write systemd aktif (tiap 10 menit).
 
 ======================================================================
         INSTALASI SMARTOLT BERHASIL SELESAI & AKTIF!
@@ -233,7 +235,7 @@ Sebelum menghapus, script menawarkan backup database ke `~/smartolt_backup/` (bi
       [OK] Backup: ~/smartolt_backup/smartolt_<db_name>_<timestamp>.sql
 
 [2/4] Menghapus Database MySQL...
-[3/4] Menghapus layanan & konfigurasi sistem...   (vhost Apache, cron job)
+[3/4] Menghapus layanan & konfigurasi sistem...   (vhost Apache, cron job, timer flush-write)
 [4/4] Menghapus berkas aplikasi...                (/var/www/<domain>)
 ```
 

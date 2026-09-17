@@ -177,6 +177,14 @@ if [ -f /etc/cron.d/smartolt-sync ]; then
   echo -e "      ${GREEN}[OK] Cron job smartolt-sync dihapus.${NC}"
 fi
 
+# Hapus timer systemd flush-write
+if [ -f /etc/systemd/system/smartolt-flush-write.timer ]; then
+  systemctl disable --now smartolt-flush-write.timer &> /dev/null
+  rm -f /etc/systemd/system/smartolt-flush-write.timer /etc/systemd/system/smartolt-flush-write.service
+  systemctl daemon-reload
+  echo -e "      ${GREEN}[OK] Timer flush-write systemd dihapus.${NC}"
+fi
+
 # Hapus Apache virtual host
 APACHE_CONF="/etc/apache2/sites-available/${APP_DOMAIN}.conf"
 if [ -f "$APACHE_CONF" ]; then

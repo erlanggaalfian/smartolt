@@ -489,6 +489,15 @@ EOF
 chmod 644 "$CRON_FILE"
 echo -e "      ${GREEN}[OK] Cron job didaftarkan.${NC}"
 
+if [ -f "${TARGET_DIR}/deploy/systemd/smartolt-flush-write.service" ]; then
+  sed "s#/var/www/smartolt.netbackup.web.id#${TARGET_DIR}#g" \
+    "${TARGET_DIR}/deploy/systemd/smartolt-flush-write.service" > /etc/systemd/system/smartolt-flush-write.service
+  cp "${TARGET_DIR}/deploy/systemd/smartolt-flush-write.timer" /etc/systemd/system/smartolt-flush-write.timer
+  systemctl daemon-reload
+  systemctl enable --now smartolt-flush-write.timer >/dev/null 2>&1
+  echo -e "      ${GREEN}[OK] Timer flush-write systemd aktif (tiap 10 menit).${NC}"
+fi
+
 systemctl restart apache2
 
 echo -e "\n${GREEN}======================================================================${NC}"
