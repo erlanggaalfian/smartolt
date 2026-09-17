@@ -1,4 +1,16 @@
-## 2026-09-17 — Fix needFullSync retry on OLT error + mgmt_ip auto-refresh
+## 2026-09-17 — Fix zone→splitter cascade in edit-identity modal (desktop+mobile)
+
+**File:** `frontend/onu-detail.php`
+**Masalah:** Saat user mengganti zone di modal Edit Identitas, dropdown splitter
+tetap menampilkan splitter dari zone LAMA sebagai pilihan aktif (param `keepCurrent=true`
+dipakai untuk initial load DAN zone change). Jika user tidak sadar dan langsung simpan,
+splitter dari zone salah ikut tersimpan.
+**Fix:** Zone change handler sekarang pakai `keepCurrent=false` + tambah placeholder
+"- Pilih ODB -" supaya user wajib pilih splitter dari zone baru secara eksplisit.
+Initial load (modal pertama kali dibuka) tetap `keepCurrent=true` untuk preserve
+nilai existing.
+**Scope:** onu-detail.php edit-identity modal only, no OLT interaction.
+
 
 **File:** `frontend/onu-detail.php`
 **Masalah 1:** `needFullSync` hanya di-reset saat network error (`.catch()`), tapi

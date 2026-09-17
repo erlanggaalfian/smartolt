@@ -1517,6 +1517,7 @@ sort($cached_vlans);
                     const items = (res.data || []);
                     let html = '';
                     let found = false;
+                    if (!keepCurrent) html = '<option value="">- Pilih ODB -</option>';
                     items.forEach(s => {
                         const sel = keepCurrent && s.name === currentSplitter ? 'selected' : '';
                         if (sel) found = true;
@@ -1532,7 +1533,7 @@ sort($cached_vlans);
 
         if (zoneSelect && splitterSelect) {
             loadSplitters(zoneSelect.value, true);
-            zoneSelect.addEventListener('change', () => loadSplitters(zoneSelect.value, true));
+            zoneSelect.addEventListener('change', () => loadSplitters(zoneSelect.value, false));
         }
 
         // GPS: use current location for lat/long in edit-identity-modal
