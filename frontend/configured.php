@@ -60,15 +60,6 @@ if ($selected_olt_id !== '') {
 } else {
     $filter_sql .= " AND onus.olt_id IN ($allowed_ids_str)";
 }
-// Simpan filter TANPA kondisi status untuk stats summary (Online/Offline/Disabled count).
-// Harus diambil SEBELUM status filter ditambahkan supaya stats menunjukkan semua status.
-$stats_filter_sql = $filter_sql;
-$stats_params = $params;
-
-if ($status !== '') {
-    $filter_sql .= " AND onus.status = ?";
-    $params[] = $status;
-}
 if ($filter_zone !== '') {
     if (strtolower($filter_zone) === 'none') {
         $filter_sql .= " AND (onus.zone IS NULL OR onus.zone = '' OR onus.zone = 'None')";
@@ -111,6 +102,15 @@ if ($filter_signal !== '') {
             $params[] = $range['min'];
         }
     }
+}
+// Simpan filter TANPA kondisi status untuk stats summary (Online/Offline/Disabled count).
+// Harus diambil SETELAH zone/odb/pon/signal filter tapi SEBELUM status filter.
+$stats_filter_sql = $filter_sql;
+$stats_params = $params;
+
+if ($status !== '') {
+    $filter_sql .= " AND onus.status = ?";
+    $params[] = $status;
 }
 
 // Eksekusi count query
