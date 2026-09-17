@@ -1,3 +1,15 @@
+## 2026-09-17 — Fix placeholder violations & theme-safe toast notifications
+
+**Files:** `frontend/onu-detail.php`, `frontend/configured.php`
+**Masalah:**
+1. Static IP form fields di `onu-detail.php` modal "Update Mode ONU" pakai placeholder berisi contoh IP konkret (`192.168.1.10`, `255.255.255.0`, `192.168.1.1`, `8.8.8.8`, `8.8.4.4`) — melanggar aturan placeholder UI (jangan contoh isian nyata).
+2. Toast notification di `configured.php` (Sync Pelanggan feedback) pakai warna hardcoded dark-theme (`#1e3a8a`, `#064e3b`, `#7f1d1d`) + emoji — tidak pakai CSS variables, berantakan di light theme.
+**Fix:**
+1. Ganti placeholder dengan label netral (`IP Address`, `Netmask`, `Gateway`, `DNS Primer`, `DNS Sekunder`).
+2. Toast gunakan `var(--bg-tertiary)`, `var(--text-accent)`, `var(--color-success)`, `var(--color-danger)`, `var(--text-main)` + fallback hex. Hapus emoji dekoratif.
+
+---
+
 ## 2026-09-17 — Sanitize profile names in authorize_onu() (command injection prevention)
 
 **Commit:** 6ff4799

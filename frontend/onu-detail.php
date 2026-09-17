@@ -1227,7 +1227,7 @@ sort($cached_vlans);
                     <tr id="row-static-ip" style="height: 50px;">
                         <td style="font-weight: 600; color:var(--text-main); vertical-align: middle; padding: 6px 0;">Alamat IP</td>
                         <td style="vertical-align: middle; padding: 6px 0;">
-                            <input type="text" name="static_ip" placeholder="192.168.1.10" value="<?php echo htmlspecialchars($onu['static_ip'] ?: ''); ?>" style="width:100%; max-width: 320px; padding:8px 12px; border:1px solid var(--border-color); border-radius:4px; font-size:0.9rem; box-sizing:border-box; color:var(--text-main); background:var(--bg-tertiary);">
+                            <input type="text" name="static_ip" placeholder="IP Address" value="<?php echo htmlspecialchars($onu['static_ip'] ?: ''); ?>" style="width:100%; max-width: 320px; padding:8px 12px; border:1px solid var(--border-color); border-radius:4px; font-size:0.9rem; box-sizing:border-box; color:var(--text-main); background:var(--bg-tertiary);">
                         </td>
                     </tr>
 
@@ -1235,7 +1235,7 @@ sort($cached_vlans);
                     <tr id="row-static-netmask" style="height: 50px;">
                         <td style="font-weight: 600; color:var(--text-main); vertical-align: middle; padding: 6px 0;">Netmask</td>
                         <td style="vertical-align: middle; padding: 6px 0;">
-                            <input type="text" name="static_netmask" placeholder="255.255.255.0" value="<?php echo htmlspecialchars($onu['static_netmask'] ?: ''); ?>" style="width:100%; max-width: 320px; padding:8px 12px; border:1px solid var(--border-color); border-radius:4px; font-size:0.9rem; box-sizing:border-box; color:var(--text-main); background:var(--bg-tertiary);">
+                            <input type="text" name="static_netmask" placeholder="Netmask" value="<?php echo htmlspecialchars($onu['static_netmask'] ?: ''); ?>" style="width:100%; max-width: 320px; padding:8px 12px; border:1px solid var(--border-color); border-radius:4px; font-size:0.9rem; box-sizing:border-box; color:var(--text-main); background:var(--bg-tertiary);">
                         </td>
                     </tr>
 
@@ -1243,7 +1243,7 @@ sort($cached_vlans);
                     <tr id="row-static-gateway" style="height: 50px;">
                         <td style="font-weight: 600; color:var(--text-main); vertical-align: middle; padding: 6px 0;">Gateway</td>
                         <td style="vertical-align: middle; padding: 6px 0;">
-                            <input type="text" name="static_gateway" placeholder="192.168.1.1" value="<?php echo htmlspecialchars($onu['static_gateway'] ?: ''); ?>" style="width:100%; max-width: 320px; padding:8px 12px; border:1px solid var(--border-color); border-radius:4px; font-size:0.9rem; box-sizing:border-box; color:var(--text-main); background:var(--bg-tertiary);">
+                            <input type="text" name="static_gateway" placeholder="Gateway" value="<?php echo htmlspecialchars($onu['static_gateway'] ?: ''); ?>" style="width:100%; max-width: 320px; padding:8px 12px; border:1px solid var(--border-color); border-radius:4px; font-size:0.9rem; box-sizing:border-box; color:var(--text-main); background:var(--bg-tertiary);">
                         </td>
                     </tr>
 
@@ -1251,7 +1251,7 @@ sort($cached_vlans);
                     <tr id="row-static-dns-primary" style="height: 50px;">
                         <td style="font-weight: 600; color:var(--text-main); vertical-align: middle; padding: 6px 0;">DNS Primer</td>
                         <td style="vertical-align: middle; padding: 6px 0;">
-                            <input type="text" name="static_dns_primary" placeholder="8.8.8.8" value="<?php echo htmlspecialchars($onu['static_dns_primary'] ?: ''); ?>" style="width:100%; max-width: 320px; padding:8px 12px; border:1px solid var(--border-color); border-radius:4px; font-size:0.9rem; box-sizing:border-box; color:var(--text-main); background:var(--bg-tertiary);">
+                            <input type="text" name="static_dns_primary" placeholder="DNS Primer" value="<?php echo htmlspecialchars($onu['static_dns_primary'] ?: ''); ?>" style="width:100%; max-width: 320px; padding:8px 12px; border:1px solid var(--border-color); border-radius:4px; font-size:0.9rem; box-sizing:border-box; color:var(--text-main); background:var(--bg-tertiary);">
                         </td>
                     </tr>
 
@@ -1259,7 +1259,7 @@ sort($cached_vlans);
                     <tr id="row-static-dns-secondary" style="height: 50px;">
                         <td style="font-weight: 600; color:var(--text-main); vertical-align: middle; padding: 6px 0;">DNS Sekunder</td>
                         <td style="vertical-align: middle; padding: 6px 0;">
-                            <input type="text" name="static_dns_secondary" placeholder="8.8.4.4" value="<?php echo htmlspecialchars($onu['static_dns_secondary'] ?: ''); ?>" style="width:100%; max-width: 320px; padding:8px 12px; border:1px solid var(--border-color); border-radius:4px; font-size:0.9rem; box-sizing:border-box; color:var(--text-main); background:var(--bg-tertiary);">
+                            <input type="text" name="static_dns_secondary" placeholder="DNS Sekunder" value="<?php echo htmlspecialchars($onu['static_dns_secondary'] ?: ''); ?>" style="width:100%; max-width: 320px; padding:8px 12px; border:1px solid var(--border-color); border-radius:4px; font-size:0.9rem; box-sizing:border-box; color:var(--text-main); background:var(--bg-tertiary);">
                         </td>
                     </tr>
 

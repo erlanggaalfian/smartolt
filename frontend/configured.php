@@ -539,17 +539,20 @@ $onus = $stmt_data->fetchAll();
         }
 
         if (type === 'info') {
-            toast.style.background = '#1e3a8a';
-            toast.style.border = '1px solid #3b82f6';
+            toast.style.background = 'var(--bg-tertiary, #1e3a8a)';
+            toast.style.border = '1px solid var(--text-accent, #3b82f6)';
+            toast.style.color = 'var(--text-main, #fff)';
             toast.innerHTML = `<span class="spinner-small"></span> <span>${esc(message)}</span>`;
         } else if (type === 'success') {
-            toast.style.background = '#064e3b';
-            toast.style.border = '1px solid #10b981';
-            toast.innerHTML = `<span>✅</span> <span>${esc(message)}</span>`;
+            toast.style.background = 'var(--bg-tertiary, #064e3b)';
+            toast.style.border = '1px solid var(--color-success, #10b981)';
+            toast.style.color = 'var(--text-main, #fff)';
+            toast.innerHTML = `<span>${esc(message)}</span>`;
         } else {
-            toast.style.background = '#7f1d1d';
-            toast.style.border = '1px solid #ef4444';
-            toast.innerHTML = `<span>⚠️</span> <span>${esc(message)}</span>`;
+            toast.style.background = 'var(--bg-tertiary, #7f1d1d)';
+            toast.style.border = '1px solid var(--color-danger, #ef4444)';
+            toast.style.color = 'var(--text-main, #fff)';
+            toast.innerHTML = `<span>${esc(message)}</span>`;
         }
         
         document.getElementById('toast-container').appendChild(toast);
