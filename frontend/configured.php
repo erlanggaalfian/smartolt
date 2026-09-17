@@ -461,10 +461,10 @@ $onus = $stmt_data->fetchAll();
                         const statOnline = document.getElementById('stat-online');
                         const statOffline = document.getElementById('stat-offline');
                         const statDisabled = document.getElementById('stat-disabled');
-                        if (statTotal) statTotal.textContent = data.onus.length.toLocaleString('id-ID');
-                        if (statOnline) statOnline.textContent = statusCounts.online.toLocaleString('id-ID');
-                        if (statOffline) statOffline.textContent = statusCounts.offline.toLocaleString('id-ID');
-                        if (statDisabled) statDisabled.textContent = statusCounts.disabled.toLocaleString('id-ID');
+                        if (statTotal) statTotal.textContent = data.onus.length.toLocaleString('en-US');
+                        if (statOnline) statOnline.textContent = statusCounts.online.toLocaleString('en-US');
+                        if (statOffline) statOffline.textContent = statusCounts.offline.toLocaleString('en-US');
+                        if (statDisabled) statDisabled.textContent = statusCounts.disabled.toLocaleString('en-US');
                     }
                 }
             } catch (err) {

@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $upload_profile   = trim($_POST['upload_profile'] ?? '');
 
     // Parameter baru untuk ont description terstruktur
-    $onu_type      = cli_safe_strict(trim($_POST['onu_type'] ?? 'ALL-ONT'));
+    $onu_type      = cli_safe(trim($_POST['onu_type'] ?? 'ALL-ONT'));
     $config_preset = cli_safe(trim($_POST['config_preset'] ?? 'None'));
     $zone          = cli_safe(trim($_POST['zone'] ?? 'None'));
     $splitter      = cli_safe(trim($_POST['splitter'] ?? 'None'));
