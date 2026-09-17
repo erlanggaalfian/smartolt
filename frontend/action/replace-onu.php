@@ -45,6 +45,7 @@ if (!$row) {
 check_olt_access_or_redirect($row['olt_id'], '../onu-detail.php?id=' . $onu_id);
 
 $olt = [
+    'id'               => (int)$row['olt_id'],
     'ip'               => $row['ip'],
     'username'         => $row['username'],
     'password'         => $row['olt_password'],

@@ -86,6 +86,7 @@ $config_preset_db = ($config_preset !== 'None' && $config_preset !== '') ? $conf
 $name_db          = ($name !== 'None' && $name !== '') ? $name : null;
 
 $olt = [
+    'id'               => (int)$row['olt_id'],
     'ip'               => $row['ip'],
     'username'         => $row['username'],
     'password'         => $row['olt_password'],

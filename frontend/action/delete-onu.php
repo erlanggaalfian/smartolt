@@ -27,6 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($onu) {
             check_olt_access_or_redirect($onu['olt_id_raw'], '../configured.php');
             $olt = [
+                'id' => (int)$onu['olt_id_raw'],
                 'ip' => $onu['olt_ip'],
                 'username' => $onu['username'],
                 'password' => $onu['password'],
