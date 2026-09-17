@@ -1522,7 +1522,7 @@ sort($cached_vlans);
 
         if (zoneSelect && splitterSelect) {
             loadSplitters(zoneSelect.value, true);
-            zoneSelect.addEventListener('change', () => loadSplitters(zoneSelect.value, false));
+            zoneSelect.addEventListener('change', () => loadSplitters(zoneSelect.value, true));
         }
 
         // GPS: use current location for lat/long in edit-identity-modal
