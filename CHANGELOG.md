@@ -1,3 +1,18 @@
+## 2026-09-17 — Fix stats ignoring zone/odb/pon/signal filters
+
+**Commit:** e92ed25
+**File:** `frontend/configured.php`
+**Masalah:** Stats summary (Online/Offline/Disabled) hanya pakai search+OLT filter.
+Zone/ODB/splitter/PON/signal filter diabaikan — stats menampilkan total semua
+zone meski user filter by zone tertentu. Introduced oleh commit 3fabd09 yang
+memindah `$stats_filter_sql` save ke posisi terlalu awal (sebelum zone/odb/
+pon/signal filter ditambahkan).
+**Fix:** Pindah `$stats_filter_sql` save ke SETELAH zone/odb/pon/signal filter
+tapi SEBELUM status filter. Stats sekarang akurat untuk semua filter kombinasi.
+**Scope:** Desktop + mobile (stats bar, perubahan murni PHP backend logic).
+
+---
+
 ## 2026-09-17 — Fix stats cards showing only filtered status when status filter active
 
 **Commit:** (this commit)
