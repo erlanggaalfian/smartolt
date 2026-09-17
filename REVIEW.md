@@ -241,9 +241,35 @@ ke DB + OLT.
 
 ## Proposal #5: CSRF Token Verification on All POST Action Handlers
 
-**Status:** MENUNGGU KEPUTUSAN
+**Status:** ❌ DITOLAK — sudah ada, middleware di config.php
 **Klasifikasi:** WAJIB REVIEW (security, menyentuh semua action handler)
 **Diajukan:** 2026-09-17 (auto-analyst cycle)
+
+### Alasan Ditolak
+
+`backend/config.php` lines 77-97 sudah punya middleware otomatis yang verifikasi CSRF
+token untuk SEMUA POST request ke path `/action/`:
+
+```php
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && strpos($_SERVER['SCRIPT_NAME'], '/action/') !== false) {
+    $token = $_POST['csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+    if (empty($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $token)) {
+        // reject...
+    }
+}
+```
+
+Semua action handler (`auth-onu.php`, `update-onu-mode.php`, `delete-onu.php`, dll)
+sudah protected oleh middleware ini karena mereka semua include `db.php` → `config.php`.
+Proposal ini berdasarkan asumsi keliru bahwa hanya `onu-types.php` dan `splitters.php`
+yang verify CSRF — keduanya adalah standalone pages (bukan `/action/`), jadi punya
+check manual sendiri. Tapi action handlers tidak perlu check manual karena middleware
+sudah menangani mereka.
+
+### Masalah Asli Ditemukan: `sync-olt.php` accept GET trigger
+
+`sync-olt.php` line 22 punya `isset($_GET['olt_id'])` yang memungkinkan sync di-trigger
+via GET tanpa CSRF check. Sudah diperbaiki (hanya accept POST).
 
 ### Masalah
 

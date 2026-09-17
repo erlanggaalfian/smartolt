@@ -19,7 +19,7 @@ if (!isset($_SESSION['smartolt_role'])) {
     exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['olt_id'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $olt_id = isset($_POST['olt_id']) ? (int)$_POST['olt_id'] : (int)$_GET['olt_id'];
 
     if (empty($olt_id)) {
