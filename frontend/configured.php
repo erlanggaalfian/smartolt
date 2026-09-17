@@ -421,27 +421,26 @@ $onus = $stmt_data->fetchAll();
                             updatedCell.textContent = onu.last_down_cause || '-';
                         }
 
-                        // Update WAN mode badge (3rd-from-last <td>, profile cols are before it)
-                        const cells = row.querySelectorAll('td');
-                        const wanCell = cells[7]; // 0-indexed: status, nama, zone, splitter, SN, OLT&PON, VLAN, WAN, ...
+                        // Update WAN mode badge
+                        const wanCell = row.querySelector('.wan-cell');
                         if (wanCell) {
                             const wanDisplay = onu.wan_mode === 'Static' ? 'Static IP' : (onu.wan_mode || '-');
                             wanCell.innerHTML = `<span class="badge bg-blue">${esc(wanDisplay)}</span>`;
                         }
                         // Update Profil DL
-                        const dlCell = cells[8];
+                        const dlCell = row.querySelector('.dl-profile-cell');
                         if (dlCell) {
                             dlCell.textContent = onu.download_profile || '-';
                             dlCell.title = onu.download_profile || '';
                         }
                         // Update Profil UL
-                        const ulCell = cells[9];
+                        const ulCell = row.querySelector('.ul-profile-cell');
                         if (ulCell) {
                             ulCell.textContent = onu.upload_profile || '-';
                             ulCell.title = onu.upload_profile || '';
                         }
                         // Update ONU Type
-                        const typeCell = cells[13]; // last-but-one before Aksi
+                        const typeCell = row.querySelector('.onu-type-cell');
                         if (typeCell) {
                             typeCell.textContent = onu.onu_type || '-';
                         }
@@ -686,9 +685,9 @@ $onus = $stmt_data->fetchAll();
                                     PON <?php echo htmlspecialchars($onu['pon_port'] . ':' . $onu['onu_id']); ?>
                                 </td>
                                 <td class="vlan-cell"><span class="badge bg-green"><?php echo htmlspecialchars($onu['vlan'] ?: '-'); ?></span></td>
-                                <td><span class="badge bg-blue"><?php echo htmlspecialchars($onu['wan_mode'] === 'Static' ? 'Static IP' : ($onu['wan_mode'] ?: '-')); ?></span></td>
-                                <td style="font-size:0.8rem;color:var(--text-muted);" title="<?php echo htmlspecialchars($onu['download_profile'] ?: ''); ?>"><?php echo htmlspecialchars($onu['download_profile'] ?: '-'); ?></td>
-                                <td style="font-size:0.8rem;color:var(--text-muted);" title="<?php echo htmlspecialchars($onu['upload_profile'] ?: ''); ?>"><?php echo htmlspecialchars($onu['upload_profile'] ?: '-'); ?></td>
+                                <td class="wan-cell"><span class="badge bg-blue"><?php echo htmlspecialchars($onu['wan_mode'] === 'Static' ? 'Static IP' : ($onu['wan_mode'] ?: '-')); ?></span></td>
+                                <td class="dl-profile-cell" style="font-size:0.8rem;color:var(--text-muted);" title="<?php echo htmlspecialchars($onu['download_profile'] ?: ''); ?>"><?php echo htmlspecialchars($onu['download_profile'] ?: '-'); ?></td>
+                                <td class="ul-profile-cell" style="font-size:0.8rem;color:var(--text-muted);" title="<?php echo htmlspecialchars($onu['upload_profile'] ?: ''); ?>"><?php echo htmlspecialchars($onu['upload_profile'] ?: '-'); ?></td>
                                 <td class="signal-cell">
                                     <?php if ($onu['status'] === 'online' && $onu['last_rx_power'] !== null): ?>
                                         <?php 
@@ -722,7 +721,7 @@ $onus = $stmt_data->fetchAll();
                                     <?php endif; ?>
                                 </td>
                                 <td class="updated-cell"><?php echo $onu['last_down_cause'] ? htmlspecialchars($onu['last_down_cause']) : '-'; ?></td>
-                                <td style="font-size:0.8rem;color:var(--text-muted);"><?php echo htmlspecialchars($onu['onu_type'] ?: '-'); ?></td>
+                                <td class="onu-type-cell" style="font-size:0.8rem;color:var(--text-muted);"><?php echo htmlspecialchars($onu['onu_type'] ?: '-'); ?></td>
                                 <td>
                                     <a href="onu-detail.php?id=<?php echo (int)$onu['id']; ?>" class="btn btn-xs btn-primary">
                                         <i data-lucide="eye"></i> Detail
