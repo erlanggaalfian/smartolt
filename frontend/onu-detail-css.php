@@ -390,4 +390,22 @@
     outline: none;
     box-shadow: var(--shadow-glow);
 }
+
+/* Update ONU Mode modal: stack table rows on narrow screens */
+@media (max-width: 500px) {
+    #update-onu-mode-modal .modal-body table,
+    #update-onu-mode-modal .modal-body tbody,
+    #update-onu-mode-modal .modal-body tr,
+    #update-onu-mode-modal .modal-body td {
+        display: block;
+        width: 100% !important;
+    }
+    #update-onu-mode-modal .modal-body tr {
+        margin-bottom: 10px;
+    }
+    #update-onu-mode-modal .modal-body td {
+        padding: 4px 0 !important;
+        height: auto !important;
+    }
+}
 </style>
