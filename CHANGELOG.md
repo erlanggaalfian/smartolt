@@ -1,3 +1,10 @@
+## 2026-09-18 — Fix: stats cards jump to all-ONU counts when search active
+
+**File:** `frontend/configured.php`
+**Masalah:** JS `updateAllOnuSignals()` selalu overwrite stats cards (Total/Online/Offline/Disabled) dengan counts dari SEMUA ONU di OLT terpilih, bahkan ketika user sedang search. PHP-rendered stats awalnya benar (search-filtered counts), tapi setelah poll pertama (~1 detik) langsung loncat ke total counts. `hasExtraFilters` guard tidak mengecek `$search`.
+**Fix:** Tambah `$search !== \x27\x27` ke kondisi `hasExtraFilters` — stats cards tidak di-update JS ketika search aktif.
+**Scope:** Desktop + mobile (stats cards area).
+
 
 ## 2026-09-18 — Fix: bump updated_at on identity/preset/type edits
 
