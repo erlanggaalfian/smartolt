@@ -42,10 +42,10 @@ try {
     }
 
     if ($olt_id !== '') {
-        $stmt = $pdo->prepare("SELECT id, name, status, vlan, last_rx_power, last_rx_olt_power, last_down_cause, wan_mode, download_profile, upload_profile, onu_type FROM onus WHERE olt_id = ?");
+        $stmt = $pdo->prepare("SELECT id, name, status, vlan, last_rx_power, last_rx_olt_power, last_down_cause, wan_mode, download_profile, upload_profile, onu_type, config_method FROM onus WHERE olt_id = ?");
         $stmt->execute([$olt_id]);
     } else {
-        $stmt = $pdo->query("SELECT id, name, status, vlan, last_rx_power, last_rx_olt_power, last_down_cause, wan_mode, download_profile, upload_profile, onu_type FROM onus WHERE olt_id IN ($allowed_ids_str)");
+        $stmt = $pdo->query("SELECT id, name, status, vlan, last_rx_power, last_rx_olt_power, last_down_cause, wan_mode, download_profile, upload_profile, onu_type, config_method FROM onus WHERE olt_id IN ($allowed_ids_str)");
     }
 
     $onus = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -65,7 +65,8 @@ try {
             'wan_mode' => $onu['wan_mode'] ?? '',
             'download_profile' => $onu['download_profile'] ?? '',
             'upload_profile' => $onu['upload_profile'] ?? '',
-            'onu_type' => $onu['onu_type'] ?? ''
+            'onu_type' => $onu['onu_type'] ?? '',
+            'config_method' => $onu['config_method'] ?? ''
         ];
     }
     
