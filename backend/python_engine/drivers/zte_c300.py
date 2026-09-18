@@ -1260,14 +1260,20 @@ class OltZteC300Driver(BaseDriver):
         if m:
             result['vlan'] = int(m.group(1))
 
-        m = re.search(r'pppoe\s+\d+\s+.*?user\s+(\S+)\s+password\s+(\S+)', raw, re.IGNORECASE)
+        # PENTING: hanya iphost/pppoe NOMOR 1 = WAN utama pelanggan. iphost 2+
+        # dipakai management/VOIP (mis. VLAN 100 TR069) dan PUNYA ip-host static
+        # sendiri -- kalau tidak difilter nomornya, 'ip-host 2 ip ...' (management)
+        # salah dibaca sbg WAN Static padahal WAN sebenarnya (iphost 1) PPPoE.
+        # Bug nyata: ONU id 10768659/10768660 tersimpan wan_mode=Static padahal
+        # PPPoE aktif di iphost 1.
+        m = re.search(r'pppoe\s+1\s+.*?user\s+(\S+)\s+password\s+(\S+)', raw, re.IGNORECASE)
         if m:
             result['pppoe_username'] = m.group(1).strip('"\'')
             result['pppoe_password'] = m.group(2).strip('"\'')
             result['wan_mode'] = 'PPPoE'
 
-        m = re.search(r'ip-host\s+\d+\s+ip\s+(\S+)\s+mask\s+(\S+)\s+gateway\s+(\S+)', raw, re.IGNORECASE)
-        if m:
+        m = re.search(r'ip-host\s+1\s+ip\s+(\S+)\s+mask\s+(\S+)\s+gateway\s+(\S+)', raw, re.IGNORECASE)
+        if m and result['wan_mode'] != 'PPPoE':
             result['wan_mode'] = 'Static'
             result['mgmt_ip'] = m.group(1)
         elif re.search(r'dhcp-ip\s+ethuni\s+\S+\s+from-onu', raw, re.IGNORECASE) and result['wan_mode'] is None:
@@ -1843,7 +1849,14 @@ class OltZteC300Driver(BaseDriver):
                     # ponytail: only first service-port (internet VLAN). Skip subsequent (management).
                     # Add when: need to store all VLANs per ONU.
             else:
-                m_pppoe = re.search(r'pppoe\s+\d+\s+.*?user\s+(\S+)\s+password\s+(\S+)', line, re.I)
+                # PENTING: hanya iphost/pppoe NOMOR 1 yang jadi patokan WAN utama
+                # pelanggan. iphost 2+ dipakai untuk management/VOIP (mis. VLAN 100
+                # TR069) dan PUNYA ip-host statis sendiri -- kalau tidak difilter
+                # nomornya, baris 'ip-host 2 ip ...' (management) salah dibaca
+                # sebagai WAN Static padahal WAN sebenarnya (iphost 1) PPPoE.
+                # Bug nyata ditemukan: ONU id 10768659/10768660 tersimpan
+                # wan_mode=Static padahal PPPoE aktif di iphost 1.
+                m_pppoe = re.search(r'pppoe\s+1\s+.*?user\s+(\S+)\s+password\s+(\S+)', line, re.I)
                 if m_pppoe:
                     if current_onu not in ipconfig_map:
                         ipconfig_map[current_onu] = {'vlan': None, 'pppoe_username': '', 'pppoe_password': '', 'wan_mode': 'PPPoE'}
@@ -1851,11 +1864,12 @@ class OltZteC300Driver(BaseDriver):
                     ipconfig_map[current_onu]['pppoe_password'] = m_pppoe.group(2).strip('"\'')
                     ipconfig_map[current_onu]['wan_mode'] = 'PPPoE'
 
-                m_static = re.search(r'ip-host\s+\d+\s+ip\s+(\S+)', line, re.I)
+                m_static = re.search(r'ip-host\s+1\s+ip\s+(\S+)', line, re.I)
                 if m_static:
                     if current_onu not in ipconfig_map:
                         ipconfig_map[current_onu] = {'vlan': None, 'pppoe_username': '', 'pppoe_password': '', 'wan_mode': 'Static'}
-                    ipconfig_map[current_onu]['wan_mode'] = 'Static'
+                    elif ipconfig_map[current_onu]['wan_mode'] != 'PPPoE':
+                        ipconfig_map[current_onu]['wan_mode'] = 'Static'
 
                 m_vlf = re.search(r'vlan-filter\s+iphost\s+1\s+(?:pri\s+\d+\s+)?vlan\s+(\d+)', line, re.I)
                 if m_vlf:
