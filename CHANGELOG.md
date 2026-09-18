@@ -1,7 +1,7 @@
 ## 2026-09-18 — Fix: config_method missing from onu-detail.php initial render
 
 **Files:** `frontend/onu-detail.php`
-**Commit:** (this commit)
+**Commit:** 78c2433
 
 **Masalah:** PHP initial render `detail-onu-mode` ("Mode ONU") tidak menyertakan
 `config_method` (OMCI/TR069), tapi JS live polling menambahkannya. Hasil: visual jump
