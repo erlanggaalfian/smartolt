@@ -1,3 +1,18 @@
+## 2026-09-18 — Fix: config_method+onu_type missing from onu-data.php live polling
+
+**Files:** `frontend/action/onu-data.php`, `frontend/onu-detail.php`
+**Commit:** 35241b7
+
+**Masalah:** `onu-data.php` tidak mengembalikan `config_method` dan `onu_type` di JSON response.
+Akibat: live polling JS di `onu-detail.php` menghapus suffix "(OMCI)/(TR069)" dari tampilan
+ONU mode setelah poll pertama. Info config_method hilang dari display sampai full page reload.
+
+**Fix:**
+- Tambah `config_method` dan `onu_type` ke JSON response `onu-data.php`
+- Perbarui JS `onu-detail.php` agar `config_method` tetap tampil di ONU mode setelah live poll
+
+**Tier:** 1 (app-only, no OLT interaction)
+
 
 ## 2026-09-18 — Fix: config_method missing from ETag hash in get-signals-db.php
 
