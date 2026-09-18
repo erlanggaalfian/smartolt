@@ -1,3 +1,17 @@
+## 2026-09-18 — Fix: config_method missing from onu-detail.php initial render
+
+**Files:** `frontend/onu-detail.php`
+**Commit:** (this commit)
+
+**Masalah:** PHP initial render `detail-onu-mode` ("Mode ONU") tidak menyertakan
+`config_method` (OMCI/TR069), tapi JS live polling menambahkannya. Hasil: visual jump
+dari "Routing — WAN 123" ke "Routing (OMCI) — WAN 123" setelah poll pertama (~15 detik).
+
+**Fix:** Tambah `(<?php echo $onu['config_method'] ?: 'OMCI'; ?>)` ke PHP render
+`detail-onu-mode` supaya konsisten dengan JS polling sejak halaman pertama kali dimuat.
+
+---
+
 ## 2026-09-18 — Fix: config_method+onu_type missing from onu-data.php live polling
 
 **Files:** `frontend/action/onu-data.php`, `frontend/onu-detail.php`

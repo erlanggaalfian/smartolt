@@ -442,7 +442,7 @@ if (!empty($onu['onu_type'])) {
 
             <div class="detail-plain-row" data-clickable onclick="document.getElementById('update-onu-mode-modal').classList.add('open')">
                 <span class="detail-plain-label">Mode ONU</span>
-                <span class="detail-plain-value" id="detail-onu-mode"><i data-lucide="pencil" style="width:11px;height:11px;"></i> <?php echo htmlspecialchars($onu['onu_mode'] ?: 'Routing'); ?> &mdash; WAN <?php echo htmlspecialchars($onu['vlan'] ?: 'N/A'); ?></span>
+                <span class="detail-plain-value" id="detail-onu-mode"><i data-lucide="pencil" style="width:11px;height:11px;"></i> <?php echo htmlspecialchars($onu['onu_mode'] ?: 'Routing'); ?> (<?php echo htmlspecialchars($onu['config_method'] ?: 'OMCI'); ?>) &mdash; WAN <?php echo htmlspecialchars($onu['vlan'] ?: 'N/A'); ?></span>
             </div>
 
             <div class="detail-plain-row" data-clickable onclick="document.getElementById('update-onu-mode-modal').classList.add('open')">
