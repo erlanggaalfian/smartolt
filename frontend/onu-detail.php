@@ -31,8 +31,9 @@ if (!$onu) {
 // Background sync REMOVED — JS already fires onu-data.php?full=1 on page load,
 // which runs sync_onu_config_from_olt() and returns data directly to the browser.
 // Running sync_one_onu.py in parallel wasted 1 OLT VTY session slot (scarce resource,
-// max ~5 concurrent) for identical, redundant work. Resync button (?resync=1) now
-// triggers the JS full sync by resetting needFullSync=true via a data attribute.
+// max ~5 concurrent) for identical, redundant work. Resync button (#btn-resync-config)
+// triggers JS full sync by setting needFullSync=true + calling fetchRealtimeData()
+// without a full page reload.
 
 
 
@@ -627,7 +628,7 @@ if (!empty($onu['onu_type'])) {
                 <input type="hidden" name="id" value="<?php echo (int)$onu['id']; ?>">
                 <button type="submit" class="btn-solt btn-solt-orange"><i data-lucide="rotate-ccw" style="width:14px; height:14px;"></i> Restore Factory</button>
             </form>
-            <a class="btn-solt btn-solt-orange" href="onu-detail.php?id=<?php echo (int)$onu['id']; ?>"><i data-lucide="refresh-ccw" style="width:14px; height:14px;"></i> Resync config</a>
+            <button type="button" class="btn-solt btn-solt-orange" id="btn-resync-config"><i data-lucide="refresh-ccw" style="width:14px; height:14px;"></i> Resync config</button>
             <?php if ($onu['status'] === 'disabled'): ?>
                 <form action="action/onu-state.php" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin mengaktifkan kembali ONT ini?');" style="margin:0;">
                     <input type="hidden" name="id" value="<?php echo (int)$onu['id']; ?>">
@@ -1078,6 +1079,15 @@ if (!empty($onu['onu_type'])) {
                 btnLive.style.opacity = isOn ? '0.7' : '1';
                 countdownSec = isOn ? 15 : 3;
                 if (!isOn) fetchRealtimeData();
+            });
+        }
+
+        // Resync config button — trigger full sync without page reload
+        const btnResync = document.getElementById('btn-resync-config');
+        if (btnResync) {
+            btnResync.addEventListener('click', () => {
+                needFullSync = true;
+                fetchRealtimeData();
             });
         }
 
