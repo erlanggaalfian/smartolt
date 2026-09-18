@@ -1,4 +1,14 @@
 
+## 2026-09-19 01:55 — Fix: external_id hilang dari OLT description setelah otorisasi/edit identitas
+**Files:** `frontend/action/auth-onu.php`, `frontend/action/update-onu-mode.php`
+**Type:** Bug fix (Tier 1 — no OLT command changes, pure description string fix)
+
+**Masalah:** Saat otorisasi ONU baru atau edit identitas (Zone/Splitter/Nama/etc), description string yang dikirim ke OLT di-rekonstruksi TANPA field `_extid_`. Akibatnya, `external_id` yang diisi user hilang dari description OLT. Kolom DB `onus.external_id` tetap aman (sync tidak overwrite field ini), tapi description di OLT kehilangan info ini — visible jika description dibaca dari tool lain atau OLT reboot sebelum sync berikutnya.
+
+**Fix:** Tambah `_extid_{$external_id}` ke description string di `auth-onu.php` (otorisasi baru) dan `update-onu-mode.php` (edit identitas) ketika `external_id` tidak null/kosong. Urutan field: ...`_authd_YYYYMMDD` → `_contact_X` → `_extid_X`.
+
+**Verifikasi:** `php -l` clean, commit b72d43f.
+
 ## 2026-09-19 01:30 — Fix: cron_sync.py not running automatically (missing /etc/cron.d/smartolt-sync)
 **Files:** `deploy/cron.d-smartolt-sync` (new), `/etc/cron.d/smartolt-sync` (deployed)
 **Type:** Infrastructure fix (Tier 1 — no OLT command changes)
