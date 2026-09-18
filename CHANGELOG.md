@@ -1,3 +1,13 @@
+
+## 2026-09-18 — Fix: cache pppoe_ip to DB during full sync
+
+**Files:** `frontend/action/onu-data.php`
+**Commit:** 54bb4bf
+
+**Masalah:** `onu-data.php` full sync tidak UPDATE kolom `pppoe_ip` ke DB, padahal driver OLT mengembalikan nilainya. Akibat: PPPoE IP tampil "No IP" pada initial page load onu-detail.php dan di antara full sync (snmp_lite mode membaca dari DB yang kosong/stale).
+
+**Fix:** Tambah `pppoe_ip = COALESCE(?, pppoe_ip)` ke UPDATE query full sync beserta parameternya. Sekarang PPPoE IP ter-cache di DB setelah full sync pertama, dan snmp_lite polling bisa membacanya tanpa SSH round-trip tambahan.
+
 ## 2026-09-18 — Fix: signal color tiers fair vs weak were identical
 
 **Files:** `frontend/public/style.css`, `frontend/onu-detail.php`
