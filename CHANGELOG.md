@@ -1,4 +1,16 @@
 
+
+## 2026-09-19 02:30 — Fix: traffic speed negative delta + external_id full-sync parse
+**Files:** `frontend/onu-detail.php`, `frontend/action/onu-data.php`
+**Type:** Bug fix (Tier 1 — no OLT command changes, pure UI + sync logic)
+
+**Masalah 1:** JS traffic speed di onu-detail.php bisa menghasilkan nilai negatif kalau SNMP counter wrap/reset antar polling cycle (misal OLT reboot). PHP code di `onu-data.php` sudah punya guard `rx_diff >= 0` tapi JS tidak.
+**Fix 1:** Tambah guard `rxDiff >= 0 && txDiff >= 0` sebelum kalkulasi speed. Speed stay 0 sampai delta bersih berikutnya.
+
+**Masalah 2:** Full sync `onu-data.php` (`?full=1`) memparse zone/splitter/address/contact dari OLT description tapi tidak memparse `external_id`. Kolom DB `onus.external_id` tidak ter-update dari OLT description saat page pertama kali di-load (full sync).
+**Fix 2:** Tambah parse `$parsed['external_id']` + `external_id = COALESCE(?, external_id)` di UPDATE statement.
+
+**Verifikasi:** `php -l` clean, commit 38699e4.
 ## 2026-09-19 01:55 — Fix: external_id hilang dari OLT description setelah otorisasi/edit identitas
 **Files:** `frontend/action/auth-onu.php`, `frontend/action/update-onu-mode.php`
 **Type:** Bug fix (Tier 1 — no OLT command changes, pure description string fix)
