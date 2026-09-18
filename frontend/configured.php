@@ -419,18 +419,6 @@ $onus = $stmt_data->fetchAll();
                             const wanDisplay = onu.wan_mode === 'Static' ? 'Static IP' : (onu.wan_mode || '-');
                             wanCell.innerHTML = `<span class="badge bg-blue">${esc(wanDisplay)}</span>`;
                         }
-                        // Update Profil DL
-                        const dlCell = row.querySelector('.dl-profile-cell');
-                        if (dlCell) {
-                            dlCell.textContent = onu.download_profile || '-';
-                            dlCell.title = onu.download_profile || '';
-                        }
-                        // Update Profil UL
-                        const ulCell = row.querySelector('.ul-profile-cell');
-                        if (ulCell) {
-                            ulCell.textContent = onu.upload_profile || '-';
-                            ulCell.title = onu.upload_profile || '';
-                        }
                         // Update ONU Type
                         const typeCell = row.querySelector('.onu-type-cell');
                         if (typeCell) {
@@ -439,8 +427,6 @@ $onus = $stmt_data->fetchAll();
 
                         // Update data-attributes for next comparison
                         row.setAttribute('data-wan', onu.wan_mode || '');
-                        row.setAttribute('data-dl-prof', onu.download_profile || '');
-                        row.setAttribute('data-ul-prof', onu.upload_profile || '');
                         row.setAttribute('data-onu-type', onu.onu_type || '');
                     });
 
@@ -654,14 +640,10 @@ $onus = $stmt_data->fetchAll();
                     <tr>
                         <th>Status</th>
                         <th>Nama Pelanggan</th>
-                        <th>Zone</th>
-                        <th>Splitter</th>
                         <th>Serial Number</th>
                         <th>Koneksi OLT & PON</th>
                         <th>VLAN</th>
                         <th>WAN</th>
-                        <th>Profil DL</th>
-                        <th>Profil UL</th>
                         <th>Sinyal Rx ONU</th>
                         <th>Sinyal Rx OLT</th>
                         <th>Last Down</th>
@@ -672,11 +654,11 @@ $onus = $stmt_data->fetchAll();
                 <tbody>
                     <?php if (empty($onus)): ?>
                         <tr>
-                            <td colspan="15" style="text-align:center;color:var(--text-muted);padding:16px;">Tidak ada ONU terdaftar yang sesuai dengan kriteria filter.</td>
+                            <td colspan="11" style="text-align:center;color:var(--text-muted);padding:16px;">Tidak ada ONU terdaftar yang sesuai dengan kriteria filter.</td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($onus as $onu): ?>
-                            <tr class="onu-row" data-onu-id="<?php echo (int)$onu['id']; ?>" data-name="<?php echo htmlspecialchars($onu['name'] ?? ''); ?>" data-status="<?php echo htmlspecialchars($onu['status']); ?>" data-vlan="<?php echo htmlspecialchars($onu['vlan'] ?: 'None'); ?>" data-rx-onu="<?php echo htmlspecialchars($onu['last_rx_power'] ?? 'N/A'); ?>" data-rx-olt="<?php echo htmlspecialchars($onu['last_rx_olt_power'] ?? 'N/A'); ?>" data-down-cause="<?php echo htmlspecialchars($onu['last_down_cause'] ?? '-'); ?>" data-wan="<?php echo htmlspecialchars($onu['wan_mode'] ?? ''); ?>" data-dl-prof="<?php echo htmlspecialchars($onu['download_profile'] ?? ''); ?>" data-ul-prof="<?php echo htmlspecialchars($onu['upload_profile'] ?? ''); ?>" data-onu-type="<?php echo htmlspecialchars($onu['onu_type'] ?? ''); ?>">
+                            <tr class="onu-row" data-onu-id="<?php echo (int)$onu['id']; ?>" data-name="<?php echo htmlspecialchars($onu['name'] ?? ''); ?>" data-status="<?php echo htmlspecialchars($onu['status']); ?>" data-vlan="<?php echo htmlspecialchars($onu['vlan'] ?: 'None'); ?>" data-rx-onu="<?php echo htmlspecialchars($onu['last_rx_power'] ?? 'N/A'); ?>" data-rx-olt="<?php echo htmlspecialchars($onu['last_rx_olt_power'] ?? 'N/A'); ?>" data-down-cause="<?php echo htmlspecialchars($onu['last_down_cause'] ?? '-'); ?>" data-wan="<?php echo htmlspecialchars($onu['wan_mode'] ?? ''); ?>" data-onu-type="<?php echo htmlspecialchars($onu['onu_type'] ?? ''); ?>">
                                 <td class="status-cell">
                                     <?php if ($onu['status'] === 'online'): ?>
                                         <span class="badge bg-green"><i data-lucide="globe" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:4px;"></i> Online</span>
@@ -687,8 +669,6 @@ $onus = $stmt_data->fetchAll();
                                     <?php endif; ?>
                                 </td>
                                 <td class="name-cell"><strong><?php echo htmlspecialchars(extract_customer_name($onu['name'])); ?></strong></td>
-                                <td style="font-size:0.8rem;color:var(--text-muted);"><?php echo htmlspecialchars($onu['zone'] ?: '-'); ?></td>
-                                <td style="font-size:0.8rem;color:var(--text-muted);"><?php echo htmlspecialchars($onu['splitter'] ?: '-'); ?></td>
                                 <td><code><?php echo htmlspecialchars($onu['serial_number']); ?></code></td>
                                 <td>
                                     <?php echo htmlspecialchars($onu['olt_name']); ?><br>
@@ -696,8 +676,6 @@ $onus = $stmt_data->fetchAll();
                                 </td>
                                 <td class="vlan-cell"><span class="badge bg-green"><?php echo htmlspecialchars($onu['vlan'] ?: '-'); ?></span></td>
                                 <td class="wan-cell"><span class="badge bg-blue"><?php echo htmlspecialchars($onu['wan_mode'] === 'Static' ? 'Static IP' : ($onu['wan_mode'] ?: '-')); ?></span></td>
-                                <td class="dl-profile-cell" style="font-size:0.8rem;color:var(--text-muted);" title="<?php echo htmlspecialchars($onu['download_profile'] ?: ''); ?>"><?php echo htmlspecialchars($onu['download_profile'] ?: '-'); ?></td>
-                                <td class="ul-profile-cell" style="font-size:0.8rem;color:var(--text-muted);" title="<?php echo htmlspecialchars($onu['upload_profile'] ?: ''); ?>"><?php echo htmlspecialchars($onu['upload_profile'] ?: '-'); ?></td>
                                 <td class="signal-cell">
                                     <?php if ($onu['status'] === 'online' && $onu['last_rx_power'] !== null): ?>
                                         <?php 
