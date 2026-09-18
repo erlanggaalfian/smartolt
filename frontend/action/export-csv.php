@@ -97,6 +97,7 @@ if ($filter_type !== '') {
 
 $sql = "SELECT onus.name, onus.serial_number, onus.onu_id, onus.pon_port,
                onus.vlan, onus.status, onus.onu_type, onus.wan_mode, onus.onu_mode,
+               onus.config_method,
                onus.pppoe_username, onus.pppoe_password,
                onus.zone, onus.splitter, onus.odb_port, onus.address, onus.contact, onus.external_id,
                onus.config_preset,
@@ -127,6 +128,7 @@ fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
 
 fputcsv($output, [
     'Name', 'SN', 'ONU ID', 'PON Port', 'VLAN', 'Status', 'ONU Type', 'WAN Mode', 'ONU Mode',
+    'Config Method',
     'PPPoE User', 'PPPoE Pass', 'Zone', 'ODB/Splitter', 'ODB Port', 'Address', 'Contact', 'External ID',
     'Config Preset',
     'Download Profile', 'Upload Profile',
@@ -148,6 +150,7 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $row['onu_type'],
         $row['wan_mode'],
         $row['onu_mode'],
+        $row['config_method'] ?? 'OMCI',
         $row['pppoe_username'],
         $row['pppoe_password'],
         $row['zone'],
