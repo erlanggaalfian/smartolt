@@ -1,3 +1,13 @@
+## 2026-09-18 — Remove dead TR069 profile + IPTV rows from ONU detail
+**Files:** `frontend/onu-detail.php`
+**Commit:** b1941a6
+
+**Masalah:** 'Profil TR069' (selalu N/A) dan 'IPTV' (selalu 'Tidak Aktif') di halaman
+ONU detail menampilkan informasi tanpa sumber data — menambah visual noise tanpa value.
+**Fix:** Hapus kedua baris. VoIP/WiFi/Ethernet/CATV tetap (punya data real dari
+onu_types table). Desktop + mobile (layout tidak berubah, hanya pengurangan elemen mati).
+
+
 ## 2026-09-18 — Fix: config_method missing from onu-detail.php initial render
 
 **Files:** `frontend/onu-detail.php`
