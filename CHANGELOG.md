@@ -1,5 +1,13 @@
 
 
+## 2026-09-19 06:15 — Remove redundant background sync + chart null-push when ONU offline
+**Files:** `frontend/onu-detail.php`
+**Type:** Performance + UX improvement (Tier 1 — no OLT command changes)
+**Masalah 1:** `onu-detail.php` fired `sync_one_onu.py` background exec on every page load, consuming 1 OLT VTY session slot (~5 max) in parallel with JS-triggered `onu-data.php?full=1` that does identical work. Double session consumption for zero benefit.
+**Fix 1:** Removed background `sync_one_onu.py` exec. JS full sync on page load already handles config sync + DB update. Resync button reloads page (triggers JS full sync). Saves 1 OLT session per page visit.
+**Masalah 2:** When ONU went offline, traffic/signal charts froze (no data pushed) and speed stats stayed stale at last known non-zero value. Misleading.
+**Fix 2:** Offline branch now pushes `null` data points to both charts (Chart.js renders gap in line), resets current speed stats to 0.00 Mbps, resets signal stats to N/A, clears `lastTraffic` delta so next online reading starts clean.
+
 ## 2026-09-19 03:40 — Fix: configured.php signal polling unnecessary DOM updates
 **Files:** `frontend/configured.php`
 **Type:** Bug fix (Tier 1 — no OLT command changes, pure UI performance)
