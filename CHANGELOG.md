@@ -1366,3 +1366,19 @@ defense-in-depth mewajibkan escape di setiap output point.
 ## 2026-09-18 17:XX — config_method CSV export fix
 - **[Auto]** Fix: add config_method column to CSV export (export-csv.php). Column was missing from SQL SELECT, header, and data rows after being added to configured.php display and get-signals-db.php live polling in prior cycle.
 - Commit: ff63888
+
+## 2026-09-18 — [REVIEW] Mode ONU (Routing/Bridging) silent no-op — proposal ditulis, TIDAK dieksekusi
+**Files:** REVIEW.md
+**Tier:** 3 (WAJIB REVIEW — perbaikan akan mengirim command real ke OLT untuk ONU aktif)
+
+**Temuan:** radio "Mode ONU" (Routing/Bridging) di modal Update ONU Mode fully wired UI→DB
+tapi `configure_onu_full()` di zte_c300.py DAN zte_c320.py tidak pernah membaca
+`wan['onu_mode']` — pilih Bridging tidak pernah benar-benar diterapkan ke OLT, app cuma
+mencatat di DB seolah berhasil. Audit DB: 2341/2341 ONU saat ini masih 'Routing' (tidak
+ada row 'Bridging' yang mungkin sudah salah selama ini — tidak ada dampak pelanggan
+tersembunyi hari ini). Proposal lengkap + rencana riset command ditulis di REVIEW.md,
+menunggu keputusan user sebelum riset command CLI Bridging dan implementasi.
+
+Juga dicatat sebagai catatan tambahan (belum proposal formal): `ip_protocol` field
+punya pola serupa (masuk $wan tapi tidak dibaca driver) tapi tidak ada UI form field
+untuknya, jadi kemungkinan dampak praktis nol — perlu verifikasi siklus berikutnya.

@@ -112,6 +112,79 @@ Template proposal baru (copy ke bawah "## Proposal Menunggu Review" section):
 
 ## Proposal Menunggu Review
 
+### [2026-09-18] "Mode ONU" (Routing/Bridging) di modal Update ONU Mode = silent no-op
+
+**Kategori:** Bug (silent no-op, sama pola dengan bug "WAN remote access no-op" yang
+sudah pernah ditemukan dan diperbaiki — kali ini field berbeda)
+**File terdampak:** `frontend/onu-detail.php` (radio `name="onu_mode"` di modal
+`update-onu-mode-modal`), `frontend/action/update-onu-mode.php` (baris 48, 135, 243 —
+membangun `$wan['onu_mode']` dan menyimpannya ke DB), `backend/python_engine/drivers/
+zte_c300.py` dan `zte_c320.py` (`configure_onu_full()`).
+**Kenapa wajib review (bukan auto-deploy):** memperbaikinya berarti driver akan MULAI
+benar-benar mengirim command yang mengubah mode forwarding (Routing vs Bridging) ke
+OLT untuk ONU yang SUDAH aktif/online — persis kategori "menyentuh config ONU
+pelanggan aktif", jadi tidak auto-deploy meskipun bug-nya sendiri (menemukan +
+menjelaskan) aman dianalisa.
+
+**Masalah:**
+Modal "Update Mode ONU" di `onu-detail.php` punya dua radio button `name="onu_mode"`
+(`Routing` / `Bridging`, baris 1186-1190) yang terlihat berfungsi penuh: form
+ter-render dengan state saat ini, submit ke `action/update-onu-mode.php`, backend
+memvalidasi (`in_array($_POST['onu_mode'] ?? '', ['Routing', 'Bridging'], true)`,
+baris 48), memasukkannya ke array `$wan['onu_mode']` yang dikirim ke
+`configure_onu_full($olt, $onu, $wan)` (baris 135, 162), DAN menyimpannya ke kolom DB
+`onus.onu_mode` (baris 210, 243) — sehingga setelah submit, UI menampilkan "Mode ONU:
+Bridging" seolah berhasil diterapkan.
+
+Tapi `configure_onu_full()` di KEDUA driver ZTE (`zte_c300.py` baris 1113-1204,
+`zte_c320.py` baris 1110-1201 — identik) TIDAK PERNAH membaca key `onu_mode` dari
+dict `wan` yang diterimanya. Grep `grep -n "onu_mode" backend/python_engine/drivers/
+zte_c300.py` hanya menemukan satu match: default value di `sync_onu_config()`
+(`'onu_mode': 'Routing'`, hardcoded, bukan dibaca dari OLT). Tidak ada command
+`smart-l2`, `bridge`, atau sejenisnya yang mengubah mode forwarding di command-list
+`configure_onu_full()` manapun.
+
+Ini pola persis "hardcoded fallback / field dibaca tapi tidak pernah dikonsumsi
+handler" yang sudah tercatat di skill `smartolt-php` (varian ketiga: field wired
+end-to-end di UI+DB tapi fungsi penerima tidak pernah destructure key-nya) — ONU_mode
+sekarang jadi contoh keempat pola yang sama, setelah `wan_remote_access` (sudah
+diperbaiki), `dba_profile_id`/`downstream_profile_id` (sudah diperbaiki), dan
+`ip_protocol` (masih ada di form data, belum dicek — lihat catatan di bawah).
+
+**Dampak nyata:** pelanggan yang mode ONU-nya perlu diubah ke Bridging (mis. untuk
+router sendiri di sisi pelanggan) TIDAK PERNAH benar-benar berubah di OLT — status
+tetap Routing di perangkat fisik meski aplikasi bilang "berhasil", dan operator yang
+mengecek dari app tidak akan tahu sampai pelanggan komplain koneksi tidak sesuai
+ekspektasi Bridging (double-NAT, dsb).
+
+**Usulan (BELUM dieksekusi, perlu keputusan user + riset command CLI ZTE dulu):**
+1. Riset command ZTE C300/C320 yang sesuai untuk switch Routing↔Bridging per-ONU
+   (kemungkinan terkait `switchport-bind`/`smart-l2`/OMCI bridge service — belum
+   diverifikasi live, HARUS ditest di ONU test `ZTEGDDBFFDCA` dulu, bukan tebakan).
+2. Tambah command yang sesuai ke `configure_onu_full()` di kedua driver, dipicu oleh
+   `wan.get('onu_mode')`.
+3. Untuk ONU pelanggan real yang SUDAH ada set ke Bridging di DB tapi ternyata tidak
+   pernah diterapkan ke OLT (silent no-op selama ini) — perlu audit: berapa banyak
+   row `onus.onu_mode = 'Bridging'` yang aktif, cek apakah mode itu benar2 pernah
+   diminta user vs cuma default kosong yang kebetulan ke-set. JANGAN langsung
+   "perbaiki" dengan mengirim command Bridging ke semua ONU itu tanpa konfirmasi user
+   — bisa DOWNTIME kalau pelanggan sebenarnya baik-baik saja di Routing dan field DB
+   itu cuma salah/basi.
+
+**Catatan tambahan ditemukan saat analisa (belum diverifikasi cukup untuk proposal
+terpisah, dicatat untuk siklus berikutnya):** `$ip_protocol` (dari `cli_safe_strict`,
+baris 52) juga dimasukkan ke `$wan['ip_protocol']` (baris 138) dan disimpan ke DB
+(baris 213, 246), tapi tidak ditemukan di `configure_onu_full()` manapun via grep —
+kemungkinan no-op yang sama, TAPI tidak ada UI form field untuk `ip_protocol` di
+`onu-detail.php` (tidak ditemukan `name="ip_protocol"` di manapun) jadi dampaknya
+mungkin nol secara praktik (selalu fallback ke `$row['ip_protocol']` lama, tidak
+pernah diubah user). Perlu cek lebih lanjut siklus berikutnya sebelum ditulis sebagai
+proposal formal.
+
+**Status:** MENUNGGU REVIEW
+
+---
+
 ### [2026-09-16] WAN remote access dropdown = silent no-op (driver ignores setting)
 
 **Status:** ✅ SUDAH DISELESAIKAN (siklus sebelumnya, bukan proposal ini yang menyelesaikan)
