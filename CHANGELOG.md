@@ -1,3 +1,17 @@
+## 2026-09-19 01:30 — Fix: configured.php data-attribute mismatch causing unnecessary DOM re-init
+**Files:** `frontend/configured.php`
+**Commit:** 81e03a8
+
+**Masalah:** JS poll (60 detik) di `configured.php` membandingkan `data-dl-prof` dan `data-ul-prof` pada setiap `<tr>` untuk menentukan apakah DOM perlu di-update. Tapi kedua atribut ini TIDAK PERNAH ditambahkan ke elemen `<tr>` oleh PHP — jadi `getAttribute()` selalu return `null` vs string dari fetch response, `domChanged` selalu `true`, `lucide.createIcons()` re-init setiap 60 detik walau tidak ada perubahan data.
+
+**Fix:**
+1. Tambah `data-dl-prof` dan `data-ul-prof` ke atribut `<tr>` di PHP render
+2. Tambah `row.setAttribute('data-dl-prof', ...)` dan `row.setAttribute('data-ul-prof', ...)` di JS update block supaya atribut sinkron setelah poll
+
+**Dampak:** Minor — mengurangi unnecessary Lucide icon re-initialization setiap 60 detik di configured.php. Tidak ada perubahan fungsi/data.
+
+---
+
 ## 2026-09-18 21:30 — Fix ONU detail: redundant config_method, stale WAN label, misleading PPPoE chip
 **Files:** `frontend/onu-detail.php`
 **Commit:** e1ae9c8
