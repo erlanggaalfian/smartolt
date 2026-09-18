@@ -1313,3 +1313,7 @@ onclick attribute div "Lokasi". Meskipun nilai di-validasi `is_numeric()` saat i
 defense-in-depth mewajibkan escape di setiap output point.
 
 **Fix:** Tambah `htmlspecialchars()` pada kedua nilai koordinat di onclick handler.
+
+## 2026-09-18 17:XX — config_method CSV export fix
+- **[Auto]** Fix: add config_method column to CSV export (export-csv.php). Column was missing from SQL SELECT, header, and data rows after being added to configured.php display and get-signals-db.php live polling in prior cycle.
+- Commit: ff63888
