@@ -1,3 +1,13 @@
+
+## 2026-09-19 01:30 — Fix: cron_sync.py not running automatically (missing /etc/cron.d/smartolt-sync)
+**Files:** `deploy/cron.d-smartolt-sync` (new), `/etc/cron.d/smartolt-sync` (deployed)
+**Type:** Infrastructure fix (Tier 1 — no OLT command changes)
+
+**Masalah:** File `/etc/cron.d/smartolt-sync` tidak ada — `cron_sync.py` (periodic bulk ONU sync: status, signal, VLAN, PPPoE, name/description dari OLT ke DB lokal) tidak pernah berjalan otomatis. Data ONU di DB hanya ter-update ketika user manual trigger sync atau buka halaman ONU detail. Tanpa ini, halaman `configured.php` menampilkan data stale (status, sinyal, profil) sampai user bertindak.
+
+**Fix:** Deployed cron.d entry yang menjalankan `cron_sync.py` tiap menit. Script punya internal `fcntl` lock yang mencegah overlap — kalau siklus sebelumnya masih jalan, siklus baru langsung exit. Juga fix permission untuk `cron_sync.lock` dan `last_config_sync.txt` yang www-data butuhkan untuk write.
+
+**Verifikasi:** Cron fired, sync selesai: GBB 282 ONUs + TGR 2059 ONUs, SNMP fast-sync 2341/2341. History cleanup + downsampling OK.
 ## 2026-09-19 01:30 — Fix: configured.php data-attribute mismatch causing unnecessary DOM re-init
 **Files:** `frontend/configured.php`
 **Commit:** 81e03a8

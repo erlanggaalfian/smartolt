@@ -1,0 +1,3 @@
+# SmartOLT periodic ONU sync (CLI + SNMP)
+# Runs cron_sync.py every minute - internal fcntl lock prevents overlap
+* * * * * www-data /var/www/smartolt.netbackup.web.id/backend/python_engine/venv/bin/python3 /var/www/smartolt.netbackup.web.id/backend/python_engine/cron_sync.py >> /var/log/smartolt-cron-sync.log 2>&1
