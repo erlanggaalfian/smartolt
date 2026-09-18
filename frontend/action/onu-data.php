@@ -226,7 +226,7 @@ echo json_encode([
     'onu_id'            => $onu['onu_id'],
     'rx_onu'            => $rx_onu ?? 'N/A',
     'rx_olt'            => $rx_olt ?? 'N/A',
-    'pppoe_ip'          => $pppoe_ip ?: 'N/A',
+    'pppoe_ip'          => $onu['pppoe_ip'] ?: 'N/A',
     'pppoe_username'    => $onu['pppoe_username'] ?: '',
     'pppoe_password'    => $onu['pppoe_password'] ?: '',
     'vlan'              => $onu['vlan'],

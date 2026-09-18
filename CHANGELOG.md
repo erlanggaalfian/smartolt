@@ -1,4 +1,12 @@
 
+## 2026-09-18 — Fix: pppoe_ip stale variable in onu-data.php response + \r\n cleanup
+
+**Files:** `frontend/action/onu-data.php`, `frontend/action/onu-query.php`
+
+**Masalah:** Response JSON `onu-data.php` baris 229 menggunakan `$pppoe_ip` (variabel lokal dari driver response) bukan `$onu['pppoe_ip']` (re-query DB). Saat full sync OLT tidak mengembalikan pppoe_ip (null), tapi DB sudah punya nilai cache dari sync sebelumnya (dipertahankan oleh `COALESCE`), response tetap kirim 'N/A' karena variabel lokal null — padahal DB punya nilai valid. Juga: `onu-query.php` punya line endings `\r\n` (Windows) inkonsisten dengan seluruh app.
+
+**Fix:** Ganti `$pppoe_ip` → `$onu['pppoe_ip']` di response. Normalisasi `\r\n` → `\n` di `onu-query.php`.
+
 ## 2026-09-18 — Fix: cache pppoe_ip to DB during full sync
 
 **Files:** `frontend/action/onu-data.php`
