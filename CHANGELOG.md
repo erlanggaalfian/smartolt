@@ -1,3 +1,15 @@
+## 2026-09-18 — Fix: signal color tiers fair vs weak were identical
+
+**Files:** `frontend/public/style.css`, `frontend/onu-detail.php`
+**Commit:** d4aed1b
+
+**Masalah:** `--color-warning` = `var(--color-amber)` (CSS alias), sehingga tier sinyal -28 s/d -25 (fair) dan -30 s/d -28 (weak) tampil dengan warna identik di halaman detail ONU dan badge `.bg-orange` di configured.php.
+**Fix:** `.bg-orange` badge diubah ke `--color-orange` (distinct darker shade yang sudah didefinisikan di style.css tapi tidak pernah dipakai). Signal threshold di `onu-detail.php` (PHP server-side + 2x JS realtime update) diubah dari `var(--color-warning)` ke `var(--color-orange)` untuk range -30 s/d -28 dBm.
+**Scope:** Desktop + mobile (hanya warna, bukan layout).
+**Minor:** Packet counter locale konsisten `en-US` (match stats cards fix sebelumnya).
+
+---
+
 ## 2026-09-18 — Fix: onu_type missing from live polling response
 
 **Files:** `frontend/action/get-signals-db.php`
