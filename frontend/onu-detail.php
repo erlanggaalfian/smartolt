@@ -1000,6 +1000,9 @@ if (!empty($onu['onu_type'])) {
                             trafficChart.data.datasets[1].data.push(downSpeed);
                             trafficChart.update();
                         }
+
+                        // Re-render lucide icons after DOM updates (setChipVal/innerHTML replaces <i> with new unprocessed elements)
+                        if (typeof lucide !== 'undefined') lucide.createIcons();
                     } else {
                         needFullSync = true; // retry full sync on next poll so VLAN/PPPoE/distance aren't stuck
                         if (banner) {
