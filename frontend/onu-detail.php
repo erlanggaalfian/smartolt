@@ -407,11 +407,6 @@ if (!empty($onu['onu_type'])) {
             </div>
 
             <div class="detail-plain-row">
-                <span class="detail-plain-label">Profil TR069</span>
-                <span class="detail-plain-value" style="color:var(--text-muted);">N/A</span>
-            </div>
-
-            <div class="detail-plain-row">
                 <span class="detail-plain-label">IP Manajemen</span>
                 <span class="detail-plain-value" id="detail-mgmt-ip">
                     <?php if (!empty($onu['mgmt_ip'])): ?>
@@ -619,10 +614,6 @@ if (!empty($onu['onu_type'])) {
         </div>
     </div>
     <div class="smartolt-row" style="margin-bottom: 12px; padding-bottom: 12px; border-bottom:none;">
-        <div class="smartolt-label">IPTV</div>
-        <div class="smartolt-content" style="color:var(--text-muted); font-size:0.9rem;">Tidak Aktif</div>
-    </div>
-    <div class="smartolt-row" style="margin-bottom: 30px; padding-bottom: 12px; border-bottom:none;">
         <div class="smartolt-label">CATV</div>
         <div class="smartolt-content">
             <?php if ($onu_type_specs['catv']): ?>
