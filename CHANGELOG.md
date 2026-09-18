@@ -1,5 +1,11 @@
 
 
+## 2026-09-19 03:40 — Fix: configured.php signal polling unnecessary DOM updates
+**Files:** `frontend/configured.php`
+**Type:** Bug fix (Tier 1 — no OLT command changes, pure UI performance)
+**Masalah:** `data-rx-onu` / `data-rx-olt` HTML attributes store raw DB values (e.g. `-24.3`), but `get-signals-db.php` returns `number_format(..., 2)` values (e.g. `-24.30`). JS `===` comparison always mismatches when decimal precision differs → unnecessary DOM rewrite on every 60s poll for every affected ONU.
+**Fix:** Align PHP attribute rendering to use `number_format(..., 2)` same as `get-signals-db.php`. No behavioral change, just eliminates wasted DOM ops.
+
 ## 2026-09-19 03:20 — Fix: lucide icons vanish after polling DOM update in onu-detail.php
 **Files:** `frontend/onu-detail.php`
 **Type:** Bug fix (Tier 1 — no OLT command changes, pure UI)
