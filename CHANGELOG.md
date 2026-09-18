@@ -1,3 +1,17 @@
+## 2026-09-18 21:30 — Fix ONU detail: redundant config_method, stale WAN label, misleading PPPoE chip
+**Files:** `frontend/onu-detail.php`
+**Commit:** e1ae9c8
+
+**Masalah:**
+1. `config_method` (OMCI/TR069) tampil dua kali di panel identitas — sekali di "Mode ONU" dan sekali lagi di "Mode setup WAN" (redundant, visual noise).
+2. Label "Mode setup WAN" tidak pernah update saat live polling berjalan — nilai tetap dari initial page load.
+3. ONU non-PPPoE (DHCP/Static) menampilkan chip merah "No IP" setelah polling pertama, padahal PPPoE tidak dikonfigurasi.
+
+**Fix:**
+1. Hapus duplikat `(config_method)` dari baris "Mode setup WAN" — hanya tampil di "Mode ONU".
+2. Tambah `<span id="detail-wan-label">` + JS update di polling handler + `currentWanMode` tracking variable.
+3. PPPoE IP wrapper hanya update jika `wan_mode === 'PPPoE'`; non-PPPoE tampilkan `-` (konsisten dengan render PHP awal).
+- **Scope:** Desktop + Mobile (detail-plain-row responsif)
 ## 2026-09-18 — Port ODB + External ID display row di ONU Detail
 **Files:** `frontend/onu-detail.php`, `frontend/action/onu-data.php`
 **Commit:** 05a2deb
