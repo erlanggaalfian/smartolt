@@ -1,5 +1,12 @@
 
 
+## 2026-09-19 06:30 — Fix: Resync config button triggers JS full sync without page reload
+**Files:** `frontend/onu-detail.php`
+**Type:** UX improvement (Tier 1 — no OLT command changes)
+**Commit:** 90b2a1c
+**Masalah:** Tombol "Resync config" di onu-detail.php adalah `<a href>` yang me-reload seluruh halaman — meng-reset chart history, membuang bandwidth download ulang HTML/CSS/JS, dan menyebabkan FOUC.
+**Fix:** Ubah ke `<button id="btn-resync-config">` yang set `needFullSync=true` lalu panggil `fetchRealtimeData()` secara JS. Hasil: data di-resync dari OLT tanpa page reload. Charts tetap lanjut, halaman tidak berkedip, response lebih cepat (hanya 1 API call vs full page reload).
+
 ## 2026-09-19 06:15 — Remove redundant background sync + chart null-push when ONU offline
 **Files:** `frontend/onu-detail.php`
 **Type:** Performance + UX improvement (Tier 1 — no OLT command changes)
