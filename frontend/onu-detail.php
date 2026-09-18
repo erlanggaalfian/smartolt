@@ -840,7 +840,7 @@ if (!empty($onu['onu_type'])) {
 
                         const onuModeEl = document.getElementById('detail-onu-mode');
                         if (onuModeEl) {
-                            onuModeEl.innerHTML = `<i data-lucide="pencil" style="width:11px;height:11px;"></i> ${esc(data.onu_mode || 'Routing')} &mdash; WAN ${esc(data.vlan || 'N/A')}`;
+                            onuModeEl.innerHTML = `<i data-lucide="pencil" style="width:11px;height:11px;"></i> ${esc(data.onu_mode || 'Routing')} (${esc(data.config_method || 'OMCI')}) &mdash; WAN ${esc(data.vlan || 'N/A')}`;
                         }
                         // WAN Setup: PHP detects PPPoE from running-config, don't overwrite with raw DB value
 

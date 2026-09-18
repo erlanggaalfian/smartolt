@@ -232,6 +232,8 @@ echo json_encode([
     'vlan'              => $onu['vlan'],
     'onu_mode'          => $onu['onu_mode'],
     'wan_mode'          => $onu['wan_mode'],
+    'config_method'     => $onu['config_method'] ?? 'OMCI',
+    'onu_type'          => $onu['onu_type'] ?? 'ALL-ONT',
     'wan_remote_access' => $onu['wan_remote_access'],
     'allow_remote_mgmt' => $onu['allow_remote_mgmt'],
     'mgmt_ip'           => $onu['mgmt_ip'],
