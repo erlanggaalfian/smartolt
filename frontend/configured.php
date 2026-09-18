@@ -428,6 +428,8 @@ $onus = $stmt_data->fetchAll();
                         // Update data-attributes for next comparison
                         row.setAttribute('data-wan', onu.wan_mode || '');
                         row.setAttribute('data-onu-type', onu.onu_type || '');
+                        row.setAttribute('data-dl-prof', onu.download_profile || '');
+                        row.setAttribute('data-ul-prof', onu.upload_profile || '');
                     });
 
                     // Re-initialize Lucide icons only if DOM was actually modified
@@ -658,7 +660,7 @@ $onus = $stmt_data->fetchAll();
                         </tr>
                     <?php else: ?>
                         <?php foreach ($onus as $onu): ?>
-                            <tr class="onu-row" data-onu-id="<?php echo (int)$onu['id']; ?>" data-name="<?php echo htmlspecialchars($onu['name'] ?? ''); ?>" data-status="<?php echo htmlspecialchars($onu['status']); ?>" data-vlan="<?php echo htmlspecialchars($onu['vlan'] ?: 'None'); ?>" data-rx-onu="<?php echo htmlspecialchars($onu['last_rx_power'] ?? 'N/A'); ?>" data-rx-olt="<?php echo htmlspecialchars($onu['last_rx_olt_power'] ?? 'N/A'); ?>" data-down-cause="<?php echo htmlspecialchars($onu['last_down_cause'] ?? '-'); ?>" data-wan="<?php echo htmlspecialchars($onu['wan_mode'] ?? ''); ?>" data-onu-type="<?php echo htmlspecialchars($onu['onu_type'] ?? ''); ?>">
+                            <tr class="onu-row" data-onu-id="<?php echo (int)$onu['id']; ?>" data-name="<?php echo htmlspecialchars($onu['name'] ?? ''); ?>" data-status="<?php echo htmlspecialchars($onu['status']); ?>" data-vlan="<?php echo htmlspecialchars($onu['vlan'] ?: 'None'); ?>" data-rx-onu="<?php echo htmlspecialchars($onu['last_rx_power'] ?? 'N/A'); ?>" data-rx-olt="<?php echo htmlspecialchars($onu['last_rx_olt_power'] ?? 'N/A'); ?>" data-down-cause="<?php echo htmlspecialchars($onu['last_down_cause'] ?? '-'); ?>" data-wan="<?php echo htmlspecialchars($onu['wan_mode'] ?? ''); ?>" data-onu-type="<?php echo htmlspecialchars($onu['onu_type'] ?? ''); ?>" data-dl-prof="<?php echo htmlspecialchars($onu['download_profile'] ?? ''); ?>" data-ul-prof="<?php echo htmlspecialchars($onu['upload_profile'] ?? ''); ?>">
                                 <td class="status-cell">
                                     <?php if ($onu['status'] === 'online'): ?>
                                         <span class="badge bg-green"><i data-lucide="globe" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:4px;"></i> Online</span>
