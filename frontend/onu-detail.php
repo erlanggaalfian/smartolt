@@ -959,8 +959,13 @@ if (!empty($onu['onu_type'])) {
                             if (rxOctets !== null && txOctets !== null && lastTraffic) {
                                 const dtSec = (nowMs - lastTraffic.t) / 1000;
                                 if (dtSec > 0) {
-                                    upSpeed = ((rxOctets - lastTraffic.rx) * 8 / dtSec / 1e6).toFixed(2);
-                                    downSpeed = ((txOctets - lastTraffic.tx) * 8 / dtSec / 1e6).toFixed(2);
+                                    const rxDiff = rxOctets - lastTraffic.rx;
+                                    const txDiff = txOctets - lastTraffic.tx;
+                                    if (rxDiff >= 0 && txDiff >= 0) {
+                                        upSpeed = (rxDiff * 8 / dtSec / 1e6).toFixed(2);
+                                        downSpeed = (txDiff * 8 / dtSec / 1e6).toFixed(2);
+                                    }
+                                    // ponytail: counter wrap/reset -> speed stays 0 until next clean delta
                                 }
                             }
                             if (rxOctets !== null && txOctets !== null) {

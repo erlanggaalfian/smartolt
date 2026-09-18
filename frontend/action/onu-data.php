@@ -144,7 +144,8 @@ if ($full) {
     $zone_val     = ($parsed['zone'] !== 'None' && $parsed['zone'] !== '') ? $parsed['zone'] : $onu['zone'];
     $splitter_val = ($parsed['splitter'] !== 'None' && $parsed['splitter'] !== '') ? $parsed['splitter'] : $onu['splitter'];
     $address_val  = ($parsed['address'] !== 'None' && $parsed['address'] !== '') ? $parsed['address'] : $onu['address'];
-    $contact_val  = ($parsed['contact'] !== 'None' && $parsed['contact'] !== '') ? $parsed['contact'] : $onu['contact'];
+    $contact_val      = ($parsed['contact'] !== 'None' && $parsed['contact'] !== '') ? $parsed['contact'] : $onu['contact'];
+    $external_id_val  = ($parsed['external_id'] ?? '') !== '' ? $parsed['external_id'] : ($onu['external_id'] ?? '');
 
     $clean_name = null;
     if (stripos($desc_val, 'name_') !== false) {
@@ -178,6 +179,7 @@ if ($full) {
             splitter          = COALESCE(?, splitter),
             address           = COALESCE(?, address),
             contact           = COALESCE(?, contact),
+            external_id       = COALESCE(?, external_id),
             updated_at        = CURRENT_TIMESTAMP
         WHERE id = ?
     ")->execute([
@@ -200,6 +202,7 @@ if ($full) {
         $splitter_val,
         $address_val,
         $contact_val,
+        $external_id_val ?: null,
         $id,
     ]);
 } else {
