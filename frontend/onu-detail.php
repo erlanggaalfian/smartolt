@@ -28,25 +28,11 @@ if (!$onu) {
     exit;
 }
 
-// Trigger background sync secara asinkron tanpa menahan loading frontend (di-throttle 30 detik).
-// Tombol "Resync config" mengirim ?resync=1 untuk melewati throttle; prosesnya tetap asinkron
-// agar sesi VTY OLT tidak tertahan. Hasilnya muncul lewat auto-refresh 15 detik.
-// ponytail: tanpa indikator progres. Tambah bila user butuh kepastian kapan sync selesai.
-$force_resync = isset($_GET['resync']);
-$last_update = strtotime($onu['updated_at'] ?? '2000-01-01 00:00:00');
-if ($force_resync || time() - $last_update > 30) {
-    $python_bin = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' 
-        ? dirname(__DIR__) . "/backend/python_engine/venv/Scripts/python.exe"
-        : dirname(__DIR__) . "/backend/python_engine/venv/bin/python3";
-
-    if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-        $cmd = escapeshellarg($python_bin) . " " . escapeshellarg(dirname(__DIR__) . "/backend/python_engine/sync_one_onu.py") . " " . (int)$id;
-        pclose(popen("start /B " . $cmd, "r"));
-    } else {
-        $cmd = escapeshellarg($python_bin) . " " . escapeshellarg(dirname(__DIR__) . "/backend/python_engine/sync_one_onu.py") . " " . (int)$id . " > /dev/null 2>&1 &";
-        exec($cmd);
-    }
-}
+// Background sync REMOVED — JS already fires onu-data.php?full=1 on page load,
+// which runs sync_onu_config_from_olt() and returns data directly to the browser.
+// Running sync_one_onu.py in parallel wasted 1 OLT VTY session slot (scarce resource,
+// max ~5 concurrent) for identical, redundant work. Resync button (?resync=1) now
+// triggers the JS full sync by resetting needFullSync=true via a data attribute.
 
 
 
@@ -641,7 +627,7 @@ if (!empty($onu['onu_type'])) {
                 <input type="hidden" name="id" value="<?php echo (int)$onu['id']; ?>">
                 <button type="submit" class="btn-solt btn-solt-orange"><i data-lucide="rotate-ccw" style="width:14px; height:14px;"></i> Restore Factory</button>
             </form>
-            <a class="btn-solt btn-solt-orange" href="onu-detail.php?id=<?php echo (int)$onu['id']; ?>&amp;resync=1"><i data-lucide="refresh-ccw" style="width:14px; height:14px;"></i> Resync config</a>
+            <a class="btn-solt btn-solt-orange" href="onu-detail.php?id=<?php echo (int)$onu['id']; ?>"><i data-lucide="refresh-ccw" style="width:14px; height:14px;"></i> Resync config</a>
             <?php if ($onu['status'] === 'disabled'): ?>
                 <form action="action/onu-state.php" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin mengaktifkan kembali ONT ini?');" style="margin:0;">
                     <input type="hidden" name="id" value="<?php echo (int)$onu['id']; ?>">
@@ -903,6 +889,36 @@ if (!empty($onu['onu_type'])) {
                             rxOltText.textContent = 'N/A';
                             rxOnuText.style.color = 'var(--color-danger)';
                             rxOltText.style.color = 'var(--color-danger)';
+                            // Push null to charts so they keep advancing instead of freezing
+                            const timeStrOff = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                            if (signalChart.data.labels.length > 10) {
+                                signalChart.data.labels.shift();
+                                signalChart.data.datasets[0].data.shift();
+                                signalChart.data.datasets[1].data.shift();
+                            }
+                            signalChart.data.labels.push(timeStrOff);
+                            signalChart.data.datasets[0].data.push(null);
+                            signalChart.data.datasets[1].data.push(null);
+                            signalChart.update();
+                            if (trafficChart.data.labels.length > 10) {
+                                trafficChart.data.labels.shift();
+                                trafficChart.data.datasets[0].data.shift();
+                                trafficChart.data.datasets[1].data.shift();
+                            }
+                            trafficChart.data.labels.push(timeStrOff);
+                            trafficChart.data.datasets[0].data.push(null);
+                            trafficChart.data.datasets[1].data.push(null);
+                            trafficChart.update();
+                            // Reset live stats
+                            const ulCurrOff = document.getElementById('stat-ul-curr');
+                            const dlCurrOff = document.getElementById('stat-dl-curr');
+                            if (ulCurrOff) ulCurrOff.textContent = '0.00 Mbps';
+                            if (dlCurrOff) dlCurrOff.textContent = '0.00 Mbps';
+                            const sigCurrOff = document.getElementById('stat-sig-curr');
+                            const sigOltCurrOff = document.getElementById('stat-sig-olt-curr');
+                            if (sigCurrOff) sigCurrOff.textContent = 'N/A';
+                            if (sigOltCurrOff) sigOltCurrOff.textContent = 'N/A';
+                            lastTraffic = null; // reset traffic delta so next online reading starts clean
                         } else {
                             rxOnuText.textContent = data.rx_onu !== 'N/A' ? `${data.rx_onu} dBm` : 'N/A';
                             // Only update rx_olt if we have a real value (SNMP mode doesn't provide it)
