@@ -1,5 +1,13 @@
 
 
+## 2026-09-19 03:20 — Fix: lucide icons vanish after polling DOM update in onu-detail.php
+**Files:** `frontend/onu-detail.php`
+**Type:** Bug fix (Tier 1 — no OLT command changes, pure UI)
+**Commit:** e5ff9a6
+**Masalah:** setChipVal() replaces innerHTML with new `<i data-lucide="pencil">` elements during 15s auto-polling, but `lucide.createIcons()` was never called after DOM mutation. Pencil edit icons on identity fields (Name, Zone, Splitter, Address, Contact, Port ODB, External ID) disappeared after first poll cycle (~15 detik setelah page load). Click handler on parent `<div data-clickable>` still worked, but visual indicator hilang.
+**Fix:** Added `lucide.createIcons()` call after all DOM mutations in the polling success handler (after trafficChart.update() block, inside `if (data.success)`).
+**Scope:** Desktop + mobile (icons hilang di semua viewport).
+
 ## 2026-09-19 02:30 — Fix: traffic speed negative delta + external_id full-sync parse
 **Files:** `frontend/onu-detail.php`, `frontend/action/onu-data.php`
 **Type:** Bug fix (Tier 1 — no OLT command changes, pure UI + sync logic)
