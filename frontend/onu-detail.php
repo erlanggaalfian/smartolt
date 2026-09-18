@@ -341,9 +341,14 @@ if (!empty($onu['onu_type'])) {
                 <span class="detail-plain-value" style="color:var(--text-muted);"><?php echo htmlspecialchars($parsed_desc['auth_date'] ?: date('d-M-Y H:i:s', strtotime($onu['created_at']))); ?></span>
             </div>
 
-            <div class="detail-plain-row">
+            <div class="detail-plain-row" data-clickable onclick="document.getElementById('edit-identity-modal').classList.add('open')">
+                <span class="detail-plain-label">Port ODB</span>
+                <span class="detail-plain-value" id="detail-odb-port"><i data-lucide="pencil" style="width:11px;height:11px;"></i> <?php echo htmlspecialchars(!empty($onu['odb_port']) ? $onu['odb_port'] : 'Belum diisi'); ?></span>
+            </div>
+
+            <div class="detail-plain-row" data-clickable onclick="document.getElementById('edit-identity-modal').classList.add('open')">
                 <span class="detail-plain-label">ONU external ID</span>
-                <span class="detail-plain-value" id="detail-external-id"><?php echo htmlspecialchars($parsed_desc['external_id'] ?: 'N/A'); ?></span>
+                <span class="detail-plain-value" id="detail-external-id"><i data-lucide="pencil" style="width:11px;height:11px;"></i> <?php echo htmlspecialchars(!empty($parsed_desc['external_id']) ? $parsed_desc['external_id'] : 'Belum diisi'); ?></span>
             </div>
 
             <?php
@@ -809,7 +814,9 @@ if (!empty($onu['onu_type'])) {
                         setChipVal('detail-contact', data.contact, 'Belum diisi');
 
                         const extIdEl = document.getElementById('detail-external-id');
-                        if (extIdEl && data.external_id) extIdEl.textContent = data.external_id;
+                        if (extIdEl) setChipVal('detail-external-id', data.external_id, 'Belum diisi');
+                        const odbPortEl = document.getElementById('detail-odb-port');
+                        if (odbPortEl) setChipVal('detail-odb-port', data.odb_port, 'Belum diisi');
 
                         const mgmtIpEl = document.getElementById('detail-mgmt-ip');
                         if (mgmtIpEl && data.mgmt_ip !== undefined) {

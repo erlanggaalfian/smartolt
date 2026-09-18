@@ -242,6 +242,7 @@ echo json_encode([
     'external_id'       => $onu['external_id'],
     'address'           => $onu['address'],
     'contact'           => $onu['contact'],
+    'odb_port'          => $onu['odb_port'] ?? '',
     'download_profile'  => $onu['download_profile'] ?? '',
     'upload_profile'    => $onu['upload_profile'] ?? '',
     'updated_at'        => $onu['updated_at'],
