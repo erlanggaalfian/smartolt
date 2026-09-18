@@ -1,3 +1,14 @@
+## 2026-09-18 — Port ODB + External ID display row di ONU Detail
+**Files:** `frontend/onu-detail.php`, `frontend/action/onu-data.php`
+**Commit:** 05a2deb
+
+**Masalah:** Port ODB dan External ID tidak punya display row di halaman ONU Detail — hanya bisa dilihat/diedit via modal identitas tanpa preview. External ID juga tidak update via live polling (langsung textContent bukan setChipVal).
+**Fix:**
+- Tambah display row "Port ODB" + "ONU External ID" di kolom identitas (kiri) dengan pencil icon + onclick buka identity modal
+- Tambah `odb_port` ke JSON response `onu-data.php`
+- Ganti JS polling external_id dari direct textContent ke `setChipVal()` (konsisten dengan field lain, update ke "Belum diisi" kalau kosong)
+- **Scope:** Desktop + Mobile (baris detail-plain-row responsif)
+
 ## 2026-09-18 — Remove dead TR069 profile + IPTV rows from ONU detail
 **Files:** `frontend/onu-detail.php`
 **Commit:** b1941a6
