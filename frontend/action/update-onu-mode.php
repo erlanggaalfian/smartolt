@@ -110,6 +110,9 @@ $new_desc = "name_{$name}_zone_{$zone}_descr_{$address}_odb_{$splitter}_authd_{$
 if ($contact !== 'None' && $contact !== '') {
     $new_desc .= "_contact_{$contact}";
 }
+if ($external_id !== null && $external_id !== '') {
+    $new_desc .= "_extid_{$external_id}";
+}
 
 $onu = [
     'pon_port'      => $row['pon_port'],

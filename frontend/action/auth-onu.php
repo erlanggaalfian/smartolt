@@ -76,6 +76,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($contact !== 'None' && $contact !== '') {
         $structured_desc .= "_contact_{$contact}";
     }
+    if ($external_id !== null && $external_id !== '') {
+        $structured_desc .= "_extid_{$external_id}";
+    }
 
     $onu_id = isset($_POST['onu_id']) && $_POST['onu_id'] !== '' ? (int)$_POST['onu_id'] : null;
 
