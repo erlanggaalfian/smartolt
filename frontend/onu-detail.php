@@ -390,12 +390,12 @@ if (!empty($onu['onu_type'])) {
                     $onu_val = $onu['last_rx_power'] !== null ? (float)$onu['last_rx_power'] : null;
                     $onu_color = 'var(--text-muted)';
                     if ($onu_val !== null) {
-                        $onu_color = ($onu_val < -30) ? 'var(--color-danger)' : (($onu_val < -28) ? 'var(--color-warning)' : (($onu_val < -25) ? 'var(--color-amber)' : 'var(--color-success)'));
+                        $onu_color = ($onu_val < -30) ? 'var(--color-danger)' : (($onu_val < -28) ? 'var(--color-orange)' : (($onu_val < -25) ? 'var(--color-amber)' : 'var(--color-success)'));
                     }
                     $olt_val = $onu['last_rx_olt_power'] !== null ? (float)$onu['last_rx_olt_power'] : null;
                     $olt_color = 'var(--text-muted)';
                     if ($olt_val !== null) {
-                        $olt_color = ($olt_val < -30) ? 'var(--color-danger)' : (($olt_val < -28) ? 'var(--color-warning)' : (($olt_val < -25) ? 'var(--color-amber)' : 'var(--color-success)'));
+                        $olt_color = ($olt_val < -30) ? 'var(--color-danger)' : (($olt_val < -28) ? 'var(--color-orange)' : (($olt_val < -25) ? 'var(--color-amber)' : 'var(--color-success)'));
                     }
                     ?>
                     <strong id="detail-rx-onu" style="color:<?php echo $onu_color; ?>;"><?php echo $onu['last_rx_power'] !== null ? htmlspecialchars($onu['last_rx_power']) . ' dBm' : 'N/A'; ?></strong>
@@ -912,7 +912,7 @@ if (!empty($onu['onu_type'])) {
                                 const rxVal = parseFloat(data.rx_onu);
                                 if (rxVal >= -25) rxOnuText.style.color = 'var(--color-success)';
                                 else if (rxVal >= -28) rxOnuText.style.color = 'var(--color-amber)';
-                                else if (rxVal >= -30) rxOnuText.style.color = 'var(--color-warning)';
+                                else if (rxVal >= -30) rxOnuText.style.color = 'var(--color-orange)';
                                 else rxOnuText.style.color = 'var(--color-danger)';
                             }
                             
@@ -920,7 +920,7 @@ if (!empty($onu['onu_type'])) {
                             if (!isNaN(rxOltNum)) {
                                 if (rxOltNum >= -25) rxOltText.style.color = 'var(--color-success)';
                                 else if (rxOltNum >= -28) rxOltText.style.color = 'var(--color-amber)';
-                                else if (rxOltNum >= -30) rxOltText.style.color = 'var(--color-warning)';
+                                else if (rxOltNum >= -30) rxOltText.style.color = 'var(--color-orange)';
                                 else rxOltText.style.color = 'var(--color-danger)';
                             }
 
@@ -962,8 +962,8 @@ if (!empty($onu['onu_type'])) {
 
                             const rxPktEl = document.getElementById('stat-rx-packets');
                             const txPktEl = document.getElementById('stat-tx-packets');
-                            if (rxPktEl) rxPktEl.textContent = data.traffic_rx_packets !== null && data.traffic_rx_packets !== undefined ? Number(data.traffic_rx_packets).toLocaleString('id-ID') : '-';
-                            if (txPktEl) txPktEl.textContent = data.traffic_tx_packets !== null && data.traffic_tx_packets !== undefined ? Number(data.traffic_tx_packets).toLocaleString('id-ID') : '-';
+                            if (rxPktEl) rxPktEl.textContent = data.traffic_rx_packets !== null && data.traffic_rx_packets !== undefined ? Number(data.traffic_rx_packets).toLocaleString('en-US') : '-';
+                            if (txPktEl) txPktEl.textContent = data.traffic_tx_packets !== null && data.traffic_tx_packets !== undefined ? Number(data.traffic_tx_packets).toLocaleString('en-US') : '-';
 
                             const upNum = parseFloat(upSpeed) || 0;
                             const downNum = parseFloat(downSpeed) || 0;
@@ -1651,7 +1651,7 @@ sort($cached_vlans);
                                 const rxVal = parseFloat(data.rx_onu);
                                 if (rxVal >= -25) rxOnuText.style.color = 'var(--color-success)';
                                 else if (rxVal >= -28) rxOnuText.style.color = 'var(--color-amber)';
-                                else if (rxVal >= -30) rxOnuText.style.color = 'var(--color-warning)';
+                                else if (rxVal >= -30) rxOnuText.style.color = 'var(--color-orange)';
                                 else rxOnuText.style.color = 'var(--color-danger)';
                             }
 
@@ -1661,7 +1661,7 @@ sort($cached_vlans);
                                 const rxOltVal = parseFloat(data.rx_olt);
                                 if (rxOltVal >= -25) rxOltText.style.color = 'var(--color-success)';
                                 else if (rxOltVal >= -28) rxOltText.style.color = 'var(--color-amber)';
-                                else if (rxOltVal >= -30) rxOltText.style.color = 'var(--color-warning)';
+                                else if (rxOltVal >= -30) rxOltText.style.color = 'var(--color-orange)';
                                 else rxOltText.style.color = 'var(--color-danger)';
                             }
 
