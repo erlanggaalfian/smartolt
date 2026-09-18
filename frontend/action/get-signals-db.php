@@ -26,8 +26,8 @@ try {
     // Lightweight ETag check: XOR-CRC32 per row avoids GROUP_CONCAT 1024-byte limit.
     // Cron bumps updated_at every cycle but signal data rarely changes.
     $hash_sql = $olt_id !== ''
-        ? "SELECT BIT_XOR(CRC32(CONCAT_WS('|',status,COALESCE(last_rx_power,''),COALESCE(last_rx_olt_power,''),COALESCE(last_down_cause,''),COALESCE(vlan,''),COALESCE(wan_mode,''),COALESCE(download_profile,''),COALESCE(upload_profile,''),COALESCE(onu_type,''),COALESCE(name,'')))) AS data_crc, COUNT(*) AS cnt FROM onus WHERE olt_id = ?"
-        : "SELECT BIT_XOR(CRC32(CONCAT_WS('|',status,COALESCE(last_rx_power,''),COALESCE(last_rx_olt_power,''),COALESCE(last_down_cause,''),COALESCE(vlan,''),COALESCE(wan_mode,''),COALESCE(download_profile,''),COALESCE(upload_profile,''),COALESCE(onu_type,''),COALESCE(name,'')))) AS data_crc, COUNT(*) AS cnt FROM onus WHERE olt_id IN ($allowed_ids_str)";
+        ? "SELECT BIT_XOR(CRC32(CONCAT_WS('|',status,COALESCE(last_rx_power,''),COALESCE(last_rx_olt_power,''),COALESCE(last_down_cause,''),COALESCE(vlan,''),COALESCE(wan_mode,''),COALESCE(download_profile,''),COALESCE(upload_profile,''),COALESCE(onu_type,''),COALESCE(name,''),COALESCE(config_method,'')))) AS data_crc, COUNT(*) AS cnt FROM onus WHERE olt_id = ?"
+        : "SELECT BIT_XOR(CRC32(CONCAT_WS('|',status,COALESCE(last_rx_power,''),COALESCE(last_rx_olt_power,''),COALESCE(last_down_cause,''),COALESCE(vlan,''),COALESCE(wan_mode,''),COALESCE(download_profile,''),COALESCE(upload_profile,''),COALESCE(onu_type,''),COALESCE(name,''),COALESCE(config_method,'')))) AS data_crc, COUNT(*) AS cnt FROM onus WHERE olt_id IN ($allowed_ids_str)";
     $meta_sth = $olt_id !== '' ? $pdo->prepare($hash_sql) : $pdo->query($hash_sql);
     if ($olt_id !== '') $meta_sth->execute([$olt_id]);
     $meta = $meta_sth->fetch(PDO::FETCH_ASSOC);
