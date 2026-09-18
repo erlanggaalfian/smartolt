@@ -1,4 +1,17 @@
 
+## 2026-09-18 — Fix: config_method missing from ETag hash in get-signals-db.php
+
+**Files:** `frontend/action/get-signals-db.php`
+**Commit:** ece6472
+
+`config_method` column was in SELECT + JSON response but missing from ETag hash computation.
+If only `config_method` changed, client received 304 (stale cached data). Added
+`COALESCE(config_method,'')` to `CONCAT_WS` in both query variants. Zero user-visible
+impact currently (configured.php list page doesn't display config_method), but fixes
+consistency for future use.
+
+---
+
 ## 2026-09-18 — Fix: pppoe_ip stale variable in onu-data.php response + \r\n cleanup
 
 **Files:** `frontend/action/onu-data.php`, `frontend/action/onu-query.php`
