@@ -448,7 +448,7 @@ if (!empty($onu['onu_type'])) {
             <div class="detail-plain-row" data-clickable onclick="document.getElementById('update-onu-mode-modal').classList.add('open')">
                 <span class="detail-plain-label">Mode setup WAN</span>
                 <span class="detail-plain-value" id="detail-wan-setup">
-                    <i data-lucide="pencil" style="width:11px;height:11px;"></i> <?php echo htmlspecialchars($onu['wan_mode'] === 'Static' ? 'Static IP' : ($onu['wan_mode'] ?: 'Setup via ONU webpage')); ?> (<?php echo htmlspecialchars($onu['config_method'] ?: 'OMCI'); ?>)
+                    <i data-lucide="pencil" style="width:11px;height:11px;"></i> <span id="detail-wan-label"><?php echo htmlspecialchars($onu['wan_mode'] === 'Static' ? 'Static IP' : ($onu['wan_mode'] ?: 'Setup via ONU webpage')); ?></span>
 
                     <span id="detail-pppoe-ip-wrapper">
                         <?php if (!empty($onu['pppoe_ip'])): ?>
@@ -675,6 +675,7 @@ if (!empty($onu['onu_type'])) {
 
     document.addEventListener('DOMContentLoaded', () => {
         const onuId = "<?php echo (int)$onu['id']; ?>";
+        let currentWanMode = "<?php echo htmlspecialchars($onu['wan_mode'] ?: 'Setup via ONU webpage'); ?>";
 
         // Theme-aware chart colors
         const _cs = getComputedStyle(document.documentElement);
@@ -840,6 +841,12 @@ if (!empty($onu['onu_type'])) {
                         if (onuModeEl) {
                             onuModeEl.innerHTML = `<i data-lucide="pencil" style="width:11px;height:11px;"></i> ${esc(data.onu_mode || 'Routing')} (${esc(data.config_method || 'OMCI')}) &mdash; WAN ${esc(data.vlan || 'N/A')}`;
                         }
+                        // Update WAN setup label (span wraps label text only, pppoe wrapper is separate)
+                        const wanLabelEl = document.getElementById('detail-wan-label');
+                        if (wanLabelEl && data.wan_mode) {
+                            wanLabelEl.textContent = data.wan_mode === 'Static' ? 'Static IP' : data.wan_mode;
+                            currentWanMode = data.wan_mode;
+                        }
                         // WAN Setup: PHP detects PPPoE from running-config, don't overwrite with raw DB value
 
                         // VLAN + kredensial PPPoE (terisi setelah sync full pertama)
@@ -874,9 +881,11 @@ if (!empty($onu['onu_type'])) {
                             }
                         }
 
-                        // Update PPPoE IP
+                        // Update PPPoE IP (only meaningful for PPPoE mode)
                         if (pppoeContainer) {
-                            if (data.pppoe_ip && data.pppoe_ip !== 'N/A' && data.pppoe_ip !== '0.0.0.0' && data.pppoe_ip !== '') {
+                            if (data.wan_mode !== 'PPPoE') {
+                                pppoeContainer.innerHTML = '<span style="color:var(--text-muted);">-</span>';
+                            } else if (data.pppoe_ip && data.pppoe_ip !== 'N/A' && data.pppoe_ip !== '0.0.0.0' && data.pppoe_ip !== '') {
                                 pppoeContainer.innerHTML = `
                                     <a href="http://${esc(data.pppoe_ip)}" target="_blank" class="chip chip-green" style="text-decoration: none;" onclick="event.stopPropagation();">
                                         <i data-lucide="external-link" style="width:11px; height:11px; display:inline-block; vertical-align:middle; margin-right:4px;"></i>
@@ -1632,7 +1641,9 @@ sort($cached_vlans);
                             // Update live fields on page cards
                             const pppoeContainer = document.getElementById('detail-pppoe-ip-wrapper');
                             if (pppoeContainer) {
-                                if (data.pppoe_ip && data.pppoe_ip !== 'N/A' && data.pppoe_ip !== '0.0.0.0' && data.pppoe_ip !== '') {
+                                if (currentWanMode !== 'PPPoE') {
+                                    pppoeContainer.innerHTML = '<span style="color:var(--text-muted);">-</span>';
+                                } else if (data.pppoe_ip && data.pppoe_ip !== 'N/A' && data.pppoe_ip !== '0.0.0.0' && data.pppoe_ip !== '') {
                                     pppoeContainer.innerHTML = `
                                         <a href="http://${esc(data.pppoe_ip)}" target="_blank" class="chip chip-green" style="text-decoration: none;" onclick="event.stopPropagation();">
                                             <i data-lucide="external-link" style="width:11px; height:11px; display:inline-block; vertical-align:middle; margin-right:4px;"></i>
