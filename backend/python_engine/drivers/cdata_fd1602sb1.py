@@ -557,8 +557,7 @@ class OltCdataFd1602sb1Driver(BaseDriver):
             "config",
             f"interface gpon {interface_path}",
             f"ont add {port} {onu_id} sn-auth \"{serial}\"",
-            f"ont name {port} {onu_id} \"{name_c}\"",
-            f"ont description {port} {onu_id} \"{desc_c}\"",
+            f"ont description {port} {onu_id} \"{name_c} {desc_c}\"",
             f"ont ont-port {port} {onu_id} eth adaptive pots adaptive catv adaptive iphost adaptive wifi adaptive",
             f"ont native-vlan {port} {onu_id} concern",
         ]
@@ -568,9 +567,11 @@ class OltCdataFd1602sb1Driver(BaseDriver):
         if wan_mode == 'PPPoE':
             user_c = self._sanitize_cli_token(pppoe_username or f"{serial.lower()}@isp.net", 64)
             pass_c = self._sanitize_cli_token(pppoe_password or serial[:8], 32)
+            commands.append(f"ont no ipconfig {port} {onu_id} ip-index 0")
             commands.append(f"ont ipconfig {port} {onu_id} ip-index 0 pppoe username {user_c} password {pass_c} vlan {vlan} priority 0")
             commands.append(f"ont ipconfig {port} {onu_id} ip-index 0 connection-type route")
         elif wan_mode == 'DHCP':
+            commands.append(f"ont no ipconfig {port} {onu_id} ip-index 0")
             commands.append(f"ont ipconfig {port} {onu_id} ip-index 0 dhcp vlan {vlan} priority 0")
         elif wan_mode == 'Static':
             # Form belum punya field IP/mask/gateway untuk mode ini -- jangan diam-diam
@@ -622,8 +623,7 @@ class OltCdataFd1602sb1Driver(BaseDriver):
             'enable',
             'config',
             f"interface gpon {interface_path}",
-            f"ont name {port} {ont_id} \"{clean_name}\"",
-            f"ont description {port} {ont_id} \"{desc}\"",
+            f"ont description {port} {ont_id} \"{clean_name} {desc}\"",
         ]
 
         wan_setup_warning = None
@@ -634,9 +634,11 @@ class OltCdataFd1602sb1Driver(BaseDriver):
             if not user_c or not pass_c:
                 wan_setup_warning = "Mode PPPoE dipilih tapi username/password kosong -- konfigurasi WAN dilewati."
             else:
+                commands.append(f"ont no ipconfig {port} {ont_id} ip-index 0")
                 commands.append(f"ont ipconfig {port} {ont_id} ip-index 0 pppoe username {user_c} password {pass_c} vlan {vlan_svc} priority 0")
                 commands.append(f"ont ipconfig {port} {ont_id} ip-index 0 connection-type route")
         elif wan_mode == 'DHCP':
+            commands.append(f"ont no ipconfig {port} {ont_id} ip-index 0")
             commands.append(f"ont ipconfig {port} {ont_id} ip-index 0 dhcp vlan {vlan_svc} priority 0")
         elif wan_mode == 'Static':
             wan_setup_warning = "Mode Static belum didukung driver Cdata (butuh IP/mask/gateway) -- konfigurasi WAN dilewati, atur manual."
