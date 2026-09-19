@@ -957,6 +957,10 @@ class OltCdataFd1602sb1Driver(BaseDriver):
                     down_cause = row_parts[sn_idx+5] if len(row_parts) > sn_idx + 5 else None
                     if down_cause == '--':
                         down_cause = None
+                    elif down_cause and down_cause.lower() == 'dying-gasp':
+                        # Samakan label dgn driver ZTE (DOWN_CAUSE enum di snmp_module.py)
+                        # supaya UI (configured.php) deteksi icon power sama utk semua vendor.
+                        down_cause = 'Power Down'
                     onus.append({
                         'pon_port': pon_port,
                         'onu_id': onu_id,
