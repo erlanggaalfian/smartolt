@@ -414,12 +414,6 @@ $onus = $stmt_data->fetchAll();
                             }
                         }
 
-                        // Update Last Down
-                        const updatedCell = row.querySelector('.updated-cell');
-                        if (updatedCell) {
-                            updatedCell.textContent = onu.last_down_cause || '-';
-                        }
-
                         // Update WAN mode
                         const wanCell = row.querySelector('.wan-cell');
                         if (wanCell) {
@@ -647,7 +641,7 @@ $onus = $stmt_data->fetchAll();
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>Status</th>
+                        <th style="width:60px;text-align:center;">Status</th>
                         <th>Nama Pelanggan</th>
                         <th>Serial Number</th>
                         <th>Koneksi OLT & PON</th>
@@ -655,7 +649,6 @@ $onus = $stmt_data->fetchAll();
                         <th>WAN</th>
                         <th>Sinyal Rx ONU</th>
                         <th>Sinyal Rx OLT</th>
-                        <th>Last Down</th>
                         <th>Tipe ONU</th>
                         <th>Aksi</th>
                     </tr>
@@ -663,7 +656,7 @@ $onus = $stmt_data->fetchAll();
                 <tbody>
                     <?php if (empty($onus)): ?>
                         <tr>
-                            <td colspan="11" style="text-align:center;color:var(--text-muted);padding:16px;">Tidak ada ONU terdaftar yang sesuai dengan kriteria filter.</td>
+                            <td colspan="10" style="text-align:center;color:var(--text-muted);padding:16px;">Tidak ada ONU terdaftar yang sesuai dengan kriteria filter.</td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($onus as $onu): ?>
@@ -731,7 +724,6 @@ $onus = $stmt_data->fetchAll();
                                         <span class="badge bg-gray">Offline</span>
                                     <?php endif; ?>
                                 </td>
-                                <td class="updated-cell"><?php echo $onu['last_down_cause'] ? htmlspecialchars($onu['last_down_cause']) : '-'; ?></td>
                                 <td class="onu-type-cell" style="font-size:0.8rem;color:var(--text-muted);"><?php echo htmlspecialchars($onu['onu_type'] ?: '-'); ?></td>
                                 <td>
                                     <a href="onu-detail.php?id=<?php echo (int)$onu['id']; ?>" class="btn btn-xs btn-primary">
