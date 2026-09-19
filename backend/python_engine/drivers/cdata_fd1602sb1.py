@@ -457,8 +457,23 @@ class OltCdataFd1602sb1Driver(BaseDriver):
             "write"
         ]
         log = execute_ssh_commands(olt, commands)
-        
-        if any(x in log.lower() for x in ['failed', 'error', 'invalid']):
+
+        # PENTING: 'ont enable' SEBELUM delete adalah langkah pembersihan opsional --
+        # kalau ONU sudah dalam status enable (bukan di disable-onu-table), OLT
+        # membalas "...failed or there is no this onu." yang MENGANDUNG kata
+        # 'failed' tapi BUKAN kegagalan sungguhan. Deteksi sukses/gagal harus
+        # fokus ke baris 'ont delete' saja, bukan seluruh log gabungan.
+        # Bug nyata: OLT-MIM-WYT ONU 31 -- 'ont enable' gagal wajar (sudah
+        # enabled), 'ont delete' sebenarnya SUKSES, tapi sistem lapor gagal
+        # karena kata 'failed' dari baris enable ikut kena scan.
+        delete_section = ''
+        m_section = re.search(r'ont delete\s+\d+\s+\d+.*?(?=\nOLT-|\Z)', log, re.IGNORECASE | re.DOTALL)
+        if m_section:
+            delete_section = m_section.group(0)
+        else:
+            delete_section = log
+
+        if any(x in delete_section.lower() for x in ['failed', 'error', 'invalid']):
             return {'success': False, 'message': 'Gagal menghapus ONU dari OLT: ' + log, 'log': log}
 
         return {'success': True, 'message': 'ONU berhasil dihapus dari OLT.', 'log': log}
@@ -659,8 +674,8 @@ class OltCdataFd1602sb1Driver(BaseDriver):
             return {
                 'success': True,
                 'onus': [
-                    {'pon_port': '0/1', 'onu_id': 1, 'serial_number': 'ZTEGC0B3458A', 'name': 'PelangganSatu', 'status': 'online'},
-                    {'pon_port': '0/1', 'onu_id': 2, 'serial_number': 'ZTEGC85ADC5F', 'name': 'Pelanggan Dua', 'status': 'offline'}
+                    {'pon_port': '0/1', 'onu_id': 1, 'serial_number': 'ZTEGC0B3458A', 'name': 'Roni Cikron', 'status': 'online'},
+                    {'pon_port': '0/1', 'onu_id': 2, 'serial_number': 'ZTEGC85ADC5F', 'name': 'Indah Ayu', 'status': 'offline'}
                 ]
             }
 
@@ -693,7 +708,7 @@ class OltCdataFd1602sb1Driver(BaseDriver):
                     if m_desc:
                         raw_desc = m_desc.group(1).strip('"\' ')
                         # Ekstrak nama bersih dari pola terstruktur.
-                        # "name_PelangganTiga_zone_ZONA_..." -> "PelangganTiga"
+                        # "name_CaffeFoodMie_zone_TMY_..." -> "CaffeFoodMie"
                         clean = re.match(r'^name_(.*?)(?:_(?:zone|descr|odb|authd|contact)_|$)', raw_desc, re.I)
                         name = clean.group(1).strip() if clean else raw_desc
                     elif len(row_parts) > sn_idx + 4:
@@ -752,8 +767,8 @@ class OltCdataFd1602sb1Driver(BaseDriver):
                 onu_id = int(m.group(2))
                 raw_desc = m.group(3).strip('"\' ')
                 # Ekstrak nama bersih dari deskripsi terstruktur.
-                # Pola: "name_PelangganTiga_zone_ZONA_descr_None_odb_..."
-                # Hasil: "PelangganTiga"
+                # Pola: "name_CaffeFoodMie_zone_TMY_descr_None_odb_..."
+                # Hasil: "CaffeFoodMie"
                 clean = re.match(r'^name_(.*?)(?:_(?:zone|descr|odb|authd|contact)_|$)', raw_desc, re.I)
                 name = clean.group(1).strip() if clean else raw_desc
                 full_pon_port = f"{current_interface}/{port_num}"
