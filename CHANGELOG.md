@@ -1,5 +1,16 @@
 
 
+## 2026-09-19 — onu-detail: signalColor() + chart window 10->30 points
+**Files:** `frontend/onu-detail.php`
+**Commit:** 76353da
+**Perubahan:**
+- Extract duplicated signal color logic (4x JS blocks, >=-25/-28/-30 thresholds)
+  ke shared `signalColor()` function. Mengurangi 23 baris duplikasi.
+- Chart rolling window diperluas dari 10 ke 30 data points (~2.5min -> ~7.5min
+  visibility per 15s polling). Signal + traffic chart keduanya terpengaruh.
+**Coverage:** Desktop + mobile (chart behavior sama di kedua mode)
+**Risiko OLT:** Nol, murni app-side JS.
+
 ## 2026-09-19 — Fix: replace-onu.php missing external_id from description + missing description DB update
 **Files:** `frontend/action/replace-onu.php`
 **Commit:** 39c9136
