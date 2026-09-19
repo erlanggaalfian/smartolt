@@ -348,7 +348,7 @@ $onus = $stmt_data->fetchAll();
                                 const cause = onu.last_down_cause || '';
                                 const isPower = cause === 'Power Down' || cause === 'Manual';
                                 const isFiber = ['LOS','LOSi','LOFi','SFi','LOAi','LOAMi'].includes(cause);
-                                const icon = isPower ? 'zap-off' : (isFiber ? 'cable' : 'plug');
+                                const icon = isPower ? 'plug' : (isFiber ? 'link-2-off' : 'plug');
                                 statusCell.innerHTML = `<span class="badge bg-red"><i data-lucide="${icon}" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:4px;"></i> Offline</span>`;
                             }
                         }
@@ -676,7 +676,7 @@ $onus = $stmt_data->fetchAll();
                                         $cause = $onu['last_down_cause'] ?? '';
                                         $is_power = in_array($cause, ['Power Down', 'Manual'], true);
                                         $is_fiber = in_array($cause, ['LOS', 'LOSi', 'LOFi', 'SFi', 'LOAi', 'LOAMi'], true);
-                                        $offline_icon = $is_power ? 'zap-off' : ($is_fiber ? 'cable' : 'plug');
+                                        $offline_icon = $is_power ? 'plug' : ($is_fiber ? 'link-2-off' : 'plug');
                                         ?>
                                         <span class="badge bg-red"><i data-lucide="<?php echo $offline_icon; ?>" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:4px;"></i> Offline</span>
                                     <?php endif; ?>
