@@ -1,5 +1,13 @@
 
 
+## 2026-09-19 14:15 — Security: Server-side CSRF validation on ONU action handlers
+**Files:** `backend/config.php`, `frontend/action/auth-onu.php`, `frontend/action/update-onu-mode.php`, `frontend/action/delete-onu.php`, `frontend/action/reboot-onu.php`, `frontend/action/restore-factory.php`, `frontend/action/onu-state.php`, `frontend/action/replace-onu.php`
+**Type:** Security hardening (Tier 1 — app-side only, no OLT command changes)
+**Commit:** 23287b4
+**Masalah:** Semua POST action handler di `frontend/action/` tidak validasi CSRF token di server. `header.php` JS auto-inject token ke form/fetch POST, tapi tidak ada server-side check — malicious page bisa trigger aksi OLT (authorize, delete, reboot, restore factory, replace SN) dari browser user yang sudah login.
+**Fix:** Tambah `verify_csrf_token()` helper di `backend/config.php` — cek `$_POST['csrf_token']` dan `$_SERVER['HTTP_X_CSRF_TOKEN']` via `hash_equals()` terhadap `$_SESSION['csrf_token']`. Panggil di atas setiap POST handler. Token mismatch = redirect dengan error message.
+**Scope:** Desktop + mobile (semua form POST terpengaruh, tidak ada UI change).
+
 ## 2026-09-19 06:30 — Fix: Resync config button triggers JS full sync without page reload
 **Files:** `frontend/onu-detail.php`
 **Type:** UX improvement (Tier 1 — no OLT command changes)
