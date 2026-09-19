@@ -727,7 +727,7 @@ if (!empty($onu['onu_type'])) {
                     {
                         label: 'Download (Mbps)',
                         data: <?php echo json_encode($hist_download); ?>,
-                        borderColor: '#3b82f6',
+                        borderColor: '#3081d1',
                         backgroundColor: 'rgba(59, 130, 246, 0.1)',
                         fill: true,
                         tension: 0.4

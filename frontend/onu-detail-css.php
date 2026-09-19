@@ -257,7 +257,7 @@
     display: inline-block;
     flex-shrink: 0;
 }
-.download-dot { background: #3b82f6; }
+.download-dot { background: #3081d1; }
 .upload-dot { background: #f59e0b; }
 .signal-dot { background: #f97316; }
 

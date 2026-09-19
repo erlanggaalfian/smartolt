@@ -85,7 +85,7 @@ $logs = $pdo->query("SELECT l.*, o.name as olt_name FROM logs l LEFT JOIN olts o
         </div>
     </a>
     <a href="configured.php?signal=fair" class="stat-card" style="text-decoration:none;color:inherit;">
-        <div class="stat-icon" style="background:rgba(59,130,246,0.15);color:#3b82f6;"><i data-lucide="signal"></i></div>
+        <div class="stat-icon" style="background:rgba(48,129,209,0.15);color:#3081d1;"><i data-lucide="signal"></i></div>
         <div class="stat-info">
             <h3>Fair</h3>
             <p style="font-weight:700;"><?php echo (int)$signal['fair']; ?></p>

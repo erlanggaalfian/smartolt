@@ -549,7 +549,7 @@ $onus = $stmt_data->fetchAll();
 
         if (type === 'info') {
             toast.style.background = 'var(--bg-tertiary, #1e3a8a)';
-            toast.style.border = '1px solid var(--text-accent, #3b82f6)';
+            toast.style.border = '1px solid var(--text-accent, #3081d1)';
             toast.style.color = 'var(--text-main, #fff)';
             toast.innerHTML = `<span class="spinner-small"></span> <span>${esc(message)}</span>`;
         } else if (type === 'success') {
