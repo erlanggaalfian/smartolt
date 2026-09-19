@@ -345,7 +345,9 @@ $onus = $stmt_data->fetchAll();
                             } else if (onu.status === 'disabled') {
                                 statusCell.innerHTML = `<span class="badge bg-yellow"><i data-lucide="shield-off" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:4px;"></i> Disabled</span>`;
                             } else {
-                                statusCell.innerHTML = `<span class="badge bg-red"><i data-lucide="plug" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:4px;"></i> Offline</span>`;
+                                const cause = onu.last_down_cause && onu.last_down_cause !== '-' && onu.last_down_cause !== '--'
+                                    ? `<br><small style="color:var(--color-danger);">${onu.last_down_cause}</small>` : '';
+                                statusCell.innerHTML = `<span class="badge bg-red"><i data-lucide="plug" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:4px;"></i> Offline</span>${cause}`;
                             }
                         }
                         row.setAttribute('data-status', onu.status);
@@ -668,6 +670,9 @@ $onus = $stmt_data->fetchAll();
                                         <span class="badge bg-yellow"><i data-lucide="shield-off" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:4px;"></i> Disabled</span>
                                     <?php else: ?>
                                         <span class="badge bg-red"><i data-lucide="plug" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:4px;"></i> Offline</span>
+                                        <?php if (!empty($onu['last_down_cause']) && $onu['last_down_cause'] !== '--'): ?>
+                                            <br><small style="color:var(--color-danger);"><?php echo htmlspecialchars($onu['last_down_cause']); ?></small>
+                                        <?php endif; ?>
                                     <?php endif; ?>
                                 </td>
                                 <td class="name-cell"><strong><?php echo htmlspecialchars(extract_customer_name($onu['name'])); ?></strong></td>
