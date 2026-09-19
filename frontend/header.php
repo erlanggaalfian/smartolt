@@ -118,25 +118,25 @@ session_write_close();
         <!-- MAIN WORKSPACE -->
         <main class="main-content full-width">
             <!-- TOP HEADER WITH NAV -->
-            <header class="top-header top-nav">
-                <div class="header-left" style="display: flex; align-items: center; gap: 0;">
+            <header class="top-header">
+                <div class="header-left">
                     <a href="dashboard.php" class="topnav-brand">
-                        <i data-lucide="network" style="width:20px; height:20px;"></i> SmartOLT
+                        <i data-lucide="network" style="width:18px; height:18px;"></i> SmartOLT
                     </a>
                     <nav class="topnav-links">
                         <a href="dashboard.php" class="topnav-item <?php echo $current_page === 'dashboard.php' ? 'active' : ''; ?>">
-                            <i data-lucide="layout-dashboard" style="width:15px; height:15px;"></i> Dashboard
+                            <i data-lucide="layout-dashboard" style="width:14px; height:14px;"></i> Dashboard
                         </a>
                         <a href="unconfigured.php" class="topnav-item <?php echo $current_page === 'unconfigured.php' ? 'active' : ''; ?>">
-                            <i data-lucide="scan-eye" style="width:15px; height:15px;"></i> Unconfigured
+                            <i data-lucide="scan-eye" style="width:14px; height:14px;"></i> Unconfigured
                         </a>
                         <a href="configured.php" class="topnav-item <?php echo $current_page === 'configured.php' ? 'active' : ''; ?>">
-                            <i data-lucide="users" style="width:15px; height:15px;"></i> Configured
+                            <i data-lucide="users" style="width:14px; height:14px;"></i> Configured
                         </a>
                         <?php if (isset($_SESSION['smartolt_role']) && $_SESSION['smartolt_role'] === 'superadmin'): ?>
                             <div class="topnav-dropdown">
                                 <button class="topnav-item topnav-dropdown-toggle <?php echo ($current_page === 'settings-olt.php' || $current_page === 'settings-users.php') ? 'active' : ''; ?>">
-                                    <i data-lucide="settings" style="width:15px; height:15px;"></i> Settings <i data-lucide="chevron-down" style="width:12px; height:12px;"></i>
+                                    <i data-lucide="settings" style="width:14px; height:14px;"></i> Settings <i data-lucide="chevron-down" style="width:12px; height:12px;"></i>
                                 </button>
                                 <div class="topnav-dropdown-menu">
                                     <a href="settings-olt.php" class="topnav-dropdown-item <?php echo $current_page === 'settings-olt.php' ? 'active' : ''; ?>">
@@ -158,33 +158,33 @@ session_write_close();
                             </div>
                         <?php endif; ?>
                         <a href="logs.php" class="topnav-item <?php echo $current_page === 'logs.php' ? 'active' : ''; ?>">
-                            <i data-lucide="history" style="width:15px; height:15px;"></i> Logs
+                            <i data-lucide="history" style="width:14px; height:14px;"></i> Logs
                         </a>
                     </nav>
                 </div>
-                <div class="header-right" style="display: flex; align-items: center; gap: 15px;">
+                <div class="header-right">
+                    <div class="status-badge-container">
+                        <span class="dot-indicator online"></span>
+                        <span>System Active</span>
+                    </div>
+                    <?php if (!empty($_SESSION['debug_mode'])): ?>
+                        <a href="?toggle_debug=1" class="header-btn" title="Debug Mode Active" style="color: #ef4444;">
+                            <i data-lucide="bug" style="width:16px; height:16px;"></i>
+                        </a>
+                    <?php else: ?>
+                        <a href="?toggle_debug=1" class="header-btn" title="Toggle Debug Mode">
+                            <i data-lucide="bug" style="width:16px; height:16px;"></i>
+                        </a>
+                    <?php endif; ?>
+                    <button id="theme-toggle" class="header-btn" title="Toggle Tema">
+                        <i data-lucide="sun" style="width:16px; height:16px;"></i>
+                    </button>
                     <div class="topnav-user">
                         <span class="topnav-user-avatar"><?php echo isset($_SESSION['smartolt_username']) ? strtoupper(substr($_SESSION['smartolt_username'], 0, 2)) : 'US'; ?></span>
                         <span class="topnav-user-name"><?php echo isset($_SESSION['smartolt_username']) ? htmlspecialchars($_SESSION['smartolt_username']) : 'User'; ?></span>
                     </div>
-                    <?php if (!empty($_SESSION['debug_mode'])): ?>
-                        <div id="btn-show-debug-cli" style="background: rgba(239,68,68,0.15); border: 1px solid #ef4444; color: #ef4444; padding: 4px 10px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 6px; font-family: 'Montserrat', sans-serif; cursor: pointer; transition: all 0.15s;" onmouseover="this.style.background='rgba(239,68,68,0.25)'" onmouseout="this.style.background='rgba(239,68,68,0.15)'" title="Klik untuk membuka Terminal Log CLI OLT">
-                            <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #ef4444;"></span>
-                            Debug Mode Active
-                        </div>
-                    <?php endif; ?>
-                    <div class="status-badge-container">
-                        <span class="dot-indicator online"></span>
-                        <span class="status-text">System Active</span>
-                    </div>
-                    <a href="?toggle_debug=1" class="header-btn" title="Toggle Debug Mode" style="display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 6px; border: 1px solid #e2e8f0; color: <?php echo !empty($_SESSION['debug_mode']) ? '#ef4444' : '#64748b'; ?>; background: <?php echo !empty($_SESSION['debug_mode']) ? 'rgba(239,68,68,0.1)' : 'none'; ?>; transition: all 0.15s;">
-                        <i data-lucide="bug" style="width: 18px; height: 18px;"></i>
-                    </a>
-                    <button id="theme-toggle" class="header-btn" title="Toggle Tema">
-                        <i data-lucide="sun"></i>
-                    </button>
-                    <a href="action/logout.php" class="header-btn" title="Logout" style="color: #ef4444;">
-                        <i data-lucide="log-out"></i>
+                    <a href="action/logout.php" class="header-btn" title="Logout">
+                        <i data-lucide="log-out" style="width:16px; height:16px;"></i>
                     </a>
                 </div>
             </header>
