@@ -87,7 +87,7 @@ $total_items = (int)$count_stmt->fetchColumn();
 
 $current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 if ($current_page < 1) $current_page = 1;
-$total_pages = max(1, ceil($total_items / $limit));
+$total_pages = max(1, (int)ceil($total_items / $limit));
 if ($current_page > $total_pages) $current_page = $total_pages;
 $offset = ($current_page - 1) * $limit;
 
