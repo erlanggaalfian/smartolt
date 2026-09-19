@@ -345,9 +345,13 @@ $onus = $stmt_data->fetchAll();
                             } else if (onu.status === 'disabled') {
                                 statusCell.innerHTML = `<span class="badge bg-yellow"><i data-lucide="shield-off" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:4px;"></i> Disabled</span>`;
                             } else {
-                                const cause = onu.last_down_cause && onu.last_down_cause !== '-' && onu.last_down_cause !== '--'
-                                    ? `<br><small style="color:var(--color-danger);">${onu.last_down_cause}</small>` : '';
-                                statusCell.innerHTML = `<span class="badge bg-red"><i data-lucide="plug" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:4px;"></i> Offline</span>${cause}`;
+                                const cause = onu.last_down_cause || '';
+                                const isPower = cause === 'DyingGasp' || cause === 'Manual';
+                                const isFiber = ['LOS','LOSi','LOFi','SFi','LOAi','LOAMi'].includes(cause);
+                                const icon = isPower ? 'zap-off' : (isFiber ? 'cable' : 'plug');
+                                const causeHtml = cause && cause !== '-' && cause !== '--'
+                                    ? `<br><small style="color:var(--color-danger);">${cause}</small>` : '';
+                                statusCell.innerHTML = `<span class="badge bg-red"><i data-lucide="${icon}" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:4px;"></i> Offline</span>${causeHtml}`;
                             }
                         }
                         row.setAttribute('data-status', onu.status);
@@ -669,9 +673,16 @@ $onus = $stmt_data->fetchAll();
                                     <?php elseif ($onu['status'] === 'disabled'): ?>
                                         <span class="badge bg-yellow"><i data-lucide="shield-off" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:4px;"></i> Disabled</span>
                                     <?php else: ?>
-                                        <span class="badge bg-red"><i data-lucide="plug" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:4px;"></i> Offline</span>
-                                        <?php if (!empty($onu['last_down_cause']) && $onu['last_down_cause'] !== '--'): ?>
-                                            <br><small style="color:var(--color-danger);"><?php echo htmlspecialchars($onu['last_down_cause']); ?></small>
+                                        <?php
+                                        // Icon beda tergantung penyebab down: fiber terputus (LOS) vs listrik ONU mati (dying-gasp/manual).
+                                        $cause = $onu['last_down_cause'] ?? '';
+                                        $is_power = in_array($cause, ['DyingGasp', 'Manual'], true);
+                                        $is_fiber = in_array($cause, ['LOS', 'LOSi', 'LOFi', 'SFi', 'LOAi', 'LOAMi'], true);
+                                        $offline_icon = $is_power ? 'zap-off' : ($is_fiber ? 'cable' : 'plug');
+                                        ?>
+                                        <span class="badge bg-red"><i data-lucide="<?php echo $offline_icon; ?>" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:4px;"></i> Offline</span>
+                                        <?php if (!empty($cause) && $cause !== '--'): ?>
+                                            <br><small style="color:var(--color-danger);"><?php echo htmlspecialchars($cause); ?></small>
                                         <?php endif; ?>
                                     <?php endif; ?>
                                 </td>
