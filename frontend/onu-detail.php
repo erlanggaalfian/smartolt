@@ -659,10 +659,16 @@ if (!empty($onu['onu_type'])) {
             .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
     }
+    function signalColor(dBm) {
+        if (dBm >= -25) return 'var(--color-success)';
+        if (dBm >= -28) return 'var(--color-amber)';
+        if (dBm >= -30) return 'var(--color-orange)';
+        return 'var(--color-danger)';
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
         const onuId = "<?php echo (int)$onu['id']; ?>";
-        let currentWanMode = "<?php echo htmlspecialchars($onu['wan_mode'] ?: 'Setup via ONU webpage'); ?>";
+        window.currentWanMode = "<?php echo htmlspecialchars($onu['wan_mode'] ?: 'Setup via ONU webpage'); ?>";
 
         // Theme-aware chart colors
         const _cs = getComputedStyle(document.documentElement);
@@ -832,7 +838,7 @@ if (!empty($onu['onu_type'])) {
                         const wanLabelEl = document.getElementById('detail-wan-label');
                         if (wanLabelEl && data.wan_mode) {
                             wanLabelEl.textContent = data.wan_mode === 'Static' ? 'Static IP' : data.wan_mode;
-                            currentWanMode = data.wan_mode;
+                            window.currentWanMode = data.wan_mode;
                         }
                         // WAN Setup: PHP detects PPPoE from running-config, don't overwrite with raw DB value
 
@@ -892,7 +898,7 @@ if (!empty($onu['onu_type'])) {
                             rxOltText.style.color = 'var(--color-danger)';
                             // Push null to charts so they keep advancing instead of freezing
                             const timeStrOff = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                            if (signalChart.data.labels.length > 10) {
+                            if (signalChart.data.labels.length > 30) {
                                 signalChart.data.labels.shift();
                                 signalChart.data.datasets[0].data.shift();
                                 signalChart.data.datasets[1].data.shift();
@@ -901,7 +907,7 @@ if (!empty($onu['onu_type'])) {
                             signalChart.data.datasets[0].data.push(null);
                             signalChart.data.datasets[1].data.push(null);
                             signalChart.update();
-                            if (trafficChart.data.labels.length > 10) {
+                            if (trafficChart.data.labels.length > 30) {
                                 trafficChart.data.labels.shift();
                                 trafficChart.data.datasets[0].data.shift();
                                 trafficChart.data.datasets[1].data.shift();
@@ -934,25 +940,19 @@ if (!empty($onu['onu_type'])) {
 
                             if (data.rx_onu !== 'N/A' && data.rx_onu !== null) {
                                 const rxVal = parseFloat(data.rx_onu);
-                                if (rxVal >= -25) rxOnuText.style.color = 'var(--color-success)';
-                                else if (rxVal >= -28) rxOnuText.style.color = 'var(--color-amber)';
-                                else if (rxVal >= -30) rxOnuText.style.color = 'var(--color-orange)';
-                                else rxOnuText.style.color = 'var(--color-danger)';
+                                rxOnuText.style.color = signalColor(rxVal);
                             }
                             
                             const rxOltNum = parseFloat(data.rx_olt);
                             if (!isNaN(rxOltNum)) {
-                                if (rxOltNum >= -25) rxOltText.style.color = 'var(--color-success)';
-                                else if (rxOltNum >= -28) rxOltText.style.color = 'var(--color-amber)';
-                                else if (rxOltNum >= -30) rxOltText.style.color = 'var(--color-orange)';
-                                else rxOltText.style.color = 'var(--color-danger)';
+                                rxOltText.style.color = signalColor(rxOltNum);
                             }
 
                             // Update signal chart
                             const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                             const rxValForChart = (data.rx_onu !== 'N/A' && data.rx_onu !== null) ? parseFloat(data.rx_onu) : null;
                             
-                            if (signalChart.data.labels.length > 10) {
+                            if (signalChart.data.labels.length > 30) {
                                 signalChart.data.labels.shift();
                                 signalChart.data.datasets[0].data.shift();
                                 signalChart.data.datasets[1].data.shift();
@@ -1007,7 +1007,7 @@ if (!empty($onu['onu_type'])) {
                             if (dlCurrEl) dlCurrEl.textContent = downNum.toFixed(2) + ' Mbps';
                             if (dlMaxEl) dlMaxEl.textContent = maxDownSpeed.toFixed(2) + ' Mbps';
 
-                            if (trafficChart.data.labels.length > 10) {
+                            if (trafficChart.data.labels.length > 30) {
                                 trafficChart.data.labels.shift();
                                 trafficChart.data.datasets[0].data.shift();
                                 trafficChart.data.datasets[1].data.shift();
@@ -1675,7 +1675,7 @@ sort($cached_vlans);
                             // Update live fields on page cards
                             const pppoeContainer = document.getElementById('detail-pppoe-ip-wrapper');
                             if (pppoeContainer) {
-                                if (currentWanMode !== 'PPPoE') {
+                                if (window.currentWanMode !== 'PPPoE') {
                                     pppoeContainer.innerHTML = '<span style="color:var(--text-muted);">-</span>';
                                 } else if (data.pppoe_ip && data.pppoe_ip !== 'N/A' && data.pppoe_ip !== '0.0.0.0' && data.pppoe_ip !== '') {
                                     pppoeContainer.innerHTML = `
@@ -1692,20 +1692,14 @@ sort($cached_vlans);
                             if (rxOnuText && data.rx_onu && data.rx_onu !== 'N/A') {
                                 rxOnuText.textContent = `${data.rx_onu} dBm`;
                                 const rxVal = parseFloat(data.rx_onu);
-                                if (rxVal >= -25) rxOnuText.style.color = 'var(--color-success)';
-                                else if (rxVal >= -28) rxOnuText.style.color = 'var(--color-amber)';
-                                else if (rxVal >= -30) rxOnuText.style.color = 'var(--color-orange)';
-                                else rxOnuText.style.color = 'var(--color-danger)';
+                                rxOnuText.style.color = signalColor(rxVal);
                             }
 
                             const rxOltText = document.getElementById('detail-rx-olt');
                             if (rxOltText && data.rx_olt && data.rx_olt !== 'N/A') {
                                 rxOltText.textContent = `${data.rx_olt} dBm`;
                                 const rxOltVal = parseFloat(data.rx_olt);
-                                if (rxOltVal >= -25) rxOltText.style.color = 'var(--color-success)';
-                                else if (rxOltVal >= -28) rxOltText.style.color = 'var(--color-amber)';
-                                else if (rxOltVal >= -30) rxOltText.style.color = 'var(--color-orange)';
-                                else rxOltText.style.color = 'var(--color-danger)';
+                                rxOltText.style.color = signalColor(rxOltVal);
                             }
 
                             if (typeof lucide !== 'undefined') {
