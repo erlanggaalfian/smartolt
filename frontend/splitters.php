@@ -95,8 +95,7 @@ $splitters = $pdo->prepare("
     SELECT s.*, COALESCE(cnt.c, 0) as usage_count
     FROM splitters s
     LEFT JOIN (SELECT splitter, COUNT(*) AS c FROM onus GROUP BY splitter) cnt ON cnt.splitter = s.name
-     ORDER BY s.zone, s.name
-    FROM splitters s $where ORDER BY s.zone, s.name
+    $where ORDER BY s.zone, s.name
     LIMIT $limit OFFSET $offset
 ");
 $splitters->execute($params);
