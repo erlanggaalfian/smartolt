@@ -653,6 +653,7 @@ $onus = $stmt_data->fetchAll();
                 <thead>
                     <tr>
                         <th style="width:60px;text-align:center;">Status</th>
+                        <th>Aksi</th>
                         <th>Nama Pelanggan</th>
                         <th>Serial Number</th>
                         <th>Koneksi OLT & PON</th>
@@ -661,7 +662,6 @@ $onus = $stmt_data->fetchAll();
                         <th>Sinyal Rx ONU</th>
                         <th>Sinyal Rx OLT</th>
                         <th>Tipe ONU</th>
-                        <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -694,6 +694,11 @@ $onus = $stmt_data->fetchAll();
                                         ?>
                                         <span class="status-icon-badge <?php echo $offline_class; ?>" title="<?php echo $offline_title; ?>"><i data-lucide="<?php echo $offline_icon; ?>"></i></span>
                                     <?php endif; ?>
+                                </td>
+                                <td>
+                                    <a href="onu-detail.php?id=<?php echo (int)$onu['id']; ?>" class="btn btn-xs btn-primary">
+                                        <i data-lucide="eye"></i> Detail
+                                    </a>
                                 </td>
                                 <td class="name-cell"><strong><?php echo htmlspecialchars(extract_customer_name($onu['name'])); ?></strong></td>
                                 <td><code><?php echo htmlspecialchars($onu['serial_number']); ?></code></td>
@@ -732,11 +737,6 @@ $onus = $stmt_data->fetchAll();
                                     <?php endif; ?>
                                 </td>
                                 <td class="onu-type-cell" style="font-size:0.8rem;color:var(--text-muted);"><?php echo htmlspecialchars($onu['onu_type'] ?: '-'); ?></td>
-                                <td>
-                                    <a href="onu-detail.php?id=<?php echo (int)$onu['id']; ?>" class="btn btn-xs btn-primary">
-                                        <i data-lucide="eye"></i> Detail
-                                    </a>
-                                </td>
                             </tr>
                         <?php endforeach; ?>
                     <?php endif; ?>
