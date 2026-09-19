@@ -959,7 +959,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return '<tr>' +
                 '<td><span class="chip chip-indigo">' + esc(v.id) + '</span></td>' +
                 '<td>' + (v.description ? esc(v.description) : '-') + '</td>' +
-                '<td><span class="chip chip-slate">' + esc(v.type) + '</span></td>' +
+                '<td><span class="chip ' + (v.type === 'management' ? 'chip-amber' : 'chip-slate') + '">' + (v.type === 'management' ? 'Management' : esc(v.type)) + '</span></td>' +
                 '<td>' + formatPortsClean(v.tagged) + '</td>' +
                 '<td>' + formatPortsClean(v.untagged) + '</td>' +
                 '<td>' + (v.ip       ? esc(v.ip)       : '-') + '</td>' +
@@ -992,6 +992,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const idInput = document.getElementById('vlan-modal-id');
         const descInput = document.getElementById('vlan-modal-desc');
         const tbody = document.getElementById('vlan-modal-ports-tbody');
+        const mgmtCheckbox = document.getElementById('vlan-modal-is-management');
 
         tbody.innerHTML = '';
         document.getElementById('vlan-modal-msg').style.display = 'none';
@@ -1001,11 +1002,13 @@ document.addEventListener('DOMContentLoaded', () => {
             idInput.value = vlanData.id;
             idInput.disabled = true;
             descInput.value = vlanData.description || '';
+            mgmtCheckbox.checked = vlanData.type === 'management';
         } else {
             titleEl.innerHTML = `<i data-lucide="plus-circle" style="width:18px;height:18px;display:inline-block;vertical-align:middle;margin-right:4px;"></i> Tambah VLAN Baru`;
             idInput.value = '';
             idInput.disabled = false;
             descInput.value = '';
+            mgmtCheckbox.checked = false;
         }
 
         // Alternatif terpanjang lebih dulu supaya 'xgei_1/3/2' tidak tertangkap
@@ -1103,6 +1106,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 const data = await res.json();
                 
+                if (data.success) {
+                    const mgmtChecked = document.getElementById('vlan-modal-is-management').checked;
+                    await fetch('action/vlan.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: new URLSearchParams({ olt_id: oltId, action: 'set-management', vlan_id: vid, is_management: mgmtChecked ? '1' : '' }).toString()
+                    });
+                }
                 vlanModalNotify(data.message, !!data.success);
                 if (data.debug_log) {
                     showDebugModal(data.debug_log);
@@ -1317,6 +1328,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     <label class="modal-label">Deskripsi (opsional, maks 32 karakter)</label>
                     <input type="text" id="vlan-modal-desc" class="modal-input" placeholder="e.g. PPPOE" maxlength="32" pattern="[A-Za-z0-9 ._-]*">
                 </div>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem;">
+                    <input type="checkbox" id="vlan-modal-is-management">
+                    Tandai sebagai VLAN Management
+                </label>
             </div>
 
             <div style="margin-top: 20px;">
