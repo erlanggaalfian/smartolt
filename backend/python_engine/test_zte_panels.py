@@ -1,7 +1,7 @@
 """Uji parser panel ZTE dengan keluaran ASLI dari OLT C320 V2.1.0.
 
 Semua sampel di bawah disalin apa adanya dari sesi telnet ke
-OLT_C320_GBB_Boyolali (103.210.52.64) — lihat zte_olt_manual_book.md.
+[REDACTED_OLT_NAME] ([REDACTED_IP]) — lihat zte_olt_manual_book.md.
 Jalankan: python test_zte_panels.py
 """
 import os
