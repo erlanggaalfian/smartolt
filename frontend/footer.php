@@ -1,4 +1,7 @@
             </div> <!-- End view-panel -->
+            <footer class="app-footer">
+                &copy; 2026 SmartOLT v1.0.0 by Erlangga Alfian
+            </footer>
         </main> <!-- End main-content -->
     </div> <!-- End app-container -->
 

@@ -204,6 +204,7 @@ button, input, select, textarea, optgroup {
 ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-accent); }
 .app-container { display: flex; flex-direction: column; min-height: 100vh; }
+.app-footer { text-align: center; padding: 16px 24px; font-size: 12px; color: var(--text-muted); border-top: 1px solid var(--border-color); margin-top: auto; }
 /* SIDEBAR — deprecated, nav moved to top header */
 .sidebar { display: none; }
 /* MAIN CONTENT */
