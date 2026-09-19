@@ -95,7 +95,10 @@ try {
         if ($out) {
             $snmp_result = json_decode($out, true);
             if ($snmp_result && !empty($snmp_result['success'])) {
-                $d['status'] = $snmp_result['status'] ?? $d['status'];
+                // 'unknown' = driver tak bisa baca status via SNMP (mis. Cdata) — jangan timpa nilai lama.
+                if (($snmp_result['status'] ?? null) && $snmp_result['status'] !== 'unknown') {
+                    $d['status'] = $snmp_result['status'];
+                }
                 $d['rx_onu'] = $snmp_result['rx_onu'] ?? $d['rx_onu'];
                 $d['traffic_rx_octets'] = $snmp_result['traffic_rx_octets'] ?? null;
                 $d['traffic_tx_octets'] = $snmp_result['traffic_tx_octets'] ?? null;
@@ -119,7 +122,8 @@ $val = static function ($v) {
     return ($v === 'N/A' || $v === '' || $v === null) ? null : $v;
 };
 
-$status   = $val($d['status'] ?? null) ?: 'offline';
+$status_raw = $val($d['status'] ?? null);
+$status   = in_array($status_raw, ['online', 'offline', 'disabled'], true) ? $status_raw : 'offline';
 $rx_onu   = $val($d['rx_onu'] ?? null);
 $rx_olt   = $val($d['rx_olt'] ?? null);
 $pppoe_ip = $val($d['pppoe_ip'] ?? null);

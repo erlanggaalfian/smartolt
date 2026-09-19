@@ -478,7 +478,42 @@ class OltCdataFd1602sb1Driver(BaseDriver):
 
         return {'success': True, 'message': 'ONU berhasil dihapus dari OLT.', 'log': log}
 
-    def authorize_onu(self, olt: dict, pon_port: str, serial: str, name: str, vlan: int, desc: str, onu_id: int = None) -> dict:
+    @staticmethod
+    def _sanitize_cli_token(s: str, maxlen: int = 64) -> str:
+        """Buang karakter yang bisa dipakai command injection / merusak baris CLI."""
+        return re.sub(r'[\r\n"]', '', s or '')[:maxlen]
+
+    def _lookup_speed_profile_ids(self, olt: dict, upload_profile: str = None,
+                                    download_profile: str = None, default_dba: int = 0,
+                                    default_traffic: int = 1):
+        """Terjemahkan NAMA profile (dipilih user di form) ke ID asli di OLT.
+        Return (dba_id, traffic_id, warning_or_None). Dipakai authorize_onu &
+        configure_onu_full supaya lookup-nya tidak diduplikasi 2x."""
+        if not upload_profile and not download_profile:
+            return default_dba, default_traffic, None
+        dba_id, traffic_id, warning = default_dba, default_traffic, None
+        sp = self.get_speed_profiles(olt)
+        if not sp.get('success'):
+            return dba_id, traffic_id, 'Gagal membaca daftar speed profile dari OLT, pakai default.'
+        by_name = {(p['direction'], p['name']): p['olt_profile_id'] for p in sp.get('profiles', [])}
+        if upload_profile:
+            found = by_name.get(('upload', upload_profile))
+            if found is not None:
+                dba_id = found
+            else:
+                warning = f"Upload profile '{upload_profile}' tidak ditemukan di OLT, pakai default."
+        if download_profile:
+            found = by_name.get(('download', download_profile))
+            if found is not None:
+                traffic_id = found
+            else:
+                msg = f"Download profile '{download_profile}' tidak ditemukan di OLT, pakai default."
+                warning = (warning + ' ' + msg) if warning else msg
+        return dba_id, traffic_id, warning
+
+    def authorize_onu(self, olt: dict, pon_port: str, serial: str, name: str, vlan: int, desc: str,
+                       onu_id: int = None, wan_mode: str = None, pppoe_username: str = None,
+                       pppoe_password: str = None, upload_profile: str = None, download_profile: str = None) -> dict:
         if is_demo_olt(olt):
             demo_id = onu_id or 5
             return {
@@ -509,34 +544,69 @@ class OltCdataFd1602sb1Driver(BaseDriver):
                     onu_id = i
                     break
 
+        # Cdata TIDAK punya profile independen upload/download seperti ZTE --
+        # upload = dba-profile-id (TCONT 1), download = traffic-profile-id (gem-car).
+        dba_id, traffic_id, speed_assign_warning = self._lookup_speed_profile_ids(
+            olt, upload_profile, download_profile)
+
+        name_c = self._sanitize_cli_token(name)
+        desc_c = self._sanitize_cli_token(desc, 255)
+
         commands = [
             "enable",
             "config",
             f"interface gpon {interface_path}",
             f"ont add {port} {onu_id} sn-auth \"{serial}\"",
-            f"ont name {port} {onu_id} \"{name}\"",
-            f"ont description {port} {onu_id} \"{desc}\"",
+            f"ont name {port} {onu_id} \"{name_c}\"",
+            f"ont description {port} {onu_id} \"{desc_c}\"",
             f"ont ont-port {port} {onu_id} eth adaptive pots adaptive catv adaptive iphost adaptive wifi adaptive",
             f"ont native-vlan {port} {onu_id} concern",
-            f"ont ipconfig {port} {onu_id} ip-index 0 pppoe username {serial.lower()}@isp.id password {serial[:6]} vlan {vlan} priority 0",
-            f"ont ipconfig {port} {onu_id} ip-index 0 connection-type route",
+        ]
+
+        wan_setup_warning = None
+        wan_mode = wan_mode or 'Setup via ONU webpage'
+        if wan_mode == 'PPPoE':
+            user_c = self._sanitize_cli_token(pppoe_username or f"{serial.lower()}@isp.net", 64)
+            pass_c = self._sanitize_cli_token(pppoe_password or serial[:8], 32)
+            commands.append(f"ont ipconfig {port} {onu_id} ip-index 0 pppoe username {user_c} password {pass_c} vlan {vlan} priority 0")
+            commands.append(f"ont ipconfig {port} {onu_id} ip-index 0 connection-type route")
+        elif wan_mode == 'DHCP':
+            commands.append(f"ont ipconfig {port} {onu_id} ip-index 0 dhcp vlan {vlan} priority 0")
+        elif wan_mode == 'Static':
+            # Form belum punya field IP/mask/gateway untuk mode ini -- jangan diam-diam
+            # kirim command salah, gagalkan eksplisit supaya user tahu perlu isi manual.
+            wan_setup_warning = "Mode Static belum didukung form (butuh IP/mask/gateway) -- ONU diauth tanpa konfigurasi WAN, atur manual."
+        # 'Setup via ONU webpage' -> sengaja tanpa ipconfig, ONU pakai default webpage config-nya sendiri.
+
+        commands += [
             f"ont tcont {port} {onu_id} 0 dba-profile-id 0",
-            f"ont tcont {port} {onu_id} 1 dba-profile-id 10",
+            f"ont tcont {port} {onu_id} 1 dba-profile-id {dba_id}",
             f"ont mapping-mode {port} {onu_id} vlan",
-            f"ont gemport {port} {onu_id} 1 tcont 1 gem-car-upstream 6 gem-car-downstream 6 encrypt disable",
+            f"ont gemport {port} {onu_id} 1 tcont 1 gem-car-upstream {traffic_id} gem-car-downstream {traffic_id} encrypt disable",
             f"ont gemport mapping {port} {onu_id} 1 1 vlan {vlan}",
             "exit",
             "write"
         ]
         log = execute_ssh_commands(olt, commands)
-        return {
+        result = {
             'success': 'error' not in log.lower(),
             'onu_id': onu_id,
             'message': f"ONU berhasil diotorisasi dengan ID {onu_id} di PON {pon_port}.",
-            'log': log
+            'log': log,
+            'commands': commands,
         }
+        if speed_assign_warning:
+            result['speed_assign_warning'] = speed_assign_warning
+        if wan_setup_warning:
+            result['wan_setup_warning'] = wan_setup_warning
+        return result
 
     def configure_onu_full(self, olt: dict, onu: dict, wan: dict) -> dict:
+        """Update konfigurasi WAN ONU yang SUDAH teregistrasi (bukan authorize baru).
+        TIDAK memanggil 'ont add' -- ONU harusnya sudah ada; memanggilnya ulang
+        berisiko OLT reject sebagai duplikat atau reset binding existing.
+        Speed profile (DBA/traffic) TIDAK disentuh di sini -- itu tanggung jawab
+        assign_speed_profile(), dipanggil terpisah oleh PHP kalau profile berubah."""
         if is_demo_olt(olt):
             return {'success': True, 'message': 'Konfigurasi ONT berhasil (Mode Demo).'}
 
@@ -544,34 +614,169 @@ class OltCdataFd1602sb1Driver(BaseDriver):
         port = int(parts[-1]) if len(parts) >= 3 else 1
         interface_path = "/".join(parts[:-1]) if len(parts) >= 3 else onu['pon_port']
         ont_id = onu['onu_id']
-        sn = onu['serial_number']
-        clean_name = onu['name']
-        desc = onu.get('description', clean_name)
-
-        pppoe_user = wan.get('pppoe_username', '')
-        pppoe_pass = wan.get('pppoe_password', '')
+        clean_name = self._sanitize_cli_token(onu['name'])
+        desc = self._sanitize_cli_token(onu.get('description', onu['name']), 255)
         vlan_svc = int(wan.get('vlan_service') or 25)
 
         commands = [
             'enable',
             'config',
             f"interface gpon {interface_path}",
-            f"ont add {port} {ont_id} sn-auth \"{sn}\"",
             f"ont name {port} {ont_id} \"{clean_name}\"",
             f"ont description {port} {ont_id} \"{desc}\"",
-            f"ont ipconfig {port} {ont_id} ip-index 0 pppoe username {pppoe_user} password {pppoe_pass} vlan {vlan_svc} priority 0",
-            f"ont ipconfig {port} {ont_id} ip-index 0 connection-type route",
-            'exit',
-            'write'
         ]
+
+        wan_setup_warning = None
+        wan_mode = wan.get('wan_mode') or 'Setup via ONU webpage'
+        if wan_mode == 'PPPoE':
+            user_c = self._sanitize_cli_token(wan.get('pppoe_username') or '', 64)
+            pass_c = self._sanitize_cli_token(wan.get('pppoe_password') or '', 32)
+            if not user_c or not pass_c:
+                wan_setup_warning = "Mode PPPoE dipilih tapi username/password kosong -- konfigurasi WAN dilewati."
+            else:
+                commands.append(f"ont ipconfig {port} {ont_id} ip-index 0 pppoe username {user_c} password {pass_c} vlan {vlan_svc} priority 0")
+                commands.append(f"ont ipconfig {port} {ont_id} ip-index 0 connection-type route")
+        elif wan_mode == 'DHCP':
+            commands.append(f"ont ipconfig {port} {ont_id} ip-index 0 dhcp vlan {vlan_svc} priority 0")
+        elif wan_mode == 'Static':
+            wan_setup_warning = "Mode Static belum didukung driver Cdata (butuh IP/mask/gateway) -- konfigurasi WAN dilewati, atur manual."
+        # 'Setup via ONU webpage' -> sengaja tanpa ipconfig.
+
+        commands += ['exit', 'write']
         log = execute_ssh_commands(olt, commands)
         ok = not any(x in log.lower() for x in ['failed', 'error', 'invalid'])
-        return {
+        result = {
             'success': ok,
             'message': 'Konfigurasi ONT berhasil diterapkan.' if ok
                        else f"OLT menolak perintah: {log}",
             'log': log
         }
+        if wan_setup_warning:
+            result['wan_setup_warning'] = wan_setup_warning
+        return result
+
+    def update_onu_description(self, olt: dict, pon_port: str, onu_id: int, description: str) -> dict:
+        """Update nama+deskripsi saja tanpa sentuh WAN config (edit identity ringan)."""
+        if is_demo_olt(olt):
+            return {'success': True, 'message': 'Description updated (Mode Demo).'}
+
+        parts = pon_port.split('/')
+        port = int(parts[-1]) if len(parts) >= 3 else 1
+        interface_path = "/".join(parts[:-1]) if len(parts) >= 3 else pon_port
+        desc_c = self._sanitize_cli_token(description, 255)
+
+        commands = [
+            "enable",
+            "config",
+            f"interface gpon {interface_path}",
+            f"ont description {port} {onu_id} \"{desc_c}\"",
+            "exit",
+            "exit",
+            "write"
+        ]
+        log = execute_ssh_commands(olt, commands)
+        ok = not any(x in log.lower() for x in ['failed', 'error', 'invalid'])
+        return {
+            'success': ok,
+            'message': f'Deskripsi ONU {pon_port}/{onu_id} berhasil diperbarui.' if ok
+                       else f"OLT menolak perintah: {log}",
+            'log': log
+        }
+
+    def assign_speed_profile(self, olt: dict, pon_port: str, onu_id: int,
+                              upload_name: str, download_name: str) -> dict:
+        """Ganti DBA/traffic profile ONU existing tanpa reconfigure WAN penuh."""
+        if is_demo_olt(olt):
+            return {'success': True, 'message': 'Speed profile ONU berhasil di-assign (Mode Demo).'}
+
+        dba_id, traffic_id, warning = self._lookup_speed_profile_ids(
+            olt, upload_name, download_name, default_dba=None, default_traffic=None)
+        if dba_id is None or traffic_id is None:
+            return {'success': False, 'message': warning or 'Profile tidak ditemukan di OLT.'}
+
+        parts = pon_port.split('/')
+        port = int(parts[-1]) if len(parts) >= 3 else 1
+        interface_path = "/".join(parts[:-1]) if len(parts) >= 3 else pon_port
+
+        commands = [
+            "enable",
+            "config",
+            f"interface gpon {interface_path}",
+            f"ont tcont {port} {onu_id} 1 dba-profile-id {dba_id}",
+            f"ont gemport {port} {onu_id} 1 tcont 1 gem-car-upstream {traffic_id} gem-car-downstream {traffic_id} encrypt disable",
+            "exit",
+            "exit",
+            "write"
+        ]
+        log = execute_ssh_commands(olt, commands)
+        ok = not any(x in log.lower() for x in ['failed', 'error', 'invalid'])
+        result = {
+            'success': ok,
+            'message': 'Speed profile berhasil di-assign ke ONU.' if ok
+                       else f"OLT menolak perintah: {log}",
+            'log': log
+        }
+        if warning:
+            result['speed_assign_warning'] = warning
+        return result
+
+    def get_onu_hw_sw(self, olt: dict, onu: dict) -> dict:
+        """HW/SW/vendor via 'show ont version' + jumlah port via 'show ont capability'."""
+        if is_demo_olt(olt):
+            return {
+                'success': True,
+                'onu_details': "Vendor ID              ZTEG \nHW Version              V9.0 \nSerial Number           DEMOSN000001 \nOMCC version             0xB2 \nModel                   F609V9.0",
+                'features': "Number of ETH ports    4    (10GE:0   GE:4   FE:0)\nNumber of VoIP ports   2\nNumber of CATV ports   0\nNumber of WIFI ports   4",
+            }
+
+        parts = onu['pon_port'].split('/')
+        port = int(parts[-1]) if len(parts) >= 3 else 1
+        interface_path = "/".join(parts[:-1]) if len(parts) >= 3 else onu['pon_port']
+        ont_id = onu['onu_id']
+        serial = onu.get('serial_number', 'N/A')
+
+        raw = execute_ssh_commands(olt, [
+            "enable", "config", f"interface gpon {interface_path}",
+            f"show ont version {port} {ont_id}",
+            f"show ont capability {port} {ont_id}",
+            "exit", "exit"
+        ])
+
+        def grab(pattern, text, default='N/A'):
+            m = re.search(pattern, text, re.IGNORECASE | re.MULTILINE)
+            return m.group(1).strip() if m else default
+
+        vendor_id = grab(r'Vendor-ID\s*:\s*(\S+)', raw)
+        hw_ver = grab(r'ONT Version\s*:\s*(\S+)', raw)
+        model = grab(r'Equipment-ID\s*:\s*(\S+)', raw)
+        sw_ver = grab(r'Main Software Version\s*:\s*(\S+)', raw)
+        omcc = grab(r'OMCC version\s*:\s*(\S+)', raw)
+
+        onu_details = (
+            f"Vendor ID              {vendor_id} \n"
+            f"HW Version              {hw_ver} \n"
+            f"Serial Number           {serial} \n"
+            f"Software Version        {sw_ver} \n"
+            f"OMCC version             {omcc} \n"
+            f"Model                   {model}"
+        )
+
+        eth = grab(r'Number of ETH ports\s*:\s*(\d+)', raw)
+        pots = grab(r'Number of POTS ports\s*:\s*(\d+)', raw)
+        catv = grab(r'Number of CATV UNI ports\s*:\s*(\d+)', raw)
+        wifi = grab(r'Number of Wifi\s*:\s*(\d+)', raw)
+
+        features = (
+            f"Number of ETH ports    {eth}\n"
+            f"Number of VoIP ports   {pots}\n"
+            f"Number of CATV ports   {catv}\n"
+            f"Number of WIFI ports   {wifi}"
+        )
+
+        if vendor_id == 'N/A' and model == 'N/A':
+            return {'success': False, 'message': 'Tidak dapat membaca data hardware/software ONU dari OLT.'}
+
+        return {'success': True, 'onu_details': onu_details, 'features': features}
 
     def sync_onu_config(self, olt: dict, onu: dict) -> dict:
         defaults = {
@@ -941,10 +1146,89 @@ class OltCdataFd1602sb1Driver(BaseDriver):
             'exit',
             'exit'
         ])
+
+        # Ambil hanya blok hasil "show current-config ..." — buang echo
+        # perintah navigasi (enable/config/exit) yang bukan bagian config asli.
+        m = re.search(
+            r'show current-config section ont \S+.*?\r?\n(.*?)(?:\r?\n\S+\(config\)#|\r?\n\S+#\s*\r?\n\S+#\s*show\s+exit|\Z)',
+            raw, re.DOTALL
+        )
+        config_clean = m.group(1).strip('\r\n') if m else raw.strip()
+        # Buang baris echo command itu sendiri kalau ikut tertangkap, dan prompt sisa.
+        lines = [l for l in config_clean.split('\n')
+                 if l.strip() and not l.strip().startswith('show current-config')]
+        config_clean = '\n'.join(l.rstrip('\r') for l in lines).strip()
+
+        # Bungkus dengan header "interface gpon X/Y" — config asli OLT selalu
+        # berada di dalam blok interface ini (device tidak menampilkannya
+        # lagi di output "show current-config section ont", jadi kita
+        # tambahkan sendiri supaya konsisten dengan gaya ZTE).
+        if config_clean:
+            config_clean = f"interface gpon {interface_path}\n{config_clean}\nexit"
+
         return {
             'success': True,
-            'config': raw.strip()
+            'config': config_clean
         }
+
+    def get_speed_profiles(self, olt: dict) -> dict:
+        """Baca profile kecepatan Upload/Download langsung dari OLT.
+
+        Cdata TIDAK punya 2 profile independen seperti ZTE (tcont vs traffic).
+        Temuan riset lapangan (6 ONU live dicek, 2026-09-19): setiap ONU dipasang
+        SEPASANG profile bernama sama (mis. 'HFA_Lite' di kedua sisi):
+          - Upload  -> dba-profile (assured/fix bandwidth, TCONT 1) -> 'show dba-profile all'
+          - Download-> traffic-profile (CIR/PIR rate-limit, GEM-CAR) -> 'show traffic-profile all'
+        Kolom 'Bind'/'bind times' pada output OLT = jumlah ONU yang memakai
+        profile itu -> dipakai langsung sebagai onu_count (tanpa scan semua ONU).
+        """
+        if is_demo_olt(olt):
+            return {'success': True, 'message': 'Data demo speed profile.', 'profiles': [
+                {'name': 'HFA_Lite', 'direction': 'upload', 'speed_kbps': 25600, 'onu_count': 42},
+                {'name': 'HFA_Lite', 'direction': 'download', 'speed_kbps': 25600, 'onu_count': 42},
+            ]}
+
+        raw = execute_ssh_commands(olt, [
+            'enable', 'config', 'terminal length 0',
+            'show dba-profile all', 'show traffic-profile all', 'exit'
+        ])
+        err = detect_transport_error(raw)
+        if err:
+            return {'success': False, 'message': err, 'profiles': []}
+        raw = strip_command_markers(raw)
+
+        # Pisah dulu per section berdasarkan command echo -- kedua tabel punya
+        # kolom sama-sama numerik, regex longgar bisa salah tangkap lintas section.
+        dba_section, _, traffic_section = raw.partition('show traffic-profile all')
+
+        profiles = []
+        # DBA profile (upload): ID type Fix(kbps) Assure(kbps) Max(kbps) bind-times bind-by-profile name
+        for m in re.finditer(
+            r'^\s*(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\S+)\s*$',
+            dba_section, re.MULTILINE
+        ):
+            pid, ptype, fix, assure, mx, bind = (int(m.group(i)) for i in (1, 2, 3, 4, 5, 6))
+            name = m.group(8)
+            speed = max(fix, assure, mx)  # kecepatan efektif profile, apapun tipenya (1-5)
+            if speed <= 0:
+                continue
+            profiles.append({'name': name, 'direction': 'upload', 'speed_kbps': speed, 'onu_count': bind, 'olt_profile_id': pid})
+
+        # Traffic profile (download): ID Profile-name CIR(kbps) PIR(kbps) CBS PBS Bind ...
+        for m in re.finditer(
+            r'^\s*(\d+)\s+(\S+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)',
+            traffic_section, re.MULTILINE
+        ):
+            pid, cir, pir, bind = int(m.group(1)), int(m.group(3)), int(m.group(4)), int(m.group(7))
+            name = m.group(2)
+            speed = pir or cir
+            if speed <= 0:
+                continue
+            profiles.append({'name': name, 'direction': 'download', 'speed_kbps': speed, 'onu_count': bind, 'olt_profile_id': pid})
+
+        if not profiles:
+            return {'success': False, 'message': 'Tidak ada speed profile terbaca dari OLT.', 'profiles': []}
+        return {'success': True, 'message': f'{len(profiles)} speed profile berhasil dibaca.', 'profiles': profiles}
 
     # ======================================================================
     # MANAJEMEN VLAN & INTERFACE
