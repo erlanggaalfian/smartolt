@@ -341,15 +341,16 @@ $onus = $stmt_data->fetchAll();
                         const statusCell = row.querySelector('.status-cell');
                         if (statusCell) {
                             if (onu.status === 'online') {
-                                statusCell.innerHTML = `<span class="badge bg-green"><i data-lucide="globe" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:4px;"></i> Online</span>`;
+                                statusCell.innerHTML = `<span class="status-icon-badge bg-green" title="Online"><i data-lucide="globe"></i></span>`;
                             } else if (onu.status === 'disabled') {
-                                statusCell.innerHTML = `<span class="badge bg-yellow"><i data-lucide="shield-off" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:4px;"></i> Disabled</span>`;
+                                statusCell.innerHTML = `<span class="status-icon-badge bg-yellow" title="Disabled"><i data-lucide="shield-off"></i></span>`;
                             } else {
                                 const cause = onu.last_down_cause || '';
                                 const isPower = cause === 'Power Down' || cause === 'Manual';
                                 const isFiber = ['LOS','LOSi','LOFi','SFi','LOAi','LOAMi'].includes(cause);
                                 const icon = isPower ? 'plug' : (isFiber ? 'link-2-off' : 'plug');
-                                statusCell.innerHTML = `<span class="badge bg-red"><i data-lucide="${icon}" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:4px;"></i> Offline</span>`;
+                                const title = isPower ? 'Offline - Power Down' : (isFiber ? `Offline - Fiber Terputus (${cause})` : 'Offline');
+                                statusCell.innerHTML = `<span class="status-icon-badge bg-red" title="${title}"><i data-lucide="${icon}"></i></span>`;
                             }
                         }
                         row.setAttribute('data-status', onu.status);
@@ -665,20 +666,21 @@ $onus = $stmt_data->fetchAll();
                     <?php else: ?>
                         <?php foreach ($onus as $onu): ?>
                             <tr class="onu-row" data-onu-id="<?php echo (int)$onu['id']; ?>" data-name="<?php echo htmlspecialchars($onu['name'] ?? ''); ?>" data-status="<?php echo htmlspecialchars($onu['status']); ?>" data-vlan="<?php echo htmlspecialchars($onu['vlan'] ?: 'None'); ?>" data-rx-onu="<?php echo $onu['last_rx_power'] !== null ? number_format((float)$onu['last_rx_power'], 2) : 'N/A'; ?>" data-rx-olt="<?php echo $onu['last_rx_olt_power'] !== null ? number_format((float)$onu['last_rx_olt_power'], 2) : 'N/A'; ?>" data-down-cause="<?php echo htmlspecialchars($onu['last_down_cause'] ?? '-'); ?>" data-wan="<?php echo htmlspecialchars($onu['wan_mode'] ?? ''); ?>" data-onu-type="<?php echo htmlspecialchars($onu['onu_type'] ?? ''); ?>" data-dl-prof="<?php echo htmlspecialchars($onu['download_profile'] ?? ''); ?>" data-ul-prof="<?php echo htmlspecialchars($onu['upload_profile'] ?? ''); ?>">
-                                <td class="status-cell">
+                                <td class="status-cell" style="text-align:center;">
                                     <?php if ($onu['status'] === 'online'): ?>
-                                        <span class="badge bg-green"><i data-lucide="globe" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:4px;"></i> Online</span>
+                                        <span class="status-icon-badge bg-green" title="Online"><i data-lucide="globe"></i></span>
                                     <?php elseif ($onu['status'] === 'disabled'): ?>
-                                        <span class="badge bg-yellow"><i data-lucide="shield-off" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:4px;"></i> Disabled</span>
+                                        <span class="status-icon-badge bg-yellow" title="Disabled"><i data-lucide="shield-off"></i></span>
                                     <?php else: ?>
                                         <?php
-                                        // Icon beda tergantung penyebab down: fiber terputus (LOS) vs listrik ONU mati (dying-gasp/manual).
+                                        // Icon beda tergantung penyebab down: fiber terputus (LOS) vs listrik ONU mati (power down/manual).
                                         $cause = $onu['last_down_cause'] ?? '';
                                         $is_power = in_array($cause, ['Power Down', 'Manual'], true);
                                         $is_fiber = in_array($cause, ['LOS', 'LOSi', 'LOFi', 'SFi', 'LOAi', 'LOAMi'], true);
                                         $offline_icon = $is_power ? 'plug' : ($is_fiber ? 'link-2-off' : 'plug');
+                                        $offline_title = $is_power ? 'Offline - Power Down' : ($is_fiber ? 'Offline - Fiber Terputus (' . htmlspecialchars($cause) . ')' : 'Offline');
                                         ?>
-                                        <span class="badge bg-red"><i data-lucide="<?php echo $offline_icon; ?>" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:4px;"></i> Offline</span>
+                                        <span class="status-icon-badge bg-red" title="<?php echo $offline_title; ?>"><i data-lucide="<?php echo $offline_icon; ?>"></i></span>
                                     <?php endif; ?>
                                 </td>
                                 <td class="name-cell"><strong><?php echo htmlspecialchars(extract_customer_name($onu['name'])); ?></strong></td>

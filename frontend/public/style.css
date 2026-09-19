@@ -231,6 +231,8 @@ button, input, select, textarea, optgroup {
 .bg-orange { background-color: var(--tint-warning); color: var(--color-orange); border: 1px solid var(--color-orange); }
 .bg-gray { background-color: var(--tint-gray); color: var(--text-muted); border: 1px solid var(--border-gray); }
 .bg-yellow { background-color: var(--tint-warning); color: var(--color-amber); border: 1px solid var(--color-amber); }
+.status-icon-badge { display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:50%; cursor:default; }
+.status-icon-badge i { width:20px; height:20px; }
 /* FORMS */
 .filter-panel { background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px; margin-bottom: 20px; }
 .filter-row { display: flex; gap: 12px; flex-wrap: wrap; }
