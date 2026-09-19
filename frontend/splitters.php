@@ -126,231 +126,238 @@ include __DIR__ . '/header.php';
 
 <?php if ($edit_splitter): ?>
     <!-- EDIT MODE -->
-    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
-        <div>
-            <h2 style="margin:0;">Edit Splitter</h2>
-            <p style="color:#64748b; margin:4px 0 0;"><?php echo htmlspecialchars($edit_splitter['name']); ?></p>
+    <div class="content-card" style="margin-bottom: 20px;">
+        <div class="card-header">
+            <h2>Edit Splitter — <?php echo htmlspecialchars($edit_splitter['name']); ?></h2>
+            <a href="splitters.php" class="btn btn-secondary">← Kembali</a>
         </div>
-        <a href="splitters.php" class="btn btn-secondary">Back to Splitter list</a>
+        <div class="card-body">
+            <div class="stats-grid" style="margin-bottom: 20px;">
+                <div class="stat-card">
+                    <div class="stat-icon bg-blue"><i data-lucide="hash"></i></div>
+                    <div class="stat-info"><h3>ID</h3><p><?php echo (int)$edit_splitter['id']; ?></p></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon bg-green"><i data-lucide="network"></i></div>
+                    <div class="stat-info"><h3>ONU Terpasang</h3><p><?php echo count($edit_onus); ?></p></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon bg-orange"><i data-lucide="map-pin"></i></div>
+                    <div class="stat-info"><h3>Zone</h3><p><?php echo htmlspecialchars($edit_splitter['zone'] ?? '—'); ?></p></div>
+                </div>
+            </div>
+
+            <form method="post" style="max-width: 700px;">
+                <input type="hidden" name="action" value="update">
+                <input type="hidden" name="id" value="<?php echo (int)$edit_splitter['id']; ?>">
+
+                <div class="form-group">
+                    <label>Nama Splitter</label>
+                    <input type="text" name="name" class="form-control" value="<?php echo htmlspecialchars($edit_splitter['name']); ?>" required>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group"><label>External ID</label><input type="text" name="external_id" class="form-control" value="<?php echo htmlspecialchars($edit_splitter['external_id'] ?? ''); ?>"></div>
+                    <div class="form-group"><label>Jumlah Port</label><input type="number" name="nr_of_ports" class="form-control" value="<?php echo htmlspecialchars($edit_splitter['nr_of_ports'] ?? ''); ?>" min="1" max="128"></div>
+                </div>
+                <div class="form-group"><label>Comment</label><input type="text" name="comment" class="form-control" value="<?php echo htmlspecialchars($edit_splitter['comment'] ?? ''); ?>"></div>
+                <div class="form-group"><label>Note</label><textarea name="note" class="form-control" rows="2"><?php echo htmlspecialchars($edit_splitter['note'] ?? ''); ?></textarea></div>
+                <div class="form-group">
+                    <label>Zone</label>
+                    <select name="zone" class="form-control">
+                        <option value="">— Tanpa Zone —</option>
+                        <?php foreach ($zones as $z): ?>
+                        <option value="<?php echo htmlspecialchars($z); ?>" <?php echo ($edit_splitter['zone'] ?? '') === $z ? 'selected' : ''; ?>><?php echo htmlspecialchars($z); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group"><label>Latitude</label><input type="text" name="latitude" class="form-control" value="<?php echo htmlspecialchars($edit_splitter['latitude'] ?? ''); ?>" placeholder="-7.250"></div>
+                    <div class="form-group"><label>Longitude</label><input type="text" name="longitude" class="form-control" value="<?php echo htmlspecialchars($edit_splitter['longitude'] ?? ''); ?>" placeholder="110.752"></div>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary">Simpan</button>
+                    <a href="splitters.php" class="btn btn-secondary">Batal</a>
+                </div>
+            </form>
+        </div>
     </div>
-
-    <div style="display:flex; gap:20px; margin-bottom:20px; flex-wrap:wrap;">
-        <div class="stat-card" style="min-width:120px;">
-            <div class="stat-value"><?php echo (int)$edit_splitter['id']; ?></div>
-            <div class="stat-label">ID</div>
-        </div>
-        <div class="stat-card" style="min-width:120px;">
-            <div class="stat-value"><?php echo count($edit_onus); ?></div>
-            <div class="stat-label">Attached ONUs</div>
-        </div>
-        <div class="stat-card" style="min-width:120px;">
-            <div class="stat-value"><?php echo htmlspecialchars($edit_splitter['zone'] ?? '—'); ?></div>
-            <div class="stat-label">Zone</div>
-        </div>
-    </div>
-
-    <form method="post" class="card" style="max-width:700px;">
-        <input type="hidden" name="action" value="update">
-        <input type="hidden" name="id" value="<?php echo (int)$edit_splitter['id']; ?>">
-
-        <div class="form-group">
-            <label>Splitter name</label>
-            <input type="text" name="name" value="<?php echo htmlspecialchars($edit_splitter['name']); ?>" required>
-        </div>
-
-        <div class="form-grid">
-            <div class="form-group">
-                <label>External ID</label>
-                <input type="text" name="external_id" value="<?php echo htmlspecialchars($edit_splitter['external_id'] ?? ''); ?>" placeholder="—">
-            </div>
-            <div class="form-group">
-                <label>Nr of ports</label>
-                <input type="number" name="nr_of_ports" value="<?php echo htmlspecialchars($edit_splitter['nr_of_ports'] ?? ''); ?>" min="1" max="128" placeholder="Recommended to set">
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label>Comment</label>
-            <input type="text" name="comment" value="<?php echo htmlspecialchars($edit_splitter['comment'] ?? ''); ?>">
-        </div>
-
-        <div class="form-group">
-            <label>Note</label>
-            <textarea name="note" rows="2"><?php echo htmlspecialchars($edit_splitter['note'] ?? ''); ?></textarea>
-        </div>
-
-        <div class="form-group">
-            <label>Zone</label>
-            <select name="zone">
-                <option value="">No zone</option>
-                <?php foreach ($zones as $z): ?>
-                <option value="<?php echo htmlspecialchars($z); ?>" <?php echo ($edit_splitter['zone'] ?? '')===$z?'selected':''; ?>><?php echo htmlspecialchars($z); ?></option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-
-        <div class="form-grid">
-            <div class="form-group">
-                <label>Latitude</label>
-                <input type="text" name="latitude" value="<?php echo htmlspecialchars($edit_splitter['latitude'] ?? ''); ?>" placeholder="-7.250445">
-            </div>
-            <div class="form-group">
-                <label>Longitude</label>
-                <input type="text" name="longitude" value="<?php echo htmlspecialchars($edit_splitter['longitude'] ?? ''); ?>" placeholder="110.752645">
-            </div>
-        </div>
-
-        <div style="display:flex; gap:10px; margin-top:20px;">
-            <button type="submit" class="btn btn-primary">Save</button>
-            <a href="splitters.php" class="btn btn-secondary">Cancel</a>
-        </div>
-    </form>
 
     <?php if ($edit_onus): ?>
-    <div class="card" style="margin-top:20px;">
-        <h3 style="margin:0 0 15px;">Attached ONUs (<?php echo count($edit_onus); ?>)</h3>
-        <table class="data-table">
-            <thead><tr><th>ONU</th><th>SN</th><th>Name</th></tr></thead>
-            <tbody>
-                <?php foreach ($edit_onus as $o): ?>
-                <tr>
-                    <td><a href="onu-detail.php?id=<?php echo (int)$o['id']; ?>">gpon-onu_<?php echo htmlspecialchars($o['pon_port'].':'.$o['onu_id']); ?></a></td>
-                    <td class="mono"><?php echo htmlspecialchars($o['serial_number']); ?></td>
-                    <td><?php echo htmlspecialchars($o['name']); ?></td>
-                </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+    <div class="content-card">
+        <div class="card-header">
+            <h2>ONU Terpasang (<?php echo count($edit_onus); ?>)</h2>
+        </div>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead><tr><th>Port</th><th>Serial Number</th><th>Nama</th></tr></thead>
+                <tbody>
+                    <?php foreach ($edit_onus as $o): ?>
+                    <tr>
+                        <td><a href="onu-detail.php?id=<?php echo (int)$o['id']; ?>" style="color: var(--text-accent); text-decoration: none;"><?php echo htmlspecialchars($o['pon_port'] . ':' . $o['onu_id']); ?></a></td>
+                        <td class="mono"><?php echo htmlspecialchars($o['serial_number']); ?></td>
+                        <td><?php echo htmlspecialchars($o['name']); ?></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
     <?php endif; ?>
 
 <?php else: ?>
     <!-- LIST MODE -->
-    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
-        <h2 style="margin:0;">Splitters</h2>
-        <div style="display:flex; gap:10px; flex-wrap:wrap;">
-            <form method="GET" style="display:flex; gap:10px;">
-                <?php if ($filter_zone): ?><input type="hidden" name="zone" value="<?php echo htmlspecialchars($filter_zone); ?>"><?php endif; ?>
-                <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>" placeholder="Cari nama splitter, zone..." style="padding:6px 10px; border:1px solid #cbd5e1; border-radius:4px; min-width:220px;">
-                <button type="submit" class="btn btn-secondary">Cari</button>
-                <?php if ($search): ?><a href="splitters.php<?php echo $filter_zone ? '?zone='.urlencode($filter_zone) : ''; ?>" class="btn btn-secondary">Reset</a><?php endif; ?>
-            </form>
-            <select onchange="if(this.value)location='splitters.php?zone='+this.value; else location='splitters.php';" style="padding:6px 10px; border:1px solid #cbd5e1; border-radius:4px;">
-                <option value="">All Zones</option>
-                <?php foreach ($zones as $z): ?>
-                <option value="<?php echo htmlspecialchars($z); ?>" <?php echo $filter_zone===$z?'selected':''; ?>><?php echo htmlspecialchars($z); ?></option>
-                <?php endforeach; ?>
-            </select>
-            <button class="btn btn-primary" onclick="document.getElementById('add-modal').classList.toggle('open')">+ Add Splitter</button>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon bg-blue"><i data-lucide="git-branch"></i></div>
+            <div class="stat-info"><h3>Total Splitters</h3><p><?php echo $total_splitters; ?></p></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon bg-purple"><i data-lucide="plug"></i></div>
+            <div class="stat-info"><h3>Total Ports</h3><p><?php echo $total_ports; ?></p></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon bg-green"><i data-lucide="check-circle"></i></div>
+            <div class="stat-info"><h3>Used Ports</h3><p><?php echo $total_used; ?></p></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon bg-orange"><i data-lucide="circle"></i></div>
+            <div class="stat-info"><h3>Free Ports</h3><p><?php echo max(0, $total_ports - $total_used); ?></p></div>
         </div>
     </div>
 
-    <div style="display:flex; gap:15px; margin-bottom:20px; flex-wrap:wrap;">
-        <div class="stat-card"><div class="stat-value"><?php echo $total_splitters; ?></div><div class="stat-label">Total Splitters</div></div>
-        <div class="stat-card"><div class="stat-value"><?php echo $total_ports; ?></div><div class="stat-label">Total Ports</div></div>
-        <div class="stat-card"><div class="stat-value"><?php echo $total_used; ?></div><div class="stat-label">Used Ports</div></div>
-        <div class="stat-card"><div class="stat-value"><?php echo max(0, $total_ports - $total_used); ?></div><div class="stat-label">Free Ports</div></div>
-    </div>
+    <div class="content-card">
+        <div class="card-header">
+            <h2>Daftar Splitter</h2>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <form method="GET" style="display: flex; gap: 8px; align-items: center;">
+                    <?php if ($filter_zone): ?><input type="hidden" name="zone" value="<?php echo htmlspecialchars($filter_zone); ?>"><?php endif; ?>
+                    <input type="text" name="search" class="form-control" value="<?php echo htmlspecialchars($search); ?>" placeholder="Cari nama, zone, external ID..." style="width: 220px;">
+                    <button type="submit" class="btn btn-secondary">Cari</button>
+                    <?php if ($search): ?><a href="splitters.php<?php echo $filter_zone ? '?zone=' . urlencode($filter_zone) : ''; ?>" class="btn btn-secondary">Reset</a><?php endif; ?>
+                </form>
+                <select class="form-control" style="width: 160px;" onchange="if(this.value)location='splitters.php?zone='+this.value; else location='splitters.php';">
+                    <option value="">Semua Zone</option>
+                    <?php foreach ($zones as $z): ?>
+                    <option value="<?php echo htmlspecialchars($z); ?>" <?php echo $filter_zone === $z ? 'selected' : ''; ?>><?php echo htmlspecialchars($z); ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <button class="btn btn-primary" onclick="document.getElementById('add-modal').classList.toggle('open')">+ Tambah</button>
+            </div>
+        </div>
 
-    <table class="data-table">
-        <thead>
-            <tr><th>Splitter name</th><th>External ID</th><th>Coordinates</th><th>ONUs</th><th>Ports</th><th>Usage</th><th>Zone</th><th>Action</th></tr>
-        </thead>
-        <tbody>
-            <?php foreach ($splitters as $s): ?>
-            <tr>
-                <td><a href="splitters.php?edit=<?php echo (int)$s['id']; ?>"><strong><?php echo htmlspecialchars($s['name']); ?></strong></a></td>
-                <td><?php echo htmlspecialchars($s['external_id'] ?? '—'); ?></td>
-                <td><?php echo ($s['latitude'] && $s['longitude']) ? $s['latitude'].','.$s['longitude'] : '—'; ?></td>
-                <td><?php echo $s['usage_count']; ?></td>
-                <td><?php echo $s['nr_of_ports'] ?? '—'; ?></td>
-                <td><?php
-                    $ports = $s['nr_of_ports'] ?: 0;
-                    $used = $s['usage_count'];
-                    echo $ports ? round($used/$ports*100).'%' : ($used.' / — No ports defined');
-                ?></td>
-                <td><?php echo htmlspecialchars($s['zone'] ?? '—'); ?></td>
-                <td>
-                    <a href="splitters.php?edit=<?php echo (int)$s['id']; ?>" class="btn btn-sm btn-secondary">Edit</a>
-                    <form method="post" style="display:inline" onsubmit="return confirm('Delete <?php echo htmlspecialchars($s['name']); ?>?')">
-                        <input type="hidden" name="action" value="delete">
-                        <input type="hidden" name="id" value="<?php echo (int)$s['id']; ?>">
-                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-                    </form>
-                </td>
-            </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Nama Splitter</th>
+                        <th>External ID</th>
+                        <th>Koordinat</th>
+                        <th>ONU</th>
+                        <th>Port</th>
+                        <th>Penggunaan</th>
+                        <th>Zone</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($splitters)): ?>
+                    <tr><td colspan="8" style="text-align: center; padding: 24px; color: var(--text-muted);">Tidak ada splitter ditemukan.</td></tr>
+                    <?php else: ?>
+                    <?php foreach ($splitters as $s): ?>
+                    <tr>
+                        <td><a href="splitters.php?edit=<?php echo (int)$s['id']; ?>" style="color: var(--text-accent); text-decoration: none; font-weight: 600;"><?php echo htmlspecialchars($s['name']); ?></a></td>
+                        <td><?php echo htmlspecialchars($s['external_id'] ?? '—'); ?></td>
+                        <td><?php echo ($s['latitude'] && $s['longitude']) ? $s['latitude'] . ', ' . $s['longitude'] : '—'; ?></td>
+                        <td><?php echo $s['usage_count']; ?></td>
+                        <td><?php echo $s['nr_of_ports'] ?? '—'; ?></td>
+                        <td><?php
+                            $ports = $s['nr_of_ports'] ?: 0;
+                            $used = $s['usage_count'];
+                            if ($ports) {
+                                $pct = round($used / $ports * 100);
+                                $color = $pct >= 80 ? 'bg-red' : ($pct >= 50 ? 'bg-orange' : 'bg-green');
+                                echo "<span class=\"badge {$color}\">{$pct}%</span>";
+                            } else {
+                                echo '<span style="color:var(--text-muted);">' . $used . ' / —</span>';
+                            }
+                        ?></td>
+                        <td><?php echo htmlspecialchars($s['zone'] ?? '—'); ?></td>
+                        <td>
+                            <a href="splitters.php?edit=<?php echo (int)$s['id']; ?>" class="btn btn-detail">Edit</a>
+                            <form method="post" style="display:inline" onsubmit="return confirm('Hapus splitter <?php echo htmlspecialchars(addslashes($s['name'])); ?>?')">
+                                <input type="hidden" name="action" value="delete">
+                                <input type="hidden" name="id" value="<?php echo (int)$s['id']; ?>">
+                                <button type="submit" class="btn btn-detail" style="color: var(--color-danger); border-color: var(--color-danger);">Hapus</button>
+                            </form>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
 
-    <?php if ($total_pages > 1): ?>
+        <?php if ($total_pages > 1): ?>
         <?php
         $link_params = ['zone' => $filter_zone, 'search' => $search, 'limit' => $limit];
         $base_query = http_build_query($link_params);
         ?>
-        <div class="pagination-bar" style="margin-top:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
-            <div style="font-size:0.85rem; color:#64748b;">
-                Menampilkan <?php echo ($offset + 1); ?> - <?php echo min($offset + $limit, $total_items); ?> dari <?php echo $total_items; ?> splitter
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-top: 1px solid var(--border-color); flex-wrap: wrap; gap: 12px;">
+            <div style="font-size: 13px; color: var(--text-muted);">
+                <?php echo ($offset + 1); ?>–<?php echo min($offset + $limit, $total_items); ?> dari <?php echo $total_items; ?>
             </div>
-            <div class="pagination-buttons" style="display:flex; gap:6px; align-items:center;">
+            <div style="display: flex; gap: 4px; align-items: center;">
                 <?php if ($current_page > 1): ?>
-                    <a href="splitters.php?<?php echo $base_query; ?>&page=1" class="btn btn-xs btn-outline" style="text-decoration:none;" title="Halaman Pertama"><<</a>
-                    <a href="splitters.php?<?php echo $base_query; ?>&page=<?php echo ($current_page - 1); ?>" class="btn btn-xs btn-outline" style="text-decoration:none;" title="Sebelumnya"><</a>
-                <?php else: ?>
-                    <span class="btn btn-xs btn-outline disabled" style="opacity:0.5; cursor:not-allowed;"><<</span>
-                    <span class="btn btn-xs btn-outline disabled" style="opacity:0.5; cursor:not-allowed;"><</span>
+                    <a href="splitters.php?<?php echo $base_query; ?>&page=1" class="btn btn-xs btn-outline" style="text-decoration:none;">«</a>
+                    <a href="splitters.php?<?php echo $base_query; ?>&page=<?php echo ($current_page - 1); ?>" class="btn btn-xs btn-outline" style="text-decoration:none;">‹</a>
                 <?php endif; ?>
-
                 <?php
-                $window_size = 5;
-                $start = $current_page - 2;
-                $end = $current_page + 2;
-                if ($start < 1) { $start = 1; $end = min($total_pages, $window_size); }
-                if ($end > $total_pages) { $end = $total_pages; $start = max(1, $total_pages - $window_size + 1); }
-                for ($i = $start; $i <= $end; $i++) {
-                    $active_class = ($i === $current_page) ? 'btn-primary' : 'btn-outline';
-                    echo '<a href="splitters.php?' . $base_query . '&page=' . $i . '" class="btn btn-xs ' . $active_class . '" style="text-decoration:none;">' . $i . '</a>';
-                }
+                $ws = 5; $st = max(1, $current_page - 2); $en = min($total_pages, $st + $ws - 1);
+                if ($en - $st + 1 < $ws) $st = max(1, $en - $ws + 1);
+                for ($i = $st; $i <= $en; $i++):
                 ?>
-
+                    <a href="splitters.php?<?php echo $base_query; ?>&page=<?php echo $i; ?>" class="btn btn-xs <?php echo $i === $current_page ? 'btn-primary' : 'btn-outline'; ?>" style="text-decoration:none;"><?php echo $i; ?></a>
+                <?php endfor; ?>
                 <?php if ($current_page < $total_pages): ?>
-                    <a href="splitters.php?<?php echo $base_query; ?>&page=<?php echo ($current_page + 1); ?>" class="btn btn-xs btn-outline" style="text-decoration:none;" title="Selanjutnya">></a>
-                    <a href="splitters.php?<?php echo $base_query; ?>&page=<?php echo $total_pages; ?>" class="btn btn-xs btn-outline" style="text-decoration:none;" title="Halaman Terakhir">>></a>
-                <?php else: ?>
-                    <span class="btn btn-xs btn-outline disabled" style="opacity:0.5; cursor:not-allowed;">></span>
-                    <span class="btn btn-xs btn-outline disabled" style="opacity:0.5; cursor:not-allowed;">>></span>
+                    <a href="splitters.php?<?php echo $base_query; ?>&page=<?php echo ($current_page + 1); ?>" class="btn btn-xs btn-outline" style="text-decoration:none;">›</a>
+                    <a href="splitters.php?<?php echo $base_query; ?>&page=<?php echo $total_pages; ?>" class="btn btn-xs btn-outline" style="text-decoration:none;">»</a>
                 <?php endif; ?>
             </div>
         </div>
-    <?php endif; ?>
+        <?php endif; ?>
+    </div>
 
     <!-- ADD MODAL -->
     <div class="modal" id="add-modal">
-        <div class="modal-content" style="max-width:600px;">
+        <div class="modal-content" style="max-width: 600px;">
             <div class="modal-header">
-                <h3 style="margin:0;">Add Splitter</h3>
+                <h2>Tambah Splitter</h2>
                 <button class="close-btn" onclick="document.getElementById('add-modal').classList.remove('open')">&times;</button>
             </div>
             <form method="post">
                 <input type="hidden" name="action" value="add">
                 <div class="modal-body">
-                    <div class="form-group"><label>Splitter name</label><input type="text" name="name" required placeholder="e.g. TGR-01D1209-Cingklok"></div>
+                    <div class="form-group"><label>Nama Splitter</label><input type="text" name="name" class="form-control" required placeholder="e.g. TGR-01D1209-Cingklok"></div>
                     <div class="form-grid">
-                        <div class="form-group"><label>External ID</label><input type="text" name="external_id" placeholder="—"></div>
-                        <div class="form-group"><label>Nr of ports</label><input type="number" name="nr_of_ports" min="1" max="128" value="8"></div>
+                        <div class="form-group"><label>External ID</label><input type="text" name="external_id" class="form-control"></div>
+                        <div class="form-group"><label>Jumlah Port</label><input type="number" name="nr_of_ports" class="form-control" min="1" max="128" value="8"></div>
                     </div>
-                    <div class="form-group"><label>Zone</label>
-                        <select name="zone"><option value="">No zone</option><?php foreach ($zones as $z) echo '<option>'.htmlspecialchars($z).'</option>'; ?></select>
+                    <div class="form-group">
+                        <label>Zone</label>
+                        <select name="zone" class="form-control">
+                            <option value="">— Tanpa Zone —</option>
+                            <?php foreach ($zones as $z) echo '<option value="' . htmlspecialchars($z) . '">' . htmlspecialchars($z) . '</option>'; ?>
+                        </select>
                     </div>
-                    <div class="form-group"><label>Comment</label><input type="text" name="comment"></div>
+                    <div class="form-group"><label>Comment</label><input type="text" name="comment" class="form-control"></div>
                     <div class="form-grid">
-                        <div class="form-group"><label>Latitude</label><input type="text" name="latitude" placeholder="-7.250"></div>
-                        <div class="form-group"><label>Longitude</label><input type="text" name="longitude" placeholder="110.752"></div>
+                        <div class="form-group"><label>Latitude</label><input type="text" name="latitude" class="form-control" placeholder="-7.250"></div>
+                        <div class="form-group"><label>Longitude</label><input type="text" name="longitude" class="form-control" placeholder="110.752"></div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('add-modal').classList.remove('open')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('add-modal').classList.remove('open')">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan</button>
                 </div>
             </form>
         </div>
