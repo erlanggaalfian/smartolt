@@ -5,6 +5,7 @@ Uses net-snmp CLI tools (snmpwalk/snmpget/snmpset) — no pysnmp dependency.
 import subprocess
 import re
 import logging
+from concurrent.futures import ThreadPoolExecutor
 
 log = logging.getLogger(__name__)
 
@@ -452,15 +453,18 @@ def get_onu_table(ip: str, community: str, port: int = 161) -> list:
         'down_cause': int, 'down_cause_label': str,
     }
     """
-    # Walk all needed columns in parallel-ish (sequential but fast)
-    sn_data = snmpwalk(ip, community, OID_ONU_SN, port)
-    name_data = snmpwalk(ip, community, OID_ONU_NAME, port)
-    type_data = snmpwalk(ip, community, OID_ONU_TYPE, port)
-    desc_data = snmpwalk(ip, community, OID_ONU_DESC, port)
-    admin_data = snmpwalk(ip, community, OID_ONU_ADMIN, port)
-    phase_data = snmpwalk(ip, community, OID_ONU_PHASE, port)
-    cause_data = snmpwalk(ip, community, OID_ONU_DOWN_CAUSE, port)
-    rx_data = snmpwalk(ip, community, OID_ONU_RX, port, timeout=120)
+    # 8 walk independen (kolom beda), jalankan paralel via thread pool --
+    # tiap walk itu I/O-bound (subprocess snmpbulkwalk nunggu jawaban network),
+    # jadi GIL bukan penghalang. Sebelumnya serial ~8x lipat lebih lambat utk
+    # OLT besar (mis. TGR 2061 ONU: >5 menit -> ~1 menit).
+    oids = [OID_ONU_SN, OID_ONU_NAME, OID_ONU_TYPE, OID_ONU_DESC,
+            OID_ONU_ADMIN, OID_ONU_PHASE, OID_ONU_DOWN_CAUSE, OID_ONU_RX]
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        results = list(pool.map(
+            lambda oid: snmpwalk(ip, community, oid, port, timeout=120), oids
+        ))
+    (sn_data, name_data, type_data, desc_data,
+     admin_data, phase_data, cause_data, rx_data) = results
     
     # Build lookup dicts by index
     def to_dict(data):
