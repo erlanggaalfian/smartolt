@@ -1,6 +1,6 @@
 """Validasi parser 'show ont info all' CDATA dengan data nyata.
 
-Baris di bawah disalin dari live CDATA [REDACTED_IP] TELNET:8125.
+Baris di bawah disalin dari live CDATA 202.58.64.25 TELNET:8125.
 Jalankan: python test_cdata_parser.py
 """
 import re

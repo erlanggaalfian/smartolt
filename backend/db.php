@@ -15,7 +15,7 @@ $db_pass = getenv('DB_PASSWORD')  ?: '';
 
 /**
  * Mengekstrak nama pelanggan asli dari deskripsi terstruktur OLT.
- * Contoh: "zone_SOC_descr_Shelter..._name_ODB01A0003-PelangganTiga" -> "ODB01A0003-PelangganTiga"
+ * Contoh: "zone_ZONA2_descr_Shelter..._name_ODB01A0003-PelangganTiga" -> "ODB01A0003-PelangganTiga"
  */
 function extract_customer_name(?string $desc): string {
     $desc = (string)$desc;

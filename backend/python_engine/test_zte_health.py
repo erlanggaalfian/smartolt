@@ -4,7 +4,7 @@ Suhu ZTE diambil lewat 'show card-temperature' (ditemukan dari 'show ?' pada
 perangkat nyata; 'show temperature' dan 'show environment' TIDAK ada di C320).
 
 Semua keluaran di bawah disalin apa adanya dari OLT ZTE C320 V2.1.0
-([REDACTED_OLT_IDENTITY]), diverifikasi live 2026-08-28.
+(OLT_C320_GBB_Boyolali, 103.210.52.64), diverifikasi live 2026-08-28.
 """
 import os
 import sys
@@ -27,9 +27,9 @@ OLT# show show system-group
 System Description: C320 Version V2.1.0 Software, Copyright (c) by ZTE Corporation Compiled
 System ObjectId: .1.3.6.1.4.1.3902.1082.1001.320.2.1
 Started before: 44 days, 7 hours, 26 minutes
-Contact with: [REDACTED_PHONE]
-System name:  [REDACTED_OLT_NAME]
-Location: [REDACTED_LOCATION]
+Contact with: 628112539694
+System name:  OLT_C320_GBB_Boyolali
+Location: Griya Bumi Boyolali
 """
 
 CARD_TEMP = """
@@ -43,12 +43,12 @@ Rack Shelf Slot Temperature Temperature(5m) Temperature(1h) Optical-Temp
 1    1     2    47          47              47              N/A.
 1    1     3    53          53              53              N/A.
 1    1     4    N/A.        N/A.            N/A.            N/A.
-[REDACTED_OLT_NAME]#
+OLT_C320_GBB_Boyolali#
 """
 
 RAW = PROCESSOR + SYSTEM_GROUP + CARD_TEMP
 
-OLT = {'ip': '[REDACTED]', 'username': 'u', 'password': 'p',
+OLT = {'ip': '103.210.52.64', 'username': 'u', 'password': 'p',
        'protocol': 'TELNET', 'ssh_port': 2336, 'type': 'ZTE C320'}
 
 _calls = []
