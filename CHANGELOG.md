@@ -1,5 +1,20 @@
 
 
+## 2026-09-19 — Fix: replace-onu.php missing external_id from description + missing description DB update
+**Files:** `frontend/action/replace-onu.php`
+**Commit:** 39c9136
+
+**Masalah:**
+1. `replace-onu.php` tidak append `_extid_{external_id}` ke structured description saat rebuild untuk ONU baru — external_id hilang dari OLT description setelah replace.
+2. DB UPDATE setelah replace (keduanya: success dan failure path) tidak update kolom `description` — DB punya description lama sampai cron sync berikutnya, padahal OLT sudah punya deskripsi baru.
+
+**Fix:**
+1. Tambah append `_extid_{$external_id}` ke `$structured_desc` (sama pattern dengan `auth-onu.php`)
+2. Tambah `description = ?` ke kedua UPDATE query dengan `$structured_desc` sebagai nilainya
+
+**Tier:** 1 (app-only, zero OLT/pelanggan impact)
+
+
 ## 2026-09-19 21:45 — Security: CSRF validation on speed-profiles, vlan, register handlers
 **Files:** `frontend/action/speed-profiles.php`, `frontend/action/vlan.php`, `frontend/action/register.php`
 **Type:** Security hardening (Tier 1 — app-side only, no OLT command changes)
