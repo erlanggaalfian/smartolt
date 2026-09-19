@@ -228,7 +228,7 @@ body.light-mode .header-btn:hover {
 .flex-column-center { display: flex; flex-direction: column; align-items: center; justify-content: center; }
 /* BUTTONS */
 .section-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 16px; font-family: var(--font-family); font-size: 14px; font-weight: 600; border-radius: var(--radius-sm); border: 1px solid transparent; cursor: pointer; transition: var(--transition-fast); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 16px; font-family: var(--font-family); font-size: 13px; font-weight: 600; border-radius: 8px; border: 1px solid transparent; cursor: pointer; transition: var(--transition-fast); height: 40px; }
 .btn-primary { background-color: var(--text-accent); color: var(--bg-primary); }
 .btn-primary:hover { background-color: var(--color-accent-hover); box-shadow: 0 0 10px var(--color-accent-hover-glow); }
 .btn-secondary { background-color: var(--bg-tertiary); border-color: var(--border-color); color: var(--text-main); }
@@ -263,7 +263,7 @@ body.light-mode .header-btn:hover {
 .status-icon-badge.icon-yellow { color: var(--color-amber); }
 .status-icon-badge.icon-gray { color: var(--text-muted); }
 /* FORMS */
-.filter-panel { background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px 16px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,.04); }
+.filter-panel { background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 8px 16px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,.04); }
 .filter-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
 .filter-item { flex: 1; min-width: 150px; }
 .filter-item .form-group { margin-bottom: 0; }
@@ -271,7 +271,7 @@ body.light-mode .header-btn:hover {
 .search-item .form-group { margin-bottom: 0; }
 .form-group { margin-bottom: 16px; }
 .form-group label { display: block; font-size: 13px; font-weight: 500; color: var(--text-muted); margin-bottom: 6px; }
-.form-control { width: 100%; background-color: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 12px; color: var(--text-main); font-family: var(--font-family); font-size: 13px; transition: border-color 0.15s, box-shadow 0.15s; }
+.form-control { width: 100%; background-color: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 14px; color: var(--text-main); font-family: var(--font-family); font-size: 13px; transition: border-color 0.15s, box-shadow 0.15s; height: 40px; }
 .form-control:focus { outline: none; border-color: var(--text-accent); box-shadow: var(--shadow-glow); }
 .form-row { display: flex; gap: 12px; }
 .form-control-static { background-color: var(--surface-static); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 10px 14px; color: var(--text-muted); font-size: 14px; display: block; width: 100%; }
