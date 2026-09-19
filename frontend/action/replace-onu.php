@@ -70,9 +70,14 @@ $address = $row['address'] ?: 'None';
 $splitter = $row['splitter'] ?: 'None';
 $contact = $row['contact'] ?: 'None';
 
+$external_id = $row['external_id'] ?? '';
+
 $structured_desc = "name_{$name}_zone_{$zone}_descr_{$address}_odb_{$splitter}_authd_{$auth_date}";
 if ($contact !== 'None' && $contact !== '') {
     $structured_desc .= "_contact_{$contact}";
+}
+if ($external_id !== null && $external_id !== '') {
+    $structured_desc .= "_extid_{$external_id}";
 }
 
 // 2. Siapkan data ONU lama untuk dihapus
@@ -150,16 +155,17 @@ session_start(); // Mulai kembali sesi
 
 if ($conf_res['success']) {
     try {
-        // Update data ONU di database lokal dengan Serial Number baru
+        // Update data ONU di database lokal dengan Serial Number baru + deskripsi terbaru
         $stmt_up = $pdo->prepare("
             UPDATE onus 
             SET serial_number = ?,
                 status = ?,
                 last_rx_power = ?,
+                description = ?,
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
         ");
-        $stmt_up->execute([$new_serial_number, $status, $rx_power, $onu_id]);
+        $stmt_up->execute([$new_serial_number, $status, $rx_power, $structured_desc, $onu_id]);
 
         write_audit_log(
             $row['olt_id'],
@@ -173,9 +179,9 @@ if ($conf_res['success']) {
         $_SESSION['error'] = 'Koneksi ke OLT sukses, namun gagal menyimpan Serial Number baru ke DB lokal karena kesalahan internal.';
     }
 } else {
-    // DB tetap di-update dengan SN baru karena authorize sudah sukses
-    $pdo->prepare("UPDATE onus SET serial_number = ?, status = ?, last_rx_power = ? WHERE id = ?")
-        ->execute([$new_serial_number, $status, $rx_power, $onu_id]);
+    // DB tetap di-update dengan SN baru + deskripsi terbaru karena authorize sudah sukses
+    $pdo->prepare("UPDATE onus SET serial_number = ?, status = ?, last_rx_power = ?, description = ? WHERE id = ?")
+        ->execute([$new_serial_number, $status, $rx_power, $structured_desc, $onu_id]);
         
     $_SESSION['error'] = "ONT berhasil didaftarkan dengan SN baru {$new_serial_number}, tetapi gagal mengirimkan konfigurasi WAN: " . ($conf_res['message'] ?? 'Error tidak diketahui.');
 }
