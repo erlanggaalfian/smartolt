@@ -904,9 +904,12 @@ class OltCdataFd1602sb1Driver(BaseDriver):
                     onu_id = int(row_parts[2])
                     status = 'online' if any(x in row_parts[sn_idx+1].lower() or x in row_parts[sn_idx+2].lower() for x in ['online', 'up', 'active', 'bound']) else 'offline'
                     # Deskripsi terstruktur di akhir baris mentah, di dalam kutip
-                    # atau tanpa kutip. JANGAN pakai row_parts[sn_idx+4:] karena
-                    # kolom 'last down-cause' (bisa 1-2 kata: '--', 'dying-gasp',
-                    # 'LOSi/LOBi') ikut tergabung dan merusak nama.
+                    # atau tanpa kutip. Kolom setelah SN (urutan tetap dari header
+                    # OLT): Control, Run, Config, Match, Last-down-cause, lalu Desc.
+                    # Match & Last-down-cause SELALU 1 token masing2 (mis. 'match',
+                    # '--'/'dying-gasp'/'LOSi') -- desc mulai di sn_idx+6, BUKAN +4
+                    # (bug lama: +4 nangkap kolom Match ikut ke nama, mis.
+                    # "match -- Sdr Tiara Melita" / "match dying-gasp ...").
                     m_desc = re.search(r'"(name_[^"]+)"', line)
                     if not m_desc:
                         m_desc = re.search(r'\b(name_\S+)', line)
@@ -916,8 +919,8 @@ class OltCdataFd1602sb1Driver(BaseDriver):
                         # "name_CaffeFoodMie_zone_TMY_..." -> "CaffeFoodMie"
                         clean = re.match(r'^name_(.*?)(?:_(?:zone|descr|odb|authd|contact)_|$)', raw_desc, re.I)
                         name = clean.group(1).strip() if clean else raw_desc
-                    elif len(row_parts) > sn_idx + 4:
-                        name = " ".join(row_parts[sn_idx+4:]).strip('"\' ')
+                    elif len(row_parts) > sn_idx + 6:
+                        name = " ".join(row_parts[sn_idx+6:]).strip('"\' ')
                     else:
                         name = f"ONU_{onu_id}"
                     onus.append({
