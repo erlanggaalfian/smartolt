@@ -18,6 +18,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: ../configured.php');
     exit;
 }
+if (!verify_csrf_token()) {
+    $_SESSION['error'] = 'Token keamanan tidak valid.';
+    header('Location: ../onu-detail.php?id=' . ((int)($_POST['id'] ?? 0)));
+    exit;
+}
 
 $id     = (int)($_POST['id'] ?? 0);
 $action = $_POST['action'] ?? '';

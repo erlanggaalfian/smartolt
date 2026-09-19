@@ -12,6 +12,11 @@ if (!isset($_SESSION['smartolt_role'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!verify_csrf_token()) {
+        $_SESSION['error'] = 'Token keamanan tidak valid. Silakan coba lagi.';
+        header('Location: ../unconfigured.php');
+        exit;
+    }
     set_time_limit(0); // authorize + assign speed profile + setup PPPoE bisa 3x SSH round-trip, lebih dari 30s default
     // Enable debug mode if requested
     if (isset($_POST['debug_mode']) && $_POST['debug_mode'] == '1') {

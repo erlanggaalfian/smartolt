@@ -15,6 +15,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: ../configured.php');
     exit;
 }
+if (!verify_csrf_token()) {
+    $_SESSION['error'] = 'Token keamanan tidak valid. Silakan coba lagi.';
+    header('Location: ../onu-detail.php?id=' . ((int)($_POST['onu_id'] ?? 0)));
+    exit;
+}
 set_time_limit(0); // configure_onu_full + assign_speed_profile = 2+ SSH round-trip, melebihi 30s default
 
 $onu_id            = (int)($_POST['onu_id'] ?? 0);

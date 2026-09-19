@@ -158,6 +158,17 @@ function cli_safe_password(?string $str): string {
 }
 
 /**
+ * Verify CSRF token from POST form field or X-CSRF-Token header.
+ * header.php JS auto-injects the token; this validates it server-side.
+ * Returns true if valid, false otherwise.
+ */
+function verify_csrf_token(): bool {
+    $token = $_POST['csrf_token'] ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
+    if (empty($_SESSION['csrf_token']) || empty($token)) return false;
+    return hash_equals($_SESSION['csrf_token'], $token);
+}
+
+/**
  * Encrypt a plaintext password using AES-256-CBC.
  */
 function encrypt_password(string $plaintext): string {
