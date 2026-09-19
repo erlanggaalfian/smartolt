@@ -20,6 +20,16 @@ if (!isset($_SESSION['smartolt_role'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!verify_csrf_token()) {
+        if ($is_ajax) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Token keamanan tidak valid. Silakan muat ulang halaman.']);
+            exit;
+        }
+        $_SESSION['error'] = 'Token keamanan tidak valid. Silakan coba lagi.';
+        header('Location: ../configured.php');
+        exit;
+    }
     $olt_id = isset($_POST['olt_id']) ? (int)$_POST['olt_id'] : (int)$_GET['olt_id'];
 
     if (empty($olt_id)) {

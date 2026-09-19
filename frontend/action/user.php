@@ -35,6 +35,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+if (!verify_csrf_token()) {
+    $_SESSION['error'] = 'Token keamanan tidak valid. Silakan coba lagi.';
+    header('Location: ../settings-users.php');
+    exit;
+}
+
 if ($action === 'add') {
 
     $username = trim($_POST['username'] ?? '');

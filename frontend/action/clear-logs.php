@@ -12,6 +12,11 @@ if (!isset($_SESSION['smartolt_role']) || $_SESSION['smartolt_role'] !== 'supera
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!verify_csrf_token()) {
+        $_SESSION['error'] = 'Token keamanan tidak valid. Silakan coba lagi.';
+        header('Location: ../logs.php');
+        exit;
+    }
     try {
         $username = $_SESSION['smartolt_username'] ?? 'unknown';
         $pdo->query("TRUNCATE TABLE logs");

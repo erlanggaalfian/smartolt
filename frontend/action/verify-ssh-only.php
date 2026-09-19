@@ -15,6 +15,10 @@ if (!isset($_SESSION['smartolt_role']) || $_SESSION['smartolt_role'] !== 'supera
 set_time_limit(0); // SSH verification can exceed 30s default
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!verify_csrf_token()) {
+        echo json_encode(['success' => false, 'message' => 'Token keamanan tidak valid. Silakan muat ulang halaman.']);
+        exit;
+    }
     $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
     $ip = trim($_POST['ip'] ?? '');
     $type = trim($_POST['type'] ?? '');

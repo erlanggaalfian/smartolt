@@ -20,6 +20,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+if (!verify_csrf_token()) {
+    http_response_code(403);
+    echo json_encode(['success' => false, 'message' => 'Token keamanan tidak valid. Silakan muat ulang halaman.']);
+    exit;
+}
+
 $id        = (int)($_POST['olt_id'] ?? 0);
 $port      = trim($_POST['port'] ?? '');
 $auto_nego = trim($_POST['auto_nego'] ?? 'enable');

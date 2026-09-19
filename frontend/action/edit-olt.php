@@ -13,6 +13,11 @@ if (!isset($_SESSION['smartolt_role']) || $_SESSION['smartolt_role'] !== 'supera
 set_time_limit(0); // OLT edit + re-test connection can exceed 30s default
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!verify_csrf_token()) {
+        $_SESSION['error'] = 'Token keamanan tidak valid. Silakan coba lagi.';
+        header('Location: ../settings-olt.php');
+        exit;
+    }
     $id = (int)$_POST['id'];
     $name = trim($_POST['name']);
     $type = trim($_POST['type']);
