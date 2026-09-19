@@ -71,7 +71,6 @@ $types = $pdo->query("SELECT t.*, COALESCE(cnt.c, 0) AS usage_count FROM onu_typ
 include __DIR__ . '/header.php';
 ?>
 
-<div class="main-content">
 <?php if ($edit_type): ?>
     <!-- EDIT MODE -->
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
@@ -254,6 +253,5 @@ include __DIR__ . '/header.php';
         </div>
     </div>
 <?php endif; ?>
-</div>
 
 <?php include __DIR__ . '/footer.php'; ?>

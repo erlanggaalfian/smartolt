@@ -124,7 +124,6 @@ $zones = $pdo->query("SELECT DISTINCT zone FROM splitters WHERE zone IS NOT NULL
 include __DIR__ . '/header.php';
 ?>
 
-<div class="main-content">
 <?php if ($edit_splitter): ?>
     <!-- EDIT MODE -->
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
@@ -357,6 +356,5 @@ include __DIR__ . '/header.php';
         </div>
     </div>
 <?php endif; ?>
-</div>
 
 <?php include __DIR__ . '/footer.php'; ?>
