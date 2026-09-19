@@ -815,7 +815,11 @@ class OltCdataFd1602sb1Driver(BaseDriver):
         ])
 
         result = defaults.copy()
-        
+        result['upload_profile'] = None
+        result['download_profile'] = None
+        dba_id = None
+        traffic_id = None
+
         for line in raw.split('\n'):
             line = line.strip()
             if not line:
@@ -834,6 +838,24 @@ class OltCdataFd1602sb1Driver(BaseDriver):
                     result['pppoe_password'] = mp.group(1).strip('"\'')
                 if mv := re.search(r'vlan\s+(\d+)', line, re.IGNORECASE):
                     result['vlan'] = int(mv.group(1))
+            # TCONT index 1 = upload (DBA profile); index 0 selalu default (voice/mgmt).
+            elif preg := re.search(r'ont\s+tcont\s+' + port + r'\s+' + str(ont_id) + r'\s+1\s+dba-profile-id\s+(\d+)', line, re.IGNORECASE):
+                dba_id = int(preg.group(1))
+            # gem-car-upstream = download (traffic-profile id).
+            elif preg := re.search(r'ont\s+gemport\s+' + port + r'\s+' + str(ont_id) + r'\s+\d+\s+tcont\s+1\s+gem-car-upstream\s+(\d+)', line, re.IGNORECASE):
+                traffic_id = int(preg.group(1))
+
+        # Terjemahkan ID profile -> nama, supaya kolom DB langsung terisi tiap
+        # full-sync (tak perlu tunggu klik manual "Show running-config").
+        if dba_id is not None or traffic_id is not None:
+            sp = self.get_speed_profiles(olt)
+            if sp.get('success'):
+                for p in sp.get('profiles', []):
+                    if p['direction'] == 'upload' and p['olt_profile_id'] == dba_id:
+                        result['upload_profile'] = p['name']
+                    if p['direction'] == 'download' and p['olt_profile_id'] == traffic_id:
+                        result['download_profile'] = p['name']
+
 
         # Attenuation check
         sig = self.get_onu_signal(olt, onu, include_ip=False)
@@ -923,12 +945,18 @@ class OltCdataFd1602sb1Driver(BaseDriver):
                         name = " ".join(row_parts[sn_idx+6:]).strip('"\' ')
                     else:
                         name = f"ONU_{onu_id}"
+                    # Kolom "Last" (down-cause): sn_idx+5, selalu 1 token.
+                    # '--' berarti tak pernah down / no cause tercatat -> None.
+                    down_cause = row_parts[sn_idx+5] if len(row_parts) > sn_idx + 5 else None
+                    if down_cause == '--':
+                        down_cause = None
                     onus.append({
                         'pon_port': pon_port,
                         'onu_id': onu_id,
                         'serial_number': sn,
                         'name': name,
-                        'status': status
+                        'status': status,
+                        'down_cause': down_cause
                     })
 
         return {'success': True, 'onus': onus}

@@ -186,9 +186,9 @@ def main():
                     sql_insert = """
                         INSERT INTO onus (
                             olt_id, pon_port, onu_id, name, serial_number, status, vlan, pppoe_username, pppoe_password, wan_mode,
-                            zone, splitter, address, contact, updated_at
+                            zone, splitter, address, contact, last_down_cause, updated_at
                         )
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
                         ON DUPLICATE KEY UPDATE 
                             name = CASE WHEN VALUES(name) LIKE 'ONU_%%' AND onus.name IS NOT NULL AND onus.name != '' THEN onus.name ELSE VALUES(name) END,
                             serial_number = CASE WHEN VALUES(serial_number) != 'UNKNOWN' AND VALUES(serial_number) != '' THEN VALUES(serial_number) ELSE onus.serial_number END,
@@ -201,12 +201,15 @@ def main():
                             splitter = COALESCE(VALUES(splitter), onus.splitter),
                             address = COALESCE(VALUES(address), onus.address),
                             contact = COALESCE(VALUES(contact), onus.contact),
+                            last_down_cause = CASE WHEN %s THEN VALUES(last_down_cause) ELSE onus.last_down_cause END,
                             updated_at = CURRENT_TIMESTAMP
                     """
+                    has_down_cause = 'down_cause' in onu  # True hanya utk driver yg dukung (Cdata); ZTE isi via SNMP-sync terpisah di bawah, jangan ditimpa NULL di sini.
                     cursor.execute(sql_insert, (
                         olt['id'], onu['pon_port'], onu['onu_id'], name_val, onu['serial_number'], onu['status'],
                         vlan_val, user_val, pass_val, mode_val, zone_val, splitter_val, address_val, contact_val,
-                        sync_start_time, sync_start_time, sync_start_time, sync_start_time
+                        onu.get('down_cause'),
+                        sync_start_time, sync_start_time, sync_start_time, sync_start_time, has_down_cause
                     ))
 
                 # Single bulk SELECT (replaces per-row SELECT + stale cleanup SELECT)
