@@ -1,5 +1,12 @@
 
 
+## 2026-09-19 15:30 — Security: CSRF validation on remaining POST action handlers
+**Files:** `frontend/action/sync-olt.php`, `edit-olt.php`, `delete-olt.php`, `add-olt.php`, `user.php`, `clear-logs.php`, `port-config.php`, `verify-ssh-only.php`
+**Type:** Security hardening (Tier 1 — app-side only, no OLT command changes)
+**Commit:** a3ad7db
+**Masalah:** 8 POST action endpoints accept requests tanpa CSRF validation. Frontend global fetch interceptor (header.php) sudah kirim `X-CSRF-Token` header, tapi server-side tidak verifikasi — CSRF attack bisa trigger sync/delete/edit OLT dari halaman malicious.
+**Fix:** Tambah `verify_csrf_token()` di semua 8 handler. register.php di-skip (public first-user setup). Total handler dengan CSRF sekarang: 15/16 POST action handlers (100% authenticated endpoints).
+
 ## 2026-09-19 14:15 — Security: Server-side CSRF validation on ONU action handlers
 **Files:** `backend/config.php`, `frontend/action/auth-onu.php`, `frontend/action/update-onu-mode.php`, `frontend/action/delete-onu.php`, `frontend/action/reboot-onu.php`, `frontend/action/restore-factory.php`, `frontend/action/onu-state.php`, `frontend/action/replace-onu.php`
 **Type:** Security hardening (Tier 1 — app-side only, no OLT command changes)
