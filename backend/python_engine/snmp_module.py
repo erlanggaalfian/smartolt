@@ -89,7 +89,7 @@ PHASE_STATE = {
 # Last-down-cause enum
 DOWN_CAUSE = {
     0: 'Normal', 1: 'LOS', 2: 'LOSi', 3: 'LOFi', 4: 'SFi',
-    5: 'LOAi', 6: 'LOAMi', 7: 'Deactivated', 8: 'Manual', 9: 'DyingGasp',
+    5: 'LOAi', 6: 'LOAMi', 7: 'Deactivated', 8: 'Manual', 9: 'Power Down',
 }
 
 
