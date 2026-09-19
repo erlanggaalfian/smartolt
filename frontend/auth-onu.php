@@ -147,8 +147,8 @@ $board_port_display = count($pon_parts) === 3 ? "Shelf {$pon_parts[0]} / Slot {$
             <div class="auth-form-row">
                 <label for="auth-zone">Zone</label>
                 <div class="auth-field">
-                    <select id="auth-zone" name="zone" class="form-control" required>
-                        <option value="">- Pilih Zone -</option>
+                    <select id="auth-zone" name="zone" class="form-control">
+                        <option value="">- Pilih Zone (opsional) -</option>
                         <?php foreach ($zone_opts as $z): ?>
                         <option value="<?php echo htmlspecialchars($z); ?>"><?php echo htmlspecialchars($z); ?></option>
                         <?php endforeach; ?>
@@ -158,8 +158,8 @@ $board_port_display = count($pon_parts) === 3 ? "Shelf {$pon_parts[0]} / Slot {$
             <div class="auth-form-row">
                 <label for="auth-splitter">Splitter</label>
                 <div class="auth-field">
-                    <select id="auth-splitter" name="splitter" class="form-control" required>
-                        <option value="">- Pilih Zone dulu -</option>
+                    <select id="auth-splitter" name="splitter" class="form-control">
+                        <option value="">- Pilih Splitter (opsional) -</option>
                     </select>
                     <small class="hint" id="auth-splitter-usage"></small>
                 </div>
@@ -178,7 +178,7 @@ $board_port_display = count($pon_parts) === 3 ? "Shelf {$pon_parts[0]} / Slot {$
             </div>
             <div class="auth-form-row">
                 <label for="auth-address">Alamat atau keterangan</label>
-                <div class="auth-field"><input type="text" id="auth-address" name="address" class="form-control" placeholder="Alamat pelanggan" required></div>
+                <div class="auth-field"><input type="text" id="auth-address" name="address" class="form-control" placeholder="Alamat pelanggan (opsional)"></div>
             </div>
             <div class="auth-form-row">
                 <label for="auth-contact">Kontak</label>

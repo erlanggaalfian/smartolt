@@ -28,7 +28,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $serial_number = trim($_POST['serial_number']);
     $name = cli_safe(trim($_POST['name'] ?? ''));
     if ($name === '') {
-        $name = 'None';
+        $_SESSION['error'] = 'Nama pelanggan wajib diisi!';
+        header('Location: ../auth-onu.php?olt_id=' . $olt_id . '&pon=' . urlencode($pon_port) . '&sn=' . urlencode($serial_number));
+        exit;
     }
     $vlan = (int)$_POST['vlan'] ?: null;
 
