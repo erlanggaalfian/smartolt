@@ -101,11 +101,7 @@ $sp_upload_options = array_filter($speed_profiles_list, fn($p) => $p['direction'
 
 
 
-<div style="margin-bottom: 20px;">
-    <a href="configured.php" class="btn btn-secondary" style="display:inline-flex; align-items:center; gap:6px;">
-        <i data-lucide="arrow-left" style="width:16px; height:16px;"></i> Kembali ke Daftar Pelanggan
-    </a>
-</div>
+
 
 <?php
 $pon_parts = explode('/', $onu['pon_port']);
