@@ -402,7 +402,7 @@ $onus = $stmt_data->fetchAll();
                                     signalCell.innerHTML = `<span class="badge ${sigClass}">${esc(onu.rx_onu)} dBm</span>`;
                                 }
                             } else {
-                                signalCell.innerHTML = `<span class="badge bg-gray">Offline</span>`;
+                                signalCell.innerHTML = '';
                             }
                         }
 
@@ -421,7 +421,7 @@ $onus = $stmt_data->fetchAll();
                                     signalOltCell.innerHTML = `<span class="badge ${sigClassOlt}">${esc(onu.rx_olt)} dBm</span>`;
                                 }
                             } else {
-                                signalOltCell.innerHTML = `<span class="badge bg-gray">Offline</span>`;
+                                signalOltCell.innerHTML = '';
                             }
                         }
 
@@ -715,8 +715,6 @@ $onus = $stmt_data->fetchAll();
                                         <span class="badge <?php echo $sig_class; ?>"><?php echo htmlspecialchars($onu['last_rx_power']); ?> dBm</span>
                                     <?php elseif ($onu['status'] === 'online'): ?>
                                         <span class="badge bg-red">N/A</span>
-                                    <?php else: ?>
-                                        <span class="badge bg-gray">Offline</span>
                                     <?php endif; ?>
                                 </td>
                                 <td class="signal-olt-cell">
@@ -731,8 +729,6 @@ $onus = $stmt_data->fetchAll();
                                         <span class="badge <?php echo $sig_class_olt; ?>"><?php echo htmlspecialchars($onu['last_rx_olt_power']); ?> dBm</span>
                                     <?php elseif ($onu['status'] === 'online'): ?>
                                         <span class="badge bg-red">N/A</span>
-                                    <?php else: ?>
-                                        <span class="badge bg-gray">Offline</span>
                                     <?php endif; ?>
                                 </td>
                                 <td class="onu-type-cell" style="font-size:0.8rem;color:var(--text-muted);"><?php echo htmlspecialchars($onu['onu_type'] ?: '-'); ?></td>
