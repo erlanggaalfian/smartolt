@@ -115,8 +115,16 @@ $stats_filter_sql = $filter_sql;
 $stats_params = $params;
 
 if ($status !== '') {
-    $filter_sql .= " AND onus.status = ?";
-    $params[] = $status;
+    if ($status === 'offline_power') {
+        $filter_sql .= " AND onus.status = 'offline' AND onus.last_down_cause IN ('Power Down','Manual')";
+    } elseif ($status === 'offline_fiber') {
+        $filter_sql .= " AND onus.status = 'offline' AND onus.last_down_cause IN ('LOS','LOSi','LOFi','SFi','LOAi','LOAMi')";
+    } elseif ($status === 'offline_other') {
+        $filter_sql .= " AND onus.status = 'offline' AND (onus.last_down_cause IS NULL OR onus.last_down_cause NOT IN ('Power Down','Manual','LOS','LOSi','LOFi','SFi','LOAi','LOAMi'))";
+    } else {
+        $filter_sql .= " AND onus.status = ?";
+        $params[] = $status;
+    }
 }
 
 // Eksekusi count query
@@ -177,7 +185,10 @@ $onus = $stmt_data->fetchAll();
             <select name="status" class="form-control" onchange="this.form.submit()">
                 <option value="">Semua Status</option>
                 <option value="online" <?php echo $status === 'online' ? 'selected' : ''; ?>>Online</option>
-                <option value="offline" <?php echo $status === 'offline' ? 'selected' : ''; ?>>Offline</option>
+                <option value="offline_power" <?php echo $status === 'offline_power' ? 'selected' : ''; ?>>Offline - Power Down</option>
+                <option value="offline_fiber" <?php echo $status === 'offline_fiber' ? 'selected' : ''; ?>>Offline - Fiber Terputus</option>
+                <option value="offline_other" <?php echo $status === 'offline_other' ? 'selected' : ''; ?>>Offline - Lainnya</option>
+                <option value="offline" <?php echo $status === 'offline' ? 'selected' : ''; ?>>Offline - Semua</option>
                 <option value="disabled" <?php echo $status === 'disabled' ? 'selected' : ''; ?>>Disabled</option>
             </select>
         </div>
