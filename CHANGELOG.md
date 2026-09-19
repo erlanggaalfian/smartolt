@@ -1,5 +1,19 @@
 
 
+## 2026-09-19 21:45 — Security: CSRF validation on speed-profiles, vlan, register handlers
+**Files:** `frontend/action/speed-profiles.php`, `frontend/action/vlan.php`, `frontend/action/register.php`
+**Type:** Security hardening (Tier 1 — app-side only, no OLT command changes)
+**Commit:** 69aa004
+
+**Masalah:** Tiga POST endpoint lain yang belum punya validasi CSRF token:
+- `speed-profiles.php` — POST action sync/delete profile cache tanpa CSRF
+- `vlan.php` — POST action add/delete VLAN tanpa CSRF
+- `register.php` — POST register user baru tanpa CSRF (padahal form-nya sudah include csrf_token hidden field)
+
+**Fix:** Tambah `verify_csrf_token()` check di awal handler POST masing-masing file. `speed-profiles.php` dan `vlan.php` return JSON 403; `register.php` redirect ke register.php dengan error message.
+**Scope:** Tidak menyentuh OLT/pelanggan — pure app-side security hardening.
+
+
 ## 2026-09-19 15:30 — Security: CSRF validation on remaining POST action handlers
 **Files:** `frontend/action/sync-olt.php`, `edit-olt.php`, `delete-olt.php`, `add-olt.php`, `user.php`, `clear-logs.php`, `port-config.php`, `verify-ssh-only.php`
 **Type:** Security hardening (Tier 1 — app-side only, no OLT command changes)
