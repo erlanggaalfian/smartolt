@@ -162,7 +162,7 @@ button, input, select, textarea, optgroup {
 /* MAIN CONTENT */
 .main-content { flex: 1; min-height: 100vh; display: flex; flex-direction: column; padding: 24px 48px; }
 .main-content.full-width { margin-left: 0; }
-.top-header { height: 56px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; margin-bottom: 24px; border-bottom: none; background: var(--bg-secondary); position: sticky; top: 0; z-index: 50; }
+.top-header { height: 56px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; margin-bottom: 24px; margin-left: -48px; margin-right: -48px; margin-top: -24px; border-bottom: none; background: var(--bg-secondary); position: sticky; top: 0; z-index: 50; }
 html.light-mode .top-header,
 body.light-mode .top-header {
   background: #3081d1;
