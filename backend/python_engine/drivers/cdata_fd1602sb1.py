@@ -549,15 +549,17 @@ class OltCdataFd1602sb1Driver(BaseDriver):
         dba_id, traffic_id, speed_assign_warning = self._lookup_speed_profile_ids(
             olt, upload_profile, download_profile)
 
-        name_c = self._sanitize_cli_token(name)
-        desc_c = self._sanitize_cli_token(desc, 255)
+        # desc (structured_desc dari PHP) sudah berformat "name_XXX_zone_..."
+        # yang MEMUAT nama pelanggan di dalamnya -- JANGAN gabung dgn name lagi
+        # (bikin dobel + overflow limit description OLT).
+        desc_c = self._sanitize_cli_token(desc or name, 100)
 
         commands = [
             "enable",
             "config",
             f"interface gpon {interface_path}",
             f"ont add {port} {onu_id} sn-auth \"{serial}\"",
-            f"ont description {port} {onu_id} \"{name_c} {desc_c}\"",
+            f"ont description {port} {onu_id} \"{desc_c}\"",
             f"ont ont-port {port} {onu_id} eth adaptive pots adaptive catv adaptive iphost adaptive wifi adaptive",
             f"ont native-vlan {port} {onu_id} concern",
         ]
@@ -567,11 +569,11 @@ class OltCdataFd1602sb1Driver(BaseDriver):
         if wan_mode == 'PPPoE':
             user_c = self._sanitize_cli_token(pppoe_username or f"{serial.lower()}@isp.net", 64)
             pass_c = self._sanitize_cli_token(pppoe_password or serial[:8], 32)
-            commands.append(f"ont no ipconfig {port} {onu_id} ip-index 0")
+            commands.append(f"no ont ipconfig {port} {onu_id} ip-index 0")
             commands.append(f"ont ipconfig {port} {onu_id} ip-index 0 pppoe username {user_c} password {pass_c} vlan {vlan} priority 0")
             commands.append(f"ont ipconfig {port} {onu_id} ip-index 0 connection-type route")
         elif wan_mode == 'DHCP':
-            commands.append(f"ont no ipconfig {port} {onu_id} ip-index 0")
+            commands.append(f"no ont ipconfig {port} {onu_id} ip-index 0")
             commands.append(f"ont ipconfig {port} {onu_id} ip-index 0 dhcp vlan {vlan} priority 0")
         elif wan_mode == 'Static':
             # Form belum punya field IP/mask/gateway untuk mode ini -- jangan diam-diam
@@ -615,15 +617,18 @@ class OltCdataFd1602sb1Driver(BaseDriver):
         port = int(parts[-1]) if len(parts) >= 3 else 1
         interface_path = "/".join(parts[:-1]) if len(parts) >= 3 else onu['pon_port']
         ont_id = onu['onu_id']
-        clean_name = self._sanitize_cli_token(onu['name'])
-        desc = self._sanitize_cli_token(onu.get('description', onu['name']), 255)
+        # desc sudah berformat "name_XXX_zone_..._authd_..." yang MEMUAT nama
+        # pelanggan di dalamnya (lihat pull_configured_onus, parser ekstrak
+        # nama dari sini) -- JANGAN gabung dgn onu['name'] lagi, itu bikin
+        # nama dobel dan overflow limit description OLT ("exceed the limit").
+        desc = self._sanitize_cli_token(onu.get('description') or onu['name'], 100)
         vlan_svc = int(wan.get('vlan_service') or 25)
 
         commands = [
             'enable',
             'config',
             f"interface gpon {interface_path}",
-            f"ont description {port} {ont_id} \"{clean_name} {desc}\"",
+            f"ont description {port} {ont_id} \"{desc}\"",
         ]
 
         wan_setup_warning = None
@@ -634,11 +639,11 @@ class OltCdataFd1602sb1Driver(BaseDriver):
             if not user_c or not pass_c:
                 wan_setup_warning = "Mode PPPoE dipilih tapi username/password kosong -- konfigurasi WAN dilewati."
             else:
-                commands.append(f"ont no ipconfig {port} {ont_id} ip-index 0")
+                commands.append(f"no ont ipconfig {port} {ont_id} ip-index 0")
                 commands.append(f"ont ipconfig {port} {ont_id} ip-index 0 pppoe username {user_c} password {pass_c} vlan {vlan_svc} priority 0")
                 commands.append(f"ont ipconfig {port} {ont_id} ip-index 0 connection-type route")
         elif wan_mode == 'DHCP':
-            commands.append(f"ont no ipconfig {port} {ont_id} ip-index 0")
+            commands.append(f"no ont ipconfig {port} {ont_id} ip-index 0")
             commands.append(f"ont ipconfig {port} {ont_id} ip-index 0 dhcp vlan {vlan_svc} priority 0")
         elif wan_mode == 'Static':
             wan_setup_warning = "Mode Static belum didukung driver Cdata (butuh IP/mask/gateway) -- konfigurasi WAN dilewati, atur manual."
@@ -665,7 +670,7 @@ class OltCdataFd1602sb1Driver(BaseDriver):
         parts = pon_port.split('/')
         port = int(parts[-1]) if len(parts) >= 3 else 1
         interface_path = "/".join(parts[:-1]) if len(parts) >= 3 else pon_port
-        desc_c = self._sanitize_cli_token(description, 255)
+        desc_c = self._sanitize_cli_token(description, 100)
 
         commands = [
             "enable",
