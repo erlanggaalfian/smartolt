@@ -362,11 +362,11 @@ $onus = $stmt_data->fetchAll();
                         row.setAttribute('data-rx-olt', onu.rx_olt);
                         row.setAttribute('data-down-cause', onu.last_down_cause || '-');
 
-                        // Update VLAN badge
+                        // Update VLAN
                         const vlanCell = row.querySelector('.vlan-cell');
                         if (vlanCell) {
                             const vlanVal = onu.vlan || '-';
-                            vlanCell.innerHTML = `<span class="badge bg-green">${esc(vlanVal)}</span>`;
+                            vlanCell.textContent = vlanVal;
                         }
 
                         // Update signal badge (Rx ONU)
@@ -413,11 +413,11 @@ $onus = $stmt_data->fetchAll();
                             updatedCell.textContent = onu.last_down_cause || '-';
                         }
 
-                        // Update WAN mode badge
+                        // Update WAN mode
                         const wanCell = row.querySelector('.wan-cell');
                         if (wanCell) {
                             const wanDisplay = onu.wan_mode === 'Static' ? 'Static IP' : (onu.wan_mode || '-');
-                            wanCell.innerHTML = `<span class="badge bg-blue">${esc(wanDisplay)}</span>`;
+                            wanCell.textContent = wanDisplay;
                         }
                         // Update ONU Type
                         const typeCell = row.querySelector('.onu-type-cell');
@@ -676,8 +676,8 @@ $onus = $stmt_data->fetchAll();
                                     <?php echo htmlspecialchars($onu['olt_name']); ?><br>
                                     PON <?php echo htmlspecialchars($onu['pon_port'] . ':' . $onu['onu_id']); ?>
                                 </td>
-                                <td class="vlan-cell"><span class="badge bg-green"><?php echo htmlspecialchars($onu['vlan'] ?: '-'); ?></span></td>
-                                <td class="wan-cell"><span class="badge bg-blue"><?php echo htmlspecialchars($onu['wan_mode'] === 'Static' ? 'Static IP' : ($onu['wan_mode'] ?: '-')); ?></span></td>
+                                <td class="vlan-cell"><?php echo htmlspecialchars($onu['vlan'] ?: '-'); ?></td>
+                                <td class="wan-cell"><?php echo htmlspecialchars($onu['wan_mode'] === 'Static' ? 'Static IP' : ($onu['wan_mode'] ?: '-')); ?></td>
                                 <td class="signal-cell">
                                     <?php if ($onu['status'] === 'online' && $onu['last_rx_power'] !== null): ?>
                                         <?php 
