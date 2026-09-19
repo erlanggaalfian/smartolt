@@ -406,7 +406,7 @@ try:
                     conn3 = db.get_db_connection()
                     db_map = {}
                     with conn3.cursor() as c3:
-                        c3.execute("SELECT id, pon_port, onu_id, serial_number, name, description FROM onus WHERE olt_id = %s", (olt['id'],))
+                        c3.execute("SELECT id, pon_port, onu_id, serial_number, name, description, last_down_cause FROM onus WHERE olt_id = %s", (olt['id'],))
                         for r in c3.fetchall():
                             db_map[(r['pon_port'], r['onu_id'])] = r
 
@@ -443,6 +443,12 @@ try:
                         if onu.get('desc') and onu['desc'] != db_desc:
                             set_parts.append('description = %s')
                             vals.append(onu['desc'])
+                        # down_cause=0 ('Normal') / None -> tak sedang down, clear.
+                        cause_label = onu.get('down_cause_label')
+                        new_cause = cause_label if onu.get('down_cause') else None
+                        if new_cause != db_row.get('last_down_cause'):
+                            set_parts.append('last_down_cause = %s')
+                            vals.append(new_cause)
                         if set_parts:
                             set_parts.append('updated_at = NOW()')
                             vals.append(db_row['id'])
