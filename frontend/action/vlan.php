@@ -35,6 +35,11 @@ if ($action !== 'list' && $_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['success' => false, 'message' => 'Metode tidak diizinkan.']);
     exit;
 }
+if ($action !== 'list' && !verify_csrf_token()) {
+    http_response_code(403);
+    echo json_encode(['success' => false, 'message' => 'Token keamanan tidak valid. Silakan muat ulang halaman.']);
+    exit;
+}
 
 if ($id <= 0) {
     $_SESSION['error'] = 'ID OLT tidak valid!';
@@ -122,6 +127,13 @@ try {
                 (string)($_POST['untagged'] ?? ''),
                 ($pvid_raw === '' ? null : (int)$pvid_raw)
             );
+            break;
+
+        case 'set-management':
+            require_once __DIR__ . '/../../backend/vlan_cache.php';
+            $is_mgmt = !empty($_POST['is_management']);
+            $ok = set_olt_vlan_management($id, $vlan_id, $is_mgmt);
+            $result = ['success' => $ok, 'message' => $ok ? 'Status VLAN Management diperbarui.' : 'Gagal memperbarui status.'];
             break;
 
         default:

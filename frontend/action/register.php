@@ -6,6 +6,11 @@
 require_once __DIR__ . '/../../backend/db.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!verify_csrf_token()) {
+        $_SESSION['error'] = 'Token keamanan tidak valid. Silakan muat ulang halaman.';
+        header('Location: ../register.php');
+        exit;
+    }
     $username = trim($_POST['username']);
     $password = trim($_POST['password']);
     $role = trim($_POST['role']);

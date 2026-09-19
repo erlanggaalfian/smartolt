@@ -33,6 +33,11 @@ if ($action !== 'list' && $_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['success' => false, 'message' => 'Metode tidak diizinkan.']);
     exit;
 }
+if ($action !== 'list' && !verify_csrf_token()) {
+    http_response_code(403);
+    echo json_encode(['success' => false, 'message' => 'Token keamanan tidak valid. Silakan muat ulang halaman.']);
+    exit;
+}
 
 $id = (int)($_POST['olt_id'] ?? $_GET['olt_id'] ?? 0);
 if ($id <= 0) {
