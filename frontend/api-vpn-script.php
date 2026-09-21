@@ -22,7 +22,7 @@ $t = $stmt->fetch(PDO::FETCH_ASSOC);
 if (!$t) { http_response_code(404); die('Not found'); }
 
 $server = 'smartolt.netbackup.my.id';
-$certBase = "https://{$server}/api-vpn-cert.php";
+$certBase = "https://{$server}/vpn-cert";
 $username = $t['username'];
 $password = $t['password'];
 $vpnName = 'VPN-Erlangga-SmartOLT';
@@ -35,11 +35,11 @@ header("Content-Disposition: attachment; filename=\"{$rscName}\"");
 echo "# === {$vpnName} Setup - {$username} ===\n";
 echo "\n";
 echo "# 1. Download certificates\n";
-echo "/tool fetch url=\"{$certBase}?file=ca-Erlangga-SmartOLT.crt&token={$token}\" dst-path=ca-Erlangga-SmartOLT.crt\n";
+echo "/tool fetch url=\"{$certBase}/ca-Erlangga-SmartOLT.crt/{$token}\" dst-path=ca-Erlangga-SmartOLT.crt\n";
 echo ":delay 2s\n";
-echo "/tool fetch url=\"{$certBase}?file={$vpnName}.crt&token={$token}\" dst-path={$vpnName}.crt\n";
+echo "/tool fetch url=\"{$certBase}/{$vpnName}.crt/{$token}\" dst-path={$vpnName}.crt\n";
 echo ":delay 2s\n";
-echo "/tool fetch url=\"{$certBase}?file={$vpnName}.key&token={$token}\" dst-path={$vpnName}.key\n";
+echo "/tool fetch url=\"{$certBase}/{$vpnName}.key/{$token}\" dst-path={$vpnName}.key\n";
 echo ":delay 3s\n";
 echo "\n";
 echo "# 2. Import certificates\n";
