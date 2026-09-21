@@ -299,13 +299,33 @@ function showMikrotik(id) {
     if (!t) return;
     document.getElementById('mt-username').textContent = t.username;
     const routes = t.routes_json ? JSON.parse(t.routes_json) : [];
+    const certBase = 'https://' + location.hostname + '/_tmp';
     let lines = [];
-    lines.push('/interface l2tp-client add name=l2tp-' + t.username + ' connect-to=' + serverIP + ' user=' + t.username + ' password="' + t.password + '" profile=default-encryption use-ipsec=yes ipsec-secret="' + t.password + '" allow=pap,chap,mschap1,mschap2 add-default-route=no disabled=no');
-    lines.push('/ip firewall address-list add list=l2tp-clients address=' + t.tunnel_ip);
+    lines.push('# === OpenVPN Client Setup — ' + t.username + ' ===');
+    lines.push('# Paste semua sekaligus di Terminal MikroTik');
+    lines.push('');
+    lines.push('# 1. Download certificates');
+    lines.push('/tool fetch url="' + certBase + '/ca.crt" dst-path=ca.crt');
+    lines.push('/tool fetch url="' + certBase + '/mikrotik.crt" dst-path=mikrotik.crt');
+    lines.push('/tool fetch url="' + certBase + '/mikrotik.key" dst-path=mikrotik.key');
+    lines.push('/tool fetch url="' + certBase + '/ta.key" dst-path=ta.key');
+    lines.push(':delay 3s');
+    lines.push('');
+    lines.push('# 2. Import certificates');
+    lines.push('/certificate import file-name=ca.crt passphrase=""');
+    lines.push('/certificate import file-name=mikrotik.crt passphrase=""');
+    lines.push('/certificate import file-name=mikrotik.key passphrase=""');
+    lines.push('');
+    lines.push('# 3. Add OpenVPN client');
+    lines.push('/interface ovpn-client add name=ovpn-' + t.username + ' connect-to=' + serverIP + ' port=1194 mode=ip protocol=tcp user=' + t.username + ' password="' + t.password + '" certificate=mikrotik.crt_0 cipher=aes128-cbc auth=sha1 add-default-route=no disabled=no');
+    lines.push('');
+    lines.push('# 4. Route ke GenieACS via VPN');
+    lines.push('/ip route add dst-address=10.198.198.0/24 gateway=ovpn-' + t.username);
     if (routes.length > 0) {
-        lines.push('# Routes ke subnet ONU pelanggan via tunnel');
+        lines.push('');
+        lines.push('# 5. Routes subnet ONU pelanggan');
         routes.forEach(r => {
-            lines.push('/ip route add dst-address=' + r + ' gateway=l2tp-' + t.username);
+            lines.push('/ip route add dst-address=' + r + ' gateway=ovpn-' + t.username);
         });
     }
     document.getElementById('mt-script').value = lines.join('\n');
