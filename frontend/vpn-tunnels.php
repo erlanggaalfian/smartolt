@@ -291,6 +291,8 @@ include __DIR__ . '/header.php';
             <textarea id="mt-script" class="form-control" rows="16" style="font-family:monospace;font-size:12px;resize:vertical;" readonly></textarea>
         </div>
         <div class="modal-footer">
+            <button type="button" id="cert-enable-btn" class="btn btn-primary" onclick="toggleCertAccess()">Enable Cert Download (5m)</button>
+            <span id="cert-countdown" style="font-size:13px;color:var(--text-muted);margin-left:8px;"></span>
             <button type="button" class="btn btn-secondary" onclick="document.getElementById('mt-modal').classList.remove('open')">Tutup</button>
             <button type="button" class="btn btn-primary" onclick="copyMtScript()">Copy Script</button>
         </div>
@@ -327,6 +329,44 @@ function copyMtScript() {
     const ta = document.getElementById('mt-script');
     ta.select(); document.execCommand('copy');
 }
+
+function toggleCertAccess() {
+    fetch('/api-vpn-cert-toggle.php', {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:'action=enable'})
+    .then(r => r.json()).then(d => {
+        if (d.ok) {
+            document.getElementById('cert-enable-btn').disabled = true;
+            document.getElementById('cert-enable-btn').textContent = 'Cert Download Active';
+            startCertCountdown(d.expires);
+        }
+    });
+}
+
+let certTimer = null;
+function startCertCountdown(expires) {
+    if (certTimer) clearInterval(certTimer);
+    certTimer = setInterval(() => {
+        const left = Math.max(0, Math.floor(expires - Date.now()/1000));
+        const m = Math.floor(left/60);
+        const s = left % 60;
+        document.getElementById('cert-countdown').textContent = m + ':' + String(s).padStart(2,'0');
+        if (left <= 0) {
+            clearInterval(certTimer);
+            document.getElementById('cert-enable-btn').disabled = false;
+            document.getElementById('cert-enable-btn').textContent = 'Enable Cert Download (5m)';
+            document.getElementById('cert-countdown').textContent = 'Expired';
+            fetch('/api-vpn-cert-toggle.php', {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:'action=disable'});
+        }
+    }, 1000);
+}
+
+// Check if already active on page load
+fetch('/api-vpn-cert-toggle.php').then(r=>r.json()).then(d => {
+    if (d.active) {
+        document.getElementById('cert-enable-btn').disabled = true;
+        document.getElementById('cert-enable-btn').textContent = 'Cert Download Active';
+        startCertCountdown(d.expires);
+    }
+});
 </script>
 
 <?php include __DIR__ . '/footer.php'; ?>
