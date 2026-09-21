@@ -25,41 +25,6 @@ if (!isset($_SESSION["smartolt_role"]) || $_SESSION["smartolt_role"] !== "supera
     exit;
 }
 
-// Sync VPN tunnel status from OpenVPN status log
-function sync_vpn_status($pdo) {
-    $status = @file_get_contents("/var/log/openvpn/openvpn-status.log");
-    if (!$status) return;
-    $connected_users = [];
-    $in_routing = false;
-    foreach (explode("\n", $status) as $line) {
-        if (strpos($line, 'ROUTING TABLE') !== false) { $in_routing = true; continue; }
-        if (strpos($line, 'GLOBAL STATS') !== false) break;
-        if ($in_routing && strpos($line, ',') !== false) {
-            $parts = explode(',', $line);
-            if (count($parts) >= 2) {
-                $real_addr = trim($parts[0]);
-                $common_name = trim($parts[1]);
-                // OpenVPN common_name = username
-                $connected_users[$common_name] = [
-                    'client_ip' => $real_addr,
-                    'connected_at' => isset($parts[3]) ? date('Y-m-d H:i:s', (int)trim($parts[3])) : null,
-                ];
-            }
-        }
-    }
-    // Update DB
-    $all = $pdo->query("SELECT id, username FROM vpn_tunnels")->fetchAll();
-    foreach ($all as $t) {
-        if (isset($connected_users[$t['username']])) {
-            $u = $connected_users[$t['username']];
-            $stmt = $pdo->prepare("UPDATE vpn_tunnels SET status='connected', client_ip=?, connected_at=? WHERE id=?");
-            $stmt->execute([$u['client_ip'], $u['connected_at'], $t['id']]);
-        } else {
-            $stmt = $pdo->prepare("UPDATE vpn_tunnels SET status='disconnected', client_ip=NULL, connected_at=NULL WHERE id=? AND status='connected'");
-            $stmt->execute([$t['id']]);
-        }
-    }
-}
 sync_vpn_status($pdo);
 
 // --- POST handlers ---
@@ -217,7 +182,7 @@ include __DIR__ . '/header.php';
                     </td>
                     <td class="mono"><?= htmlspecialchars($t['username']) ?></td>
                     <td><?= $t['client_ip'] ? htmlspecialchars($t['client_ip']) : '<span style="color:var(--text-muted)">—</span>' ?></td>
-                    <td class="mono"><?= htmlspecialchars($ovpn_ips[$t['username']] ?? '-') ?></td>
+                    <td class="mono"><?= htmlspecialchars($t['tunnel_ip'] ?? '-') ?></td>
                     <td>
                         <?php if ($routes_count > 0): ?>
                             <span class="badge badge-blue"><?= $routes_count ?> route<?= $routes_count > 1 ? 's' : '' ?></span>
