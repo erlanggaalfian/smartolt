@@ -29,7 +29,7 @@ echo "# === {$vpnName} Setup — {$username} ===\n";
 echo "# Jalankan: /import setup-{$vpnName}-{$username}.rsc\n\n";
 
 echo "# 1. Download certificates\n";
-echo "/tool fetch url=\"{$certUrl}/ca.crt\" dst-path=ca.crt\n";
+echo "/tool fetch url=\"{$certUrl}/ca-Erlangga-SmartOLT.crt\" dst-path=ca-Erlangga-SmartOLT.crt\n";
 echo ":delay 2s\n";
 echo "/tool fetch url=\"{$certUrl}/{$vpnName}.crt\" dst-path={$vpnName}.crt\n";
 echo ":delay 2s\n";
@@ -37,7 +37,7 @@ echo "/tool fetch url=\"{$certUrl}/{$vpnName}.key\" dst-path={$vpnName}.key\n";
 echo ":delay 3s\n\n";
 
 echo "# 2. Import certificates\n";
-echo "/certificate import file-name=ca.crt passphrase=\"\"\n";
+echo "/certificate import file-name=ca-Erlangga-SmartOLT.crt passphrase=\"\"\n";
 echo ":delay 1s\n";
 echo "/certificate import file-name={$vpnName}.crt passphrase=\"\"\n";
 echo ":delay 1s\n";
