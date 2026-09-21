@@ -327,11 +327,11 @@ function showMikrotik(id) {
     const url = location.origin + '/vpn/' + id + '/' + apiToken + '.rsc';
     let rscName = 'setup-VPN-Erlangga-SmartOLT-' + t.username + '.rsc';
     let fetchCmd = '/tool fetch url="' + url + '" dst-path=' + rscName;
-    let importCmd = '/import ' + rscName;
+    let importCmd = ':delay 3s\n/import ' + rscName;
+    let cleanupCmd = ':delay 5s\n/system script remove vpn-setup';
     let script = '# Paste di Terminal MikroTik (satu kali paste):\n\n';
-    script += '/system script add name=vpn-setup source="' + fetchCmd + '\\n' + importCmd + '"\n';
-    script += '/system script run vpn-setup\n';
-    script += '/system script remove vpn-setup';
+    script += '/system script add name=vpn-setup source="' + fetchCmd + '\\n' + importCmd + '\\n' + cleanupCmd + '"\n';
+    script += '/system script run vpn-setup';
     document.getElementById('mt-script').value = script;
     document.getElementById('mt-modal').classList.add('open');
 }
