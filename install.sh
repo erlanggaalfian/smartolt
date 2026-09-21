@@ -105,20 +105,18 @@ if [[ "$choice_genieacs" =~ ^[Yy]$ ]]; then
   INSTALL_GENIEACS=true
   echo -e "   ${GREEN}[OK] GenieACS akan diinstall (MongoDB 4.4 + GenieACS 1.2.13).${NC}"
   echo ""
-  read -p "   * Setup L2TP/IPsec VPN untuk GenieACS? (Y/n): " choice_l2tp
-  INSTALL_L2TP=true
-  if [[ "$choice_l2tp" =~ ^[Nn]$ ]]; then
-    INSTALL_L2TP=false
-    echo -e "   ${YELLOW}[SKIP] L2TP VPN dilewati.${NC}"
+  read -p "   * Setup OpenVPN untuk GenieACS (MikroTik-server)? (Y/n): " choice_ovpn
+  INSTALL_OVPN=true
+  if [[ "$choice_ovpn" =~ ^[Nn]$ ]]; then
+    INSTALL_OVPN=false
+    echo -e "   ${YELLOW}[SKIP] OpenVPN dilewati.${NC}"
   else
     read -p "   VPN Subnet [10.198.198.0/24]: " VPN_SUBNET; VPN_SUBNET=${VPN_SUBNET:-"10.198.198.0/24"}
     VPN_SERVER_IP="${VPN_SUBNET%.*}.1"
-    VPN_POOL_START="${VPN_SUBNET%.*}.10"
-    VPN_POOL_END="${VPN_SUBNET%.*}.254"
-    echo -e "   ${GREEN}[OK] L2TP VPN: server=${VPN_SERVER_IP}, pool=${VPN_POOL_START}-${VPN_POOL_END##*.}${NC}"
+    echo -e "   ${GREEN}[OK] OpenVPN: server=${VPN_SERVER_IP}, subnet=${VPN_SUBNET}, port=1194/tcp${NC}"
   fi
 else
-  INSTALL_L2TP=false
+  INSTALL_OVPN=false
 fi
 
 read -s -p "   Password database (kosong = auto generate): " DB_PASS; echo ""
@@ -192,8 +190,8 @@ if [ "$INSTALL_GENIEACS" = true ]; then
   printf "${CYAN}│${NC}  %-24s : ${BLUE}%-38s${NC}${CYAN}│${NC}\n" "  CWMP (TR-069)" "0.0.0.0:7547"
   printf "${CYAN}│${NC}  %-24s : ${BLUE}%-38s${NC}${CYAN}│${NC}\n" "  NBI (REST API)" "0.0.0.0:7559"
   printf "${CYAN}│${NC}  %-24s : ${BLUE}%-38s${NC}${CYAN}│${NC}\n" "  FS (File)" "0.0.0.0:7567"
-  if [ "$INSTALL_L2TP" = true ]; then
-    printf "${CYAN}│${NC}  %-24s : ${GREEN}%-38s${NC}${CYAN}│${NC}\n" "  L2TP/IPsec VPN" "${VPN_SUBNET}"
+  if [ "$INSTALL_OVPN" = true ]; then
+    printf "${CYAN}│${NC}  %-24s : ${GREEN}%-38s${NC}${CYAN}│${NC}\n" "  OpenVPN" "${VPN_SUBNET} (tcp/1194)"
   fi
 fi
 if [ -n "$IMPORT_SQL_PATH" ]; then
@@ -583,86 +581,100 @@ SVCEOF
   sleep 3
   echo -e "      ${GREEN}[OK] GenieACS berjalan — CWMP:7547, NBI:7559, FS:7567${NC}"
 
-  # --- L2TP/IPsec VPN ---
-  if [ "$INSTALL_L2TP" = true ]; then
-    echo -e "      Menginstal L2TP/IPsec VPN..."
+  # --- OpenVPN (server <-> MikroTik tunnel untuk GenieACS TR-069) ---
+  if [ "$INSTALL_OVPN" = true ]; then
+    echo -e "      Menginstal OpenVPN..."
 
-    apt-get install -y strongswan xl2tpd ppp lsof iptables-persistent &> /dev/null
+    apt-get install -y openvpn easy-rsa iptables-persistent &> /dev/null
 
     # IP forwarding
-    echo 'net.ipv4.ip_forward = 1' > /etc/sysctl.d/99-l2tp.conf
-    sysctl -p /etc/sysctl.d/99-l2tp.conf &> /dev/null
+    echo 'net.ipv4.ip_forward = 1' > /etc/sysctl.d/99-openvpn.conf
+    sysctl -p /etc/sysctl.d/99-openvpn.conf &> /dev/null
 
-    # PSK + credentials
-    L2TP_PSK=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 32)
-    L2TP_USER="mikrotik"
-    L2TP_PASS=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 16)
+    # PKI (Easy-RSA) — CA + server cert
+    mkdir -p /opt/openvpn-ca
+    ln -sf /usr/share/easy-rsa/easyrsa /opt/openvpn-ca/easyrsa
+    ln -sf /usr/share/easy-rsa/x509-types /opt/openvpn-ca/x509-types
+    cd /opt/openvpn-ca
+    ./easyrsa init-pki &> /dev/null
+    echo "" | ./easyrsa --batch build-ca nopass &> /dev/null
+    ./easyrsa --batch build-server-full server nopass &> /dev/null
+    ./easyrsa gen-dh &> /dev/null
+    cd - &> /dev/null
 
-    # strongSwan config
-    cat > /etc/ipsec.conf << 'IPSECCONF'
-config setup
-    virtual-private=%v4:10.0.0.0/8,%v4:192.168.0.0/16,%v4:172.16.0.0/12
-    uniqueids=no
+    mkdir -p /etc/openvpn/server
+    cp /opt/openvpn-ca/pki/ca.crt /etc/openvpn/ca.crt
+    cp /opt/openvpn-ca/pki/issued/server.crt /etc/openvpn/server.crt
+    cp /opt/openvpn-ca/pki/private/server.key /etc/openvpn/server.key
+    cp /opt/openvpn-ca/pki/dh.pem /etc/openvpn/dh.pem
+    chmod 600 /etc/openvpn/server.key
 
-conn l2tp-psk
-    authby=secret
-    pfs=no
-    auto=add
-    keyingtries=3
-    rekey=no
-    type=transport
-    left=%defaultroute
-    leftprotoport=udp/1701
-    right=%any
-    rightprotoport=udp/1701
-    dpddelay=15
-    dpdtimeout=30
-    dpdaction=clear
-IPSECCONF
+    mkdir -p /etc/openvpn/ccd
+    chown www-data:www-data /etc/openvpn/ccd
 
-    echo "%any %any : PSK \"$L2TP_PSK\"" > /etc/ipsec.secrets
+    # Wrapper script untuk generate cert client baru (dipanggil via sudo dari PHP)
+    cat > /opt/openvpn-ca/gen-client-cert.sh << 'GENCERTEOF'
+#!/bin/bash
+# Usage: gen-client-cert.sh <username>
+set -e
+CN="$1"
+[[ "$CN" =~ ^[a-zA-Z0-9_-]+$ ]] || { echo "Invalid username"; exit 1; }
+cd /opt/openvpn-ca
+./easyrsa --batch gen-req "$CN" nopass
+./easyrsa --batch sign-req client "$CN"
+mkdir -p /opt/genieacs/certs
+cp "pki/issued/$CN.crt" "/opt/genieacs/certs/$CN.crt"
+cp "pki/private/$CN.key" "/opt/genieacs/certs/$CN.key"
+chmod 644 "/opt/genieacs/certs/$CN.crt" "/opt/genieacs/certs/$CN.key"
+echo "OK"
+GENCERTEOF
+    chmod +x /opt/openvpn-ca/gen-client-cert.sh
 
-    # xl2tpd config
-    cat > /etc/xl2tpd/xl2tpd.conf << XLTPCONF
-[global]
-port = 1701
+    mkdir -p /opt/genieacs/certs
+    cp /etc/openvpn/ca.crt "/opt/genieacs/certs/ca-Erlangga-SmartOLT.crt"
+    chmod 644 "/opt/genieacs/certs/ca-Erlangga-SmartOLT.crt"
 
-[lns default]
-ip range = ${VPN_POOL_START}-${VPN_POOL_END}
-local ip = ${VPN_SERVER_IP}
-require chap = yes
-refuse pap = yes
-require authentication = yes
-name = l2tp-server
-ppp debug = yes
-pppoptfile = /etc/ppp/options.xl2tpd
-length bit = yes
-XLTPCONF
+    # Token akses untuk MikroTik fetch cert/script tanpa login
+    API_TOKEN=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 32)
+    echo "$API_TOKEN" > /opt/genieacs/certs/.api-token
+    chmod 644 /opt/genieacs/certs/.api-token
 
-    cat > /etc/ppp/options.xl2tpd << 'PPPOPT'
-ipcp-accept-local
-ipcp-accept-remote
-ms-dns 8.8.8.8
-noccp
-auth
-crtscts
-idle 1800
-mtu 1410
-mru 1410
-nodefaultroute
-debug
-proxyarp
-connect-delay 5000
-PPPOPT
+    # sudoers: izinkan www-data jalankan ip route & generate cert tanpa password
+    cat > /etc/sudoers.d/www-data-openvpn << SUDOEOF
+www-data ALL=(root) NOPASSWD: /sbin/ip route *
+www-data ALL=(root) NOPASSWD: /opt/openvpn-ca/gen-client-cert.sh *
+SUDOEOF
+    chmod 440 /etc/sudoers.d/www-data-openvpn
 
-    echo "$L2TP_USER    l2tp-server    $L2TP_PASS    *" > /etc/ppp/chap-secrets
+    # OpenVPN server config (TCP 1194, topology subnet — MikroTik RouterOS 7 friendly)
+    cat > /etc/openvpn/server/server-tcp.conf << OVPNEOF
+port 1194
+proto tcp
+dev tun
+topology subnet
+ca /etc/openvpn/ca.crt
+cert /etc/openvpn/server.crt
+key /etc/openvpn/server.key
+dh /etc/openvpn/dh.pem
+server ${VPN_SUBNET%.0/*} 255.255.255.0
+ifconfig-pool-persist /var/log/openvpn/ipp.txt
+keepalive 10 60
+persist-key
+persist-tun
+status /var/log/openvpn/openvpn-status.log
+verb 3
+mute 20
+data-ciphers AES-256-GCM:AES-128-GCM:CHACHA20-POLY1305:AES-128-CBC
+data-ciphers-fallback AES-128-CBC
+client-config-dir /etc/openvpn/ccd
+client-to-client
+OVPNEOF
 
-    # Firewall: L2TP ports + restrict GenieACS to VPN only
+    mkdir -p /var/log/openvpn
+
+    # Firewall: OpenVPN port + restrict GenieACS to VPN subnet only
     DEFAULT_IF=$(ip route | grep default | awk '{print $5}')
-    iptables -I INPUT -p udp --dport 500 -j ACCEPT
-    iptables -I INPUT -p udp --dport 4500 -j ACCEPT
-    iptables -I INPUT -p udp --dport 1701 -j ACCEPT
-    iptables -I INPUT -p esp -j ACCEPT
+    iptables -I INPUT -p tcp --dport 1194 -j ACCEPT
     iptables -t nat -A POSTROUTING -s ${VPN_SUBNET} -o $DEFAULT_IF -j MASQUERADE
     iptables -I FORWARD -s ${VPN_SUBNET} -j ACCEPT
     iptables -I FORWARD -d ${VPN_SUBNET} -j ACCEPT
@@ -675,27 +687,26 @@ PPPOPT
     iptables -I INPUT -p tcp --dport 7567 -j DROP
     netfilter-persistent save &> /dev/null
 
-    systemctl enable strongswan-starter xl2tpd &> /dev/null
-    systemctl restart strongswan-starter xl2tpd
+    systemctl enable openvpn-server@server-tcp &> /dev/null
+    systemctl restart openvpn-server@server-tcp
     sleep 2
 
-    # Save credentials
+    # Save info (tidak ada static credentials — auth per-tunnel via halaman VPN Tunnels)
     cat > /opt/genieacs/vpn-credentials.txt << CRIDEOF
-=== L2TP/IPsec VPN Credentials ===
+=== OpenVPN Server Info ===
 VPN Subnet: ${VPN_SUBNET}
-Server IP (VPS): ${VPN_SERVER_IP}
-Client IP range: ${VPN_POOL_START} - ${VPN_POOL_END}
+Server IP (tunnel): ${VPN_SERVER_IP}
+Server Port: 1194/tcp
 
-IPsec PSK: ${L2TP_PSK}
-L2TP Username: ${L2TP_USER}
-L2TP Password: ${L2TP_PASS}
+Kredensial tunnel per-MikroTik dikelola via halaman:
+Settings > VPN Tunnels (buat tunnel, generate cert & script setup otomatis)
 
 GenieACS CWMP: ${VPN_SERVER_IP}:7547
 GenieACS NBI: ${VPN_SERVER_IP}:7559
 CRIDEOF
     chmod 600 /opt/genieacs/vpn-credentials.txt
 
-    echo -e "      ${GREEN}[OK] L2TP/IPsec VPN aktif — server ${VPN_SERVER_IP}, credentials di /opt/genieacs/vpn-credentials.txt${NC}"
+    echo -e "      ${GREEN}[OK] OpenVPN aktif — server ${VPN_SERVER_IP}:1194/tcp, kelola tunnel via Settings > VPN Tunnels${NC}"
   fi
 else
   echo -e "\n${YELLOW}[6/7] GenieACS dilewati (tidak dipilih).${NC}"
@@ -735,9 +746,9 @@ fi
 if [ "$INSTALL_GENIEACS" = true ]; then
   echo -e "   GenieACS   : ${GREEN}CWMP:${NC}7547 ${GREEN}NBI:${NC}7559 ${GREEN}FS:${NC}7567"
   echo -e "   MongoDB    : ${GREEN}4.4${NC} @ mongodb://localhost:27017/genieacs"
-  if [ "$INSTALL_L2TP" = true ]; then
-    echo -e "   L2TP VPN   : ${GREEN}${VPN_SERVER_IP}${NC} (subnet ${VPN_SUBNET})"
-    echo -e "   Credentials: ${YELLOW}/opt/genieacs/vpn-credentials.txt${NC}"
+  if [ "$INSTALL_OVPN" = true ]; then
+    echo -e "   OpenVPN    : ${GREEN}${VPN_SERVER_IP}:1194/tcp${NC} (subnet ${VPN_SUBNET})"
+    echo -e "   Kelola VPN : ${YELLOW}Settings > VPN Tunnels${NC}"
   fi
 fi
 echo ""
