@@ -19,6 +19,43 @@ function get_ovpn_tunnel_ips(): array {
 }
 
 
+
+// Sync VPN tunnel status from OpenVPN status log (OpenVPN 2.6 format)
+function sync_vpn_status($pdo) {
+    $status = @file_get_contents("/var/log/openvpn/openvpn-status.log");
+    if (!$status) return;
+    $connected = [];
+    $tunnel_ips = [];
+    foreach (explode("\n", $status) as $line) {
+        if (strpos($line, "CLIENT_LIST,") === 0) {
+            $parts = explode(",", $line);
+            if (count($parts) >= 4 && $parts[1] !== 'Common Name') {
+                $connected[] = ['cn' => $parts[1], 'ip' => explode(":", $parts[2])[0]];
+            }
+        }
+        if (strpos($line, "ROUTING_TABLE,") === 0) {
+            $parts = explode(",", $line);
+            if (count($parts) >= 3 && $parts[1] !== 'Virtual Address') {
+                $tunnel_ips[$parts[2]] = $parts[1];
+            }
+        }
+    }
+    $tunnels = $pdo->query("SELECT id, status FROM vpn_tunnels ORDER BY id")->fetchAll(PDO::FETCH_ASSOC);
+    $used = 0;
+    foreach ($tunnels as $t) {
+        if ($used < count($connected)) {
+            $c = $connected[$used];
+            $tip = $tunnel_ips[$c['cn']] ?? null;
+            $pdo->prepare("UPDATE vpn_tunnels SET status='connected', client_ip=?, tunnel_ip=? WHERE id=?")
+                 ->execute([$c['ip'], $tip, $t['id']]);
+            $used++;
+        } else {
+            $pdo->prepare("UPDATE vpn_tunnels SET status='disconnected', client_ip=NULL, tunnel_ip=NULL WHERE id=? AND status != 'disconnected'")
+                 ->execute([$t['id']]);
+        }
+    }
+}
+
 if (!isset($_SESSION["smartolt_role"]) || $_SESSION["smartolt_role"] !== "superadmin") {
     $_SESSION["error"] = "Akses ditolak!";
     header("Location: ../dashboard.php");
