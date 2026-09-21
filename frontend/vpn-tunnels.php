@@ -104,8 +104,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($r !== '') $routes[] = $r;
         }
         if ($p) {
+            // Get old routes to remove from server routing table
+            $old = $pdo->query("SELECT routes_json, tunnel_ip FROM vpn_tunnels WHERE id=" . $id)->fetch();
+            $old_routes = $old['routes_json'] ? json_decode($old['routes_json'], true) : [];
+            $old_tip = $old['tunnel_ip'] ?? null;
+            // Remove old routes from server
+            if ($old_tip) {
+                foreach ((array)$old_routes as $rt) {
+                    $rt = trim($rt);
+                    if ($rt) exec("ip route del $rt via $old_tip dev tun0 2>/dev/null");
+                }
+            }
             $stmt = $pdo->prepare("UPDATE vpn_tunnels SET password=?, routes_json=? WHERE id=?");
             $stmt->execute([$p, $routes ? json_encode($routes) : null, $id]);
+            // Apply new routes to server
+            if ($old_tip) {
+                foreach ($routes as $rt) {
+                    $rt = trim($rt);
+                    if ($rt) exec("ip route replace $rt via $old_tip dev tun0 2>/dev/null");
+                }
+            }
             sync_chap_secrets($pdo);
         }
     } elseif ($act === 'delete' && ($id = (int)($_POST['id'] ?? 0))) {
