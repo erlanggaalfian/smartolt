@@ -87,6 +87,13 @@ if (!isset($_SESSION["smartolt_role"]) || $_SESSION["smartolt_role"] !== "supera
     exit;
 }
 
+// Generate a unique OpenVPN client certificate for a tunnel (CN = username)
+function generate_tunnel_cert($username) {
+    if (file_exists("/opt/genieacs/certs/$username.crt")) return true; // already exists
+    exec("sudo /opt/openvpn-ca/gen-client-cert.sh " . escapeshellarg($username) . " 2>&1", $out, $ret);
+    return $ret === 0;
+}
+
 sync_vpn_status($pdo);
 
 // --- POST handlers ---
@@ -109,6 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($u && $p) {
             $stmt = $pdo->prepare("INSERT INTO vpn_tunnels (username, password, routes_json) VALUES (?,?,?)");
             $stmt->execute([$u, $p, $routes ? json_encode($routes) : null]);
+            generate_tunnel_cert($u);
             sync_chap_secrets($pdo);
         }
     } elseif ($act === 'update' && ($id = (int)($_POST['id'] ?? 0))) {

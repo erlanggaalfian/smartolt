@@ -25,8 +25,11 @@ $server = 'smartolt.netbackup.my.id';
 $certBase = "https://{$server}/vpn-cert";
 $username = $t['username'];
 $password = $t['password'];
-$vpnName = 'VPN-Erlangga-SmartOLT';
-$rscName = "setup-{$vpnName}-{$username}.rsc";
+$vpnName = $username; // unique cert per tunnel, CN = username
+if (!file_exists("/opt/genieacs/certs/{$username}.crt")) {
+    exec("sudo /opt/openvpn-ca/gen-client-cert.sh " . escapeshellarg($username) . " 2>&1");
+}
+$rscName = "setup-VPN-Erlangga-SmartOLT-{$username}.rsc";
 
 header('Content-Type: text/plain');
 header("Content-Disposition: attachment; filename=\"{$rscName}\"");

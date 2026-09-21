@@ -22,10 +22,11 @@ if (!$hasToken && time() > $expires) {
     die('Cert download disabled.');
 }
 
-$allowed = ['ca-Erlangga-SmartOLT.crt', 'VPN-Erlangga-SmartOLT.crt', 'VPN-Erlangga-SmartOLT.key'];
+$allowed_static = ['ca-Erlangga-SmartOLT.crt'];
 $file = $_GET['file'] ?? '';
 
-if (!in_array($file, $allowed)) {
+$is_valid = in_array($file, $allowed_static) || preg_match('/^[a-zA-Z0-9_-]+\.(crt|key)$/', $file);
+if (!$is_valid) {
     http_response_code(400);
     die('Invalid file');
 }
