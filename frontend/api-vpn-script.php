@@ -51,7 +51,7 @@ echo "/certificate import file-name={$vpnName}.key passphrase=\"\"\n";
 echo ":delay 1s\n";
 echo "\n";
 echo "# 3. Add OpenVPN client\n";
-echo "/interface ovpn-client add name=ovpn-{$vpnName} connect-to={$server} port=1194 mode=ip user={$username} password={$password} certificate={$vpnName}.crt_0 cipher=aes128 auth=sha1 add-default-route=no disabled=no\n";
+echo "/interface ovpn-client add name=ovpn-{$vpnName} connect-to={$server} port=1194 mode=ip user={$username} password={$password} certificate={$vpnName}.crt cipher=aes128 auth=sha1 add-default-route=no disabled=no\n";
 echo "\n";
 echo "# 4. Bersihkan file dari MikroTik\n";
 echo "/file remove ca-Erlangga-SmartOLT.crt\n";
