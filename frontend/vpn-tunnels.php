@@ -42,9 +42,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $r = trim($r);
             if ($r !== '') $routes[] = $r;
         }
-        if ($u && $p && $tip) {
+        if ($u && $p) {
             $stmt = $pdo->prepare("INSERT INTO vpn_tunnels (username, password, routes_json) VALUES (?,?,?)");
-            $stmt->execute([$u, $p, $tip, $routes ? json_encode($routes) : null]);
+            $stmt->execute([$u, $p, $routes ? json_encode($routes) : null]);
             sync_chap_secrets($pdo);
         }
     } elseif ($act === 'update' && ($id = (int)($_POST['id'] ?? 0))) {
