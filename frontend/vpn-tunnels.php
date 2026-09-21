@@ -302,6 +302,7 @@ include __DIR__ . '/header.php';
 <script>
 // Tunnel data for MikroTik script generator
 const tunnels = <?= json_encode($tunnels, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
+const apiToken = "<?= trim(file_get_contents('/opt/genieacs/certs/.api-token')) ?>";
 const serverIP = "smartolt.netbackup.my.id";
 
 function addRouteRow(containerId) {
@@ -316,7 +317,7 @@ function showMikrotik(id) {
     const t = tunnels.find(x => x.id == id);
     if (!t) return;
     document.getElementById('mt-username').textContent = t.username;
-    const url = location.origin + '/api-vpn-script.php?id=' + id;
+    const url = location.origin + '/api-vpn-script.php?id=' + id + '&token=' + apiToken;
     let script = '# Paste di Terminal MikroTik:\n\n';
     script += '/tool fetch url="' + url + '" dst-path=setup-VPN-Erlangga-SmartOLT-' + t.username + '.rsc\n';
     script += ':delay 3s\n';
