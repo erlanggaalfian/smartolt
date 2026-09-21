@@ -103,9 +103,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $r = trim($r);
             if ($r !== '') $routes[] = $r;
         }
-        if ($p && $tip) {
+        if ($p) {
             $stmt = $pdo->prepare("UPDATE vpn_tunnels SET password=?, routes_json=? WHERE id=?");
-            $stmt->execute([$p, $tip, $routes ? json_encode($routes) : null, $id]);
+            $stmt->execute([$p, $routes ? json_encode($routes) : null, $id]);
             sync_chap_secrets($pdo);
         }
     } elseif ($act === 'delete' && ($id = (int)($_POST['id'] ?? 0))) {
