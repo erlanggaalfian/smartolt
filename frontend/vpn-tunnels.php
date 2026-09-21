@@ -20,6 +20,21 @@ function get_ovpn_tunnel_ips(): array {
 
 
 
+// Write iroute rules to CCD file for a given cert CN
+function write_ccd_iroute($cn, $routes) {
+    $ccd_dir = "/etc/openvpn/ccd";
+    if (!is_dir($ccd_dir)) return;
+    $lines = [];
+    foreach ($routes as $rt) {
+        $rt = trim($rt);
+        if (!$rt || strpos($rt, "/") === false) continue;
+        list($net, $cidr) = explode("/", $rt);
+        $mask = long2ip(-1 << (32 - (int)$cidr));
+        $lines[] = "iroute $net $mask";
+    }
+    @file_put_contents("$ccd_dir/$cn", implode("\n", $lines) . "\n");
+}
+
 // Sync VPN tunnel status from OpenVPN status log (OpenVPN 2.6 format)
 function sync_vpn_status($pdo) {
     $status = @file_get_contents("/var/log/openvpn/openvpn-status.log");
@@ -48,7 +63,7 @@ function sync_vpn_status($pdo) {
             $tip = $tunnel_ips[$c['cn']] ?? null;
             $pdo->prepare("UPDATE vpn_tunnels SET status='connected', client_ip=?, tunnel_ip=? WHERE id=?")
                  ->execute([$c['ip'], $tip, $t['id']]);
-            // Apply routes from DB to server routing table
+            // Apply routes from DB to server routing table + CCD iroute
             if ($tip) {
                 $row = $pdo->query("SELECT routes_json FROM vpn_tunnels WHERE id=" . (int)$t['id'])->fetch();
                 $routes = $row['routes_json'] ? json_decode($row['routes_json'], true) : [];
@@ -56,6 +71,7 @@ function sync_vpn_status($pdo) {
                     $rt = trim($rt);
                     if ($rt) exec("sudo ip route replace $rt via $tip dev tun0 2>/dev/null");
                 }
+                write_ccd_iroute($c['cn'], (array)$routes);
             }
             $used++;
         } else {
