@@ -1,4 +1,6 @@
 <?php
+// Generate MikroTik .rsc script for VPN tunnel setup
+// Access: /vpn/<id>/<token>.rsc (path-based, MikroTik friendly)
 require_once __DIR__ . '/../backend/db.php';
 
 // Auth: session (admin) OR token (MikroTik fetch)
@@ -20,54 +22,44 @@ $t = $stmt->fetch(PDO::FETCH_ASSOC);
 if (!$t) { http_response_code(404); die('Not found'); }
 
 $server = 'smartolt.netbackup.my.id';
-$certUrl = "https://{$server}/api-vpn-cert.php";
+$certBase = "https://{$server}/api-vpn-cert.php";
 $username = $t['username'];
 $password = $t['password'];
 $vpnName = 'VPN-Erlangga-SmartOLT';
+$rscName = "setup-{$vpnName}-{$username}.rsc";
 
 header('Content-Type: text/plain');
-header("Content-Disposition: attachment; filename=\"setup-{$vpnName}-{$username}.rsc\"");
+header("Content-Disposition: attachment; filename=\"{$rscName}\"");
 
-echo "# === {$vpnName} Setup — {$username} ===\n\n";
-
+// All commands must be single-line (MikroTik CLI does NOT support line continuation)
+echo "# === {$vpnName} Setup - {$username} ===\n";
+echo "\n";
 echo "# 1. Download certificates\n";
-echo "/tool fetch url=\"{$certUrl}?file=ca-Erlangga-SmartOLT.crt&token={$token}\" dst-path=ca-Erlangga-SmartOLT.crt\n";
+echo "/tool fetch url=\"{$certBase}?file=ca-Erlangga-SmartOLT.crt&token={$token}\" dst-path=ca-Erlangga-SmartOLT.crt\n";
 echo ":delay 2s\n";
-echo "/tool fetch url=\"{$certUrl}?file={$vpnName}.crt&token={$token}\" dst-path={$vpnName}.crt\n";
+echo "/tool fetch url=\"{$certBase}?file={$vpnName}.crt&token={$token}\" dst-path={$vpnName}.crt\n";
 echo ":delay 2s\n";
-echo "/tool fetch url=\"{$certUrl}?file={$vpnName}.key&token={$token}\" dst-path={$vpnName}.key\n";
-echo ":delay 3s\n\n";
-
+echo "/tool fetch url=\"{$certBase}?file={$vpnName}.key&token={$token}\" dst-path={$vpnName}.key\n";
+echo ":delay 3s\n";
+echo "\n";
 echo "# 2. Import certificates\n";
 echo "/certificate import file-name=ca-Erlangga-SmartOLT.crt passphrase=\"\"\n";
 echo ":delay 1s\n";
 echo "/certificate import file-name={$vpnName}.crt passphrase=\"\"\n";
 echo ":delay 1s\n";
 echo "/certificate import file-name={$vpnName}.key passphrase=\"\"\n";
-echo ":delay 1s\n\n";
-
+echo ":delay 1s\n";
+echo "\n";
 echo "# 3. Add OpenVPN client\n";
-echo "/interface ovpn-client add \\n";
-echo "  name=ovpn-{$vpnName} \\n";
-echo "  connect-to={$server} \\n";
-echo "  port=1194 \\n";
-echo "  mode=ip \\n";
-echo "  protocol=tcp \\n";
-echo "  user={$username} \\n";
-echo "  password=\"{$password}\" \\n";
-echo "  certificate={$vpnName}.crt_0 \\n";
-echo "  cipher=aes128 \\n";
-echo "  auth=sha1 \\n";
-echo "  add-default-route=no \\n";
-echo "  disabled=no\n\n";
-
-echo "# 4. Bersihkan file cert dari MikroTik\n";
+echo "/interface ovpn-client add name=ovpn-{$vpnName} connect-to={$server} port=1194 mode=ip protocol=tcp user={$username} password={$password} certificate={$vpnName}.crt_0 cipher=aes128 auth=sha1 add-default-route=no disabled=no\n";
+echo "\n";
+echo "# 4. Bersihkan file dari MikroTik\n";
 echo "/file remove ca-Erlangga-SmartOLT.crt\n";
 echo "/file remove {$vpnName}.crt\n";
 echo "/file remove {$vpnName}.key\n";
-echo "/file remove setup-{$vpnName}-{$username}.rsc\n";
-echo ":delay 1s\n\n";
-
+echo "/file remove {$rscName}\n";
+echo ":delay 1s\n";
+echo "\n";
 echo "# 5. Selesai\n";
 echo ":log info \"{$vpnName} setup selesai untuk {$username}\"\n";
 echo ":delay 2s\n";
