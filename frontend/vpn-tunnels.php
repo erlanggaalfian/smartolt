@@ -279,7 +279,10 @@ include __DIR__ . '/header.php';
                 <div class="form-group">
                     <label>Tunnel Routes <small style="color:var(--text-muted)">(subnet per baris, contoh: 192.168.1.0/24)</small></label>
                     <div id="add-routes-container">
-                        <input type="text" name="routes[]" class="form-control" placeholder="192.168.1.0/24" style="margin-bottom:4px;">
+                        <div style="display:flex;gap:4px;margin-bottom:4px;align-items:center;">
+                            <input type="text" name="routes[]" class="form-control" placeholder="192.168.1.0/24" style="flex:1;">
+                            <button type="button" class="btn btn-xs btn-outline" style="color:var(--red);min-width:28px;" onclick="this.parentElement.remove()">×</button>
+                        </div>
                     </div>
                     <button type="button" class="btn btn-xs btn-outline" onclick="addRouteRow('add-routes-container')">+ Tambah Route</button>
                 </div>
@@ -315,7 +318,10 @@ include __DIR__ . '/header.php';
                     <label>Tunnel Routes</label>
                     <div id="edit-routes-container">
                         <?php foreach ($edit_routes as $r): ?>
-                            <input type="text" name="routes[]" class="form-control" value="<?= htmlspecialchars($r) ?>" placeholder="192.168.1.0/24" style="margin-bottom:4px;">
+                            <div style="display:flex;gap:4px;margin-bottom:4px;align-items:center;">
+                                <input type="text" name="routes[]" class="form-control" value="<?= htmlspecialchars($r) ?>" placeholder="192.168.1.0/24" style="flex:1;">
+                                <button type="button" class="btn btn-xs btn-outline" style="color:var(--red);min-width:28px;" onclick="this.parentElement.remove()">×</button>
+                            </div>
                         <?php endforeach; ?>
                     </div>
                     <button type="button" class="btn btn-xs btn-outline" onclick="addRouteRow('edit-routes-container')">+ Tambah Route</button>
@@ -362,10 +368,19 @@ const serverIP = "smartolt.netbackup.my.id";
 
 function addRouteRow(containerId) {
     const c = document.getElementById(containerId);
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex;gap:4px;margin-bottom:4px;align-items:center;';
     const input = document.createElement('input');
     input.type = 'text'; input.name = 'routes[]'; input.className = 'form-control';
-    input.placeholder = '192.168.1.0/24'; input.style.marginBottom = '4px';
-    c.appendChild(input);
+    input.placeholder = '192.168.1.0/24'; input.style.flex = '1';
+    const btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'btn btn-xs btn-outline';
+    btn.style.cssText = 'color:var(--red);min-width:28px;';
+    btn.textContent = '\u00d7';
+    btn.onclick = function() { div.remove(); };
+    div.appendChild(input);
+    div.appendChild(btn);
+    c.appendChild(div);
 }
 
 function showMikrotik(id) {
