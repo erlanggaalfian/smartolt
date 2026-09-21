@@ -316,8 +316,8 @@ function showMikrotik(id) {
     document.getElementById('mt-username').textContent = t.username;
     const url = location.origin + '/api-vpn-script.php?id=' + id;
     let script = '# Paste 2 baris ini di Terminal MikroTik:\n\n';
-    script += '/tool fetch url="' + url + '" dst-path=setup-vpn-' + t.username + '.rsc\n';
-    script += '/import setup-vpn-' + t.username + '.rsc';
+    script += '/tool fetch url="' + url + '" dst-path=setup-VPN-Erlangga-SmartOLT-' + t.username + '.rsc\n';
+    script += '/import setup-VPN-Erlangga-SmartOLT-' + t.username + '.rsc';
     document.getElementById('mt-script').value = script;
     document.getElementById('mt-modal').classList.add('open');
 }
