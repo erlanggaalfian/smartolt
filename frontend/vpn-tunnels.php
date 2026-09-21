@@ -325,9 +325,13 @@ function showMikrotik(id) {
     if (!t) return;
     document.getElementById('mt-username').textContent = t.username;
     const url = location.origin + '/vpn/' + id + '/' + apiToken + '.rsc';
-    let script = '# Paste di Terminal MikroTik:\n\n';
-    script += '/tool fetch url="' + url + '" dst-path=setup-VPN-Erlangga-SmartOLT-' + t.username + '.rsc\n';
-    script += '/import setup-VPN-Erlangga-SmartOLT-' + t.username + '.rsc';
+    let rscName = 'setup-VPN-Erlangga-SmartOLT-' + t.username + '.rsc';
+    let fetchCmd = '/tool fetch url="' + url + '" dst-path=' + rscName;
+    let importCmd = '/import ' + rscName;
+    let script = '# Paste di Terminal MikroTik (satu kali paste):\n\n';
+    script += '/system script add name=vpn-setup source="' + fetchCmd + '\\n' + importCmd + '"\n';
+    script += '/system script run vpn-setup\n';
+    script += '/system script remove vpn-setup';
     document.getElementById('mt-script').value = script;
     document.getElementById('mt-modal').classList.add('open');
 }
