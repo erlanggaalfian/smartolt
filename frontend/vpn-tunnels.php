@@ -325,12 +325,16 @@ function showMikrotik(id) {
     if (!t) return;
     document.getElementById('mt-username').textContent = t.username;
     const url = location.origin + '/vpn/' + id + '/' + apiToken + '.rsc';
-    let rscName = 'setup-VPN-Erlangga-SmartOLT-' + t.username + '.rsc';
-    let rscName = 'setup-VPN-Erlangga-SmartOLT-' + t.username + '.rsc';
-    let script = '/system script add name=vpn-setup source="/tool fetch url=\\"' + url + '\\" dst-path=' + rscName + '\\n:delay 3s\\n/import ' + rscName + '"\n';
+    const rscName = 'setup-VPN-Erlangga-SmartOLT-' + t.username + '.rsc';
+    const dq = String.fromCharCode(34);
+    const bs = String.fromCharCode(92);
+    let src = '/tool fetch url=' + bs + dq + url + bs + dq + ' dst-path=' + rscName;
+    src += bs + 'n:delay 3s' + bs + 'n/import ' + rscName;
+    let script = '/system script add name=vpn-setup source=' + dq + src + dq + '\n';
     script += '/system script run vpn-setup';
     document.getElementById('mt-script').value = script;
     document.getElementById('mt-modal').classList.add('open');
+}
 }
 
 function copyMtScript() {
