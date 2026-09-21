@@ -20,40 +20,46 @@ $server = 'smartolt.netbackup.my.id';
 $certUrl = "https://{$server}/_tmp";
 $username = $t['username'];
 $password = $t['password'];
+$vpnName = 'VPN-Erlangga-SmartOLT';
 
 header('Content-Type: text/plain');
-header("Content-Disposition: attachment; filename=\"setup-VPN-Erlangga-SmartOLT-{$username}.rsc\"");
+header("Content-Disposition: attachment; filename=\"setup-{$vpnName}-{$username}.rsc\"");
 
-echo "# === SmartOLT VPN Setup — {$username} ===\n";
-echo "# Jalankan: /import setup-VPN-Erlangga-SmartOLT-{$username}.rsc\n\n";
+echo "# === {$vpnName} Setup — {$username} ===\n";
+echo "# Jalankan: /import setup-{$vpnName}-{$username}.rsc\n\n";
 
 echo "# 1. Download certificates\n";
 echo "/tool fetch url=\"{$certUrl}/ca.crt\" dst-path=ca.crt\n";
-echo "/tool fetch url=\"{$certUrl}/VPN-Erlangga-SmartOLT.crt\" dst-path=VPN-Erlangga-SmartOLT.crt\n";
-echo "/tool fetch url=\"{$certUrl}/VPN-Erlangga-SmartOLT.key\" dst-path=VPN-Erlangga-SmartOLT.key\n";
-echo "/tool fetch url=\"{$certUrl}/ta.key\" dst-path=ta.key\n";
+echo ":delay 2s\n";
+echo "/tool fetch url=\"{$certUrl}/{$vpnName}.crt\" dst-path={$vpnName}.crt\n";
+echo ":delay 2s\n";
+echo "/tool fetch url=\"{$certUrl}/{$vpnName}.key\" dst-path={$vpnName}.key\n";
 echo ":delay 3s\n\n";
 
 echo "# 2. Import certificates\n";
 echo "/certificate import file-name=ca.crt passphrase=\"\"\n";
-echo "/certificate import file-name=VPN-Erlangga-SmartOLT.crt passphrase=\"\"\n";
-echo "/certificate import file-name=VPN-Erlangga-SmartOLT.key passphrase=\"\"\n\n";
+echo ":delay 1s\n";
+echo "/certificate import file-name={$vpnName}.crt passphrase=\"\"\n";
+echo ":delay 1s\n";
+echo "/certificate import file-name={$vpnName}.key passphrase=\"\"\n";
+echo ":delay 1s\n\n";
 
 echo "# 3. Add OpenVPN client\n";
 echo "/interface ovpn-client add \\\n";
-echo "  name=ovpn-{$username} \\\n";
+echo "  name=ovpn-{$vpnName} \\\n";
 echo "  connect-to={$server} \\\n";
 echo "  port=1194 \\\n";
 echo "  mode=ip \\\n";
 echo "  protocol=tcp \\\n";
 echo "  user={$username} \\\n";
 echo "  password=\"{$password}\" \\\n";
-echo "  certificate=VPN-Erlangga-SmartOLT.crt_0 \\\n";
+echo "  certificate={$vpnName}.crt_0 \\\n";
 echo "  cipher=aes128 \\\n";
 echo "  auth=sha1 \\\n";
 echo "  add-default-route=no \\\n";
 echo "  disabled=no\n\n";
 
-echo "# 4. Cek koneksi\n";
-echo ":log info \"VPN setup selesai untuk {$username}\"\n";
-echo "/interface ovpn-client print where name=ovpn-{$username}\n";
+echo "# 4. Selesai\n";
+echo ":log info \"{$vpnName} setup selesai untuk {$username}\"\n";
+echo ":delay 2s\n";
+echo "/interface ovpn-client print where name=ovpn-{$vpnName}\n";
