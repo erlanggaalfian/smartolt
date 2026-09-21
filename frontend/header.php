@@ -154,6 +154,9 @@ session_write_close();
                                     <a href="settings-speed-profiles.php" class="topnav-dropdown-item <?php echo $current_page === 'settings-speed-profiles.php' ? 'active' : ''; ?>">
                                         <i data-lucide="gauge" style="width:14px; height:14px;"></i> Speed Profile
                                     </a>
+                                    <a href="vpn-tunnels.php" class="topnav-dropdown-item <?php echo $current_page === 'vpn-tunnels.php' ? 'active' : ''; ?>">
+                                        <i data-lucide="shield" style="width:14px; height:14px;"></i> VPN Tunnels
+                                    </a>
                                 </div>
                             </div>
                         <?php endif; ?>
