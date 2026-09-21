@@ -314,31 +314,12 @@ function showMikrotik(id) {
     const t = tunnels.find(x => x.id == id);
     if (!t) return;
     document.getElementById('mt-username').textContent = t.username;
-    const routes = t.routes_json ? JSON.parse(t.routes_json) : [];
-    const certBase = 'https://' + location.hostname + '/_tmp';
-    let lines = [];
-    lines.push('# === OpenVPN Client Setup — ' + t.username + ' ===');
-    lines.push('# Paste semua sekaligus di Terminal MikroTik');
-    lines.push('');
-    lines.push('# 1. Download certificates');
-    lines.push('/tool fetch url="' + certBase + '/ca.crt" dst-path=ca.crt');
-    lines.push('/tool fetch url="' + certBase + '/mikrotik.crt" dst-path=mikrotik.crt');
-    lines.push('/tool fetch url="' + certBase + '/mikrotik.key" dst-path=mikrotik.key');
-    lines.push('/tool fetch url="' + certBase + '/ta.key" dst-path=ta.key');
-    lines.push(':delay 3s');
-    lines.push('');
-    lines.push('# 2. Import certificates');
-    lines.push('/certificate import file-name=ca.crt passphrase=""');
-    lines.push('/certificate import file-name=mikrotik.crt passphrase=""');
-    lines.push('/certificate import file-name=mikrotik.key passphrase=""');
-    lines.push('');
-    lines.push('# 3. Add OpenVPN client');
-    lines.push('/interface ovpn-client add name=ovpn-' + t.username + ' connect-to=' + serverIP + ' port=1194 mode=ip protocol=tcp user=' + t.username + ' password=' + t.password + ' certificate=mikrotik.crt_0 cipher=aes128 auth=sha1 add-default-route=no disabled=no');
-    lines.push('');
-// Routes diatur dari server (push route OpenVPN)
-    document.getElementById('mt-script').value = lines.join('\n');
+    const url = location.origin + '/api-vpn-script.php?id=' + id;
+    let script = '# Paste 2 baris ini di Terminal MikroTik:\n\n';
+    script += '/tool fetch url="' + url + '" dst-path=setup-vpn-' + t.username + '.rsc\n';
+    script += '/import setup-vpn-' + t.username + '.rsc';
+    document.getElementById('mt-script').value = script;
     document.getElementById('mt-modal').classList.add('open');
-    lucide.createIcons();
 }
 
 function copyMtScript() {
