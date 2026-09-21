@@ -1,6 +1,24 @@
 <?php
 require_once __DIR__ . '/../backend/db.php';
 
+// Auto-detect tunnel IP from OpenVPN status log
+function get_ovpn_tunnel_ips(): array {
+    $map = [];
+    $status = file_get_contents("/var/log/openvpn/openvpn-status.log");
+    if (!$status) return $map;
+    $in_routing = false;
+    foreach (explode("\n", $status) as $line) {
+        if (strpos($line, 'ROUTING TABLE') !== false) { $in_routing = true; continue; }
+        if (strpos($line, 'GLOBAL STATS') !== false) break;
+        if ($in_routing && strpos($line, ',') !== false) {
+            $parts = explode(',', $line);
+            if (count($parts) >= 2) $map[trim($parts[1])] = trim($parts[0]);
+        }
+    }
+    return $map;
+}
+
+
 if (!isset($_SESSION["smartolt_role"]) || $_SESSION["smartolt_role"] !== "superadmin") {
     $_SESSION["error"] = "Akses ditolak!";
     header("Location: ../dashboard.php");
@@ -18,29 +36,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($act === 'add') {
         $u = trim($_POST['username'] ?? '');
         $p = trim($_POST['password'] ?? '');
-        $tip = trim($_POST['tunnel_ip'] ?? '');
-        $routes_raw = $_POST['routes'] ?? [];
+                $routes_raw = $_POST['routes'] ?? [];
         $routes = [];
         foreach ((array)$routes_raw as $r) {
             $r = trim($r);
             if ($r !== '') $routes[] = $r;
         }
         if ($u && $p && $tip) {
-            $stmt = $pdo->prepare("INSERT INTO vpn_tunnels (username, password, tunnel_ip, routes_json) VALUES (?,?,?,?)");
+            $stmt = $pdo->prepare("INSERT INTO vpn_tunnels (username, password, routes_json) VALUES (?,?,?)");
             $stmt->execute([$u, $p, $tip, $routes ? json_encode($routes) : null]);
             sync_chap_secrets($pdo);
         }
     } elseif ($act === 'update' && ($id = (int)($_POST['id'] ?? 0))) {
         $p = trim($_POST['password'] ?? '');
-        $tip = trim($_POST['tunnel_ip'] ?? '');
-        $routes_raw = $_POST['routes'] ?? [];
+                $routes_raw = $_POST['routes'] ?? [];
         $routes = [];
         foreach ((array)$routes_raw as $r) {
             $r = trim($r);
             if ($r !== '') $routes[] = $r;
         }
         if ($p && $tip) {
-            $stmt = $pdo->prepare("UPDATE vpn_tunnels SET password=?, tunnel_ip=?, routes_json=? WHERE id=?");
+            $stmt = $pdo->prepare("UPDATE vpn_tunnels SET password=?, routes_json=? WHERE id=?");
             $stmt->execute([$p, $tip, $routes ? json_encode($routes) : null, $id]);
             sync_chap_secrets($pdo);
         }
@@ -164,7 +180,7 @@ include __DIR__ . '/header.php';
                     </td>
                     <td class="mono"><?= htmlspecialchars($t['username']) ?></td>
                     <td><?= $t['client_ip'] ? htmlspecialchars($t['client_ip']) : '<span style="color:var(--text-muted)">—</span>' ?></td>
-                    <td class="mono"><?= htmlspecialchars($t['tunnel_ip']) ?></td>
+                    <td class="mono"><?= htmlspecialchars($ovpn_ips[$t['username']] ?? '-') ?></td>
                     <td>
                         <?php if ($routes_count > 0): ?>
                             <span class="badge badge-blue"><?= $routes_count ?> route<?= $routes_count > 1 ? 's' : '' ?></span>
@@ -211,7 +227,7 @@ include __DIR__ . '/header.php';
                     <div class="form-group"><label>Username</label><input type="text" name="username" class="form-control" required placeholder="mikrotik-01"></div>
                     <div class="form-group"><label>Password</label><input type="text" name="password" class="form-control" required></div>
                 </div>
-                <div class="form-group"><label>Tunnel IP</label><input type="text" name="tunnel_ip" class="form-control" required placeholder="10.198.198.2"></div>
+                <!-- Tunnel IP auto-assigned by OpenVPN server -->
                 <div class="form-group">
                     <label>Tunnel Routes <small style="color:var(--text-muted)">(subnet per baris, contoh: 192.168.1.0/24)</small></label>
                     <div id="add-routes-container">
@@ -245,7 +261,7 @@ include __DIR__ . '/header.php';
                 <div class="form-group"><label>Username</label><input type="text" class="form-control" value="<?= htmlspecialchars($edit_tunnel['username']) ?>" disabled></div>
                 <div class="form-grid">
                     <div class="form-group"><label>Password</label><input type="text" name="password" class="form-control" required value="<?= htmlspecialchars($edit_tunnel['password']) ?>"></div>
-                    <div class="form-group"><label>Tunnel IP</label><input type="text" name="tunnel_ip" class="form-control" required value="<?= htmlspecialchars($edit_tunnel['tunnel_ip']) ?>"></div>
+                    <!-- Tunnel IP auto-assigned by OpenVPN server -->
                 </div>
                 <div class="form-group">
                     <label>Tunnel Routes</label>
@@ -284,7 +300,7 @@ include __DIR__ . '/header.php';
 <script>
 // Tunnel data for MikroTik script generator
 const tunnels = <?= json_encode($tunnels, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
-const serverIP = "<?= isset($_SERVER['SERVER_ADDR']) ? $_SERVER['SERVER_ADDR'] : '103.210.52.65' ?>";
+const serverIP = "smartolt.netbackup.my.id";
 
 function addRouteRow(containerId) {
     const c = document.getElementById(containerId);
@@ -317,17 +333,9 @@ function showMikrotik(id) {
     lines.push('/certificate import file-name=mikrotik.key passphrase=""');
     lines.push('');
     lines.push('# 3. Add OpenVPN client');
-    lines.push('/interface ovpn-client add name=ovpn-' + t.username + ' connect-to=' + serverIP + ' port=1194 mode=ip protocol=tcp user=' + t.username + ' password="' + t.password + '" certificate=mikrotik.crt_0 cipher=aes128-cbc auth=sha1 add-default-route=no disabled=no');
+    lines.push('/interface ovpn-client add name=ovpn-' + t.username + ' connect-to=' + serverIP + ' port=1194 mode=ip protocol=tcp user=' + t.username + ' password=' + t.password + ' certificate=mikrotik.crt_0 cipher=aes128 auth=sha1 add-default-route=no disabled=no');
     lines.push('');
-    lines.push('# 4. Route ke GenieACS via VPN');
-    lines.push('/ip route add dst-address=10.198.198.0/24 gateway=ovpn-' + t.username);
-    if (routes.length > 0) {
-        lines.push('');
-        lines.push('# 5. Routes subnet ONU pelanggan');
-        routes.forEach(r => {
-            lines.push('/ip route add dst-address=' + r + ' gateway=ovpn-' + t.username);
-        });
-    }
+// Routes diatur dari server (push route OpenVPN)
     document.getElementById('mt-script').value = lines.join('\n');
     document.getElementById('mt-modal').classList.add('open');
     lucide.createIcons();
