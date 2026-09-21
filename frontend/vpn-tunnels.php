@@ -54,7 +54,7 @@ function sync_vpn_status($pdo) {
                 $routes = $row['routes_json'] ? json_decode($row['routes_json'], true) : [];
                 foreach ((array)$routes as $rt) {
                     $rt = trim($rt);
-                    if ($rt) exec("ip route replace $rt via $tip dev tun0 2>/dev/null");
+                    if ($rt) exec("sudo ip route replace $rt via $tip dev tun0 2>/dev/null");
                 }
             }
             $used++;
@@ -112,7 +112,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($old_tip) {
                 foreach ((array)$old_routes as $rt) {
                     $rt = trim($rt);
-                    if ($rt) exec("ip route del $rt via $old_tip dev tun0 2>/dev/null");
+                    if ($rt) exec("sudo ip route del $rt via $old_tip dev tun0 2>/dev/null");
                 }
             }
             $stmt = $pdo->prepare("UPDATE vpn_tunnels SET password=?, routes_json=? WHERE id=?");
@@ -121,7 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($old_tip) {
                 foreach ($routes as $rt) {
                     $rt = trim($rt);
-                    if ($rt) exec("ip route replace $rt via $old_tip dev tun0 2>/dev/null");
+                    if ($rt) exec("sudo ip route replace $rt via $old_tip dev tun0 2>/dev/null");
                 }
             }
             sync_chap_secrets($pdo);
