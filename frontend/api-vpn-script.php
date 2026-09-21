@@ -59,7 +59,13 @@ echo "  auth=sha1 \\\n";
 echo "  add-default-route=no \\\n";
 echo "  disabled=no\n\n";
 
-echo "# 4. Selesai\n";
+echo "# 4. Bersihkan file cert dari MikroTik\n";
+echo "/file remove ca-Erlangga-SmartOLT.crt\n";
+echo "/file remove {$vpnName}.crt\n";
+echo "/file remove {$vpnName}.key\n";
+echo ":delay 1s\n\n";
+
+echo "# 5. Selesai\n";
 echo ":log info \"{$vpnName} setup selesai untuk {$username}\"\n";
 echo ":delay 2s\n";
 echo "/interface ovpn-client print where name=ovpn-{$vpnName}\n";
