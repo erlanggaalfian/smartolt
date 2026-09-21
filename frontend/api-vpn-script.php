@@ -17,7 +17,7 @@ $t = $stmt->fetch(PDO::FETCH_ASSOC);
 if (!$t) { http_response_code(404); die('Not found'); }
 
 $server = 'smartolt.netbackup.my.id';
-$certUrl = "https://{$server}/_tmp";
+$certUrl = "https://{$server}/api-vpn-cert.php?file=";
 $username = $t['username'];
 $password = $t['password'];
 $vpnName = 'VPN-Erlangga-SmartOLT';
