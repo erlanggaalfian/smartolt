@@ -299,30 +299,16 @@ function showMikrotik(id) {
     if (!t) return;
     document.getElementById('mt-username').textContent = t.username;
     const routes = t.routes_json ? JSON.parse(t.routes_json) : [];
-    let script = `/interface l2tp-client add \
-  name=l2tp-${t.username} \
-  connect-to=${serverIP} \
-  user=${t.username} \
-  password="${t.password}" \
-  profile=default-encryption \
-  use-ipsec=yes \
-  ipsec-secret="${t.password}" \
-  disabled=no
-
-/ip firewall address-list add \
-  list=l2tp-clients \
-  address=${t.tunnel_ip}`;
-
+    let lines = [];
+    lines.push('/interface l2tp-client add name=l2tp-' + t.username + ' connect-to=' + serverIP + ' user=' + t.username + ' password="' + t.password + '" profile=default-encryption use-ipsec=yes ipsec-secret="' + t.password + '" allow=pap,chap,mschap1,mschap2 add-default-route=no disabled=no');
+    lines.push('/ip firewall address-list add list=l2tp-clients address=' + t.tunnel_ip);
     if (routes.length > 0) {
-        script += `
-
-# Routes ke subnet ONU pelanggan via tunnel`;
+        lines.push('# Routes ke subnet ONU pelanggan via tunnel');
         routes.forEach(r => {
-            script += `
-/ip route add dst-address=${r} gateway=l2tp-${t.username}`;
+            lines.push('/ip route add dst-address=' + r + ' gateway=l2tp-' + t.username);
         });
     }
-    document.getElementById('mt-script').value = script;
+    document.getElementById('mt-script').value = lines.join('\n');
     document.getElementById('mt-modal').classList.add('open');
     lucide.createIcons();
 }
