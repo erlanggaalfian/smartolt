@@ -327,7 +327,6 @@ function showMikrotik(id) {
     const url = location.origin + '/vpn/' + id + '/' + apiToken + '.rsc';
     let script = '# Paste di Terminal MikroTik:\n\n';
     script += '/tool fetch url="' + url + '" dst-path=setup-VPN-Erlangga-SmartOLT-' + t.username + '.rsc\n';
-    script += ':delay 3s\n';
     script += '/import setup-VPN-Erlangga-SmartOLT-' + t.username + '.rsc';
     document.getElementById('mt-script').value = script;
     document.getElementById('mt-modal').classList.add('open');
