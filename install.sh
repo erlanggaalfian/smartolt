@@ -98,6 +98,14 @@ read -p "   Port [3306]: " DB_PORT; DB_PORT=${DB_PORT:-"3306"}
 read -p "   Database Name [smartoltdb]: " DB_NAME; DB_NAME=${DB_NAME:-"smartoltdb"}
 read -p "   Database User [smartoltuser]: " DB_USER; DB_USER=${DB_USER:-"smartoltuser"}
 
+echo ""
+read -p "   * Install GenieACS TR-069? (y/N): " choice_genieacs
+INSTALL_GENIEACS=false
+if [[ "$choice_genieacs" =~ ^[Yy]$ ]]; then
+  INSTALL_GENIEACS=true
+  echo -e "   ${GREEN}[OK] GenieACS akan diinstall (MongoDB 4.4 + GenieACS 1.2.13).${NC}"
+fi
+
 read -s -p "   Password database (kosong = auto generate): " DB_PASS; echo ""
 if [ -z "$DB_PASS" ]; then
   DB_PASS=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 24)
@@ -164,6 +172,12 @@ printf "${CYAN}│${NC}  %-24s : ${BLUE}%-38s${NC}${CYAN}│${NC}\n" "Systemd Se
 printf "${CYAN}│${NC}  %-24s : ${BLUE}%-38s${NC}${CYAN}│${NC}\n" "Cron Job" "/etc/cron.d/smartolt-sync"
 printf "${CYAN}│${NC}  %-24s : ${BLUE}%-38s${NC}${CYAN}│${NC}\n" "Database" "${DB_NAME} @ ${DB_HOST}:${DB_PORT}"
 printf "${CYAN}│${NC}  %-24s : ${BLUE}%-38s${NC}${CYAN}│${NC}\n" "DB User" "${DB_USER}"
+if [ "$INSTALL_GENIEACS" = true ]; then
+  printf "${CYAN}│${NC}  %-24s : ${GREEN}%-38s${NC}${CYAN}│${NC}\n" "GenieACS TR-069" "MongoDB 4.4 + GenieACS 1.2.13"
+  printf "${CYAN}│${NC}  %-24s : ${BLUE}%-38s${NC}${CYAN}│${NC}\n" "  CWMP (TR-069)" "0.0.0.0:7547"
+  printf "${CYAN}│${NC}  %-24s : ${BLUE}%-38s${NC}${CYAN}│${NC}\n" "  NBI (REST API)" "0.0.0.0:7559"
+  printf "${CYAN}│${NC}  %-24s : ${BLUE}%-38s${NC}${CYAN}│${NC}\n" "  FS (File)" "0.0.0.0:7567"
+fi
 if [ -n "$IMPORT_SQL_PATH" ]; then
   printf "${CYAN}│${NC}  %-24s : ${GREEN}%-38s${NC}${CYAN}│${NC}\n" "Restore Backup" "$(basename "$IMPORT_SQL_PATH")"
   printf "${CYAN}│${NC}  %-24s : ${GREEN}%-38s${NC}${CYAN}│${NC}\n" "Backup Path" "${IMPORT_SQL_PATH}"
@@ -178,7 +192,7 @@ read -p "   Konfigurasi sudah sesuai? (Y/n): " confirm_config
 # ==============================================================================
 # 1/6 — INSTAL DEPENDENSI SISTEM
 # ==============================================================================
-echo -e "\n${YELLOW}[1/6] Menginstal dependensi sistem...${NC}"
+echo -e "\n${YELLOW}[1/7] Menginstal dependensi sistem...${NC}"
 apt-get update &> /dev/null
 apt-get install -y apache2 php libapache2-mod-php php-mysql php-ssh2 php-snmp snmp sshpass default-mysql-client rsync &> /dev/null
 echo -e "      ${GREEN}[OK] PHP, Apache2, SNMP, SSHPass terpasang.${NC}"
@@ -186,7 +200,7 @@ echo -e "      ${GREEN}[OK] PHP, Apache2, SNMP, SSHPass terpasang.${NC}"
 # ==============================================================================
 # 2/6 — SALIN BERKAS
 # ==============================================================================
-echo -e "\n${YELLOW}[2/6] Menyalin berkas ke ${TARGET_DIR}...${NC}"
+echo -e "\n${YELLOW}[2/7] Menyalin berkas ke ${TARGET_DIR}...${NC}"
 mkdir -p "${TARGET_DIR}"
 
 rsync -a \
@@ -219,7 +233,7 @@ echo -e "      ${GREEN}[OK] Berkas berhasil disalin.${NC}"
 # ==============================================================================
 # 3/6 — SETUP PYTHON ENGINE
 # ==============================================================================
-echo -e "\n${YELLOW}[3/6] Mengonfigurasi Python Engine...${NC}"
+echo -e "\n${YELLOW}[3/7] Mengonfigurasi Python Engine...${NC}"
 if ! command -v python3 &> /dev/null; then
   apt-get install -y python3 python3-pip python3-venv &> /dev/null
 fi
@@ -304,7 +318,7 @@ fi
 # ==============================================================================
 # 4/6 — KONFIGURASI DATABASE
 # ==============================================================================
-echo -e "\n${YELLOW}[4/6] Mengonfigurasi database MySQL...${NC}"
+echo -e "\n${YELLOW}[4/7] Mengonfigurasi database MySQL...${NC}"
 
 $MYSQL_ROOT_CMD -e "
 CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\`;
@@ -397,7 +411,7 @@ fi
 # ==============================================================================
 # 5/6 — BUAT .env & KONFIGURASI APACHE
 # ==============================================================================
-echo -e "\n${YELLOW}[5/6] Mengonfigurasi .env & Apache...${NC}"
+echo -e "\n${YELLOW}[5/7] Mengonfigurasi .env & Apache...${NC}"
 
 APP_KEY=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 32)
 cat <<EOF > "${TARGET_DIR}/.env"
@@ -479,9 +493,85 @@ if [ "$APP_PROTO" = "https" ] && [ "$EXT_PORT" = "443" ]; then
 fi
 
 # ==============================================================================
-# 6/6 — CRON JOB & FINALISASI
-# ==============================================================================
-echo -e "\n${YELLOW}[6/6] Mengonfigurasi Cron Job & Finalisasi...${NC}"
+# 6/7 — INSTALASI GENIEACS TR-069 (OPSIONAL)
+# =============================================================================
+if [ "$INSTALL_GENIEACS" = true ]; then
+  echo -e "\n${YELLOW}[6/7] Menginstal GenieACS (MongoDB 4.4 + GenieACS 1.2.13)...${NC}"
+
+  # --- MongoDB 4.4 (butuh libssl1.1, versi terakhir tanpa AVX) ---
+  if ! command -v mongod &> /dev/null; then
+    # libssl1.1 dependency
+    if ! dpkg -l 2>/dev/null | grep -q libssl1.1; then
+      echo -e "      Install libssl1.1..."
+      wget -q http://archive.debian.org/debian/pool/main/o/openssl/libssl1.1_1.1.1w-0+deb11u1_amd64.deb -O /tmp/libssl1.1.deb
+      dpkg -i /tmp/libssl1.1.deb &> /dev/null
+    fi
+
+    # Add MongoDB 4.4 repo
+    curl -fsSL https://www.mongodb.org/static/pgp/server-4.4.asc | gpg --dearmor -o /usr/share/keyrings/mongodb-server-4.4.gpg 2>/dev/null
+    echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-4.4.gpg ] http://repo.mongodb.org/apt/debian buster/mongodb-org/4.4 main" > /etc/apt/sources.list.d/mongodb-org-4.4.list
+    apt-get update -qq
+    apt-get install -y mongodb-org-server=4.4.29 mongodb-org-shell=4.4.29 mongodb-org-tools=4.4.29 &> /dev/null
+  fi
+
+  systemctl enable mongod &> /dev/null
+  systemctl start mongod
+  echo -e "      ${GREEN}[OK] MongoDB $(mongosh --eval 'db.version()' --quiet 2>/dev/null || mongo --eval 'db.version()' --quiet) berjalan di port 27017.${NC}"
+
+  # --- GenieACS ---
+  if ! command -v genieacs-cwmp &> /dev/null; then
+    npm install -g genieacs@1.2.13 &> /dev/null
+  fi
+
+  # Config
+  mkdir -p /opt/genieacs/ext
+  cat > /opt/genieacs/genieacs.env << 'GENEOF'
+GENIEACS_CWMP_INTERFACE=0.0.0.0
+GENIEACS_CWMP_PORT=7547
+GENIEACS_NBI_INTERFACE=0.0.0.0
+GENIEACS_NBI_PORT=7559
+GENIEACS_FS_INTERFACE=0.0.0.0
+GENIEACS_FS_PORT=7567
+GENIEACS_MONGODB_CONNECTION_URL=mongodb://localhost:27017/genieacs
+GENIEACS_EXT_DIR=/opt/genieacs/ext
+GENIEACS_DEBUG=false
+GENEOF
+
+  # Systemd services
+  NODE_BIN=$(which node)
+  GACS_BIN=$(dirname $(readlink -f $(which genieacs-cwmp)))
+  for SVC in cwmp nbi fs; do
+    cat > /etc/systemd/system/genieacs-${SVC}.service << SVCEOF
+[Unit]
+Description=GenieACS ${SVC^^}
+After=network.target mongod.service
+Requires=mongod.service
+
+[Service]
+EnvironmentFile=/opt/genieacs/genieacs.env
+ExecStart=${NODE_BIN} ${GACS_BIN}/genieacs-${SVC}
+Restart=always
+RestartSec=5
+WorkingDirectory=/opt/genieacs
+
+[Install]
+WantedBy=multi-user.target
+SVCEOF
+  done
+
+  systemctl daemon-reload
+  systemctl enable genieacs-cwmp genieacs-nbi genieacs-fs &> /dev/null
+  systemctl restart genieacs-cwmp genieacs-nbi genieacs-fs
+  sleep 3
+  echo -e "      ${GREEN}[OK] GenieACS berjalan — CWMP:7547, NBI:7559, FS:7567${NC}"
+else
+  echo -e "\n${YELLOW}[6/7] GenieACS dilewati (tidak dipilih).${NC}"
+fi
+
+# =============================================================================
+# 7/7 — CRON JOB & FINALISASI
+# =============================================================================
+echo -e "\n${YELLOW}[7/7] Mengonfigurasi Cron Job & Finalisasi...${NC}"
 CRON_FILE="/etc/cron.d/smartolt-sync"
 cat <<EOF > "$CRON_FILE"
 * * * * * root ${TARGET_DIR}/backend/python_engine/venv/bin/python3 ${TARGET_DIR}/backend/python_engine/cron_sync.py > /dev/null 2>&1
@@ -508,5 +598,9 @@ echo -e "   Web root   : ${YELLOW}${TARGET_DIR}/frontend${NC}"
 echo -e "   Config     : ${YELLOW}${TARGET_DIR}/.env${NC}"
 if [ -n "$IMPORT_SQL_PATH" ]; then
   echo -e "   Database   : ${GREEN}Direstore dari $(basename "$IMPORT_SQL_PATH")${NC}"
+fi
+if [ "$INSTALL_GENIEACS" = true ]; then
+  echo -e "   GenieACS   : ${GREEN}CWMP:${NC}7547 ${GREEN}NBI:${NC}7559 ${GREEN}FS:${NC}7567"
+  echo -e "   MongoDB    : ${GREEN}4.4${NC} @ mongodb://localhost:27017/genieacs"
 fi
 echo ""
