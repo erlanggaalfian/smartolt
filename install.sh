@@ -104,6 +104,21 @@ INSTALL_GENIEACS=false
 if [[ "$choice_genieacs" =~ ^[Yy]$ ]]; then
   INSTALL_GENIEACS=true
   echo -e "   ${GREEN}[OK] GenieACS akan diinstall (MongoDB 4.4 + GenieACS 1.2.13).${NC}"
+  echo ""
+  read -p "   * Setup L2TP/IPsec VPN untuk GenieACS? (Y/n): " choice_l2tp
+  INSTALL_L2TP=true
+  if [[ "$choice_l2tp" =~ ^[Nn]$ ]]; then
+    INSTALL_L2TP=false
+    echo -e "   ${YELLOW}[SKIP] L2TP VPN dilewati.${NC}"
+  else
+    read -p "   VPN Subnet [10.198.198.0/24]: " VPN_SUBNET; VPN_SUBNET=${VPN_SUBNET:-"10.198.198.0/24"}
+    VPN_SERVER_IP="${VPN_SUBNET%.*}.1"
+    VPN_POOL_START="${VPN_SUBNET%.*}.10"
+    VPN_POOL_END="${VPN_SUBNET%.*}.254"
+    echo -e "   ${GREEN}[OK] L2TP VPN: server=${VPN_SERVER_IP}, pool=${VPN_POOL_START}-${VPN_POOL_END##*.}${NC}"
+  fi
+else
+  INSTALL_L2TP=false
 fi
 
 read -s -p "   Password database (kosong = auto generate): " DB_PASS; echo ""
@@ -177,6 +192,9 @@ if [ "$INSTALL_GENIEACS" = true ]; then
   printf "${CYAN}│${NC}  %-24s : ${BLUE}%-38s${NC}${CYAN}│${NC}\n" "  CWMP (TR-069)" "0.0.0.0:7547"
   printf "${CYAN}│${NC}  %-24s : ${BLUE}%-38s${NC}${CYAN}│${NC}\n" "  NBI (REST API)" "0.0.0.0:7559"
   printf "${CYAN}│${NC}  %-24s : ${BLUE}%-38s${NC}${CYAN}│${NC}\n" "  FS (File)" "0.0.0.0:7567"
+  if [ "$INSTALL_L2TP" = true ]; then
+    printf "${CYAN}│${NC}  %-24s : ${GREEN}%-38s${NC}${CYAN}│${NC}\n" "  L2TP/IPsec VPN" "${VPN_SUBNET}"
+  fi
 fi
 if [ -n "$IMPORT_SQL_PATH" ]; then
   printf "${CYAN}│${NC}  %-24s : ${GREEN}%-38s${NC}${CYAN}│${NC}\n" "Restore Backup" "$(basename "$IMPORT_SQL_PATH")"
@@ -564,6 +582,121 @@ SVCEOF
   systemctl restart genieacs-cwmp genieacs-nbi genieacs-fs
   sleep 3
   echo -e "      ${GREEN}[OK] GenieACS berjalan — CWMP:7547, NBI:7559, FS:7567${NC}"
+
+  # --- L2TP/IPsec VPN ---
+  if [ "$INSTALL_L2TP" = true ]; then
+    echo -e "      Menginstal L2TP/IPsec VPN..."
+
+    apt-get install -y strongswan xl2tpd ppp lsof iptables-persistent &> /dev/null
+
+    # IP forwarding
+    echo 'net.ipv4.ip_forward = 1' > /etc/sysctl.d/99-l2tp.conf
+    sysctl -p /etc/sysctl.d/99-l2tp.conf &> /dev/null
+
+    # PSK + credentials
+    L2TP_PSK=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 32)
+    L2TP_USER="mikrotik"
+    L2TP_PASS=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 16)
+
+    # strongSwan config
+    cat > /etc/ipsec.conf << 'IPSECCONF'
+config setup
+    virtual-private=%v4:10.0.0.0/8,%v4:192.168.0.0/16,%v4:172.16.0.0/12
+    uniqueids=no
+
+conn l2tp-psk
+    authby=secret
+    pfs=no
+    auto=add
+    keyingtries=3
+    rekey=no
+    type=transport
+    left=%defaultroute
+    leftprotoport=udp/1701
+    right=%any
+    rightprotoport=udp/1701
+    dpddelay=15
+    dpdtimeout=30
+    dpdaction=clear
+IPSECCONF
+
+    echo "%any %any : PSK \"$L2TP_PSK\"" > /etc/ipsec.secrets
+
+    # xl2tpd config
+    cat > /etc/xl2tpd/xl2tpd.conf << XLTPCONF
+[global]
+port = 1701
+
+[lns default]
+ip range = ${VPN_POOL_START}-${VPN_POOL_END}
+local ip = ${VPN_SERVER_IP}
+require chap = yes
+refuse pap = yes
+require authentication = yes
+name = l2tp-server
+ppp debug = yes
+pppoptfile = /etc/ppp/options.xl2tpd
+length bit = yes
+XLTPCONF
+
+    cat > /etc/ppp/options.xl2tpd << 'PPPOPT'
+ipcp-accept-local
+ipcp-accept-remote
+ms-dns 8.8.8.8
+noccp
+auth
+crtscts
+idle 1800
+mtu 1410
+mru 1410
+nodefaultroute
+debug
+proxyarp
+connect-delay 5000
+PPPOPT
+
+    echo "$L2TP_USER    l2tp-server    $L2TP_PASS    *" > /etc/ppp/chap-secrets
+
+    # Firewall: L2TP ports + restrict GenieACS to VPN only
+    DEFAULT_IF=$(ip route | grep default | awk '{print $5}')
+    iptables -I INPUT -p udp --dport 500 -j ACCEPT
+    iptables -I INPUT -p udp --dport 4500 -j ACCEPT
+    iptables -I INPUT -p udp --dport 1701 -j ACCEPT
+    iptables -I INPUT -p esp -j ACCEPT
+    iptables -t nat -A POSTROUTING -s ${VPN_SUBNET} -o $DEFAULT_IF -j MASQUERADE
+    iptables -I FORWARD -s ${VPN_SUBNET} -j ACCEPT
+    iptables -I FORWARD -d ${VPN_SUBNET} -j ACCEPT
+    # Restrict GenieACS ports to VPN only
+    iptables -I INPUT -p tcp --dport 7547 -s ${VPN_SUBNET} -j ACCEPT
+    iptables -I INPUT -p tcp --dport 7547 -j DROP
+    iptables -I INPUT -p tcp --dport 7559 -s ${VPN_SUBNET} -j ACCEPT
+    iptables -I INPUT -p tcp --dport 7559 -j DROP
+    iptables -I INPUT -p tcp --dport 7567 -s ${VPN_SUBNET} -j ACCEPT
+    iptables -I INPUT -p tcp --dport 7567 -j DROP
+    netfilter-persistent save &> /dev/null
+
+    systemctl enable strongswan-starter xl2tpd &> /dev/null
+    systemctl restart strongswan-starter xl2tpd
+    sleep 2
+
+    # Save credentials
+    cat > /opt/genieacs/vpn-credentials.txt << CRIDEOF
+=== L2TP/IPsec VPN Credentials ===
+VPN Subnet: ${VPN_SUBNET}
+Server IP (VPS): ${VPN_SERVER_IP}
+Client IP range: ${VPN_POOL_START} - ${VPN_POOL_END}
+
+IPsec PSK: ${L2TP_PSK}
+L2TP Username: ${L2TP_USER}
+L2TP Password: ${L2TP_PASS}
+
+GenieACS CWMP: ${VPN_SERVER_IP}:7547
+GenieACS NBI: ${VPN_SERVER_IP}:7559
+CRIDEOF
+    chmod 600 /opt/genieacs/vpn-credentials.txt
+
+    echo -e "      ${GREEN}[OK] L2TP/IPsec VPN aktif — server ${VPN_SERVER_IP}, credentials di /opt/genieacs/vpn-credentials.txt${NC}"
+  fi
 else
   echo -e "\n${YELLOW}[6/7] GenieACS dilewati (tidak dipilih).${NC}"
 fi
@@ -602,5 +735,9 @@ fi
 if [ "$INSTALL_GENIEACS" = true ]; then
   echo -e "   GenieACS   : ${GREEN}CWMP:${NC}7547 ${GREEN}NBI:${NC}7559 ${GREEN}FS:${NC}7567"
   echo -e "   MongoDB    : ${GREEN}4.4${NC} @ mongodb://localhost:27017/genieacs"
+  if [ "$INSTALL_L2TP" = true ]; then
+    echo -e "   L2TP VPN   : ${GREEN}${VPN_SERVER_IP}${NC} (subnet ${VPN_SUBNET})"
+    echo -e "   Credentials: ${YELLOW}/opt/genieacs/vpn-credentials.txt${NC}"
+  fi
 fi
 echo ""
