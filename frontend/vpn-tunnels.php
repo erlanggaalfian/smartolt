@@ -335,7 +335,6 @@ function showMikrotik(id) {
     document.getElementById('mt-script').value = script;
     document.getElementById('mt-modal').classList.add('open');
 }
-}
 
 function copyMtScript() {
     const ta = document.getElementById('mt-script');
