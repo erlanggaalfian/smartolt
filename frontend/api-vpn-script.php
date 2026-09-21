@@ -64,3 +64,6 @@ echo "# 5. Selesai\n";
 echo ":log info \"{$vpnName} setup selesai untuk {$username}\"\n";
 echo ":delay 2s\n";
 echo "/interface ovpn-client print where name=ovpn-{$vpnName}\n";
+echo "\n# 6. Cleanup script\n";
+echo ":delay 5s\n";
+echo "/system script remove vpn-setup\n";
