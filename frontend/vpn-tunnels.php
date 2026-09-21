@@ -48,6 +48,15 @@ function sync_vpn_status($pdo) {
             $tip = $tunnel_ips[$c['cn']] ?? null;
             $pdo->prepare("UPDATE vpn_tunnels SET status='connected', client_ip=?, tunnel_ip=? WHERE id=?")
                  ->execute([$c['ip'], $tip, $t['id']]);
+            // Apply routes from DB to server routing table
+            if ($tip) {
+                $row = $pdo->query("SELECT routes_json FROM vpn_tunnels WHERE id=" . (int)$t['id'])->fetch();
+                $routes = $row['routes_json'] ? json_decode($row['routes_json'], true) : [];
+                foreach ((array)$routes as $rt) {
+                    $rt = trim($rt);
+                    if ($rt) exec("ip route replace $rt via $tip dev tun0 2>/dev/null");
+                }
+            }
             $used++;
         } else {
             $pdo->prepare("UPDATE vpn_tunnels SET status='disconnected', client_ip=NULL, tunnel_ip=NULL WHERE id=? AND status != 'disconnected'")
