@@ -287,14 +287,21 @@ include __DIR__ . '/header.php';
     <div class="modal-content" style="max-width:620px;">
         <div class="modal-header"><h3>Setup MikroTik — <span id="mt-username"></span></h3></div>
         <div class="modal-body">
-            <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px;">Copy-paste script ini ke terminal MikroTik:</p>
-            <textarea id="mt-script" class="form-control" rows="16" style="font-family:monospace;font-size:12px;resize:vertical;" readonly></textarea>
+            <div id="mt-enable-area" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:180px;gap:12px;">
+                <p style="font-size:14px;color:var(--text-muted);">Aktifkan download cert untuk setup VPN</p>
+                <button type="button" id="cert-enable-btn" class="btn btn-primary" onclick="toggleCertAccess()" style="padding:10px 28px;font-size:14px;">Enable Cert Download (5m)</button>
+            </div>
+            <div id="mt-script-area" style="display:none;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                    <p style="font-size:13px;color:var(--text-muted);margin:0;">Copy-paste script ini ke terminal MikroTik:</p>
+                    <span id="cert-countdown" style="font-size:13px;color:#ef4444;font-weight:600;"></span>
+                </div>
+                <textarea id="mt-script" class="form-control" rows="14" style="font-family:monospace;font-size:12px;resize:vertical;" readonly></textarea>
+            </div>
         </div>
         <div class="modal-footer">
-            <button type="button" id="cert-enable-btn" class="btn btn-primary" onclick="toggleCertAccess()">Enable Cert Download (5m)</button>
-            <span id="cert-countdown" style="font-size:13px;color:var(--text-muted);margin-left:8px;"></span>
             <button type="button" class="btn btn-secondary" onclick="document.getElementById('mt-modal').classList.remove('open')">Tutup</button>
-            <button type="button" class="btn btn-primary" onclick="copyMtScript()">Copy Script</button>
+            <button type="button" id="mt-copy-btn" class="btn btn-primary" onclick="copyMtScript()" style="display:none;">Copy Script</button>
         </div>
     </div>
 </div>
@@ -317,7 +324,7 @@ function showMikrotik(id) {
     const t = tunnels.find(x => x.id == id);
     if (!t) return;
     document.getElementById('mt-username').textContent = t.username;
-    const url = location.origin + '/api-vpn-script.php?id=' + id + '&token=' + apiToken;
+    const url = location.origin + '/vpn/' + id + '/' + apiToken + '.rsc';
     let script = '# Paste di Terminal MikroTik:\n\n';
     script += '/tool fetch url="' + url + '" dst-path=setup-VPN-Erlangga-SmartOLT-' + t.username + '.rsc\n';
     script += ':delay 3s\n';
@@ -335,8 +342,9 @@ function toggleCertAccess() {
     fetch('/api-vpn-cert-toggle.php', {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:'action=enable'})
     .then(r => r.json()).then(d => {
         if (d.ok) {
-            document.getElementById('cert-enable-btn').disabled = true;
-            document.getElementById('cert-enable-btn').textContent = 'Cert Download Active';
+            document.getElementById('mt-enable-area').style.display = 'none';
+            document.getElementById('mt-script-area').style.display = 'block';
+            document.getElementById('mt-copy-btn').style.display = '';
             startCertCountdown(d.expires);
         }
     });
@@ -352,9 +360,10 @@ function startCertCountdown(expires) {
         document.getElementById('cert-countdown').textContent = m + ':' + String(s).padStart(2,'0');
         if (left <= 0) {
             clearInterval(certTimer);
-            document.getElementById('cert-enable-btn').disabled = false;
-            document.getElementById('cert-enable-btn').textContent = 'Enable Cert Download (5m)';
-            document.getElementById('cert-countdown').textContent = 'Expired';
+            document.getElementById('mt-enable-area').style.display = '';
+            document.getElementById('mt-script-area').style.display = 'none';
+            document.getElementById('mt-copy-btn').style.display = 'none';
+            document.getElementById('cert-countdown').textContent = '';
             fetch('/api-vpn-cert-toggle.php', {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:'action=disable'});
         }
     }, 1000);
@@ -363,8 +372,9 @@ function startCertCountdown(expires) {
 // Check if already active on page load
 fetch('/api-vpn-cert-toggle.php').then(r=>r.json()).then(d => {
     if (d.active) {
-        document.getElementById('cert-enable-btn').disabled = true;
-        document.getElementById('cert-enable-btn').textContent = 'Cert Download Active';
+        document.getElementById('mt-enable-area').style.display = 'none';
+        document.getElementById('mt-script-area').style.display = 'block';
+        document.getElementById('mt-copy-btn').style.display = '';
         startCertCountdown(d.expires);
     }
 });
