@@ -672,8 +672,9 @@ OVPNEOF
 
     mkdir -p /var/log/openvpn
 
-    # Firewall: OpenVPN port + restrict GenieACS to VPN subnet only
+    # Firewall: OpenVPN port + restrict GenieACS to VPN subnet only (loopback selalu allowed, SmartOLT PHP butuh akses NBI lokal)
     DEFAULT_IF=$(ip route | grep default | awk '{print $5}')
+    iptables -I INPUT -i lo -j ACCEPT
     iptables -I INPUT -p tcp --dport 1194 -j ACCEPT
     iptables -t nat -A POSTROUTING -s ${VPN_SUBNET} -o $DEFAULT_IF -j MASQUERADE
     iptables -I FORWARD -s ${VPN_SUBNET} -j ACCEPT
