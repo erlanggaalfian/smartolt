@@ -1825,15 +1825,15 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         if (d.error) { cliOutputBox.textContent = 'Error: ' + d.error; return; }
                         const igd = d.InternetGatewayDevice || d.Device || {};
                         const dev = igd.DeviceInfo || {};
+                        const devid = d._deviceId || {};
                         const summary = {
-                            'Manufacturer': (dev.Manufacturer?._value || '-') + ' (OUI: ' + (dev.ManufacturerOUI?._value || '-') + ')',
-                            'Model': dev.ProductClass?._value || '-',
+                            'Manufacturer': (dev.Manufacturer?._value || '-') + ' (OUI: ' + (devid._OUI || '-') + ')',
+                            'Model': dev.ModelName?._value || dev.ProductClass?._value || '-',
                             'Serial': dev.SerialNumber?._value || d._id || '-',
                             'Software': dev.SoftwareVersion?._value || '-',
                             'Hardware': dev.HardwareVersion?._value || '-',
                             'Uptime': dev.UpTime?._value ? Math.floor(dev.UpTime._value/3600) + 'h ' + Math.floor((dev.UpTime._value%3600)/60) + 'm' : '-',
                             'Provisioning Code': dev.ProvisioningCode?._value || '-',
-                            'Data Model': d['[root]']?.['dataModel']?._value || 'TR-069',
                         };
                         let html = '<div style="font-size:0.85rem;line-height:2;">';
                         html += '<div style="font-weight:600;margin-bottom:8px;font-size:0.9rem;">🟢 GenieACS: ' + (d._id || serial) + '</div>';
