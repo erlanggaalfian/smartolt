@@ -1948,7 +1948,13 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         </td>
                     </tr>
                 </table>
-                <small style="display:block;margin-top:12px;color:var(--text-muted);line-height:1.4;">TR609 Profile menentukan ACS server mana yang akan digunakan ONU untuk provisioning. Ubah profil di Settings &gt; TR-069 Management.</small>
+                <div id="tr609-profile-info" style="margin-top:16px;padding:14px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius-sm);font-size:0.85rem;line-height:1.8;">
+                    <div><strong>ACS URL:</strong> <span id="tr609-info-url">-</span></div>
+                    <div><strong>Username:</strong> <span id="tr609-info-user">-</span></div>
+                    <div><strong>VLAN:</strong> <span id="tr609-info-vlan">-</span></div>
+                    <div><strong>Priority:</strong> <span id="tr609-info-pri">-</span></div>
+                </div>
+                <small style="display:block;margin-top:12px;color:var(--text-muted);line-height:1.4;">Pilih profil, lalu Simpan untuk push TR609 config ke ONU via OLT CLI. Ubah profil di Settings &gt; TR-069 Management.</small>
             </div>
             <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:8px;padding:16px 24px;">
                 <button type="button" class="btn btn-secondary" onclick="document.getElementById('tr609-profile-modal').classList.remove('open')">Batal</button>
@@ -1993,6 +1999,25 @@ function saveTr609(e) {
     }).catch(() => alert('Error koneksi'));
     return false;
 }
+
+// Profile info panel — update saat dropdown berubah
+const tr609Profiles = <?php
+$profilesMap = ['Default' => ['acs_url' => 'http://10.198.198.1:7547', 'acs_username' => '', 'acs_password' => '', 'mgmt_vlan' => null, 'mgmt_priority' => 2]];
+foreach ($tr069_profiles as $tp) {
+    $profilesMap[$tp['name']] = ['acs_url' => $tp['acs_url'], 'acs_username' => $tp['acs_username'] ?? '', 'acs_password' => '***', 'mgmt_vlan' => $tp['mgmt_vlan'], 'mgmt_priority' => $tp['mgmt_priority'] ?? 2];
+}
+echo json_encode($profilesMap);
+ ?>;
+function updateTr609Info() {
+    const name = document.querySelector('[name="tr609_profile"]').value;
+    const p = tr609Profiles[name] || {};
+    document.getElementById('tr609-info-url').textContent = p.acs_url || '-';
+    document.getElementById('tr609-info-user').textContent = p.acs_username || '-';
+    document.getElementById('tr609-info-vlan').textContent = p.mgmt_vlan || '-';
+    document.getElementById('tr609-info-pri').textContent = p.mgmt_priority ?? '-';
+}
+document.querySelector('[name="tr609_profile"]').addEventListener('change', updateTr609Info);
+updateTr609Info();
 </script>
 
 <?php require_once __DIR__ . '/onu-detail-css.php'; ?>
