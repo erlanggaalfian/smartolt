@@ -70,6 +70,12 @@ $snmp_lite = isset($_GET['mode']) && $_GET['mode'] === 'snmp';
 try {
     if ($full) {
         $d = sync_onu_config_from_olt($olt, $onu);
+        // TR069 mode: WAN (PPPoE/DHCP/Static) sumber kebenarannya GenieACS/TR-069,
+        // bukan CLI OLT (CLI sengaja tidak menyimpan WAN saat config_method=TR069).
+        // Jangan biarkan sync CLI menimpa balik wan_mode/pppoe_* ke nilai lama OLT.
+        if (($onu['config_method'] ?? null) === 'TR069') {
+            unset($d['wan_mode'], $d['pppoe_username'], $d['pppoe_password']);
+        }
         // Tarik juga sinyal & status realtime agar tidak kosong/offline saat full sync
         try {
             $sig = get_onu_signal($olt, $onu);
