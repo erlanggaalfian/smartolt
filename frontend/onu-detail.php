@@ -2125,13 +2125,14 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 html += '<span style="min-width:200px;color:var(--text-muted);flex-shrink:0;">' + k + '</span>';
                                 html += '<span style="word-break:break-all;">' + val + '</span></div>';
                             }
+                            if (isGeneral) {
+                                html += '<div style="margin-top:12px;padding-top:8px;border-top:1px solid var(--border-color);">';
+                                html += '<div style="font-weight:600;margin-bottom:8px;">Pending provisions</div>';
+                                html += '<div style="display:flex;gap:8px;"><input type="text" id="tr069-prov-input" placeholder="Provision name" style="flex:1;padding:6px 10px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);font-size:0.85rem;">';
+                                html += '<button type="button" class="btn-solt btn-solt-green" id="tr069-prov-add" style="padding:6px 14px;font-size:0.8rem;">+ Add</button></div></div>';
+                            }
                             html += '</div></div>';
                         });
-                        // Pending Provisions
-                        html += '<div style="margin-top:12px;padding:8px 12px;border-top:1px solid var(--border-color);">';
-                        html += '<div style="font-weight:600;margin-bottom:8px;">Pending provisions</div>';
-                        html += '<div style="display:flex;gap:8px;"><input type="text" id="tr069-prov-input" placeholder="Provision name" style="flex:1;padding:6px 10px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);font-size:0.85rem;">';
-                        html += '<button type="button" class="btn-solt btn-solt-green" id="tr069-prov-add" style="padding:6px 14px;font-size:0.8rem;">+ Add</button></div></div>';
                         html += '</div>';
                         cliOutputBox.innerHTML = html;
                         // Accordion: single-open
