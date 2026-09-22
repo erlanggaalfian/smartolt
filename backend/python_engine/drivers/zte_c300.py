@@ -1293,11 +1293,12 @@ class OltZteC300Driver(BaseDriver):
             return {'success': True, 'message': f'TR069 set to {acs_url} (Mode Demo).'}
         onu_intf = f'gpon-onu_{pon_port}:{onu_id}'
         if not acs_url:
-            # Hapus tr069-mgmt dari ONU
+            # Nonaktifkan tr069 (lock + hapus ACS, tag tidak bisa dihapus)
             commands = [
                 'configure terminal',
                 f'pon-onu-mng {onu_intf}',
-                'no tr069-mgmt 1',
+                'tr069-mgmt 1 state lock',
+                'no tr069-mgmt 1 acs',
                 'exit', 'exit', 'write'
             ]
             log = execute_ssh_commands(olt, commands)
@@ -1307,11 +1308,15 @@ class OltZteC300Driver(BaseDriver):
                 'log': log
             }
 
-        validate_cmd = 'validate basic'
+        validate_cmd = ''
         if username and password:
             validate_cmd = f'validate basic username {username} password {password}'
 
-        commands = self._build_mgmt_vlan_infra(onu_intf, vlan)
+        # Setup infra VLAN management hanya kalau vlan valid
+        if vlan:
+            commands = self._build_mgmt_vlan_infra(onu_intf, vlan)
+        else:
+            commands = ['configure terminal', f'pon-onu-mng {onu_intf}']
         commands.extend([
             'tr069-mgmt 1 state unlock',
             f'tr069-mgmt 1 acs {acs_url} {validate_cmd}',
