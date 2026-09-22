@@ -2108,6 +2108,11 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             }
                             html += '</div></div>';
                         });
+                        // Pending Provisions
+                        html += '<div style="margin-top:12px;padding:8px 12px;border-top:1px solid var(--border-color);">';
+                        html += '<div style="font-weight:600;margin-bottom:8px;">Pending provisions</div>';
+                        html += '<div style="display:flex;gap:8px;"><input type="text" id="tr069-prov-input" placeholder="Provision name" style="flex:1;padding:6px 10px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);font-size:0.85rem;">';
+                        html += '<button type="button" class="btn-solt btn-solt-green" id="tr069-prov-add" style="padding:6px 14px;font-size:0.8rem;">+ Add</button></div></div>';
                         html += '</div>';
                         cliOutputBox.innerHTML = html;
                         // Accordion: single-open
@@ -2115,6 +2120,24 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             cliOutputBox.querySelectorAll('.tr069-panel').forEach(p => p.style.display = 'none');
                             this.nextElementSibling.style.display = 'block';
                         }));
+                        // Add provision handler
+                        const provBtn = document.getElementById('tr069-prov-add');
+                        const provInput = document.getElementById('tr069-prov-input');
+                        if (provBtn && provInput) {
+                            provBtn.addEventListener('click', () => {
+                                const name = provInput.value.trim();
+                                if (!name) return;
+                                provBtn.disabled = true;
+                                fetch('action/genieacs-proxy.php', {
+                                    method: 'POST',
+                                    headers: {'Content-Type': 'application/json'},
+                                    body: JSON.stringify({serial, provision: name})
+                                }).then(r => r.json()).then(d => {
+                                    if (d.success) { provInput.value = ''; alert('Provision "' + name + '" ditambahkan.'); }
+                                    else alert('Error: ' + (d.error || 'Gagal'));
+                                }).catch(() => alert('Gagal menambahkan provision.')).finally(() => { provBtn.disabled = false; });
+                            });
+                        }
                         cliOutputBox.style.maxHeight = 'none';
                     })
                     .catch(() => { cliOutputBox.textContent = 'Gagal mengambil data GenieACS.'; })
