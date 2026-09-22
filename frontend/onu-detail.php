@@ -402,29 +402,25 @@ if (!empty($onu['onu_type'])) {
                     <i data-lucide="pencil" style="width:11px;height:11px;"></i>
                     <?php
                     $mgmt_mode = $onu['mgmt_ip_mode'] ?? 'Inactive';
-                    if ($mgmt_mode === 'Static' && !empty($onu['mgmt_ip'])): ?>
-                        <strong>Static</strong> — <?php echo htmlspecialchars($onu['mgmt_ip']); ?>
-                        (VLAN <?php echo (int)($onu['mgmt_vlan'] ?: 'N/A'); ?>)
-                        <a href="http://<?php echo htmlspecialchars($onu['mgmt_ip']); ?>" target="_blank" onclick="event.stopPropagation();"><i data-lucide="external-link" style="width:12px;height:12px;"></i></a>
-                    <?php elseif ($mgmt_mode === 'DHCP'): ?>
-                        <strong>DHCP</strong> — <?php echo !empty($onu['mgmt_ip']) ? htmlspecialchars($onu['mgmt_ip']) : 'Menunggu IP'; ?>
-                        (VLAN <?php echo (int)($onu['mgmt_vlan'] ?: 'N/A'); ?>)
+                    // IP yang dipakai untuk chip: Static/DHCP dari OLT, atau fallback TR-069
+                    // (satu jalur VLAN management, sering DHCP-nya belum dilaporkan OLT).
+                    $mgmt_ip_display = $onu['mgmt_ip'] ?: null;
+                    if (!$mgmt_ip_display && ($onu['config_method'] ?? null) === 'TR069') {
+                        $tr069_dev_id = genieacs_find_device_id($onu['serial_number'] ?? '');
+                        $mgmt_ip_display = $tr069_dev_id ? genieacs_get_tr069_ip($tr069_dev_id) : null;
+                    }
+                    if ($mgmt_mode === 'Static' || $mgmt_mode === 'DHCP'): ?>
+                        <strong><?php echo htmlspecialchars($mgmt_mode); ?></strong>
+                        <?php if ($mgmt_ip_display): ?>
+                            <a href="http://<?php echo htmlspecialchars($mgmt_ip_display); ?>" target="_blank" class="chip chip-green" style="text-decoration:none;" onclick="event.stopPropagation();">
+                                <i data-lucide="external-link" style="width:11px;height:11px;display:inline-block;vertical-align:middle;margin-right:4px;"></i><?php echo htmlspecialchars($mgmt_ip_display); ?>
+                            </a>
+                        <?php else: ?>
+                            <span class="chip chip-red">Menunggu IP</span>
+                        <?php endif; ?>
                     <?php else: ?>
                         <span style="color:var(--text-muted);">Nonaktif</span>
                     <?php endif; ?>
-                    <?php
-                    // TR-069 IP: sama dengan IP Manajemen (satu jalur VLAN management),
-                    // ditampilkan di sebelah kalau mode konfigurasi via TR069 — simpel
-                    // seperti Mode setup WAN (cuma ikon link + IP, tanpa label teks).
-                    if (($onu['config_method'] ?? null) === 'TR069'):
-                        $tr069_dev_id = genieacs_find_device_id($onu['serial_number'] ?? '');
-                        $tr069_ip = $tr069_dev_id ? genieacs_get_tr069_ip($tr069_dev_id) : null;
-                        if ($tr069_ip): ?>
-                            <a href="http://<?php echo htmlspecialchars($tr069_ip); ?>" target="_blank" style="margin-left:8px; opacity:0.65;" onclick="event.stopPropagation();">
-                                <i data-lucide="external-link" style="width:11px;height:11px;vertical-align:middle;margin-right:4px;"></i><?php echo htmlspecialchars($tr069_ip); ?>
-                            </a>
-                        <?php endif;
-                    endif; ?>
                 </span>
             </div>
 
@@ -849,17 +845,17 @@ if (!empty($onu['onu_type'])) {
                         const mgmtIpEl = document.getElementById('detail-mgmt-ip');
                         if (mgmtIpEl && data.mgmt_ip !== undefined) {
                             const mgmtMode = data.mgmt_ip_mode || 'Inactive';
-                            const mgmtVlan = data.mgmt_vlan || 'N/A';
+                            const mgmtIpDisplay = data.mgmt_ip || data.tr069_ip || null;
                             let mgmtHtml = '<i data-lucide="pencil" style="width:11px;height:11px;"></i> ';
-                            if (mgmtMode === 'Static' && data.mgmt_ip) {
-                                mgmtHtml += `<strong>Static</strong> — ${esc(data.mgmt_ip)} (VLAN ${esc(mgmtVlan)}) <a href="http://${esc(data.mgmt_ip)}" target="_blank" onclick="event.stopPropagation();"><i data-lucide="external-link" style="width:12px;height:12px;"></i></a>`;
-                            } else if (mgmtMode === 'DHCP') {
-                                mgmtHtml += `<strong>DHCP</strong> — ${data.mgmt_ip ? esc(data.mgmt_ip) : 'Menunggu IP'} (VLAN ${esc(mgmtVlan)})`;
+                            if (mgmtMode === 'Static' || mgmtMode === 'DHCP') {
+                                mgmtHtml += `<strong>${esc(mgmtMode)}</strong> `;
+                                if (mgmtIpDisplay) {
+                                    mgmtHtml += `<a href="http://${esc(mgmtIpDisplay)}" target="_blank" class="chip chip-green" style="text-decoration:none;" onclick="event.stopPropagation();"><i data-lucide="external-link" style="width:11px;height:11px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>${esc(mgmtIpDisplay)}</a>`;
+                                } else {
+                                    mgmtHtml += `<span class="chip chip-red">Menunggu IP</span>`;
+                                }
                             } else {
                                 mgmtHtml += `<span style="color:var(--text-muted);">Nonaktif</span>`;
-                            }
-                            if (data.tr069_ip) {
-                                mgmtHtml += ` <a href="http://${esc(data.tr069_ip)}" target="_blank" style="margin-left:8px; opacity:0.65;" onclick="event.stopPropagation();"><i data-lucide="external-link" style="width:11px;height:11px;vertical-align:middle;margin-right:4px;"></i>${esc(data.tr069_ip)}</a>`;
                             }
                             mgmtIpEl.innerHTML = mgmtHtml;
                         }
