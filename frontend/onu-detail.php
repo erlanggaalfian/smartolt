@@ -1859,29 +1859,74 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             if (Object.keys(params).length) sections.push({ title: path, params });
                             for (const [k, v] of Object.entries(children)) walk(v, path ? path + ' > ' + k : k);
                         }
-                        // Top-level summary
-                        const dev = root.DeviceInfo || {};
-                        const devid = d._deviceId || {};
-                        const uptime = dev.UpTime?._value;
-                        sections.unshift({
-                            title: 'General',
-                            params: {
-                                'Manufacturer': (dev.Manufacturer?._value || '-') + ' (OUI: ' + (devid._OUI || '-') + ')',
-                                'Model name': dev.ModelName?._value || dev.ProductClass?._value || '-',
-                                'Software version': dev.SoftwareVersion?._value || '-',
-                                'Hardware version': dev.HardwareVersion?._value || '-',
-                                'Provisioning code': dev.ProvisioningCode?._value || '-',
-                                'Data model': 'TR-069 (Root: ' + (d.InternetGatewayDevice ? 'InternetGatewayDevice' : 'Device') + ')',
-                                'GPON Serial': devid._SerialNumber || '-',
-                                'TR069 Serial': dev.SerialNumber?._value || '-',
-                                ...(dev.X_HW_CpuUsed?._value != null ? {'CPU Usage': dev.X_HW_CpuUsed._value + '%'} : {}),
-                                ...(dev.MemoryStatus ? {
-                                    'Total RAM': (dev.MemoryStatus.Total?._value || '-') + 'MB',
-                                    'Free RAM': (dev.MemoryStatus.Free?._value || '-') + 'MB',
-                                } : {}),
-                                ...(uptime ? {'Uptime': Math.floor(uptime/86400)+'d '+Math.floor((uptime%86400)/3600)+'h '+Math.floor((uptime%3600)/60)+'m'} : {}),
+                        // Build General section from ALL DeviceInfo fields
+                        const generalParams = {};
+                        const devInfoFieldLabels = {
+                            'Manufacturer': 'Manufacturer',
+                            'ModelName': 'Model name',
+                            'ProductClass': 'Product Class',
+                            'Description': 'Description',
+                            'DeviceType': 'Device Type',
+                            'SerialNumber': 'TR069 Serial',
+                            'HardwareVersion': 'Hardware version',
+                            'SoftwareVersion': 'Software version',
+                            'AdditionalHardwareVersion': 'Additional Hardware',
+                            'AdditionalSoftwareVersion': 'Additional Software',
+                            'ModemFirmwareVersion': 'Modem Firmware',
+                            'ProvisioningCode': 'Provisioning code',
+                            'SpecVersion': 'Spec Version',
+                            'DeviceSummary': 'Device Summary',
+                            'EnabledOptions': 'Enabled Options',
+                            'FirstUseDate': 'First Use Date',
+                            'ManufacturerOUI': 'Manufacturer OUI',
+                            'ModelNumber': 'Model Number',
+                            'UpTime': 'Uptime',
+                        };
+                        // Walk all DeviceInfo sub-objects for params
+                        function collectParams(obj, prefix) {
+                            for (const [k, v] of Object.entries(obj || {})) {
+                                if (k.startsWith('_') || !v || typeof v !== 'object') continue;
+                                if (v._object) { collectParams(v, prefix ? prefix+'.'+k : k); continue; }
+                                if ('_value' in v) {
+                                    const label = devInfoFieldLabels[k] || k;
+                                    generalParams[prefix ? prefix+'.'+k : label] = v._value;
+                                }
                             }
-                        });
+                        }
+                        collectParams(dev, '');
+
+                        // Build ordered General params
+                        const ordered = {};
+                        const topFields = [
+                            ['Manufacturer', dev.Manufacturer?._value ? dev.Manufacturer._value + ' (OUI: ' + (devid._OUI || '-') + ')' : '-'],
+                            ['Model name', dev.ModelName?._value || dev.ProductClass?._value || '-'],
+                            ['Software version', dev.SoftwareVersion?._value || '-'],
+                            ['Hardware version', dev.HardwareVersion?._value || '-'],
+                            ['Provisioning code', dev.ProvisioningCode?._value || '-'],
+                            ['Data model', 'TR-069 (Root: ' + (d.InternetGatewayDevice ? 'InternetGatewayDevice' : 'Device') + ')'],
+                            ['GPON Serial', devid._SerialNumber || '-'],
+                            ['TR069 Serial', dev.SerialNumber?._value || '-'],
+                        ];
+                        for (const [k, v] of topFields) ordered[k] = v;
+
+                        // CPU Usage with color
+                        const cpu = dev.X_HW_CpuUsed?._value ?? dev.ProcessStatus?.CPUUsage?._value;
+                        if (cpu != null) ordered['CPU Usage'] = {v: cpu+'%', color: cpu > 80 ? '#dc3545' : cpu > 50 ? '#ffc107' : '#28a745'};
+
+                        // RAM
+                        const totalRAM = dev.MemoryStatus?.Total?._value;
+                        const freeRAM = dev.MemoryStatus?.Free?._value;
+                        if (totalRAM) ordered['Total RAM'] = totalRAM + ' MB';
+                        if (freeRAM) ordered['Free RAM'] = freeRAM + ' MB';
+
+                        // Uptime
+                        const uptimeSec = dev.UpTime?._value;
+                        if (uptimeSec) {
+                            const d_ = Math.floor(uptimeSec/86400), h = Math.floor((uptimeSec%86400)/3600), m = Math.floor((uptimeSec%3600)/60);
+                            ordered['Uptime'] = d_+'d '+h+'h '+m+'m';
+                        }
+
+                        sections.unshift({ title: 'General', params: ordered });
                         // Walk WANDevice
                         if (root.WANDevice) {
                             for (const [wdk, wdv] of Object.entries(root.WANDevice)) {
@@ -2051,7 +2096,12 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             html += '<span>' + sec.title + '</span><span style="color:var(--text-muted);font-size:0.75rem;">' + count + ' params</span></div>';
                             html += '<div class="tr069-panel" style="display:' + (i === 0 ? 'block' : 'none') + ';padding:8px 12px;background:var(--bg-main);">';
                             for (const [k, v] of Object.entries(sec.params)) {
-                                const val = v === '' ? '<span style="color:var(--text-muted);">(empty)</span>' : String(v);
+                                let val;
+                                if (v && typeof v === 'object' && v.v) {
+                                    val = '<span style="color:' + (v.color || 'inherit') + ';font-weight:600;">' + v.v + '</span>';
+                                } else {
+                                    val = (v === '' || v == null) ? '<span style="color:var(--text-muted);">(empty)</span>' : String(v);
+                                }
                                 html += '<div style="padding:3px 0;border-bottom:1px solid var(--border-color);display:flex;gap:8px;">';
                                 html += '<span style="min-width:200px;color:var(--text-muted);flex-shrink:0;">' + k + '</span>';
                                 html += '<span style="word-break:break-all;">' + val + '</span></div>';
