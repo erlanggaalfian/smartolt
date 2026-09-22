@@ -5,22 +5,35 @@ if (!isset($_SESSION['smartolt_role'])) { http_response_code(403); echo 'Forbidd
 $nbi = 'http://127.0.0.1:7559';
 header('Content-Type: application/json');
 
-// POST: add provision task
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+// POST: add provision task, or trigger refresh
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     $body = json_decode(file_get_contents('php://input'), true);
     $serial = preg_replace('/[^a-zA-Z0-9_-]/', '', $body['serial'] ?? '');
     $provision = preg_replace('/[^a-zA-Z0-9_.-]/', '', $body['provision'] ?? '');
-    if (!$serial || !$provision) { echo '{"error":"Missing serial or provision"}'; exit; }
 
-    // Find device ID
+    // Find device ID (needed for both provision and refresh)
     $devId = null;
-    // ... reuse lookup logic
     $ch = curl_init($nbi . '/devices/?query=' . urlencode(json_encode(['_id' => ['$regex' => $serial]])) . '&projection=_id');
     curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 10]);
     $resp = curl_exec($ch); curl_close($ch);
     if ($resp) { $arr = json_decode($resp, true); if (!empty($arr[0]['_id'])) $devId = $arr[0]['_id']; }
-
     if (!$devId) { echo '{"error":"Device not found"}'; exit; }
+
+    if (!empty($body['refresh'])) {
+        // Trigger a GetParameterValues refresh task with connection request (best-effort, synchronous)
+        $task = json_encode(['name' => 'refreshObject', 'objectName' => '']);
+        $ch = curl_init($nbi . '/devices/' . urlencode($devId) . '/tasks?connection_request&timeout=15000');
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 20,
+            CURLOPT_POST => true, CURLOPT_POSTFIELDS => $task,
+            CURLOPT_HTTPHEADER => ['Content-Type: application/json']
+        ]);
+        curl_exec($ch);
+        curl_close($ch);
+        echo '{"success":true}'; exit;
+    }
+
+    if (!$serial || !$provision) { echo '{"error":"Missing serial or provision"}'; exit; }
 
     // Create provision task
     $task = json_encode(['name' => 'provision', 'device' => $devId, 'provision' => $provision]);

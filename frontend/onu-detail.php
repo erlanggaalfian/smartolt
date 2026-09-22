@@ -1830,7 +1830,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
         const btnTr069 = document.getElementById('btn-tr069-status');
         const serial = '<?= addslashes($onu['serial_number'] ?? '') ?>';
         if (btnTr069 && cliOutputBox) {
-            btnTr069.addEventListener('click', () => {
+            function loadTr069Status() {
                 cliOutputBox.style.display = 'block';
                 cliOutputBox.style.fontFamily = 'inherit';
                 cliOutputBox.style.whiteSpace = 'normal';
@@ -1920,11 +1920,11 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         const cpu = dev.X_HW_CpuUsed?._value ?? dev.ProcessStatus?.CPUUsage?._value;
                         if (cpu != null) ordered['CPU Usage'] = {v: cpu+'%', color: cpu > 80 ? '#dc3545' : cpu > 50 ? '#ffc107' : '#28a745'};
 
-                        // RAM
+                        // RAM (TR-069 MemoryStatus values are in KB → convert to MB)
                         const totalRAM = dev.MemoryStatus?.Total?._value;
                         const freeRAM = dev.MemoryStatus?.Free?._value;
-                        if (totalRAM) ordered['Total RAM'] = totalRAM + ' MB';
-                        if (freeRAM) ordered['Free RAM'] = freeRAM + ' MB';
+                        if (totalRAM) ordered['Total RAM'] = Math.round(totalRAM/1024) + ' MB';
+                        if (freeRAM) ordered['Free RAM'] = Math.round(freeRAM/1024) + ' MB';
 
                         // Uptime — pakai boot time + durasi format lengkap
                         const uptimeSec = dev.UpTime?._value;
@@ -2106,9 +2106,13 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         sections.forEach((sec, i) => {
                             const count = Object.keys(sec.params).length;
                             if (!count) return;
+                            const isGeneral = sec.title === 'General';
+                            const rightHtml = isGeneral
+                                ? '<span class="tr069-refresh" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;">&#8635;</span>'
+                                : '<span style="color:var(--text-muted);font-size:0.75rem;">' + count + ' params</span>';
                             html += '<div style="margin-bottom:2px;">';
                             html += '<div class="tr069-toggle" data-idx="'+i+'" style="padding:8px 12px;cursor:pointer;background:#e9ecef;font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
-                            html += '<span>' + sec.title + '</span><span style="color:var(--text-muted);font-size:0.75rem;">' + count + ' params</span></div>';
+                            html += '<span>' + sec.title + '</span>' + rightHtml + '</div>';
                             html += '<div class="tr069-panel" style="display:' + (i === 0 ? 'block' : 'none') + ';padding:8px 12px;background:var(--bg-main);">';
                             for (const [k, v] of Object.entries(sec.params)) {
                                 let val;
@@ -2153,11 +2157,26 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 }).catch(() => alert('Gagal menambahkan provision.')).finally(() => { provBtn.disabled = false; });
                             });
                         }
+                        // Refresh button (General section header)
+                        const refreshBtn = cliOutputBox.querySelector('.tr069-refresh');
+                        if (refreshBtn) {
+                            refreshBtn.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                refreshBtn.style.opacity = '0.4';
+                                fetch('action/genieacs-proxy.php', {
+                                    method: 'POST',
+                                    headers: {'Content-Type': 'application/json'},
+                                    body: JSON.stringify({serial, refresh: true})
+                                }).then(r => r.json()).then(() => loadTr069Status())
+                                  .catch(() => { refreshBtn.style.opacity = '1'; alert('Gagal refresh.'); });
+                            });
+                        }
                         cliOutputBox.style.maxHeight = 'none';
                     })
                     .catch(() => { cliOutputBox.textContent = 'Gagal mengambil data GenieACS.'; })
                     .finally(() => { btnTr069.disabled = false; });
-            });
+            }
+            btnTr069.addEventListener('click', loadTr069Status);
         }
 
         // Global Escape Key to close all modals
