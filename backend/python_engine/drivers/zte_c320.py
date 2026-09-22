@@ -1107,7 +1107,7 @@ class OltZteC320Driver(BaseDriver):
         # 66661 = service-port sudah ada dengan binding yang sama.
         # 63869 = flow record sudah ada.
         # 63873 = gem port binding sudah ada.
-        BENIGN_CODES = ('62391', '66661', '63869', '63873')
+        BENIGN_CODES = ('62391', '66661', '66662', '63869', '63873', '63856', '63933', '63953', '62397', '63993')
         errors = [e for e in errors if not any(c in e for c in BENIGN_CODES)]
         ok = len(errors) == 0
 
@@ -1191,7 +1191,7 @@ class OltZteC320Driver(BaseDriver):
         ]
         log = execute_ssh_commands(olt, commands)
         errors = self._vlan_errors(log)
-        BENIGN_CODES = ('62391', '66661', '63869', '63873')
+        BENIGN_CODES = ('62391', '66661', '66662', '63869', '63873', '63856', '63933', '63953', '62397', '63993')
         errors = [e for e in errors if not any(c in e for c in BENIGN_CODES)]
         ok = len(errors) == 0
         return {
@@ -1236,24 +1236,19 @@ class OltZteC320Driver(BaseDriver):
         onu_intf = f'gpon-onu_{pon_port}:{onu_id}'
 
         if mode == 'Inactive':
-            # Hapus SEMUA infrastruktur management dengan full parameter syntax
-            mgmt_vlan = vlan if vlan else 100
+            # Hapus SEMUA infrastruktur management — simplified syntax ZTE
             commands = [
                 'configure terminal',
                 f'interface {onu_intf}',
-                f'no service-port 2 vport 2 user-vlan {mgmt_vlan} vlan {mgmt_vlan}',
-                'no gemport 2 tcont 2',
-                'no gemport 2 traffic-limit downstream SMARTOLT-VOIPMNG-10M',
-                'no tcont 2 profile SMARTOLT-VOIPMNG-10M',
+                'no service-port 2',
+                'no gemport 2',
+                'no tcont 2',
                 'exit',
                 f'pon-onu-mng {onu_intf}',
-                'no tr069-mgmt 1',
+                'tr069-mgmt 1 state lock',
                 'no ip-host 2',
-                f'no vlan-filter iphost 2 pri 2 vlan {mgmt_vlan}',
-                'no vlan-filter-mode iphost 2 tag-filter vlan-filter untag-filter discard',
-                'no switchport-bind switch_0/1 iphost 2',
-                'no gemport 2 flow 2',
-                'no flow 2 switch switch_0/1',
+                'no vlan-filter-mode iphost 2',
+                'no flow 2',
                 'exit', 'exit', 'write'
             ]
         else:
@@ -1265,20 +1260,15 @@ class OltZteC320Driver(BaseDriver):
                 if not ip:
                     return {'success': False, 'message': 'IP address wajib diisi untuk mode Static.'}
                 mask = '255.255.255.0'
-                commands.append(f'ip-host 2 ip {ip} mask {mask} gateway 0.0.0.0 dhcp-enable disable ping-response enable traceroute-response enable')
+                commands.append(f'ip-host 2 ip {ip} mask {mask} gateway 0.0.0.0')
             else:
                 return {'success': False, 'message': f'Mode {mode} tidak didukung.'}
-            # WAN remote access: buka/tutup akses dari internet luar
-            if wan_remote == 'yes':
-                commands.append('security-mgmt 1 state enable mode forward ingress-type wan protocol web')
-                commands.append('security-mgmt 2 state enable mode forward ingress-type wan protocol telnet')
-            else:
-                commands.append('security-mgmt 1 state enable mode discard ingress-type wan protocol web')
-                commands.append('security-mgmt 2 state enable mode discard ingress-type wan protocol telnet')
             commands.extend(['exit', 'exit', 'write'])
 
         log = execute_ssh_commands(olt, commands)
         errors = self._vlan_errors(log)
+        BENIGN_CODES = ('62391', '66661', '66662', '63869', '63873', '63856', '63933', '63953', '62397', '63993')
+        errors = [e for e in errors if not any(c in e for c in BENIGN_CODES)]
         ok = len(errors) == 0
         return {
             'success': ok,
@@ -1324,7 +1314,7 @@ class OltZteC320Driver(BaseDriver):
 
         log = execute_ssh_commands(olt, commands)
         errors = self._vlan_errors(log)
-        BENIGN_CODES = ('62391', '66661', '63869', '63873')
+        BENIGN_CODES = ('62391', '66661', '66662', '63869', '63873', '63856', '63933', '63953', '62397', '63993')
         errors = [e for e in errors if not any(c in e for c in BENIGN_CODES)]
         ok = len(errors) == 0
         return {

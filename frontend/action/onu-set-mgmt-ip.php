@@ -8,6 +8,7 @@ $onu_id = (int)($_POST['onu_id'] ?? 0);
 $mode = trim($_POST['mgmt_ip_mode'] ?? 'Inactive');
 $vlan = $_POST['mgmt_vlan'] !== '' ? (int)$_POST['mgmt_vlan'] : 0;
 $ip = trim($_POST['mgmt_ip'] ?? '');
+$wan_remote = trim($_POST['wan_remote_access'] ?? 'no');
 
 if (!$onu_id) { echo json_encode(['success'=>false,'message'=>'ONU ID tidak valid']); exit; }
 if (!in_array($mode, ['Inactive','DHCP','Static'])) { echo json_encode(['success'=>false,'message'=>'Mode tidak valid']); exit; }
@@ -27,11 +28,11 @@ $olt = [
     'snmp_port' => $row['snmp_port'], 'snmp_community' => $row['snmp_community'],
     'snmp_community_rw' => $row['snmp_community_rw'] ?? '',
 ];
-$result = call_driver($olt, 'set_mgmt_ip', [$row['pon_port'], (int)$row['onu_id'], $mode, $vlan, $ip]);
+$result = call_driver($olt, 'set_mgmt_ip', [$row['pon_port'], (int)$row['onu_id'], $mode, $vlan, $ip, $wan_remote]);
 
 // Simpan ke DB
-$pdo->prepare("UPDATE onus SET mgmt_ip_mode=?, mgmt_vlan=?, mgmt_ip=? WHERE id=?")
-    ->execute([$mode, $vlan, $mode === 'Static' ? $ip : null, $onu_id]);
+$pdo->prepare("UPDATE onus SET mgmt_ip_mode=?, mgmt_vlan=?, mgmt_ip=?, wan_remote_access=? WHERE id=?")
+    ->execute([$mode, $vlan, $mode === 'Static' ? $ip : null, $wan_remote, $onu_id]);
 
 echo json_encode([
     'success' => $result['success'] ?? false,
