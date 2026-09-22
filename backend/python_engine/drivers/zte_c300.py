@@ -1215,36 +1215,53 @@ class OltZteC300Driver(BaseDriver):
             'log': log
         }
 
-    def set_mgmt_ip(self, olt: dict, pon_port: str, onu_id: int, mode: str, vlan: int = None, ip: str = '') -> dict:
-        """Push IP management config ke ONU via OLT CLI."""
+    def _build_mgmt_vlan_infra(self, onu_intf: str, vlan: int) -> list:
+        """Build CLI commands untuk setup infrastruktur management VLAN."""
+        return [
+            'configure terminal',
+            f'interface {onu_intf}',
+            'tcont 2 profile SMARTOLT-VOIPMNG-10M',
+            'gemport 2 tcont 2',
+            f'service-port 2 vport 2 user-vlan {vlan} vlan {vlan}',
+            'exit',
+            f'pon-onu-mng {onu_intf}',
+            'flow 2 switch switch_0/1',
+            'flow mode 2 tag-filter vlan-filter untag-filter discard',
+            f'flow 2 pri 2 vlan {vlan}',
+            'gemport 2 flow 2',
+            'switchport-bind switch_0/1 iphost 2',
+            'vlan-filter-mode iphost 2 tag-filter vlan-filter untag-filter discard',
+            f'vlan-filter iphost 2 pri 2 vlan {vlan}',
+        ]
+
+    def set_mgmt_ip(self, olt: dict, pon_port: str, onu_id: int, mode: str, vlan: int = 100, ip: str = '') -> dict:
+        """Push IP management config ke ONU via OLT CLI.
+        mode: 'Inactive' (disable), 'DHCP', 'Static'
+        Setup full infra VLAN management + ip-host 2.
+        """
         if is_demo_olt(olt):
             return {'success': True, 'message': f'MGMT IP set to {mode} (Mode Demo).'}
         onu_intf = f'gpon-onu_{pon_port}:{onu_id}'
+
         if mode == 'Inactive':
             commands = [
                 'configure terminal',
                 f'pon-onu-mng {onu_intf}',
                 'no ip-host 2', 'exit', 'exit', 'write'
             ]
-        elif mode == 'DHCP':
-            commands = [
-                'configure terminal',
-                f'pon-onu-mng {onu_intf}',
-                'ip-host 2 dhcp-enable enable ping-response enable traceroute-response enable',
-                'exit', 'exit', 'write'
-            ]
-        elif mode == 'Static':
-            if not ip:
-                return {'success': False, 'message': 'IP address wajib diisi untuk mode Static.'}
-            mask = '255.255.255.0'
-            commands = [
-                'configure terminal',
-                f'pon-onu-mng {onu_intf}',
-                f'ip-host 2 ip {ip} mask {mask} gateway 0.0.0.0 dhcp-enable disable ping-response enable traceroute-response enable',
-                'exit', 'exit', 'write'
-            ]
         else:
-            return {'success': False, 'message': f'Mode {mode} tidak didukung.'}
+            commands = self._build_mgmt_vlan_infra(onu_intf, vlan or 100)
+            if mode == 'DHCP':
+                commands.append('ip-host 2 dhcp-enable enable ping-response enable traceroute-response enable')
+            elif mode == 'Static':
+                if not ip:
+                    return {'success': False, 'message': 'IP address wajib diisi untuk mode Static.'}
+                mask = '255.255.255.0'
+                commands.append(f'ip-host 2 ip {ip} mask {mask} gateway 0.0.0.0 dhcp-enable disable ping-response enable traceroute-response enable')
+            else:
+                return {'success': False, 'message': f'Mode {mode} tidak didukung.'}
+            commands.extend(['exit', 'exit', 'write'])
+
         log = execute_ssh_commands(olt, commands)
         errors = self._vlan_errors(log)
         ok = len(errors) == 0
@@ -1254,25 +1271,28 @@ class OltZteC300Driver(BaseDriver):
             'log': log
         }
 
-    def set_tr069_profile(self, olt: dict, pon_port: str, onu_id: int, acs_url: str, username: str = '', password: str = '', vlan: int = None, priority: int = 2) -> dict:
-        """Push TR069 config ke ONU via OLT CLI."""
+    def set_tr069_profile(self, olt: dict, pon_port: str, onu_id: int, acs_url: str, username: str = '', password: str = '', vlan: int = 100, priority: int = 2) -> dict:
+        """Push TR069 config ke ONU via OLT CLI.
+        Setup full infra VLAN management + tr069-mgmt dalam satu sesi.
+        """
         if is_demo_olt(olt):
             return {'success': True, 'message': f'TR069 set to {acs_url} (Mode Demo).'}
         onu_intf = f'gpon-onu_{pon_port}:{onu_id}'
         if not acs_url:
             return {'success': False, 'message': 'ACS URL wajib diisi.'}
+
         validate_cmd = 'validate basic'
         if username and password:
             validate_cmd = f'validate basic username {username} password {password}'
-        commands = [
-            'configure terminal',
-            f'pon-onu-mng {onu_intf}',
+
+        commands = self._build_mgmt_vlan_infra(onu_intf, vlan or 100)
+        commands.extend([
             'tr069-mgmt 1 state unlock',
             f'tr069-mgmt 1 acs {acs_url} {validate_cmd}',
-        ]
-        if vlan:
-            commands.append(f'tr069-mgmt 1 tag pri {priority} vlan {vlan}')
-        commands.extend(['exit', 'exit', 'write'])
+            f'tr069-mgmt 1 tag pri {priority} vlan {vlan or 100}',
+            'exit', 'exit', 'write'
+        ])
+
         log = execute_ssh_commands(olt, commands)
         errors = self._vlan_errors(log)
         ok = len(errors) == 0
