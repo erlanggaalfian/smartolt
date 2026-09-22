@@ -1930,7 +1930,9 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             const d_ = Math.floor(uptimeSec/86400), h = Math.floor((uptimeSec%86400)/3600), m = Math.floor((uptimeSec%3600)/60), s = Math.floor(uptimeSec%60);
                             const parts = [];
                             if (d_) parts.push(d_+' hari');
-                            parts.push(h+' jam', m+' menit', s+' detik');
+                            if (d_ || h) parts.push(h+' jam');
+                            if (d_ || h || m) parts.push(m+' menit');
+                            parts.push(s+' detik');
                             ordered['Uptime'] = bootStr + ' (' + parts.join(', ') + ' yang lalu)';
                         }
 
