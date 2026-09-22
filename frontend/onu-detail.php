@@ -1893,6 +1893,8 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 }
                             }
                         }
+                        const dev = root.DeviceInfo || {};
+                        const devid = d._deviceId || {};
                         collectParams(dev, '');
 
                         // Build ordered General params
