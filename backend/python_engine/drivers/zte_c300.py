@@ -1244,23 +1244,23 @@ class OltZteC300Driver(BaseDriver):
         onu_intf = f'gpon-onu_{pon_port}:{onu_id}'
 
         if mode == 'Inactive':
-            # Hapus SEMUA infrastruktur management: tcont 2, gemport 2, service-port 2,
-            # flow 2, switchport-bind, vlan-filter, ip-host 2, tr069-mgmt
+            # Hapus SEMUA infrastruktur management dengan full parameter syntax
+            mgmt_vlan = vlan if vlan else 100
             commands = [
                 'configure terminal',
                 f'interface {onu_intf}',
-                'no service-port 2',
-                'no gemport 2',
-                'no tcont 2',
+                f'no service-port 2 vport 2 user-vlan {mgmt_vlan} vlan {mgmt_vlan}',
+                'no gemport 2 tcont 2',
+                'no tcont 2 profile SMARTOLT-VOIPMNG-10M',
                 'exit',
                 f'pon-onu-mng {onu_intf}',
                 'no tr069-mgmt 1',
                 'no ip-host 2',
-                'no vlan-filter iphost 2',
-                'no vlan-filter-mode iphost 2',
+                f'no vlan-filter iphost 2 pri 2 vlan {mgmt_vlan}',
+                'no vlan-filter-mode iphost 2 tag-filter vlan-filter untag-filter discard',
                 'no switchport-bind switch_0/1 iphost 2',
                 'no gemport 2 flow 2',
-                'no flow 2',
+                'no flow 2 switch switch_0/1',
                 'exit', 'exit', 'write'
             ]
         else:
