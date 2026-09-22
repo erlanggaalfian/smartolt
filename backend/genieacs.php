@@ -109,14 +109,14 @@ function genieacs_tree_get(array $device, string $path) {
  * Timeout pendek (4s) — task selalu ke-insert ke DB duluan sebelum connection
  * attempt, jadi request lambat/timeout tidak menahan UI lama (device sering
  * offline sebelum online pertama kali). */
-function genieacs_set_params(string $deviceId, array $paramValues): ?array {
+function genieacs_set_params(string $deviceId, array $paramValues, int $timeout = 4): ?array {
     // $paramValues: ['path' => ['value', 'xsd:string']]
     $list = [];
     foreach ($paramValues as $path => $val) {
         $list[] = [$path, $val[0], $val[1] ?? 'xsd:string'];
     }
     $task = ['name' => 'setParameterValues', 'parameterValues' => $list];
-    return genieacs_request('POST', "/devices/" . rawurlencode($deviceId) . "/tasks?connection_request", $task, 4);
+    return genieacs_request('POST', "/devices/" . rawurlencode($deviceId) . "/tasks?connection_request", $task, $timeout);
 }
 
 /** Health check — cek 3 service (CWMP/NBI/FS) dan MongoDB. */
@@ -244,7 +244,9 @@ function genieacs_push_wan(string $serial, string $wan_mode, array $wan): array 
         return ['success' => true, 'message' => 'Mode "Setup via ONU webpage" — tidak ada perubahan WAN dikirim via TR-069.'];
     }
 
-    $result = genieacs_set_params($deviceId, $params);
+    // Timeout 15s: update-onu-mode.php sudah set_time_limit(0) untuk flow ini,
+    // jadi boleh tunggu connection-request + digest-auth CWMP session yang real.
+    $result = genieacs_set_params($deviceId, $params, 15);
     if ($result === null) {
         return ['success' => false, 'message' => 'Gagal mengirim task TR-069 ke GenieACS (request gagal/timeout).'];
     }
