@@ -1906,7 +1906,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 <?php endforeach; ?>
                             </select>
                             <?php if (empty($management_vlans)): ?>
-                                <small style="color:var(--color-orange);">Tidak ada VLAN bertipe management. Default: VLAN 100 akan digunakan. Tandai VLAN di OLT Settings untuk opsi lain.</small>
+                                <small style="color:var(--color-orange);">Belum ada VLAN yang ditandai sebagai management. Tambahkan VLAN bertipe management di OLT Settings terlebih dahulu.</small>
                             <?php endif; ?>
                         </td>
                     </tr>
@@ -1976,6 +1976,12 @@ function saveMgmtIp(e) {
     e.preventDefault();
     const form = document.getElementById('mgmt-ip-form');
     const fd = new FormData(form);
+    const mode = fd.get('mgmt_ip_mode');
+    const vlan = fd.get('mgmt_vlan');
+    if (mode !== 'Inactive' && !vlan) {
+        alert('Pilih VLAN management terlebih dahulu.\nJika tidak ada VLAN, tandai VLAN bertipe management di OLT Settings.');
+        return false;
+    }
     fetch('action/onu-set-mgmt-ip.php', {method:'POST', body:fd})
     .then(r => r.json()).then(d => {
         if (d.success) {

@@ -1234,7 +1234,7 @@ class OltZteC300Driver(BaseDriver):
             f'vlan-filter iphost 2 pri 2 vlan {vlan}',
         ]
 
-    def set_mgmt_ip(self, olt: dict, pon_port: str, onu_id: int, mode: str, vlan: int = 100, ip: str = '') -> dict:
+    def set_mgmt_ip(self, olt: dict, pon_port: str, onu_id: int, mode: str, vlan: int = 0, ip: str = '') -> dict:
         """Push IP management config ke ONU via OLT CLI.
         mode: 'Inactive' (disable), 'DHCP', 'Static'
         Setup full infra VLAN management + ip-host 2.
@@ -1250,7 +1250,7 @@ class OltZteC300Driver(BaseDriver):
                 'no ip-host 2', 'exit', 'exit', 'write'
             ]
         else:
-            commands = self._build_mgmt_vlan_infra(onu_intf, vlan or 100)
+            commands = self._build_mgmt_vlan_infra(onu_intf, vlan)
             if mode == 'DHCP':
                 commands.append('ip-host 2 dhcp-enable enable ping-response enable traceroute-response enable')
             elif mode == 'Static':
@@ -1271,7 +1271,7 @@ class OltZteC300Driver(BaseDriver):
             'log': log
         }
 
-    def set_tr069_profile(self, olt: dict, pon_port: str, onu_id: int, acs_url: str, username: str = '', password: str = '', vlan: int = 100, priority: int = 2) -> dict:
+    def set_tr069_profile(self, olt: dict, pon_port: str, onu_id: int, acs_url: str, username: str = '', password: str = '', vlan: int = 0, priority: int = 2) -> dict:
         """Push TR069 config ke ONU via OLT CLI.
         Setup full infra VLAN management + tr069-mgmt dalam satu sesi.
         """
@@ -1285,13 +1285,14 @@ class OltZteC300Driver(BaseDriver):
         if username and password:
             validate_cmd = f'validate basic username {username} password {password}'
 
-        commands = self._build_mgmt_vlan_infra(onu_intf, vlan or 100)
+        commands = self._build_mgmt_vlan_infra(onu_intf, vlan)
         commands.extend([
             'tr069-mgmt 1 state unlock',
             f'tr069-mgmt 1 acs {acs_url} {validate_cmd}',
-            f'tr069-mgmt 1 tag pri {priority} vlan {vlan or 100}',
-            'exit', 'exit', 'write'
         ])
+        if vlan:
+            commands.append(f'tr069-mgmt 1 tag pri {priority} vlan {vlan}')
+        commands.extend(['exit', 'exit', 'write'])
 
         log = execute_ssh_commands(olt, commands)
         errors = self._vlan_errors(log)
