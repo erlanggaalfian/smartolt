@@ -1326,6 +1326,10 @@ class OltZteC320Driver(BaseDriver):
         }
 
     def sync_onu_config(self, olt: dict, onu: dict) -> dict:
+        # TR069 mode: WAN (PPPoE/DHCP/Static) sumber kebenarannya GenieACS/TR-069,
+        # bukan CLI OLT (CLI sengaja tidak menyimpan WAN saat config_method=TR069).
+        # Jangan parse wan_mode/pppoe_* dari show running-config sama sekali.
+        skip_wan_parse = (onu.get('config_method') == 'TR069')
         defaults = {
             'pppoe_username': '',
             'pppoe_password': '',
@@ -1385,18 +1389,19 @@ class OltZteC320Driver(BaseDriver):
         # dipakai management/VOIP (mis. VLAN 100 TR069) dan PUNYA ip-host static
         # sendiri -- kalau tidak difilter nomornya, 'ip-host 2 ip ...' (management)
         # salah dibaca sbg WAN Static padahal WAN sebenarnya (iphost 1) PPPoE.
-        m = re.search(r'pppoe\s+1\s+.*?user\s+(\S+)\s+password\s+(\S+)', raw, re.IGNORECASE)
-        if m:
-            result['pppoe_username'] = m.group(1).strip('"\'')
-            result['pppoe_password'] = m.group(2).strip('"\'')
-            result['wan_mode'] = 'PPPoE'
+        if not skip_wan_parse:
+            m = re.search(r'pppoe\s+1\s+.*?user\s+(\S+)\s+password\s+(\S+)', raw, re.IGNORECASE)
+            if m:
+                result['pppoe_username'] = m.group(1).strip('"\'')
+                result['pppoe_password'] = m.group(2).strip('"\'')
+                result['wan_mode'] = 'PPPoE'
 
-        m = re.search(r'ip-host\s+1\s+ip\s+(\S+)\s+mask\s+(\S+)\s+gateway\s+(\S+)', raw, re.IGNORECASE)
-        if m and result['wan_mode'] != 'PPPoE':
-            result['wan_mode'] = 'Static'
-            result['mgmt_ip'] = m.group(1)
-        elif re.search(r'dhcp-ip\s+ethuni\s+\S+\s+from-onu', raw, re.IGNORECASE) and result['wan_mode'] is None:
-            result['wan_mode'] = 'DHCP'
+            m = re.search(r'ip-host\s+1\s+ip\s+(\S+)\s+mask\s+(\S+)\s+gateway\s+(\S+)', raw, re.IGNORECASE)
+            if m and result['wan_mode'] != 'PPPoE':
+                result['wan_mode'] = 'Static'
+                result['mgmt_ip'] = m.group(1)
+            elif re.search(r'dhcp-ip\s+ethuni\s+\S+\s+from-onu', raw, re.IGNORECASE) and result['wan_mode'] is None:
+                result['wan_mode'] = 'DHCP'
 
         if re.search(r'security-mgmt\s+\d+\s+state\s+enable', raw, re.IGNORECASE):
             result['allow_remote_mgmt'] = 'yes'
