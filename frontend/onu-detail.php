@@ -1921,11 +1921,17 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         if (totalRAM) ordered['Total RAM'] = totalRAM + ' MB';
                         if (freeRAM) ordered['Free RAM'] = freeRAM + ' MB';
 
-                        // Uptime
+                        // Uptime — pakai boot time + durasi format lengkap
                         const uptimeSec = dev.UpTime?._value;
                         if (uptimeSec) {
-                            const d_ = Math.floor(uptimeSec/86400), h = Math.floor((uptimeSec%86400)/3600), m = Math.floor((uptimeSec%3600)/60);
-                            ordered['Uptime'] = d_+'d '+h+'h '+m+'m';
+                            const bootTime = new Date(Date.now() - uptimeSec*1000);
+                            const pad = n => String(n).padStart(2,'0');
+                            const bootStr = bootTime.getFullYear()+'-'+pad(bootTime.getMonth()+1)+'-'+pad(bootTime.getDate())+' '+pad(bootTime.getHours())+':'+pad(bootTime.getMinutes())+':'+pad(bootTime.getSeconds());
+                            const d_ = Math.floor(uptimeSec/86400), h = Math.floor((uptimeSec%86400)/3600), m = Math.floor((uptimeSec%3600)/60), s = Math.floor(uptimeSec%60);
+                            const parts = [];
+                            if (d_) parts.push(d_+' hari');
+                            parts.push(h+' jam', m+' menit', s+' detik');
+                            ordered['Uptime'] = bootStr + ' (' + parts.join(', ') + ' yang lalu)';
                         }
 
                         sections.unshift({ title: 'General', params: ordered });
