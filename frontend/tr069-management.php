@@ -251,7 +251,7 @@ foreach ($profiles as $p) {
                     </div>
                     <div class="form-group">
                         <label>Password</label>
-                        <input type="password" id="profile-password" placeholder="ACS password">
+                        <input type="text" id="profile-password" placeholder="ACS password">
                     </div>
                 </div>
                 <div class="form-group">

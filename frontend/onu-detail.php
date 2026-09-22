@@ -420,7 +420,7 @@ if (!empty($onu['onu_type'])) {
                 <span class="detail-plain-value" id="detail-tr609">
                     <i data-lucide="pencil" style="width:11px;height:11px;"></i>
                     <?php
-                    $tr609 = $onu['tr609_profile'] ?? 'Default';
+                    $tr609 = $onu['tr069_profile'] ?? 'ACS-Smartolt';
                     echo htmlspecialchars($tr609);
                     ?>
                 </span>
@@ -1950,10 +1950,10 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         <td>
                             <select name="tr609_profile" style="width:100%;max-width:300px;padding:8px 12px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);font-size:0.9rem;color:var(--text-main);">
                                 <option value="Nonaktif" <?php echo ($onu['tr069_profile'] ?? '') === 'Nonaktif' ? 'selected' : ''; ?>>Nonaktifkan TR069</option>
-                                <option value="Default" <?php echo ($onu['tr069_profile'] ?? 'Default') === 'Default' ? 'selected' : ''; ?>>Default (Local GenieACS)</option>
+                                <option value="ACS-Smartolt" <?php echo ($onu['tr069_profile'] ?? 'ACS-Smartolt') === 'ACS-Smartolt' ? 'selected' : ''; ?>>ACS-Smartolt</option>
                                 <?php foreach ($tr069_profiles as $tp): ?>
                                     <?php if (!empty($tp['is_default'])) continue; ?>
-                                    <option value="<?php echo htmlspecialchars($tp['name']); ?>" <?php echo ($onu['tr069_profile'] ?? 'Default') === $tp['name'] ? 'selected' : ''; ?>><?php echo htmlspecialchars($tp['name']); ?></option>
+                                    <option value="<?php echo htmlspecialchars($tp['name']); ?>" <?php echo ($onu['tr069_profile'] ?? 'ACS-Smartolt') === $tp['name'] ? 'selected' : ''; ?>><?php echo htmlspecialchars($tp['name']); ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </td>
@@ -2017,7 +2017,7 @@ function saveTr609(e) {
 
 // Profile info panel — update saat dropdown berubah
 const tr609Profiles = <?php
-$profilesMap = ['Default' => ['acs_url' => 'http://10.198.198.1:7547', 'acs_username' => '', 'acs_password' => '']];
+$profilesMap = ['ACS-Smartolt' => ['acs_url' => 'http://10.198.198.1:7547', 'acs_username' => '', 'acs_password' => '']];
 foreach ($tr069_profiles as $tp) {
     if (!empty($tp['is_default'])) continue;
     $profilesMap[$tp['name']] = ['acs_url' => $tp['acs_url'], 'acs_username' => $tp['acs_username'] ?? '', 'acs_password' => '***'];

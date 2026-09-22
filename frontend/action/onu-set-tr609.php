@@ -5,7 +5,7 @@ require_once __DIR__ . '/../../backend/driver.php';
 if (!isset($_SESSION['smartolt_role'])) { echo json_encode(['success'=>false,'message'=>'Akses ditolak']); exit; }
 
 $onu_id = (int)($_POST['onu_id'] ?? 0);
-$profile_name = trim($_POST['tr609_profile'] ?? 'Default');
+$profile_name = trim($_POST['tr609_profile'] ?? 'ACS-Smartolt');
 
 if (!$onu_id) { echo json_encode(['success'=>false,'message'=>'ONU ID tidak valid']); exit; }
 
@@ -30,7 +30,7 @@ if ($profile_name === 'Nonaktif') {
         '', '', '',  // acs_url kosong = nonaktif
     ]);
 } else {
-    if ($profile_name === 'Default') {
+    if ($profile_name === 'ACS-Smartolt') {
         $profile = $pdo->query("SELECT * FROM tr069_profiles WHERE is_default=1 LIMIT 1")->fetch();
     } else {
         $stmt2 = $pdo->prepare("SELECT * FROM tr069_profiles WHERE name=? LIMIT 1");
