@@ -1992,11 +1992,11 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                     names.push(sectionLabels[p] || lanLabels[p] || p);
                                 }
                             }
-                            // Special: WLANConfiguration → "Wireless LAN {n}"
+                            // Special: WLANConfiguration → "Wireless LAN {n}" (but Stats child → "WLAN Counters {n}")
                             if (path.includes('WLANConfiguration')) {
                                 const wlanNum = path.match(/WLANConfiguration\s+(\d+)/);
-                                // Check for special WLAN names
-                                const wlanObj = path.split('WLANConfiguration ')[1]?.split(' ')[0];
+                                const isStats = /\bStats\b/.test(path) && !path.trim().endsWith('WLANConfiguration ' + (wlanNum ? wlanNum[1] : ''));
+                                if (isStats) return 'WLAN Counters' + (wlanNum ? ' ' + wlanNum[1] : '');
                                 return 'Wireless LAN ' + (wlanNum ? wlanNum[1] : '');
                             }
                             // For WAN paths: use last meaningful name + numeric suffix
