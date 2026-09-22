@@ -36,7 +36,7 @@ if (!isset($_SESSION['smartolt_user_id'])) {
 }
 
 // 3. Batasi akses ke settings pages hanya untuk superadmin
-if (in_array($current_page, ['settings-olt.php', 'settings-users.php', 'onu-types.php', 'splitters.php', 'settings-speed-profiles.php', 'genieacs-devices.php', 'genieacs-device-detail.php']) && $_SESSION['smartolt_role'] !== 'superadmin') {
+if (in_array($current_page, ['settings-olt.php', 'settings-users.php', 'onu-types.php', 'splitters.php', 'settings-speed-profiles.php', 'tr069-management.php']) && $_SESSION['smartolt_role'] !== 'superadmin') {
     $_SESSION['error'] = 'Akses ditolak! Anda tidak memiliki izin untuk mengakses halaman tersebut.';
     header('Location: dashboard.php');
     exit;
@@ -157,8 +157,8 @@ session_write_close();
                                     <a href="vpn-tunnels.php" class="topnav-dropdown-item <?php echo $current_page === 'vpn-tunnels.php' ? 'active' : ''; ?>">
                                         <i data-lucide="shield" style="width:14px; height:14px;"></i> VPN Tunnels
                                     </a>
-                                    <a href="genieacs-devices.php" class="topnav-dropdown-item <?php echo in_array($current_page, ['genieacs-devices.php', 'genieacs-device-detail.php']) ? 'active' : ''; ?>">
-                                        <i data-lucide="router" style="width:14px; height:14px;"></i> GenieACS Devices
+                                    <a href="tr069-management.php" class="topnav-dropdown-item <?php echo in_array($current_page, ['tr069-management.php']) ? 'active' : ''; ?>">
+                                        <i data-lucide="file-cog" style="width:14px; height:14px;"></i> TR-069 Management
                                     </a>
                                 </div>
                             </div>

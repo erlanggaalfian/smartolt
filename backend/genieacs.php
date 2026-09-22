@@ -119,7 +119,53 @@ function genieacs_set_params(string $deviceId, array $paramValues): ?array {
     return genieacs_request('POST', "/devices/" . rawurlencode($deviceId) . "/tasks?connection_request", $task, 4);
 }
 
-/** Trigger refresh (re-read) parameter tertentu dari device. Timeout pendek, alasan sama. */
+/** Health check — cek 3 service (CWMP/NBI/FS) dan MongoDB. */
+function genieacs_health_check(): array {
+    $services = [
+        'cwmp' => ['port' => 7547, 'name' => 'CWMP'],
+        'nbi'  => ['port' => 7559, 'name' => 'NBI API'],
+        'fs'   => ['port' => 7567, 'name' => 'File Server'],
+    ];
+    $result = ['services' => [], 'mongodb' => false, 'device_count' => 0, 'online_24h' => 0];
+    foreach ($services as $key => $svc) {
+        $ch = curl_init("http://127.0.0.1:{$svc['port']}/");
+        curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 3, CURLOPT_NOBODY => true]);
+        curl_exec($ch);
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $err = curl_error($ch);
+        curl_close($ch);
+        $result['services'][$key] = [
+            'name' => $svc['name'],
+            'port' => $svc['port'],
+            'status' => ($code > 0) ? 'running' : 'down',
+            'http_code' => $code,
+            'error' => $err ?: null,
+        ];
+    }
+    // Cek MongoDB + hitung device
+    $devices = genieacs_list_devices();
+    $result['mongodb'] = is_array($devices);
+    $result['device_count'] = count($devices);
+    $now = time();
+    foreach ($devices as $d) {
+        $last = $d['_lastInform'] ?? null;
+        if ($last && (strtotime($last) > ($now - 86400))) $result['online_24h']++;
+    }
+    return $result;
+}
+
+/** Ambil fault / provisioning tasks dari GenieACS (recent errors). */
+function genieacs_get_faults(int $limit = 50): array {
+    $data = genieacs_request('GET', "/tasks/?limit={$limit}");
+    return is_array($data) ? $data : [];
+}
+
+/** Ambil semua profil dari DB. */
+function tr069_get_profiles(PDO $pdo): array {
+    return $pdo->query("SELECT * FROM tr069_profiles ORDER BY is_default DESC, name ASC")->fetchAll(PDO::FETCH_ASSOC);
+}
+
+/** Trigger refresh (re-read) parameter tertentu dari device. Timeout pendek. */
 function genieacs_refresh(string $deviceId, string $objectName = ''): ?array {
     $task = ['name' => 'refreshObject', 'objectName' => $objectName];
     return genieacs_request('POST', "/devices/" . rawurlencode($deviceId) . "/tasks?connection_request", $task, 4);
