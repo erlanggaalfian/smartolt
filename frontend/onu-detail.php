@@ -1906,7 +1906,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 <?php endforeach; ?>
                             </select>
                             <?php if (empty($management_vlans)): ?>
-                                <small style="color:var(--color-orange);">Tidak ada VLAN bertipe management. Tandai VLAN di OLT Settings.</small>
+                                <small style="color:var(--color-orange);">Tidak ada VLAN bertipe management. Default: VLAN 100 akan digunakan. Tandai VLAN di OLT Settings untuk opsi lain.</small>
                             <?php endif; ?>
                         </td>
                     </tr>
