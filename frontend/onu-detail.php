@@ -412,6 +412,16 @@ if (!empty($onu['onu_type'])) {
                     <?php else: ?>
                         <span style="color:var(--text-muted);">Nonaktif</span>
                     <?php endif; ?>
+                    <?php
+                    // TR-069 IP: sama dengan IP Manajemen (satu jalur VLAN management),
+                    // ditampilkan di sebelah kalau mode konfigurasi via TR069.
+                    if (($onu['config_method'] ?? null) === 'TR069'):
+                        $tr069_dev_id = genieacs_find_device_id($onu['serial_number'] ?? '');
+                        $tr069_ip = $tr069_dev_id ? genieacs_get_tr069_ip($tr069_dev_id) : null;
+                        if ($tr069_ip): ?>
+                            <span style="margin-left:8px; color:var(--text-muted);">| TR069: <?php echo htmlspecialchars($tr069_ip); ?></span>
+                        <?php endif;
+                    endif; ?>
                 </span>
             </div>
 

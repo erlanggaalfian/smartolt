@@ -53,6 +53,20 @@ function genieacs_detect_vendor(string $manufacturer, string $productClass): str
 }
 
 /**
+ * Ambil IP TR-069 device (host dari ConnectionRequestURL yang device lapor
+ * ke ACS saat Inform — ini IP manajemen sebenarnya yang device pakai,
+ * sama dengan IP Manajemen SNMP/CLI karena satu jalur VLAN management).
+ */
+function genieacs_get_tr069_ip(string $deviceId): ?string {
+    $device = genieacs_get_device($deviceId);
+    $url = $device['InternetGatewayDevice']['ManagementServer']['ConnectionRequestURL']['_value'] ?? null;
+    if (!$url) return null;
+    $host = parse_url($url, PHP_URL_HOST);
+    return $host ?: null;
+}
+
+
+/**
  * Parameter path map per kategori & vendor (TR-098, root InternetGatewayDevice).
  * Wildcard [n] diganti index instance (default 1) saat resolve.
  */
