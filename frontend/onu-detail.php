@@ -414,14 +414,15 @@ if (!empty($onu['onu_type'])) {
                     <?php endif; ?>
                     <?php
                     // TR-069 IP: sama dengan IP Manajemen (satu jalur VLAN management),
-                    // ditampilkan di sebelah kalau mode konfigurasi via TR069.
+                    // ditampilkan di sebelah kalau mode konfigurasi via TR069 — simpel
+                    // seperti Mode setup WAN (cuma ikon link + IP, tanpa label teks).
                     if (($onu['config_method'] ?? null) === 'TR069'):
                         $tr069_dev_id = genieacs_find_device_id($onu['serial_number'] ?? '');
                         $tr069_ip = $tr069_dev_id ? genieacs_get_tr069_ip($tr069_dev_id) : null;
                         if ($tr069_ip): ?>
-                            <span style="margin-left:8px; color:var(--text-muted);">| TR069:
-                                <a href="http://<?php echo htmlspecialchars($tr069_ip); ?>" target="_blank" onclick="event.stopPropagation();"><?php echo htmlspecialchars($tr069_ip); ?> <i data-lucide="external-link" style="width:11px;height:11px;vertical-align:middle;"></i></a>
-                            </span>
+                            <a href="http://<?php echo htmlspecialchars($tr069_ip); ?>" target="_blank" style="margin-left:8px; opacity:0.65;" onclick="event.stopPropagation();">
+                                <i data-lucide="external-link" style="width:11px;height:11px;vertical-align:middle;margin-right:4px;"></i><?php echo htmlspecialchars($tr069_ip); ?>
+                            </a>
                         <?php endif;
                     endif; ?>
                 </span>
@@ -858,7 +859,7 @@ if (!empty($onu['onu_type'])) {
                                 mgmtHtml += `<span style="color:var(--text-muted);">Nonaktif</span>`;
                             }
                             if (data.tr069_ip) {
-                                mgmtHtml += ` <span style="margin-left:8px; color:var(--text-muted);">| TR069: <a href="http://${esc(data.tr069_ip)}" target="_blank" onclick="event.stopPropagation();">${esc(data.tr069_ip)} <i data-lucide="external-link" style="width:11px;height:11px;vertical-align:middle;"></i></a></span>`;
+                                mgmtHtml += ` <a href="http://${esc(data.tr069_ip)}" target="_blank" style="margin-left:8px; opacity:0.65;" onclick="event.stopPropagation();"><i data-lucide="external-link" style="width:11px;height:11px;vertical-align:middle;margin-right:4px;"></i>${esc(data.tr069_ip)}</a>`;
                             }
                             mgmtIpEl.innerHTML = mgmtHtml;
                         }
