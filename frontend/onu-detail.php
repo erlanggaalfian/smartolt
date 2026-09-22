@@ -419,7 +419,9 @@ if (!empty($onu['onu_type'])) {
                         $tr069_dev_id = genieacs_find_device_id($onu['serial_number'] ?? '');
                         $tr069_ip = $tr069_dev_id ? genieacs_get_tr069_ip($tr069_dev_id) : null;
                         if ($tr069_ip): ?>
-                            <span style="margin-left:8px; color:var(--text-muted);">| TR069: <?php echo htmlspecialchars($tr069_ip); ?></span>
+                            <span style="margin-left:8px; color:var(--text-muted);">| TR069:
+                                <a href="http://<?php echo htmlspecialchars($tr069_ip); ?>" target="_blank" onclick="event.stopPropagation();"><?php echo htmlspecialchars($tr069_ip); ?> <i data-lucide="external-link" style="width:11px;height:11px;vertical-align:middle;"></i></a>
+                            </span>
                         <?php endif;
                     endif; ?>
                 </span>
@@ -851,7 +853,7 @@ if (!empty($onu['onu_type'])) {
                                 mgmtIpEl.textContent = 'N/A';
                             }
                             if (data.tr069_ip) {
-                                mgmtIpEl.innerHTML += ` <span style="margin-left:8px; color:var(--text-muted);">| TR069: ${esc(data.tr069_ip)}</span>`;
+                                mgmtIpEl.innerHTML += ` <span style="margin-left:8px; color:var(--text-muted);">| TR069: <a href="http://${esc(data.tr069_ip)}" target="_blank" onclick="event.stopPropagation();">${esc(data.tr069_ip)} <i data-lucide="external-link" style="width:11px;height:11px;vertical-align:middle;"></i></a></span>`;
                             }
                         }
 
