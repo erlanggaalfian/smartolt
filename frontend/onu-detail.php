@@ -512,7 +512,7 @@ if (!empty($onu['onu_type'])) {
             </div>
             
             <!-- Panel Output CLI Langsung di Bawah Tombol -->
-            <div id="status-cli-output-container" style="display: none; margin-top:10px; background:var(--bg-tertiary); border:1px solid var(--border-color); border-radius:4px; padding:16px; font-family:monospace; font-size:0.85rem; line-height:1.6; color:var(--text-main); overflow-x:auto; white-space:pre-wrap; width:100%; max-height: 500px; overflow-y: auto; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);"></div>
+            <div id="status-cli-output-container" style="display: none; margin-top:10px; background:var(--bg-tertiary); border:1px solid var(--border-color); border-radius:4px; padding:16px; font-size:0.85rem; line-height:1.6; color:var(--text-main); width:100%; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);"></div>
         </div>
     </div>
 
@@ -1681,8 +1681,10 @@ $tr069_profiles = tr069_get_profiles($pdo);
         if (btnGetStatus && cliOutputBox) {
             btnGetStatus.addEventListener('click', () => {
                 cliOutputBox.style.display = 'block';
+                cliOutputBox.style.fontFamily = 'monospace';
+                cliOutputBox.style.whiteSpace = 'pre-wrap';
                 cliOutputBox.textContent = 'Mengambil data...';
-                
+
                 btnGetStatus.disabled = true;
                 fetch(`action/onu-query.php?action=status&id=${onuId}`)
                     .then(res => res.json())
@@ -1752,8 +1754,10 @@ $tr069_profiles = tr069_get_profiles($pdo);
         if (btnShowRunning && cliOutputBox) {
             btnShowRunning.addEventListener('click', () => {
                 cliOutputBox.style.display = 'block';
+                cliOutputBox.style.fontFamily = 'monospace';
+                cliOutputBox.style.whiteSpace = 'pre-wrap';
                 cliOutputBox.textContent = 'Mengambil data...';
-                
+
                 btnShowRunning.disabled = true;
                 fetch(`action/onu-query.php?action=config&id=${onuId}`)
                     .then(res => res.json())
@@ -1789,6 +1793,8 @@ $tr069_profiles = tr069_get_profiles($pdo);
         if (btnSwInfo && cliOutputBox) {
             btnSwInfo.addEventListener('click', () => {
                 cliOutputBox.style.display = 'block';
+                cliOutputBox.style.fontFamily = 'monospace';
+                cliOutputBox.style.whiteSpace = 'pre-wrap';
                 cliOutputBox.textContent = 'Mengambil data...';
 
                 btnSwInfo.disabled = true;
@@ -2042,7 +2048,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         });
                         html += '</div>';
                         cliOutputBox.innerHTML = html;
-                        cliOutputBox.style.maxHeight = '600px';
+                        cliOutputBox.style.maxHeight = 'none';
                     })
                     .catch(() => { cliOutputBox.textContent = 'Gagal mengambil data GenieACS.'; })
                     .finally(() => { btnTr069.disabled = false; });
