@@ -10,6 +10,7 @@
 header('Content-Type: application/json');
 require_once __DIR__ . '/../../backend/db.php';
 require_once __DIR__ . '/../../backend/driver.php';
+require_once __DIR__ . '/../../backend/genieacs.php';
 
 if (!isset($_SESSION['smartolt_role'])) {
     http_response_code(403);
@@ -230,6 +231,14 @@ if ($full) {
 $stmt->execute([$id]);
 $onu = $stmt->fetch();
 
+// TR-069 IP (dari ConnectionRequestURL GenieACS) — hanya di mode full sync
+// supaya polling ringan (15 detik) tidak kena overhead lookup NBI tambahan.
+$tr069_ip = null;
+if ($full && ($onu['config_method'] ?? null) === 'TR069') {
+    $tr069_dev_id = genieacs_find_device_id($onu['serial_number'] ?? '');
+    $tr069_ip = $tr069_dev_id ? genieacs_get_tr069_ip($tr069_dev_id) : null;
+}
+
 echo json_encode([
     'success'           => true,
     'status'            => $onu['status'],
@@ -246,6 +255,7 @@ echo json_encode([
     'onu_mode'          => $onu['onu_mode'],
     'wan_mode'          => $onu['wan_mode'],
     'config_method'     => $onu['config_method'] ?? 'OMCI',
+    'tr069_ip'          => $tr069_ip,
     'onu_type'          => $onu['onu_type'] ?? 'ALL-ONT',
     'wan_remote_access' => $onu['wan_remote_access'],
     'allow_remote_mgmt' => $onu['allow_remote_mgmt'],

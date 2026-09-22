@@ -850,6 +850,9 @@ if (!empty($onu['onu_type'])) {
                             } else {
                                 mgmtIpEl.textContent = 'N/A';
                             }
+                            if (data.tr069_ip) {
+                                mgmtIpEl.innerHTML += ` <span style="margin-left:8px; color:var(--text-muted);">| TR069: ${esc(data.tr069_ip)}</span>`;
+                            }
                         }
 
                         const distEl = document.getElementById('detail-distance');
