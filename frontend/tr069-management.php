@@ -65,9 +65,14 @@ foreach ($profiles as $p) {
             <i data-lucide="shield-check" style="width:20px;height:20px;color:var(--text-accent);"></i>
             <strong style="font-size:1.05rem;"><?= htmlspecialchars($default['name']) ?></strong>
             <span class="pd-badge">Default</span>
-            <span style="margin-left:auto;font-size:0.75rem;color:var(--text-muted);">Tidak bisa diedit / dihapus</span>
+            <button class="btn btn-secondary btn-sm" onclick='editProfile(<?= json_encode($default) ?>)' style="margin-left:auto;" title="Edit Username/Password"><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit Auth</button>
         </div>
         <div class="pd-url"><?= htmlspecialchars($default['acs_url']) ?></div>
+        <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:12px;">
+            Username: <strong><?= $default['acs_username'] ? htmlspecialchars($default['acs_username']) : '<span style="color:var(--color-orange);">belum diisi</span>' ?></strong>
+            &nbsp;|&nbsp; VLAN: <strong><?= $default['mgmt_vlan'] ?: '<span style="color:var(--color-orange);">-</span>' ?></strong>
+            &nbsp;|&nbsp; Priority: <strong><?= $default['mgmt_priority'] ?? 2 ?></strong>
+        </div>
         <?php if ($default['description']): ?>
             <p style="color:var(--text-muted);font-size:0.85rem;margin:0 0 12px;"><?= htmlspecialchars($default['description']) ?></p>
         <?php endif; ?>
@@ -95,16 +100,17 @@ foreach ($profiles as $p) {
         </div>
         <div class="table-responsive">
             <table class="data-table">
-                <thead><tr><th>Nama</th><th>ACS URL</th><th>Deskripsi</th><th>Status</th><th>Aksi</th></tr></thead>
+                <thead><tr><th>Nama</th><th>ACS URL</th><th>Username</th><th>VLAN</th><th>Status</th><th>Aksi</th></tr></thead>
                 <tbody>
                 <?php if (empty($custom)): ?>
-                    <tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-muted);">Belum ada profil custom.</td></tr>
+                    <tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted);">Belum ada profil custom.</td></tr>
                 <?php endif; ?>
                 <?php foreach ($custom as $p): ?>
                     <tr>
                         <td><strong><?= htmlspecialchars($p['name']) ?></strong></td>
                         <td><code style="font-size:0.8rem;"><?= htmlspecialchars($p['acs_url']) ?></code></td>
-                        <td style="color:var(--text-muted);font-size:0.85rem;"><?= htmlspecialchars($p['description'] ?? '-') ?></td>
+                        <td style="font-size:0.85rem;"><?= htmlspecialchars($p['acs_username'] ?? '-') ?></td>
+                        <td style="font-size:0.85rem;"><?= $p['mgmt_vlan'] ? htmlspecialchars($p['mgmt_vlan']) : '-' ?></td>
                         <td>
                             <?php if ($p['is_active']): ?>
                                 <span style="color:var(--color-green);font-weight:600;">Active</span>
@@ -241,6 +247,35 @@ foreach ($profiles as $p) {
                     <label>ACS URL</label>
                     <input type="text" id="profile-url" placeholder="http://192.168.1.100:7559">
                 </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" id="profile-username" placeholder="ACS username">
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="profile-password" placeholder="ACS password">
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div class="form-group">
+                        <label>VLAN Tag</label>
+                        <input type="number" id="profile-vlan" placeholder="Contoh: 100">
+                    </div>
+                    <div class="form-group">
+                        <label>Priority</label>
+                        <select id="profile-priority" style="width:100%;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-main);padding:10px;">
+                            <option value="0">0</option>
+                            <option value="1">1</option>
+                            <option value="2" selected>2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                        </select>
+                    </div>
+                </div>
                 <div class="form-group">
                     <label>Deskripsi</label>
                     <textarea id="profile-desc" rows="2" style="width:100%;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-main);padding:10px;resize:vertical;"></textarea>
@@ -266,18 +301,30 @@ document.querySelectorAll('.tr069-tab').forEach(btn => {
     });
 });
 
-function openProfileModal(id, name, url, desc) {
+function openProfileModal(id, name, url, desc, username, password, vlan, priority) {
     document.getElementById('profile-modal-title').textContent = id ? 'Edit TR-069 Profile' : 'Add TR-069 Profile';
     document.getElementById('profile-id').value = id || '';
     document.getElementById('profile-name').value = name || '';
     document.getElementById('profile-url').value = url || '';
     document.getElementById('profile-desc').value = desc || '';
+    document.getElementById('profile-username').value = username || '';
+    document.getElementById('profile-password').value = password || '';
+    document.getElementById('profile-vlan').value = vlan || '';
+    document.getElementById('profile-priority').value = priority ?? 2;
     document.getElementById('profile-modal').classList.add('open');
 }
 function closeProfileModal() { document.getElementById('profile-modal').classList.remove('open'); }
 
 function editProfile(p) {
-    openProfileModal(p.id, p.name, p.acs_url, p.description);
+    openProfileModal(p.id, p.name, p.acs_url, p.description, p.acs_username, p.acs_password, p.mgmt_vlan, p.mgmt_priority);
+    // Default profile: name/URL/desc read-only
+    const isDefault = p.is_default == 1;
+    document.getElementById('profile-name').readOnly = isDefault;
+    document.getElementById('profile-url').readOnly = isDefault;
+    document.getElementById('profile-desc').readOnly = isDefault;
+    document.getElementById('profile-name').style.opacity = isDefault ? 0.5 : 1;
+    document.getElementById('profile-url').style.opacity = isDefault ? 0.5 : 1;
+    document.getElementById('profile-desc').style.opacity = isDefault ? 0.5 : 1;
 }
 
 function saveProfile() {
@@ -287,6 +334,10 @@ function saveProfile() {
         name: document.getElementById('profile-name').value.trim(),
         acs_url: document.getElementById('profile-url').value.trim(),
         description: document.getElementById('profile-desc').value.trim(),
+        acs_username: document.getElementById('profile-username').value.trim(),
+        acs_password: document.getElementById('profile-password').value,
+        mgmt_vlan: document.getElementById('profile-vlan').value || null,
+        mgmt_priority: document.getElementById('profile-priority').value || 2,
     };
     if (!body.name || !body.acs_url) { alert('Nama dan URL wajib diisi.'); return; }
     fetch('action/tr069-profile-save.php', {
