@@ -1811,37 +1811,101 @@ $tr069_profiles = tr069_get_profiles($pdo);
             });
         }
 
-        // Handle TR069 Status (GenieACS inline)
+        // Handle TR069 Status (GenieACS inline accordion)
         const btnTr069 = document.getElementById('btn-tr069-status');
         const serial = '<?= addslashes($onu['serial_number'] ?? '') ?>';
         if (btnTr069 && cliOutputBox) {
             btnTr069.addEventListener('click', () => {
                 cliOutputBox.style.display = 'block';
+                cliOutputBox.style.fontFamily = 'inherit';
                 cliOutputBox.innerHTML = '<em>Memuat data GenieACS...</em>';
                 btnTr069.disabled = true;
                 fetch(`action/genieacs-proxy.php?serial=${encodeURIComponent(serial)}`)
                     .then(r => r.json())
                     .then(d => {
                         if (d.error) { cliOutputBox.textContent = 'Error: ' + d.error; return; }
-                        const igd = d.InternetGatewayDevice || d.Device || {};
-                        const dev = igd.DeviceInfo || {};
-                        const devid = d._deviceId || {};
-                        const summary = {
-                            'Manufacturer': (dev.Manufacturer?._value || '-') + ' (OUI: ' + (devid._OUI || '-') + ')',
-                            'Model': dev.ModelName?._value || dev.ProductClass?._value || '-',
-                            'Serial': dev.SerialNumber?._value || d._id || '-',
-                            'Software': dev.SoftwareVersion?._value || '-',
-                            'Hardware': dev.HardwareVersion?._value || '-',
-                            'Uptime': dev.UpTime?._value ? Math.floor(dev.UpTime._value/3600) + 'h ' + Math.floor((dev.UpTime._value%3600)/60) + 'm' : '-',
-                            'Provisioning Code': dev.ProvisioningCode?._value || '-',
-                        };
-                        let html = '<div style="font-size:0.85rem;line-height:2;">';
-                        html += '<div style="font-weight:600;margin-bottom:8px;font-size:0.9rem;">🟢 GenieACS: ' + (d._id || serial) + '</div>';
-                        for (const [k,v] of Object.entries(summary)) {
-                            html += `<div><strong>${k}:</strong> ${v}</div>`;
+                        const root = d.InternetGatewayDevice || d.Device || {};
+                        // Flatten tree into sections
+                        const sections = [];
+                        function walk(obj, path) {
+                            if (!obj || typeof obj !== 'object') return;
+                            // Collect leaf values
+                            const params = {};
+                            const children = {};
+                            for (const [k, v] of Object.entries(obj)) {
+                                if (k.startsWith('_')) continue;
+                                if (v && typeof v === 'object' && v._object) children[k] = v;
+                                else if (v && typeof v === 'object' && '_value' in v) params[k] = v._value;
+                            }
+                            if (Object.keys(params).length) sections.push({ title: path, params });
+                            for (const [k, v] of Object.entries(children)) walk(v, path ? path + ' > ' + k : k);
                         }
+                        // Top-level summary
+                        const dev = root.DeviceInfo || {};
+                        const devid = d._deviceId || {};
+                        const uptime = dev.UpTime?._value;
+                        sections.unshift({
+                            title: 'General',
+                            params: {
+                                'Manufacturer': (dev.Manufacturer?._value || '-') + ' (OUI: ' + (devid._OUI || '-') + ')',
+                                'Model name': dev.ModelName?._value || dev.ProductClass?._value || '-',
+                                'Software version': dev.SoftwareVersion?._value || '-',
+                                'Hardware version': dev.HardwareVersion?._value || '-',
+                                'Provisioning code': dev.ProvisioningCode?._value || '-',
+                                'Data model': 'TR-069 (Root: ' + (d.InternetGatewayDevice ? 'InternetGatewayDevice' : 'Device') + ')',
+                                'GPON Serial': devid._SerialNumber || '-',
+                                'TR069 Serial': dev.SerialNumber?._value || '-',
+                                ...(dev.X_HW_CpuUsed?._value != null ? {'CPU Usage': dev.X_HW_CpuUsed._value + '%'} : {}),
+                                ...(dev.MemoryStatus ? {
+                                    'Total RAM': (dev.MemoryStatus.Total?._value || '-') + 'MB',
+                                    'Free RAM': (dev.MemoryStatus.Free?._value || '-') + 'MB',
+                                } : {}),
+                                ...(uptime ? {'Uptime': Math.floor(uptime/86400)+'d '+Math.floor((uptime%86400)/3600)+'h '+Math.floor((uptime%3600)/60)+'m'} : {}),
+                            }
+                        });
+                        // Walk WANDevice
+                        if (root.WANDevice) {
+                            for (const [wdk, wdv] of Object.entries(root.WANDevice)) {
+                                if (!wdv || typeof wdv !== 'object') continue;
+                                walk(wdv, 'WANDevice ' + wdk);
+                            }
+                        }
+                        // Walk LANDevice
+                        if (root.LANDevice) {
+                            for (const [ldk, ldv] of Object.entries(root.LANDevice)) {
+                                if (!ldv || typeof ldv !== 'object') continue;
+                                walk(ldv, 'LANDevice ' + ldk);
+                            }
+                        }
+                        // Walk other top-level children
+                        for (const [k, v] of Object.entries(root)) {
+                            if (['_object','_timestamp','_writable','_deviceId'].includes(k)) continue;
+                            if (['DeviceInfo','WANDevice','LANDevice'].includes(k)) continue;
+                            if (v && typeof v === 'object' && v._object) walk(v, k);
+                        }
+
+                        // Render accordion
+                        let html = '<div style="font-size:0.85rem;">';
+                        html += '<div style="font-weight:700;margin-bottom:12px;font-size:0.95rem;display:flex;align-items:center;gap:8px;"><span style="width:10px;height:10px;border-radius:50%;background:#28a745;display:inline-block;"></span> ' + (d._id || serial) + '</div>';
+                        sections.forEach((sec, i) => {
+                            const id = 'tr069-sec-' + i;
+                            const count = Object.keys(sec.params).length;
+                            if (!count) return;
+                            html += '<div style="border:1px solid var(--border-color);border-radius:4px;margin-bottom:4px;overflow:hidden;">';
+                            html += '<div onclick="const p=this.nextElementSibling;p.style.display=p.style.display===\'none\'?\'block\':\'none\'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
+                            html += '<span>' + sec.title + '</span><span style="color:var(--text-muted);font-size:0.75rem;">' + count + ' params</span></div>';
+                            html += '<div style="display:' + (i < 3 ? 'block' : 'none') + ';padding:8px 12px;">';
+                            for (const [k, v] of Object.entries(sec.params)) {
+                                const val = v === '' ? '<span style="color:var(--text-muted);">(empty)</span>' : String(v);
+                                html += '<div style="padding:3px 0;border-bottom:1px solid var(--border-color);display:flex;gap:8px;">';
+                                html += '<span style="min-width:200px;color:var(--text-muted);flex-shrink:0;">' + k + '</span>';
+                                html += '<span style="word-break:break-all;">' + val + '</span></div>';
+                            }
+                            html += '</div></div>';
+                        });
                         html += '</div>';
                         cliOutputBox.innerHTML = html;
+                        cliOutputBox.style.maxHeight = '600px';
                     })
                     .catch(() => { cliOutputBox.textContent = 'Gagal mengambil data GenieACS.'; })
                     .finally(() => { btnTr069.disabled = false; });
