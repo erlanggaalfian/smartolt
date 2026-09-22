@@ -1906,8 +1906,8 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             ['Hardware version', dev.HardwareVersion?._value || '-'],
                             ['Provisioning code', dev.ProvisioningCode?._value || '-'],
                             ['Data model', 'TR-069 (Root: ' + (d.InternetGatewayDevice ? 'InternetGatewayDevice' : 'Device') + ')'],
-                            ['GPON Serial', devid._SerialNumber || '-'],
-                            ['TR069 Serial', dev.SerialNumber?._value || '-'],
+                            ['GPON Serial number', devid._SerialNumber || '-'],
+                            ['TR069 Serial number', dev.SerialNumber?._value || '-'],
                         ];
                         for (const [k, v] of topFields) ordered[k] = v;
 
@@ -1929,11 +1929,11 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             const bootStr = bootTime.getFullYear()+'-'+pad(bootTime.getMonth()+1)+'-'+pad(bootTime.getDate())+' '+pad(bootTime.getHours())+':'+pad(bootTime.getMinutes())+':'+pad(bootTime.getSeconds());
                             const d_ = Math.floor(uptimeSec/86400), h = Math.floor((uptimeSec%86400)/3600), m = Math.floor((uptimeSec%3600)/60), s = Math.floor(uptimeSec%60);
                             const parts = [];
-                            if (d_) parts.push(d_+' hari');
-                            if (d_ || h) parts.push(h+' jam');
-                            if (d_ || h || m) parts.push(m+' menit');
-                            parts.push(s+' detik');
-                            ordered['Uptime'] = bootStr + ' (' + parts.join(', ') + ' yang lalu)';
+                            if (d_) parts.push(d_+' day'+(d_>1?'s':''));
+                            if (d_ || h) parts.push(h+' hour'+(h!=1?'s':''));
+                            parts.push(m+' minute'+(m!=1?'s':''));
+                            parts.push(s+' second'+(s!=1?'s':''));
+                            ordered['Uptime'] = bootStr + ' (' + parts.join(', ') + ' ago)';
                         }
 
                         sections.unshift({ title: 'General', params: ordered });
