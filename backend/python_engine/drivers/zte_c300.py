@@ -1255,6 +1255,7 @@ class OltZteC300Driver(BaseDriver):
                 'exit',
                 f'pon-onu-mng {onu_intf}',
                 'tr069-mgmt 1 state lock',
+                'no tr069-mgmt 1 acs',
                 'no ip-host 2',
                 'no vlan-filter-mode iphost 2',
                 'no flow 2',
