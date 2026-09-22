@@ -1285,7 +1285,7 @@ class OltZteC300Driver(BaseDriver):
             'log': log
         }
 
-    def set_tr069_profile(self, olt: dict, pon_port: str, onu_id: int, acs_url: str, username: str = '', password: str = '', vlan: int = 0, priority: int = 2) -> dict:
+    def set_tr069_profile(self, olt: dict, pon_port: str, onu_id: int, acs_url: str, username: str = '', password: str = '') -> dict:
         """Push TR069 config ke ONU via OLT CLI.
         Setup full infra VLAN management + tr069-mgmt dalam satu sesi.
         """
@@ -1312,17 +1312,11 @@ class OltZteC300Driver(BaseDriver):
         if username and password:
             validate_cmd = f'validate basic username {username} password {password}'
 
-        # Setup infra VLAN management hanya kalau vlan valid
-        if vlan:
-            commands = self._build_mgmt_vlan_infra(onu_intf, vlan)
-        else:
-            commands = ['configure terminal', f'pon-onu-mng {onu_intf}']
+        commands = ['configure terminal', f'pon-onu-mng {onu_intf}']
         commands.extend([
             'tr069-mgmt 1 state unlock',
             f'tr069-mgmt 1 acs {acs_url} {validate_cmd}',
         ])
-        if vlan:
-            commands.append(f'tr069-mgmt 1 tag pri {priority} vlan {vlan}')
         commands.extend(['exit', 'exit', 'write'])
 
         log = execute_ssh_commands(olt, commands)

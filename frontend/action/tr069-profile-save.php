@@ -13,8 +13,6 @@ if (!preg_match('#^https?://#', $acs_url)) { echo json_encode(['success'=>false,
 
 $username = trim($body['acs_username'] ?? '');
 $password = trim($body['acs_password'] ?? '');
-$vlan = $body['mgmt_vlan'] !== '' && $body['mgmt_vlan'] !== null ? (int)$body['mgmt_vlan'] : null;
-$priority = isset($body['mgmt_priority']) ? (int)$body['mgmt_priority'] : 2;
 
 if (!empty($body['id'])) {
     // Edit
@@ -24,16 +22,16 @@ if (!empty($body['id'])) {
     if (!$row) { echo json_encode(['success'=>false,'message'=>'Profil tidak ditemukan']); exit; }
 
     if ($row['is_default']) {
-        // Default: hanya izinkan update username/password/vlan/priority
-        $stmt = $pdo->prepare("UPDATE tr069_profiles SET acs_username=?, acs_password=?, mgmt_vlan=?, mgmt_priority=?, updated_at=NOW() WHERE id=?");
-        $stmt->execute([$username, $password, $vlan, $priority, $body['id']]);
+        // Default: hanya izinkan update username/password
+        $stmt = $pdo->prepare("UPDATE tr069_profiles SET acs_username=?, acs_password=?, updated_at=NOW() WHERE id=?");
+        $stmt->execute([$username, $password, $body['id']]);
     } else {
-        $stmt = $pdo->prepare("UPDATE tr069_profiles SET name=?, acs_url=?, description=?, acs_username=?, acs_password=?, mgmt_vlan=?, mgmt_priority=?, updated_at=NOW() WHERE id=?");
-        $stmt->execute([$body['name'], $acs_url, $body['description'] ?? '', $username, $password, $vlan, $priority, $body['id']]);
+        $stmt = $pdo->prepare("UPDATE tr069_profiles SET name=?, acs_url=?, description=?, acs_username=?, acs_password=?, updated_at=NOW() WHERE id=?");
+        $stmt->execute([$body['name'], $acs_url, $body['description'] ?? '', $username, $password, $body['id']]);
     }
 } else {
     // Add
-    $stmt = $pdo->prepare("INSERT INTO tr069_profiles (name, acs_url, description, acs_username, acs_password, mgmt_vlan, mgmt_priority) VALUES (?,?,?,?,?,?,?)");
-    $stmt->execute([$body['name'], $acs_url, $body['description'] ?? '', $username, $password, $vlan, $priority]);
+    $stmt = $pdo->prepare("INSERT INTO tr069_profiles (name, acs_url, description, acs_username, acs_password) VALUES (?,?,?,?,?)");
+    $stmt->execute([$body['name'], $acs_url, $body['description'] ?? '', $username, $password]);
 }
 echo json_encode(['success'=>true]);

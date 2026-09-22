@@ -27,7 +27,7 @@ if ($profile_name === 'Nonaktif') {
     // Hapus tr069-mgmt dari ONU
     $result = call_driver($olt, 'set_tr069_profile', [
         $row['pon_port'], (int)$row['onu_id'],
-        '', '', '', 0, 0,  // acs_url kosong = hapus
+        '', '', '',  // acs_url kosong = nonaktif
     ]);
 } else {
     if ($profile_name === 'Default') {
@@ -44,8 +44,6 @@ if ($profile_name === 'Nonaktif') {
         $profile['acs_url'],
         $profile['acs_username'] ?? '',
         $profile['acs_password'] ?? '',
-        $profile['mgmt_vlan'] ?: null,
-        $profile['mgmt_priority'] ?? 2,
     ]);
 }
 
