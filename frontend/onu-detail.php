@@ -506,7 +506,7 @@ if (!empty($onu['onu_type'])) {
                 <button type="button" class="btn-solt btn-solt-blue" id="btn-show-running-config"><i data-lucide="file-text" style="width:14px; height:14px;"></i> Show running-config</button>
                 <button type="button" class="btn-solt btn-solt-blue" id="btn-sw-info"><i data-lucide="info" style="width:14px; height:14px;"></i> Info SW</button>
                 <?php if (($onu['tr069_profile'] ?? '') === 'ACS-Smartolt'): ?>
-                <button type="button" class="btn-solt btn-solt-orange" id="btn-tr069-status" onclick="window.open('http://10.198.198.1:3000/#/devices/<?= urlencode($onu['serial_number'] ?? '') ?>','_blank')"><i data-lucide="activity" style="width:14px; height:14px;"></i> TR069 Status</button>
+                <button type="button" class="btn-solt btn-solt-orange" id="btn-tr069-status"><i data-lucide="activity" style="width:14px; height:14px;"></i> TR069 Status</button>
                 <?php endif; ?>
                 <button type="button" class="btn-solt btn-solt-green" id="btn-live"><i data-lucide="refresh-cw" style="width:14px; height:14px;"></i> LIVE!</button>
             </div>
@@ -1808,6 +1808,43 @@ $tr069_profiles = tr069_get_profiles($pdo);
                     .finally(() => {
                         btnSwInfo.disabled = false;
                     });
+            });
+        }
+
+        // Handle TR069 Status (GenieACS inline)
+        const btnTr069 = document.getElementById('btn-tr069-status');
+        const serial = '<?= addslashes($onu['serial_number'] ?? '') ?>';
+        if (btnTr069 && cliOutputBox) {
+            btnTr069.addEventListener('click', () => {
+                cliOutputBox.style.display = 'block';
+                cliOutputBox.innerHTML = '<em>Memuat data GenieACS...</em>';
+                btnTr069.disabled = true;
+                fetch(`action/genieacs-proxy.php?serial=${encodeURIComponent(serial)}`)
+                    .then(r => r.json())
+                    .then(d => {
+                        if (d.error) { cliOutputBox.textContent = 'Error: ' + d.error; return; }
+                        const igd = d.InternetGatewayDevice || d.Device || {};
+                        const dev = igd.DeviceInfo || {};
+                        const summary = {
+                            'Manufacturer': (dev.Manufacturer?._value || '-') + ' (OUI: ' + (dev.ManufacturerOUI?._value || '-') + ')',
+                            'Model': dev.ProductClass?._value || '-',
+                            'Serial': dev.SerialNumber?._value || d._id || '-',
+                            'Software': dev.SoftwareVersion?._value || '-',
+                            'Hardware': dev.HardwareVersion?._value || '-',
+                            'Uptime': dev.UpTime?._value ? Math.floor(dev.UpTime._value/3600) + 'h ' + Math.floor((dev.UpTime._value%3600)/60) + 'm' : '-',
+                            'Provisioning Code': dev.ProvisioningCode?._value || '-',
+                            'Data Model': d['[root]']?.['dataModel']?._value || 'TR-069',
+                        };
+                        let html = '<div style="font-size:0.85rem;line-height:2;">';
+                        html += '<div style="font-weight:600;margin-bottom:8px;font-size:0.9rem;">🟢 GenieACS: ' + (d._id || serial) + '</div>';
+                        for (const [k,v] of Object.entries(summary)) {
+                            html += `<div><strong>${k}:</strong> ${v}</div>`;
+                        }
+                        html += '</div>';
+                        cliOutputBox.innerHTML = html;
+                    })
+                    .catch(() => { cliOutputBox.textContent = 'Gagal mengambil data GenieACS.'; })
+                    .finally(() => { btnTr069.disabled = false; });
             });
         }
 
