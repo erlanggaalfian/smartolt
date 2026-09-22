@@ -1877,11 +1877,148 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 walk(ldv, 'LANDevice ' + ldk);
                             }
                         }
-                        // Walk other top-level children
+                        // Map TR-069 path to friendly section name
+                        const sectionLabels = {
+                            'WANDevice': 'WAN',
+                            'WANConnectionDevice': 'WAN Conn',
+                            'WANPPPConnection': 'PPP Interface',
+                            'WANIPConnection': 'IP Interface',
+                            'WANEthInterfaceConfig': 'WAN Eth',
+                            'PortMapping': 'Port Forward',
+                            'X_GponInterafceConfig': 'GPON Optical',
+                            'X_GponInterfaceConfig': 'GPON Optical',
+                            'X_HW_PonInterface': 'PON Interface',
+                            'X_HW_ShowInterface': 'Show Interface',
+                            'WANCommonInterfaceConfig': 'WAN Common',
+                        };
+                        const lanLabels = {
+                            'LANHostConfigManagement': 'LAN DHCP Server',
+                            'LANEthernetInterfaceConfig': 'LAN Ports',
+                            'Stats': 'LAN Counters',
+                            'WLANConfiguration': 'Wireless LAN',
+                            'Hosts': 'Hosts',
+                            'X_HW_LanService': 'LAN Service',
+                        };
+                        function niceLabel(path) {
+                            // WANDevice 1 > WANConnectionDevice 1 > WANPPPConnection → "PPP Interface 1.1"
+                            const parts = path.split(' > ');
+                            const nums = [];
+                            const names = [];
+                            for (const p of parts) {
+                                const m = p.match(/^(.+?)\s+(\d+)$/);
+                                if (m) {
+                                    names.push(sectionLabels[m[1]] || lanLabels[m[1]] || m[1]);
+                                    nums.push(m[2]);
+                                } else {
+                                    names.push(sectionLabels[p] || lanLabels[p] || p);
+                                }
+                            }
+                            // Special: WLANConfiguration → "Wireless LAN {n}"
+                            if (path.includes('WLANConfiguration')) {
+                                const wlanNum = path.match(/WLANConfiguration\s+(\d+)/);
+                                // Check for special WLAN names
+                                const wlanObj = path.split('WLANConfiguration ')[1]?.split(' ')[0];
+                                return 'Wireless LAN ' + (wlanNum ? wlanNum[1] : '');
+                            }
+                            // For WAN paths: use last meaningful name + numeric suffix
+                            const last = names[names.length - 1] || path;
+                            const numStr = nums.join('.');
+                            return numStr ? last + ' ' + numStr : last;
+                        }
+                        // Rewrite section titles
+                        sections.forEach(sec => { sec.title = niceLabel(sec.title); });
+
+                        // Walk top-level non-device children (Services, Diagnostics, etc.)
                         for (const [k, v] of Object.entries(root)) {
                             if (['_object','_timestamp','_writable','_deviceId'].includes(k)) continue;
                             if (['DeviceInfo','WANDevice','LANDevice'].includes(k)) continue;
-                            if (v && typeof v === 'object' && v._object) walk(v, k);
+                            if (v && typeof v === 'object' && v._object) {
+                                // Friendly top-level names
+                                const topLabels = {
+                                    'Layer3Forwarding': 'Routing',
+                                    'Services': 'Services',
+                                    'VoiceService': 'Voice lines',
+                                    'ManagementServer': 'Management Server',
+                                    'Time': 'Time',
+                                    'DeviceInfo': 'Device Info',
+                                    'DeviceConfig': 'Device Config',
+                                    'Diagnostics': 'Diagnostics',
+                                    'IPPingDiagnostics': 'IP Ping Diagnostics',
+                                    'DownloadDiagnostics': 'Download Diagnostics',
+                                    'UploadDiagnostics': 'Upload Diagnostics',
+                                    'TraceRouteDiagnostics': 'Traceroute Diagnostics',
+                                    'ServerSelectionDiagnostics': 'Server Selection',
+                                    'UDPEchoConfig': 'UDP Echo Config',
+                                    'UserInterface': 'User Interface',
+                                    'BulkData': 'Bulk Data',
+                                    'QueueManagement': 'Queue Management',
+                                    'Optical': 'Optical',
+                                    'LANInterfaces': 'LAN Interfaces',
+                                    'LANConfigSecurity': 'LAN Config Security',
+                                    'WiFi': 'WiFi',
+                                    'Security': 'Security',
+                                    'Hosts': 'Hosts',
+                                    'X_HW_ALG': 'ALG',
+                                    'X_HW_IPTV': 'IPTV',
+                                    'X_HW_IPv6': 'IPv6',
+                                    'X_HW_DNS': 'DNS',
+                                    'X_HW_Security': 'Security',
+                                    'X_HW_ServiceManage': 'Service Management',
+                                    'X_HW_APDevice': 'AP Device',
+                                    'X_HW_APMPolicy': 'APM Policy',
+                                    'X_HW_APService': 'AP Service',
+                                    'X_HW_WiFiDiagnostic': 'WiFi Diagnostic',
+                                    'X_HW_WifiCoverService': 'WiFi Cover',
+                                    'X_HW_eMDI': 'eMDI',
+                                    'X_HW_PonQualityMonitor': 'PON Quality',
+                                    'X_HW_SmartCAT': 'Smart CAT',
+                                    'X_HW_SmartTopo': 'Smart Topo',
+                                    'X_HW_MainUPnP': 'UPnP',
+                                    'X_HW_SlvUPnP': 'Slave UPnP',
+                                    'X_HW_NetInfo_Acquisition': 'Network Info',
+                                    'X_HW_ARPPingDiagnostics': 'ARP Ping',
+                                    'X_HW_DHCP_PING_EMULATOR': 'DHCP Ping',
+                                    'X_HW_DHCPSLVSERVER': 'DHCP Slave',
+                                    'X_HW_Arp': 'ARP Table',
+                                    'X_HW_GRETunnel': 'GRE Tunnel',
+                                    'X_HW_NeighborDiscovery': 'Neighbor Discovery',
+                                    'X_HW_SFTP': 'SFTP',
+                                    'X_HW_RouterAdvertisement': 'Router Advertisement',
+                                    'X_HW_DHCPv6': 'DHCPv6',
+                                    'X_HW_IPv6Config': 'IPv6 Config',
+                                    'X_HW_IPv6Layer3Forwarding': 'IPv6 Routing',
+                                    'X_HW_WLANForGuest': 'Guest WLAN',
+                                    'X_HW_WLANForISP': 'ISP WLAN',
+                                    'X_HW_LanService': 'LAN Service',
+                                    'X_HW_IperfSpeedTest': 'Speed Test',
+                                    'X_HW_AppRemoteManage': 'Remote Manage',
+                                    'X_HW_PPPoE_BridgeWAN_AutoEmulator': 'PPPoE Emulator',
+                                    'X_HW_PPPOE_EMLUATOR': 'PPPoE Emulator',
+                                    'X_HW_AutoBackupRestore': 'Auto Backup',
+                                    'X_HW_Alarm': 'Alarm',
+                                    'X_HW_CertPassword': 'Cert Password',
+                                    'X_HW_CheckUrlRandom': 'URL Random',
+                                    'X_HW_DSCP': 'DSCP',
+                                    'X_HW_EnableCertificate': 'Certificate',
+                                    'X_HW_RandomInformEnable': 'Random Inform',
+                                    'X_HW_Syntax': 'Syntax',
+                                    'X_HW_UserContractInfo': 'User Contract',
+                                    'X_HW_ServiceAccessInfo': 'Service Access',
+                                    'X_HW_Syslog': 'Syslog',
+                                    'X_HW_Monitor': 'Monitor',
+                                    'X_HW_FeatureList': 'Feature List',
+                                    'X_HW_LanService': 'LAN Service',
+                                    'X_HW_CHL_SCAN': 'Channel Scan',
+                                    'X_HW_AmpInfo': 'Amplifier Info',
+                                    'X_HW_Dot1agCfm': 'CFM (802.1ag)',
+                                    'X_HW_POTSDeviceNumber': 'POTS Devices',
+                                    'ManageableDevice': 'Manageable Devices',
+                                    'InformParameter': 'Inform Parameters',
+                                    'VirtualDevice': 'Virtual Device',
+                                };
+                                const label = topLabels[k] || k;
+                                walk(v, label);
+                            }
                         }
 
                         // Render accordion
