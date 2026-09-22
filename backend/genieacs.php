@@ -170,3 +170,83 @@ function genieacs_refresh(string $deviceId, string $objectName = ''): ?array {
     $task = ['name' => 'refreshObject', 'objectName' => $objectName];
     return genieacs_request('POST', "/devices/" . rawurlencode($deviceId) . "/tasks?connection_request", $task, 4);
 }
+
+/**
+ * Resolve GenieACS device _id dari serial ONU. Coba: ID langsung, query SerialNumber,
+ * lalu Huawei GPON→TR-069 hex convert (HWTCxxxx → 48575443xxxx), lalu suffix-match fallback.
+ */
+function genieacs_find_device_id(string $serial): ?string {
+    $serial = preg_replace('/[^a-zA-Z0-9_-]/', '', $serial);
+    if (!$serial) return null;
+
+    $alt_serial = '';
+    if (preg_match('/^HWTC([A-F0-9]+)$/i', $serial, $m)) {
+        $alt_serial = bin2hex('HWTC') . strtoupper($m[1]);
+    }
+    $serials = array_filter(array_unique([$serial, $alt_serial]));
+
+    foreach ($serials as $s) {
+        $data = genieacs_request('GET', '/devices/' . rawurlencode($s));
+        if (is_array($data) && !empty($data['_id'])) return $data['_id'];
+
+        foreach (['InternetGatewayDevice', 'Device'] as $root) {
+            $query = urlencode(json_encode(["{$root}.DeviceInfo.SerialNumber._value" => $s]));
+            $arr = genieacs_request('GET', "/devices/?query={$query}&projection=_id");
+            if (is_array($arr) && !empty($arr[0]['_id'])) return $arr[0]['_id'];
+        }
+    }
+
+    // Last resort: suffix match against all device IDs
+    $suffix = substr($serial, -8);
+    $all = genieacs_request('GET', '/devices/?projection=_id');
+    if (is_array($all)) {
+        foreach ($all as $dev) {
+            if (stripos($dev['_id'] ?? '', $suffix) !== false) return $dev['_id'];
+        }
+    }
+    return null;
+}
+
+/**
+ * Push konfigurasi WAN (PPPoE/DHCP/Static) ke ONU via TR-069 (GenieACS setParameterValues),
+ * dipakai sebagai pengganti CLI OLT ketika config_method ONU = 'TR069'.
+ * Index WANDevice/WANConnectionDevice di-hardcode ke 1.1 (topologi paling umum).
+ * ponytail: index hardcoded 1.1, upgrade ke auto-detect index kalau ada ONU dengan
+ * struktur WANDevice/WANConnectionDevice selain 1 (belum ditemukan kasusnya).
+ */
+function genieacs_push_wan(string $serial, string $wan_mode, array $wan): array {
+    $deviceId = genieacs_find_device_id($serial);
+    if (!$deviceId) {
+        return ['success' => false, 'message' => 'Device tidak ditemukan di GenieACS.'];
+    }
+
+    $base = 'InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1';
+    $params = [];
+
+    if ($wan_mode === 'PPPoE') {
+        $params["{$base}.WANPPPConnection.1.Username"] = [$wan['pppoe_username'] ?? '', 'xsd:string'];
+        $params["{$base}.WANPPPConnection.1.Password"] = [$wan['pppoe_password'] ?? '', 'xsd:string'];
+        $params["{$base}.WANPPPConnection.1.ConnectionType"] = ['IP_Routed', 'xsd:string'];
+        $params["{$base}.WANPPPConnection.1.Enable"] = [true, 'xsd:boolean'];
+    } elseif ($wan_mode === 'Static') {
+        $params["{$base}.WANIPConnection.1.AddressingType"] = ['Static', 'xsd:string'];
+        $params["{$base}.WANIPConnection.1.ExternalIPAddress"] = [$wan['static_ip'] ?? '', 'xsd:string'];
+        $params["{$base}.WANIPConnection.1.SubnetMask"] = [$wan['static_netmask'] ?? '', 'xsd:string'];
+        $params["{$base}.WANIPConnection.1.DefaultGateway"] = [$wan['static_gateway'] ?? '', 'xsd:string'];
+        $dns = trim(($wan['static_dns_primary'] ?? '') . ',' . ($wan['static_dns_secondary'] ?? ''), ',');
+        $params["{$base}.WANIPConnection.1.DNSServers"] = [$dns, 'xsd:string'];
+        $params["{$base}.WANIPConnection.1.Enable"] = [true, 'xsd:boolean'];
+    } elseif ($wan_mode === 'DHCP') {
+        $params["{$base}.WANIPConnection.1.AddressingType"] = ['DHCP', 'xsd:string'];
+        $params["{$base}.WANIPConnection.1.Enable"] = [true, 'xsd:boolean'];
+    } else {
+        // 'Setup via ONU webpage' — tidak ada parameter WAN yang dipush.
+        return ['success' => true, 'message' => 'Mode "Setup via ONU webpage" — tidak ada perubahan WAN dikirim via TR-069.'];
+    }
+
+    $result = genieacs_set_params($deviceId, $params);
+    if ($result === null) {
+        return ['success' => false, 'message' => 'Gagal mengirim task TR-069 ke GenieACS (request gagal/timeout).'];
+    }
+    return ['success' => true, 'message' => 'Konfigurasi WAN berhasil dikirim via TR-069.'];
+}

@@ -4,6 +4,7 @@
 // ==============================================================================
 require_once __DIR__ . '/../../backend/db.php';
 require_once __DIR__ . '/../../backend/driver.php';
+require_once __DIR__ . '/../../backend/genieacs.php';
 
 if (!isset($_SESSION['smartolt_role'])) {
     $_SESSION['error'] = 'Akses ditolak! Silakan login terlebih dahulu.';
@@ -166,9 +167,20 @@ $result = ['log' => '', 'commands' => []];
 
 $desc_sync_ok = true;
 if ($olt_affecting) {
-    // Kirim konfigurasi lengkap ke OLT
+    // Kirim konfigurasi lengkap ke OLT (VLAN/service-port tetap via CLI walau TR069)
     $result = configure_onu_full($olt, $onu, $wan);
     $configure_success = $result['success'];
+
+    // TR069: setelah VLAN/L2 OK di OLT, push WAN param (PPPoE/DHCP/Static) via GenieACS
+    // bukan CLI OMCI. Kalau device belum reachable di ACS, catat sebagai warning saja —
+    // VLAN sudah terpasang di OLT, jangan gagalkan seluruh update untuk field lain.
+    if ($configure_success && $config_method === 'TR069') {
+        $tr069_result = genieacs_push_wan($serial_number ?: $row['serial_number'], $wan_mode, $wan);
+        $result['log'] = ($result['log'] ?? '') . "\n\n[TR-069 WAN Push] " . $tr069_result['message'];
+        if (!$tr069_result['success']) {
+            error_log("[SmartOLT update-onu-mode] TR-069 WAN push failed: " . $tr069_result['message']);
+        }
+    }
 
 } elseif ($desc_affecting) {
     // Lightweight: update only description on OLT (no WAN config touch)

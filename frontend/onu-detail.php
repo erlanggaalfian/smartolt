@@ -1284,11 +1284,12 @@ $tr069_profiles = tr069_get_profiles($pdo);
                     <tr style="height: 45px;">
                         <td style="font-weight: 600; color:var(--text-main); vertical-align: middle; padding: 8px 0;">Metode Konfigurasi</td>
                         <td style="vertical-align: middle; padding: 8px 0; display: flex; gap: 15px; align-items: center;">
+                            <?php $tr069_active = (($onu['tr069_profile'] ?? '') === 'ACS-Smartolt'); ?>
                             <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
                                 <input type="radio" name="config_method" value="OMCI" <?php echo ($onu['config_method'] === 'OMCI' || empty($onu['config_method'])) ? 'checked' : ''; ?>> OMCI
                             </label>
-                            <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
-                                <input type="radio" name="config_method" value="TR069" <?php echo $onu['config_method'] === 'TR069' ? 'checked' : ''; ?>> TR069 - Tidak Aktif
+                            <label style="display:inline-flex; align-items:center; gap:6px; cursor:<?php echo $tr069_active ? 'pointer' : 'not-allowed'; ?>; <?php echo $tr069_active ? '' : 'opacity:0.5;'; ?>" title="<?php echo $tr069_active ? '' : 'Set TR609 Profile ke ACS-Smartolt dulu untuk mengaktifkan opsi ini'; ?>">
+                                <input type="radio" name="config_method" value="TR069" <?php echo $tr069_active ? '' : 'disabled'; ?> <?php echo ($onu['config_method'] === 'TR069' && $tr069_active) ? 'checked' : ''; ?>> TR069<?php echo $tr069_active ? '' : ' - Tidak Aktif'; ?>
                             </label>
                         </td>
                     </tr>

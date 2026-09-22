@@ -1,6 +1,7 @@
 <?php
 session_start();
 if (!isset($_SESSION['smartolt_role'])) { http_response_code(403); echo 'Forbidden'; exit; }
+require_once __DIR__ . '/../../backend/genieacs.php';
 
 $nbi = 'http://127.0.0.1:7559';
 header('Content-Type: application/json');

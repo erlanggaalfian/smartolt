@@ -1130,7 +1130,10 @@ class OltZteC300Driver(BaseDriver):
         pon_port = onu['pon_port']
         onu_id = onu['onu_id']
         vlan = wan.get('vlan_service') or wan.get('vlan') or 15
-        wan_mode = wan.get('wan_mode', 'PPPoE')
+        config_method = wan.get('config_method', 'OMCI')
+        # TR069: VLAN/service-port tetap di-provision di OLT (Layer 2), tapi WAN
+        # param (PPPoE/Static, Layer 3) dipush via TR-069 dari luar, bukan CLI OMCI.
+        wan_mode = wan.get('wan_mode', 'PPPoE') if config_method != 'TR069' else 'TR069'
         username = wan.get('pppoe_username', '')
         password = wan.get('pppoe_password', '')
         static_ip = wan.get('static_ip', '')
