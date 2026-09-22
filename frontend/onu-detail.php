@@ -512,7 +512,7 @@ if (!empty($onu['onu_type'])) {
             </div>
             
             <!-- Panel Output CLI Langsung di Bawah Tombol -->
-            <div id="status-cli-output-container" style="display: none; margin-top:10px; background:var(--bg-tertiary); border:1px solid var(--border-color); border-radius:4px; padding:16px; font-size:0.85rem; line-height:1.6; color:var(--text-main); width:100%; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);"></div>
+            <div id="status-cli-output-container" style="display: none; margin-top:10px; padding:16px; font-size:0.85rem; line-height:1.6; color:var(--text-main); width:100%;"></div>
         </div>
     </div>
 
@@ -1683,6 +1683,9 @@ $tr069_profiles = tr069_get_profiles($pdo);
                 cliOutputBox.style.display = 'block';
                 cliOutputBox.style.fontFamily = 'monospace';
                 cliOutputBox.style.whiteSpace = 'pre-wrap';
+                cliOutputBox.style.background = 'var(--bg-tertiary)';
+                cliOutputBox.style.border = '1px solid var(--border-color)';
+                cliOutputBox.style.borderRadius = '4px';
                 cliOutputBox.textContent = 'Mengambil data...';
 
                 btnGetStatus.disabled = true;
@@ -1756,6 +1759,9 @@ $tr069_profiles = tr069_get_profiles($pdo);
                 cliOutputBox.style.display = 'block';
                 cliOutputBox.style.fontFamily = 'monospace';
                 cliOutputBox.style.whiteSpace = 'pre-wrap';
+                cliOutputBox.style.background = 'var(--bg-tertiary)';
+                cliOutputBox.style.border = '1px solid var(--border-color)';
+                cliOutputBox.style.borderRadius = '4px';
                 cliOutputBox.textContent = 'Mengambil data...';
 
                 btnShowRunning.disabled = true;
@@ -1795,6 +1801,9 @@ $tr069_profiles = tr069_get_profiles($pdo);
                 cliOutputBox.style.display = 'block';
                 cliOutputBox.style.fontFamily = 'monospace';
                 cliOutputBox.style.whiteSpace = 'pre-wrap';
+                cliOutputBox.style.background = 'var(--bg-tertiary)';
+                cliOutputBox.style.border = '1px solid var(--border-color)';
+                cliOutputBox.style.borderRadius = '4px';
                 cliOutputBox.textContent = 'Mengambil data...';
 
                 btnSwInfo.disabled = true;
@@ -2028,16 +2037,16 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         }
 
                         // Render accordion
-                        let html = '<div style="font-size:0.85rem;">';
+                        let html = '<div style="font-size:0.85rem;background:var(--bg-main);">';
                         html += '<div style="font-weight:700;margin-bottom:12px;font-size:0.95rem;display:flex;align-items:center;gap:8px;"><span style="width:10px;height:10px;border-radius:50%;background:#28a745;display:inline-block;"></span> ' + (d._id || serial) + '</div>';
                         sections.forEach((sec, i) => {
                             const id = 'tr069-sec-' + i;
                             const count = Object.keys(sec.params).length;
                             if (!count) return;
-                            html += '<div style="border:1px solid var(--border-color);border-radius:4px;margin-bottom:4px;overflow:hidden;">';
-                            html += '<div onclick="const p=this.nextElementSibling;p.style.display=p.style.display===\'none\'?\'block\':\'none\'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
+                            html += '<div style="margin-bottom:2px;">';
+                            html += '<div data-sec="'+i+'" onclick="const n=this.nextElementSibling;const open=n.style.display!==\"none\";document.querySelectorAll(\".tr069-panel\").forEach(p=>p.style.display=\"none\");if(!open)n.style.display=\"block\"" style="padding:8px 12px;cursor:pointer;background:#e9ecef;font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
                             html += '<span>' + sec.title + '</span><span style="color:var(--text-muted);font-size:0.75rem;">' + count + ' params</span></div>';
-                            html += '<div style="display:' + (i < 3 ? 'block' : 'none') + ';padding:8px 12px;">';
+                            html += '<div class="tr069-panel" style="display:' + (i === 0 ? 'block' : 'none') + ';padding:8px 12px;background:var(--bg-main);">';
                             for (const [k, v] of Object.entries(sec.params)) {
                                 const val = v === '' ? '<span style="color:var(--text-muted);">(empty)</span>' : String(v);
                                 html += '<div style="padding:3px 0;border-bottom:1px solid var(--border-color);display:flex;gap:8px;">';
