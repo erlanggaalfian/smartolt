@@ -14,6 +14,19 @@ import snmp_module
 def is_demo_olt(olt: dict) -> bool:
     return olt.get('ip') == '127.0.0.1' or olt.get('ip', '').lower() == 'demo'
 
+def detect_onu_type_from_sn(serial_number: str) -> str:
+    """Detect ONU vendor type from serial number OUI prefix."""
+    sn = serial_number.upper()
+    if sn.startswith(('ZTEG', 'ZTEC', 'ZTED', 'ZTET', 'ZTEF', 'ZTES')):
+        return 'ZTE ONU'
+    if sn.startswith(('HWTC', 'HWTN', 'HWTO', 'HWTS', 'HWTT')):
+        return 'HUAWEI ONU'
+    if sn.startswith(('ALCL', 'NOKI')):
+        return 'ALCATEL ONU'
+    if sn.startswith(('FHTT', 'FIBE')):
+        return 'FIBERHOME ONU'
+    return 'Unknown ONU'
+
 class OltZteC320Driver(BaseDriver):
     def get_driver_info(self) -> dict:
         return {
@@ -2568,7 +2581,7 @@ class OltZteC320Driver(BaseDriver):
             onus.append({
                 'pon_port': m[0],
                 'serial_number': m[1],
-                'type': 'ZTE ONU',
+                'type': detect_onu_type_from_sn(m[1]),
                 'distance': 'N/A',
                 'vlan': 'None',
                 'rx_power': 'N/A'
