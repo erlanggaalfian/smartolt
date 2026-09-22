@@ -1857,7 +1857,12 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 else if (v && typeof v === 'object' && '_value' in v) params[k] = v._value;
                             }
                             if (Object.keys(params).length) sections.push({ title: path, params });
-                            for (const [k, v] of Object.entries(children)) walk(v, path ? path + ' > ' + k : k);
+                            for (const [k, v] of Object.entries(children)) {
+                                // Numeric array index (e.g. WANConnectionDevice.1) → merge with parent segment
+                                // instead of becoming its own bare-number path segment.
+                                const childPath = /^\d+$/.test(k) ? (path + ' ' + k) : (path ? path + ' > ' + k : k);
+                                walk(v, childPath);
+                            }
                         }
                         // Build General section from ALL DeviceInfo fields
                         const generalParams = {};
