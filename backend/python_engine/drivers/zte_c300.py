@@ -1296,6 +1296,8 @@ class OltZteC300Driver(BaseDriver):
 
         log = execute_ssh_commands(olt, commands)
         errors = self._vlan_errors(log)
+        BENIGN_CODES = ('62391', '66661', '63869', '63873')
+        errors = [e for e in errors if not any(c in e for c in BENIGN_CODES)]
         ok = len(errors) == 0
         return {
             'success': ok,
