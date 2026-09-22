@@ -2,8 +2,10 @@
 // ==============================================================================
 # SmartOLT ONU Detail & Realtime Monitoring Page
 // ==============================================================================
-require_once __DIR__ . '/header.php';
+require_once __DIR__ . '/../backend/db.php';
 require_once __DIR__ . '/../backend/driver.php';
+require_once __DIR__ . '/../backend/genieacs.php';
+require_once __DIR__ . '/header.php';
 
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if (empty($id)) {
@@ -394,13 +396,33 @@ if (!empty($onu['onu_type'])) {
                 </span>
             </div>
 
-            <div class="detail-plain-row">
+            <div class="detail-plain-row" data-clickable onclick="document.getElementById('mgmt-ip-modal').classList.add('open')">
                 <span class="detail-plain-label">IP Manajemen</span>
                 <span class="detail-plain-value" id="detail-mgmt-ip">
-                    <?php if (!empty($onu['mgmt_ip'])): ?>
-                        <?php echo htmlspecialchars($onu['mgmt_ip']); ?>
-                        <a href="http://<?php echo htmlspecialchars($onu['mgmt_ip']); ?>" target="_blank"><i data-lucide="external-link" style="width:12px;height:12px;"></i></a>
-                    <?php else: ?>N/A<?php endif; ?>
+                    <i data-lucide="pencil" style="width:11px;height:11px;"></i>
+                    <?php
+                    $mgmt_mode = $onu['mgmt_ip_mode'] ?? 'Inactive';
+                    if ($mgmt_mode === 'Static' && !empty($onu['mgmt_ip'])): ?>
+                        <strong>Static</strong> — <?php echo htmlspecialchars($onu['mgmt_ip']); ?>
+                        (VLAN <?php echo (int)($onu['mgmt_vlan'] ?: 'N/A'); ?>)
+                        <a href="http://<?php echo htmlspecialchars($onu['mgmt_ip']); ?>" target="_blank" onclick="event.stopPropagation();"><i data-lucide="external-link" style="width:12px;height:12px;"></i></a>
+                    <?php elseif ($mgmt_mode === 'DHCP'): ?>
+                        <strong>DHCP</strong> — <?php echo !empty($onu['mgmt_ip']) ? htmlspecialchars($onu['mgmt_ip']) : 'Menunggu IP'; ?>
+                        (VLAN <?php echo (int)($onu['mgmt_vlan'] ?: 'N/A'); ?>)
+                    <?php else: ?>
+                        <span style="color:var(--text-muted);">Nonaktif</span>
+                    <?php endif; ?>
+                </span>
+            </div>
+
+            <div class="detail-plain-row" data-clickable onclick="document.getElementById('tr609-profile-modal').classList.add('open')">
+                <span class="detail-plain-label">TR609 Profile</span>
+                <span class="detail-plain-value" id="detail-tr609">
+                    <i data-lucide="pencil" style="width:11px;height:11px;"></i>
+                    <?php
+                    $tr609 = $onu['tr609_profile'] ?? 'Default';
+                    echo htmlspecialchars($tr609);
+                    ?>
                 </span>
             </div>
 
@@ -1173,6 +1195,14 @@ if ($onu['vlan'] && !in_array($onu['vlan'], $cached_vlans)) {
 }
 sort($cached_vlans);
 // ponytail: no hardcoded VLAN fallback — show only real cached VLANs + ONU's own
+
+// VLAN management (type='management') — untuk IP Manajemen popup
+$stmt_mgmt_vlans = $pdo->prepare("SELECT vlan_id, description FROM olt_vlans WHERE olt_id = ? AND type = 'management' ORDER BY vlan_id ASC");
+$stmt_mgmt_vlans->execute([$onu['olt_id']]);
+$management_vlans = $stmt_mgmt_vlans->fetchAll(PDO::FETCH_ASSOC);
+
+// TR609 profiles
+$tr069_profiles = tr069_get_profiles($pdo);
 ?>
 
 <!-- Modal Update ONU Mode (WAN / PPPoE Config) -->
@@ -1843,6 +1873,126 @@ sort($cached_vlans);
         }
         return true;
     }
+</script>
+
+<!-- Modal IP Manajemen -->
+<div class="modal" id="mgmt-ip-modal">
+    <div class="modal-content" style="max-width:520px; width:90%;">
+        <div class="modal-header" style="padding:15px 24px; display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="margin:0; font-size:1.3rem; font-weight:700;">IP Manajemen</h3>
+            <button type="button" onclick="document.getElementById('mgmt-ip-modal').classList.remove('open')" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-muted);">&times;</button>
+        </div>
+        <form id="mgmt-ip-form" onsubmit="return saveMgmtIp(event)">
+            <input type="hidden" name="onu_id" value="<?php echo (int)$onu['id']; ?>">
+            <div class="modal-body" style="padding:24px;">
+                <table style="width:100%;border-collapse:collapse;">
+                    <tr style="height:50px;">
+                        <td style="width:140px;font-weight:600;color:var(--text-main);vertical-align:middle;">Mode</td>
+                        <td>
+                            <select name="mgmt_ip_mode" id="mgmt-mode-select" style="width:100%;max-width:280px;padding:8px 12px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);font-size:0.9rem;color:var(--text-main);" onchange="toggleMgmtFields()">
+                                <option value="Inactive" <?php echo ($onu['mgmt_ip_mode'] ?? 'Inactive') === 'Inactive' ? 'selected' : ''; ?>>Nonaktif</option>
+                                <option value="DHCP" <?php echo ($onu['mgmt_ip_mode'] ?? '') === 'DHCP' ? 'selected' : ''; ?>>DHCP</option>
+                                <option value="Static" <?php echo ($onu['mgmt_ip_mode'] ?? '') === 'Static' ? 'selected' : ''; ?>>Static</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr style="height:50px;" class="mgmt-detail-row">
+                        <td style="font-weight:600;color:var(--text-main);vertical-align:middle;">VLAN</td>
+                        <td>
+                            <select name="mgmt_vlan" style="width:100%;max-width:280px;padding:8px 12px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);font-size:0.9rem;color:var(--text-main);">
+                                <option value="">Pilih VLAN...</option>
+                                <?php foreach ($management_vlans as $mv): ?>
+                                    <option value="<?php echo (int)$mv['vlan_id']; ?>" <?php echo (int)($onu['mgmt_vlan'] ?? 0) === (int)$mv['vlan_id'] ? 'selected' : ''; ?>><?php echo (int)$mv['vlan_id']; ?> — <?php echo htmlspecialchars($mv['description'] ?? ''); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <?php if (empty($management_vlans)): ?>
+                                <small style="color:var(--color-orange);">Tidak ada VLAN bertipe management. Tandai VLAN di OLT Settings.</small>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                    <tr style="height:50px;" class="mgmt-static-row" id="mgmt-ip-row">
+                        <td style="font-weight:600;color:var(--text-main);vertical-align:middle;">IP Address</td>
+                        <td><input type="text" name="mgmt_ip" value="<?php echo htmlspecialchars($onu['mgmt_ip'] ?? ''); ?>" placeholder="192.168.1.100" style="width:100%;max-width:280px;padding:8px 12px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);font-size:0.9rem;color:var(--text-main);"></td>
+                    </tr>
+                </table>
+                <small style="display:block;margin-top:12px;color:var(--text-muted);line-height:1.4;">IP Manajemen digunakan untuk remote akses ONU via web. VLAN harus ditandai sebagai management di halaman OLT VLAN.</small>
+            </div>
+            <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:8px;padding:16px 24px;">
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('mgmt-ip-modal').classList.remove('open')">Batal</button>
+                <button type="submit" class="btn btn-primary">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal TR609 Profile -->
+<div class="modal" id="tr609-profile-modal">
+    <div class="modal-content" style="max-width:480px; width:90%;">
+        <div class="modal-header" style="padding:15px 24px; display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="margin:0; font-size:1.3rem; font-weight:700;">TR609 Profile</h3>
+            <button type="button" onclick="document.getElementById('tr609-profile-modal').classList.remove('open')" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-muted);">&times;</button>
+        </div>
+        <form id="tr609-form" onsubmit="return saveTr609(event)">
+            <input type="hidden" name="onu_id" value="<?php echo (int)$onu['id']; ?>">
+            <div class="modal-body" style="padding:24px;">
+                <table style="width:100%;border-collapse:collapse;">
+                    <tr style="height:50px;">
+                        <td style="width:120px;font-weight:600;color:var(--text-main);vertical-align:middle;">Profil</td>
+                        <td>
+                            <select name="tr609_profile" style="width:100%;max-width:300px;padding:8px 12px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);font-size:0.9rem;color:var(--text-main);">
+                                <option value="Default">Default (Local GenieACS)</option>
+                                <?php foreach ($tr069_profiles as $tp): ?>
+                                    <option value="<?php echo htmlspecialchars($tp['name']); ?>" <?php echo ($onu['tr609_profile'] ?? 'Default') === $tp['name'] ? 'selected' : ''; ?>><?php echo htmlspecialchars($tp['name']); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </td>
+                    </tr>
+                </table>
+                <small style="display:block;margin-top:12px;color:var(--text-muted);line-height:1.4;">TR609 Profile menentukan ACS server mana yang akan digunakan ONU untuk provisioning. Ubah profil di Settings &gt; TR-069 Management.</small>
+            </div>
+            <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:8px;padding:16px 24px;">
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('tr609-profile-modal').classList.remove('open')">Batal</button>
+                <button type="submit" class="btn btn-primary">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function toggleMgmtFields() {
+    const mode = document.getElementById('mgmt-mode-select').value;
+    document.querySelectorAll('.mgmt-detail-row').forEach(r => r.style.display = (mode === 'Inactive') ? 'none' : '');
+    document.querySelectorAll('.mgmt-static-row').forEach(r => r.style.display = (mode === 'Static') ? '' : 'none');
+}
+toggleMgmtFields();
+
+function saveMgmtIp(e) {
+    e.preventDefault();
+    const form = document.getElementById('mgmt-ip-form');
+    const fd = new FormData(form);
+    fetch('action/onu-set-mgmt-ip.php', {method:'POST', body:fd})
+    .then(r => r.json()).then(d => {
+        if (d.success) {
+            document.getElementById('mgmt-ip-modal').classList.remove('open');
+            location.reload();
+        } else { alert(d.message || 'Gagal simpan'); }
+    }).catch(() => alert('Error koneksi'));
+    return false;
+}
+
+function saveTr609(e) {
+    e.preventDefault();
+    const form = document.getElementById('tr609-form');
+    const fd = new FormData(form);
+    fetch('action/onu-set-tr609.php', {method:'POST', body:fd})
+    .then(r => r.json()).then(d => {
+        if (d.success) {
+            document.getElementById('tr609-profile-modal').classList.remove('open');
+            location.reload();
+        } else { alert(d.message || 'Gagal simpan'); }
+    }).catch(() => alert('Error koneksi'));
+    return false;
+}
 </script>
 
 <?php require_once __DIR__ . '/onu-detail-css.php'; ?>
