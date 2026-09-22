@@ -1201,6 +1201,78 @@ class OltZteC320Driver(BaseDriver):
             'log': log
         }
 
+    def set_mgmt_ip(self, olt: dict, pon_port: str, onu_id: int, mode: str, vlan: int = None, ip: str = '') -> dict:
+        """Push IP management config ke ONU via OLT CLI.
+        mode: 'Inactive' (disable), 'DHCP', 'Static'
+        Context: pon-onu-mng (bukan interface gpon-onu)
+        """
+        if is_demo_olt(olt):
+            return {'success': True, 'message': f'MGMT IP set to {mode} (Mode Demo).'}
+        onu_intf = f'gpon-onu_{pon_port}:{onu_id}'
+        if mode == 'Inactive':
+            commands = [
+                'configure terminal',
+                f'pon-onu-mng {onu_intf}',
+                'no ip-host 2', 'exit', 'exit', 'write'
+            ]
+        elif mode == 'DHCP':
+            commands = [
+                'configure terminal',
+                f'pon-onu-mng {onu_intf}',
+                'ip-host 2 dhcp-enable enable ping-response enable traceroute-response enable',
+                'exit', 'exit', 'write'
+            ]
+        elif mode == 'Static':
+            if not ip:
+                return {'success': False, 'message': 'IP address wajib diisi untuk mode Static.'}
+            mask = '255.255.255.0'
+            commands = [
+                'configure terminal',
+                f'pon-onu-mng {onu_intf}',
+                f'ip-host 2 ip {ip} mask {mask} gateway 0.0.0.0 dhcp-enable disable ping-response enable traceroute-response enable',
+                'exit', 'exit', 'write'
+            ]
+        else:
+            return {'success': False, 'message': f'Mode {mode} tidak didukung.'}
+        log = execute_ssh_commands(olt, commands)
+        errors = self._vlan_errors(log)
+        ok = len(errors) == 0
+        return {
+            'success': ok,
+            'message': f'IP Manajemen berhasil diubah ke {mode}.' if ok else f'OLT menolak: {"; ".join(errors)}',
+            'log': log
+        }
+
+    def set_tr069_profile(self, olt: dict, pon_port: str, onu_id: int, acs_url: str, username: str = '', password: str = '', vlan: int = None, priority: int = 2) -> dict:
+        """Push TR069 config ke ONU via OLT CLI.
+        Context: pon-onu-mng (bukan interface gpon-onu)
+        """
+        if is_demo_olt(olt):
+            return {'success': True, 'message': f'TR069 set to {acs_url} (Mode Demo).'}
+        onu_intf = f'gpon-onu_{pon_port}:{onu_id}'
+        if not acs_url:
+            return {'success': False, 'message': 'ACS URL wajib diisi.'}
+        validate_cmd = 'validate basic'
+        if username and password:
+            validate_cmd = f'validate basic username {username} password {password}'
+        commands = [
+            'configure terminal',
+            f'pon-onu-mng {onu_intf}',
+            'tr069-mgmt 1 state unlock',
+            f'tr069-mgmt 1 acs {acs_url} {validate_cmd}',
+        ]
+        if vlan:
+            commands.append(f'tr069-mgmt 1 tag pri {priority} vlan {vlan}')
+        commands.extend(['exit', 'exit', 'write'])
+        log = execute_ssh_commands(olt, commands)
+        errors = self._vlan_errors(log)
+        ok = len(errors) == 0
+        return {
+            'success': ok,
+            'message': 'TR069 profile berhasil dikonfigurasi.' if ok else f'OLT menolak: {"; ".join(errors)}',
+            'log': log
+        }
+
     def sync_onu_config(self, olt: dict, onu: dict) -> dict:
         defaults = {
             'pppoe_username': '',
