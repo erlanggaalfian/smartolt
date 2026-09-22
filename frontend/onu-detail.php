@@ -2110,7 +2110,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             const rightHtml = isGeneral
                                 ? '<span class="tr069-refresh" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;">&#8635;</span>'
                                 : '<span style="color:var(--text-muted);font-size:0.75rem;">' + count + ' params</span>';
-                            html += '<div style="margin-bottom:2px;">';
+                            html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
                             html += '<div class="tr069-toggle" data-idx="'+i+'" style="padding:8px 12px;cursor:pointer;background:#e9ecef;font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
                             html += '<span>' + sec.title + '</span>' + rightHtml + '</div>';
                             html += '<div class="tr069-panel" style="display:' + (i === 0 ? 'block' : 'none') + ';padding:8px 12px;background:var(--bg-main);">';
