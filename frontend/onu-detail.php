@@ -505,6 +505,9 @@ if (!empty($onu['onu_type'])) {
                 <button type="button" class="btn-solt btn-solt-blue" id="btn-onu-refresh-signal"><i data-lucide="refresh-cw" style="width:14px; height:14px;"></i> Status</button>
                 <button type="button" class="btn-solt btn-solt-blue" id="btn-show-running-config"><i data-lucide="file-text" style="width:14px; height:14px;"></i> Show running-config</button>
                 <button type="button" class="btn-solt btn-solt-blue" id="btn-sw-info"><i data-lucide="info" style="width:14px; height:14px;"></i> Info SW</button>
+                <?php if (($onu['tr069_profile'] ?? '') === 'ACS-Smartolt'): ?>
+                <button type="button" class="btn-solt btn-solt-orange" id="btn-tr069-status" onclick="window.open('http://10.198.198.1:3000/#/devices/<?= urlencode($onu['serial_number'] ?? '') ?>','_blank')"><i data-lucide="activity" style="width:14px; height:14px;"></i> TR069 Status</button>
+                <?php endif; ?>
                 <button type="button" class="btn-solt btn-solt-green" id="btn-live"><i data-lucide="refresh-cw" style="width:14px; height:14px;"></i> LIVE!</button>
             </div>
             
