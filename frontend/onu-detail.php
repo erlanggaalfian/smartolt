@@ -847,14 +847,20 @@ if (!empty($onu['onu_type'])) {
 
                         const mgmtIpEl = document.getElementById('detail-mgmt-ip');
                         if (mgmtIpEl && data.mgmt_ip !== undefined) {
-                            if (data.mgmt_ip) {
-                                mgmtIpEl.innerHTML = `${esc(data.mgmt_ip)} <a href="http://${esc(data.mgmt_ip)}" target="_blank"><i data-lucide="external-link" style="width:12px;height:12px;"></i></a>`;
+                            const mgmtMode = data.mgmt_ip_mode || 'Inactive';
+                            const mgmtVlan = data.mgmt_vlan || 'N/A';
+                            let mgmtHtml = '<i data-lucide="pencil" style="width:11px;height:11px;"></i> ';
+                            if (mgmtMode === 'Static' && data.mgmt_ip) {
+                                mgmtHtml += `<strong>Static</strong> — ${esc(data.mgmt_ip)} (VLAN ${esc(mgmtVlan)}) <a href="http://${esc(data.mgmt_ip)}" target="_blank" onclick="event.stopPropagation();"><i data-lucide="external-link" style="width:12px;height:12px;"></i></a>`;
+                            } else if (mgmtMode === 'DHCP') {
+                                mgmtHtml += `<strong>DHCP</strong> — ${data.mgmt_ip ? esc(data.mgmt_ip) : 'Menunggu IP'} (VLAN ${esc(mgmtVlan)})`;
                             } else {
-                                mgmtIpEl.textContent = 'N/A';
+                                mgmtHtml += `<span style="color:var(--text-muted);">Nonaktif</span>`;
                             }
                             if (data.tr069_ip) {
-                                mgmtIpEl.innerHTML += ` <span style="margin-left:8px; color:var(--text-muted);">| TR069: <a href="http://${esc(data.tr069_ip)}" target="_blank" onclick="event.stopPropagation();">${esc(data.tr069_ip)} <i data-lucide="external-link" style="width:11px;height:11px;vertical-align:middle;"></i></a></span>`;
+                                mgmtHtml += ` <span style="margin-left:8px; color:var(--text-muted);">| TR069: <a href="http://${esc(data.tr069_ip)}" target="_blank" onclick="event.stopPropagation();">${esc(data.tr069_ip)} <i data-lucide="external-link" style="width:11px;height:11px;vertical-align:middle;"></i></a></span>`;
                             }
+                            mgmtIpEl.innerHTML = mgmtHtml;
                         }
 
                         const distEl = document.getElementById('detail-distance');

@@ -260,6 +260,8 @@ echo json_encode([
     'wan_remote_access' => $onu['wan_remote_access'],
     'allow_remote_mgmt' => $onu['allow_remote_mgmt'],
     'mgmt_ip'           => $onu['mgmt_ip'],
+    'mgmt_ip_mode'      => $onu['mgmt_ip_mode'] ?? 'Inactive',
+    'mgmt_vlan'         => $onu['mgmt_vlan'],
     'zone'              => $onu['zone'],
     'splitter'          => $onu['splitter'],
     'external_id'       => $onu['external_id'],
