@@ -2044,11 +2044,10 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         let html = '<div style="font-size:0.85rem;background:var(--bg-main);">';
                         html += '<div style="font-weight:700;margin-bottom:12px;font-size:0.95rem;display:flex;align-items:center;gap:8px;"><span style="width:10px;height:10px;border-radius:50%;background:#28a745;display:inline-block;"></span> ' + (d._id || serial) + '</div>';
                         sections.forEach((sec, i) => {
-                            const id = 'tr069-sec-' + i;
                             const count = Object.keys(sec.params).length;
                             if (!count) return;
                             html += '<div style="margin-bottom:2px;">';
-                            html += '<div data-sec="'+i+'" onclick="const n=this.nextElementSibling;const open=n.style.display!==\"none\";document.querySelectorAll(\".tr069-panel\").forEach(p=>p.style.display=\"none\");if(!open)n.style.display=\"block\"" style="padding:8px 12px;cursor:pointer;background:#e9ecef;font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
+                            html += '<div class="tr069-toggle" data-idx="'+i+'" style="padding:8px 12px;cursor:pointer;background:#e9ecef;font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
                             html += '<span>' + sec.title + '</span><span style="color:var(--text-muted);font-size:0.75rem;">' + count + ' params</span></div>';
                             html += '<div class="tr069-panel" style="display:' + (i === 0 ? 'block' : 'none') + ';padding:8px 12px;background:var(--bg-main);">';
                             for (const [k, v] of Object.entries(sec.params)) {
@@ -2061,6 +2060,11 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         });
                         html += '</div>';
                         cliOutputBox.innerHTML = html;
+                        // Accordion: single-open
+                        cliOutputBox.querySelectorAll('.tr069-toggle').forEach(t => t.addEventListener('click', function() {
+                            cliOutputBox.querySelectorAll('.tr069-panel').forEach(p => p.style.display = 'none');
+                            this.nextElementSibling.style.display = 'block';
+                        }));
                         cliOutputBox.style.maxHeight = 'none';
                     })
                     .catch(() => { cliOutputBox.textContent = 'Gagal mengambil data GenieACS.'; })
