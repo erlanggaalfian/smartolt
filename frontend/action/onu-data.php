@@ -231,10 +231,11 @@ if ($full) {
 $stmt->execute([$id]);
 $onu = $stmt->fetch();
 
-// TR-069 IP (dari ConnectionRequestURL GenieACS) — hanya di mode full sync
-// supaya polling ringan (15 detik) tidak kena overhead lookup NBI tambahan.
+// TR-069 IP (dari ConnectionRequestURL GenieACS) — lookup NBI localhost ringan
+// (bukan SSH/OLT), jadi dijalankan di kedua mode supaya IP tidak hilang begitu
+// polling ringan (mode=snmp, tiap 15 detik) menimpa respons full sync awal.
 $tr069_ip = null;
-if ($full && ($onu['config_method'] ?? null) === 'TR069') {
+if (($onu['config_method'] ?? null) === 'TR069') {
     $tr069_dev_id = genieacs_find_device_id($onu['serial_number'] ?? '');
     $tr069_ip = $tr069_dev_id ? genieacs_get_tr069_ip($tr069_dev_id) : null;
 }
