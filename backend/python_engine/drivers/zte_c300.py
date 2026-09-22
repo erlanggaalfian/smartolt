@@ -1244,10 +1244,24 @@ class OltZteC300Driver(BaseDriver):
         onu_intf = f'gpon-onu_{pon_port}:{onu_id}'
 
         if mode == 'Inactive':
+            # Hapus SEMUA infrastruktur management: tcont 2, gemport 2, service-port 2,
+            # flow 2, switchport-bind, vlan-filter, ip-host 2, tr069-mgmt
             commands = [
                 'configure terminal',
+                f'interface {onu_intf}',
+                'no service-port 2',
+                'no gemport 2',
+                'no tcont 2',
+                'exit',
                 f'pon-onu-mng {onu_intf}',
-                'no ip-host 2', 'exit', 'exit', 'write'
+                'no tr069-mgmt 1',
+                'no ip-host 2',
+                'no vlan-filter iphost 2',
+                'no vlan-filter-mode iphost 2',
+                'no switchport-bind switch_0/1 iphost 2',
+                'no gemport 2 flow 2',
+                'no flow 2',
+                'exit', 'exit', 'write'
             ]
         else:
             commands = self._build_mgmt_vlan_infra(onu_intf, vlan)
@@ -1279,7 +1293,19 @@ class OltZteC300Driver(BaseDriver):
             return {'success': True, 'message': f'TR069 set to {acs_url} (Mode Demo).'}
         onu_intf = f'gpon-onu_{pon_port}:{onu_id}'
         if not acs_url:
-            return {'success': False, 'message': 'ACS URL wajib diisi.'}
+            # Hapus tr069-mgmt dari ONU
+            commands = [
+                'configure terminal',
+                f'pon-onu-mng {onu_intf}',
+                'no tr069-mgmt 1',
+                'exit', 'exit', 'write'
+            ]
+            log = execute_ssh_commands(olt, commands)
+            return {
+                'success': True,
+                'message': 'TR069 dinonaktifkan.',
+                'log': log
+            }
 
         validate_cmd = 'validate basic'
         if username and password:

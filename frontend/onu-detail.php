@@ -1940,7 +1940,8 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         <td style="width:120px;font-weight:600;color:var(--text-main);vertical-align:middle;">Profil</td>
                         <td>
                             <select name="tr609_profile" style="width:100%;max-width:300px;padding:8px 12px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);font-size:0.9rem;color:var(--text-main);">
-                                <option value="Default">Default (Local GenieACS)</option>
+                                <option value="Nonaktif" <?php echo ($onu['tr069_profile'] ?? '') === 'Nonaktif' ? 'selected' : ''; ?>>Nonaktifkan TR069</option>
+                                <option value="Default" <?php echo ($onu['tr069_profile'] ?? 'Default') === 'Default' ? 'selected' : ''; ?>>Default (Local GenieACS)</option>
                                 <?php foreach ($tr069_profiles as $tp): ?>
                                     <option value="<?php echo htmlspecialchars($tp['name']); ?>" <?php echo ($onu['tr609_profile'] ?? 'Default') === $tp['name'] ? 'selected' : ''; ?>><?php echo htmlspecialchars($tp['name']); ?></option>
                                 <?php endforeach; ?>
