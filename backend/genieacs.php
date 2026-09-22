@@ -238,6 +238,14 @@ function genieacs_push_wan(string $serial, string $wan_mode, array $wan): array 
     $params = [];
 
     if ($wan_mode === 'PPPoE') {
+        // Device mungkin belum pernah punya instance WANPPPConnection (default DHCP-only) —
+        // setParameterValues ke path 'WANPPPConnection.1.*' gagal diam-diam kalau instance-nya
+        // belum ada. addObject dulu (no-op/aman kalau sudah ada, GenieACS/device idempotent).
+        $add_result = genieacs_request('POST', "/devices/" . rawurlencode($deviceId) . "/tasks?connection_request",
+            ['name' => 'addObject', 'objectName' => "{$base}.WANPPPConnection"], 15);
+        if ($add_result === null) {
+            return ['success' => false, 'message' => 'Gagal membuat instance WANPPPConnection di device (device tidak reachable).'];
+        }
         $params["{$base}.WANPPPConnection.1.Username"] = [$wan['pppoe_username'] ?? '', 'xsd:string'];
         $params["{$base}.WANPPPConnection.1.Password"] = [$wan['pppoe_password'] ?? '', 'xsd:string'];
         $params["{$base}.WANPPPConnection.1.ConnectionType"] = ['IP_Routed', 'xsd:string'];
