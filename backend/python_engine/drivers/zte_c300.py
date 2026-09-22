@@ -1222,6 +1222,7 @@ class OltZteC300Driver(BaseDriver):
             f'interface {onu_intf}',
             'tcont 2 profile SMARTOLT-VOIPMNG-10M',
             'gemport 2 tcont 2',
+            'gemport 2 traffic-limit downstream SMARTOLT-VOIPMNG-10M',
             f'service-port 2 vport 2 user-vlan {vlan} vlan {vlan}',
             'exit',
             f'pon-onu-mng {onu_intf}',
@@ -1234,7 +1235,7 @@ class OltZteC300Driver(BaseDriver):
             f'vlan-filter iphost 2 pri 2 vlan {vlan}',
         ]
 
-    def set_mgmt_ip(self, olt: dict, pon_port: str, onu_id: int, mode: str, vlan: int = 0, ip: str = '') -> dict:
+    def set_mgmt_ip(self, olt: dict, pon_port: str, onu_id: int, mode: str, vlan: int = 0, ip: str = '', wan_remote: str = 'no') -> dict:
         """Push IP management config ke ONU via OLT CLI.
         mode: 'Inactive' (disable), 'DHCP', 'Static'
         Setup full infra VLAN management + ip-host 2.
@@ -1251,6 +1252,7 @@ class OltZteC300Driver(BaseDriver):
                 f'interface {onu_intf}',
                 f'no service-port 2 vport 2 user-vlan {mgmt_vlan} vlan {mgmt_vlan}',
                 'no gemport 2 tcont 2',
+                'no gemport 2 traffic-limit downstream SMARTOLT-VOIPMNG-10M',
                 'no tcont 2 profile SMARTOLT-VOIPMNG-10M',
                 'exit',
                 f'pon-onu-mng {onu_intf}',
@@ -1274,6 +1276,13 @@ class OltZteC300Driver(BaseDriver):
                 commands.append(f'ip-host 2 ip {ip} mask {mask} gateway 0.0.0.0 dhcp-enable disable ping-response enable traceroute-response enable')
             else:
                 return {'success': False, 'message': f'Mode {mode} tidak didukung.'}
+            # WAN remote access: buka/tutup akses dari internet luar
+            if wan_remote == 'yes':
+                commands.append('security-mgmt 1 state enable mode forward ingress-type wan protocol web')
+                commands.append('security-mgmt 2 state enable mode forward ingress-type wan protocol telnet')
+            else:
+                commands.append('security-mgmt 1 state enable mode discard ingress-type wan protocol web')
+                commands.append('security-mgmt 2 state enable mode discard ingress-type wan protocol telnet')
             commands.extend(['exit', 'exit', 'write'])
 
         log = execute_ssh_commands(olt, commands)

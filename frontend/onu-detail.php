@@ -1914,8 +1914,17 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         <td style="font-weight:600;color:var(--text-main);vertical-align:middle;">IP Address</td>
                         <td><input type="text" name="mgmt_ip" value="<?php echo htmlspecialchars($onu['mgmt_ip'] ?? ''); ?>" placeholder="192.168.1.100" style="width:100%;max-width:280px;padding:8px 12px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);font-size:0.9rem;color:var(--text-main);"></td>
                     </tr>
+                    <tr style="height:50px;" class="mgmt-detail-row">
+                        <td style="font-weight:600;color:var(--text-main);vertical-align:middle;">Akses Remote WAN</td>
+                        <td>
+                            <select name="wan_remote_access" style="width:100%;max-width:280px;padding:8px 12px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);font-size:0.9rem;color:var(--text-main);">
+                                <option value="no" <?php echo ($onu['wan_remote_access'] ?? 'no') !== 'yes' ? 'selected' : ''; ?>>Nonaktif</option>
+                                <option value="yes" <?php echo ($onu['wan_remote_access'] ?? '') === 'yes' ? 'selected' : ''; ?>>Aktif dari semua jaringan internet</option>
+                            </select>
+                        </td>
+                    </tr>
                 </table>
-                <small style="display:block;margin-top:12px;color:var(--text-muted);line-height:1.4;">IP Manajemen digunakan untuk remote akses ONU via web. VLAN harus ditandai sebagai management di halaman OLT VLAN.</small>
+                <small style="display:block;margin-top:12px;color:var(--text-muted);line-height:1.4;">IP Manajemen digunakan untuk remote akses ONU via web. VLAN harus ditandai sebagai management di halaman OLT VLAN. Akses Remote WAN membuka akses ONU dari internet luar.</small>
             </div>
             <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:8px;padding:16px 24px;">
                 <button type="button" class="btn btn-secondary" onclick="document.getElementById('mgmt-ip-modal').classList.remove('open')">Batal</button>
@@ -1943,7 +1952,8 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 <option value="Nonaktif" <?php echo ($onu['tr069_profile'] ?? '') === 'Nonaktif' ? 'selected' : ''; ?>>Nonaktifkan TR069</option>
                                 <option value="Default" <?php echo ($onu['tr069_profile'] ?? 'Default') === 'Default' ? 'selected' : ''; ?>>Default (Local GenieACS)</option>
                                 <?php foreach ($tr069_profiles as $tp): ?>
-                                    <option value="<?php echo htmlspecialchars($tp['name']); ?>" <?php echo ($onu['tr609_profile'] ?? 'Default') === $tp['name'] ? 'selected' : ''; ?>><?php echo htmlspecialchars($tp['name']); ?></option>
+                                    <?php if (!empty($tp['is_default'])) continue; ?>
+                                    <option value="<?php echo htmlspecialchars($tp['name']); ?>" <?php echo ($onu['tr069_profile'] ?? 'Default') === $tp['name'] ? 'selected' : ''; ?>><?php echo htmlspecialchars($tp['name']); ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </td>
