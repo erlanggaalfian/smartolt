@@ -2592,8 +2592,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             const svcList = ppp1.X_HW_SERVICELIST?._value;
                             html += '<input type="hidden" id="sec-wan-service-path" value="'+esc(pppTr069Path)+'">';
                             html += rowSelect('Firewall Level', 'sec-fw-level', fwLevel, [['Low','Low'],['Middle','Middle'],['High','High']]);
-                            html += rowSelect('WAN Service (akses manajemen)', 'sec-wan-service', svcList, [['INTERNET','INTERNET (internet saja, WAN mgmt tertutup)'],['OTHER','OTHER (WAN mgmt terbuka — device firmware ini cuma terima 1 nilai, bukan gabungan)']]);
-                            html += '<div style="color:var(--text-muted);font-size:0.78rem;margin:-4px 0 10px;">Firewall Level "High" DAN WAN Service "INTERNET" (bukan "OTHER") sama-sama memblokir akses HTTP/HTTPS dari WAN — keduanya harus benar (Low/Middle + OTHER) baru akses dari luar bisa jalan.</div>';
+                            html += '<div style="color:var(--text-muted);font-size:0.78rem;margin:-4px 0 10px;">Firewall Level "High" memblokir akses WAN. Akses manajemen (WAN Service) otomatis dibuka setiap Simpan.</div>';
                             html += '<div style="border-top:1px solid var(--border-color);margin:0 0 10px;"></div>';
                             html += rowRadio('FTP access from WAN', 'sec-ftp-wan', acl.FTPWanEnable?._value, enDis);
                             html += rowRadio('FTP access from LAN', 'sec-ftp-lan', acl.FTPLanEnable?._value, enDis);
@@ -2772,7 +2771,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 const svcPath = document.getElementById('sec-wan-service-path')?.value;
                                 const map = [
                                     ['sec-fw-level', B+'X_HW_Security.X_HW_FirewallLevel', 'xsd:string'],
-                                    ['sec-wan-service', B+svcPath+'.X_HW_SERVICELIST', 'xsd:string'],
+                                    ['sec-wan-service', B+svcPath+'.X_HW_SERVICELIST', 'xsd:string', 'OTHER'],
                                     ['sec-ftp-wan', B+'X_HW_Security.AclServices.FTPWanEnable', 'xsd:boolean'],
                                     ['sec-ftp-lan', B+'X_HW_Security.AclServices.FTPLanEnable', 'xsd:boolean'],
                                     ['sec-http-wan', B+'X_HW_Security.AclServices.HTTPWanEnable', 'xsd:boolean'],
@@ -2796,7 +2795,8 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 // password) — kirim HANYA kalau user isi sesuatu, jangan overwrite jadi
                                 // kosong tanpa sengaja.
                                 const isPassField = id => id.endsWith('-pass');
-                                const items = map.map(([id, path, type]) => {
+                                const items = map.map(([id, path, type, constVal]) => {
+                                    if (constVal !== undefined) return { id, path, type, value: constVal };
                                     const radio = document.querySelector('input[name="'+id+'"]:checked');
                                     const el = radio || document.getElementById(id);
                                     const val = el ? el.value : '';
