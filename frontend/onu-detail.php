@@ -2554,6 +2554,23 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             const cli1 = ui.X_HW_CLIUserInfo?.['1'] || {};
                             const web1 = ui.X_HW_WebUserInfo?.['1'] || {};
                             const web2 = ui.X_HW_WebUserInfo?.['2'] || {};
+                            // X_HW_SERVICELIST (service list WAN connection) — path beda dari X_HW_Security,
+                            // ambil dari WANDevice generic (device test cuma punya 1 WAN instance).
+                            const wanDevKeys = Object.keys(root.WANDevice || {});
+                            let pppTr069Path = '';
+                            const ppp1 = (() => {
+                                for (const wk of wanDevKeys) {
+                                    const wcd = root.WANDevice[wk]?.WANConnectionDevice || {};
+                                    for (const ck of Object.keys(wcd)) {
+                                        const ppp = wcd[ck]?.WANPPPConnection || {};
+                                        for (const pk of Object.keys(ppp)) {
+                                            pppTr069Path = 'WANDevice.'+wk+'.WANConnectionDevice.'+ck+'.WANPPPConnection.'+pk;
+                                            return ppp[pk] || {};
+                                        }
+                                    }
+                                }
+                                return {};
+                            })();
                             const idx = sections.length + 2;
                             html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
                             html += '<div class="tr069-toggle" data-idx="'+idx+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
@@ -2572,8 +2589,11 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             const fwLevel = secObj.X_HW_FirewallLevel?._value;
                             const rowSelect = (label, id, val, opts) => '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><label style="width:230px;color:var(--text-muted);">'+label+'</label><select id="'+id+'" style="flex:1;padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">'
                                 + opts.map(o => '<option value="'+o[0]+'"'+(String(val)===o[0]?' selected':'')+'>'+o[1]+'</option>').join('') + '</select></div>';
+                            const svcList = ppp1.X_HW_SERVICELIST?._value;
+                            html += '<input type="hidden" id="sec-wan-service-path" value="'+esc(pppTr069Path)+'">';
                             html += rowSelect('Firewall Level', 'sec-fw-level', fwLevel, [['Low','Low'],['Middle','Middle'],['High','High']]);
-                            html += '<div style="color:var(--text-muted);font-size:0.78rem;margin:-4px 0 10px;">Level "High" memblokir akses WAN meski toggle di bawah Enabled — turunkan ke Low/Middle kalau butuh akses dari luar.</div>';
+                            html += rowSelect('WAN Service (akses manajemen)', 'sec-wan-service', svcList, [['INTERNET','INTERNET (internet saja, WAN mgmt tertutup)'],['OTHER','OTHER (WAN mgmt terbuka — device firmware ini cuma terima 1 nilai, bukan gabungan)']]);
+                            html += '<div style="color:var(--text-muted);font-size:0.78rem;margin:-4px 0 10px;">Firewall Level "High" DAN WAN Service "INTERNET" (bukan "OTHER") sama-sama memblokir akses HTTP/HTTPS dari WAN — keduanya harus benar (Low/Middle + OTHER) baru akses dari luar bisa jalan.</div>';
                             html += '<div style="border-top:1px solid var(--border-color);margin:0 0 10px;"></div>';
                             html += rowRadio('FTP access from WAN', 'sec-ftp-wan', acl.FTPWanEnable?._value, enDis);
                             html += rowRadio('FTP access from LAN', 'sec-ftp-lan', acl.FTPLanEnable?._value, enDis);
@@ -2749,8 +2769,10 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         cliOutputBox.querySelectorAll('.sec-save').forEach(btn => {
                             btn.addEventListener('click', () => {
                                 const B = 'InternetGatewayDevice.';
+                                const svcPath = document.getElementById('sec-wan-service-path')?.value;
                                 const map = [
                                     ['sec-fw-level', B+'X_HW_Security.X_HW_FirewallLevel', 'xsd:string'],
+                                    ['sec-wan-service', B+svcPath, 'xsd:string'],
                                     ['sec-ftp-wan', B+'X_HW_Security.AclServices.FTPWanEnable', 'xsd:boolean'],
                                     ['sec-ftp-lan', B+'X_HW_Security.AclServices.FTPLanEnable', 'xsd:boolean'],
                                     ['sec-http-wan', B+'X_HW_Security.AclServices.HTTPWanEnable', 'xsd:boolean'],
@@ -2779,7 +2801,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                     const el = radio || document.getElementById(id);
                                     const val = el ? el.value : '';
                                     return { id, path, type, value: val };
-                                }).filter(f => !(isPassField(f.id) && f.value === ''));
+                                }).filter(f => !(isPassField(f.id) && f.value === '')).filter(f => !(f.id === 'sec-wan-service' && !svcPath));
                                 if (!items.length) return;
                                 btn.disabled = true; btn.textContent = 'Menyimpan...';
                                 fetch('action/genieacs-proxy.php', {
