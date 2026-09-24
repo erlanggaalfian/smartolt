@@ -76,6 +76,38 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         echo json_encode($result); exit;
     }
 
+    if (isset($body['edit_user_interface'])) {
+        $fields = [
+            'ssh' => (string)($body['ssh'] ?? ''),
+            'telnet' => (string)($body['telnet'] ?? ''),
+            'telnet_port' => preg_replace('/[^0-9]/', '', (string)($body['telnet_port'] ?? '')),
+            'web_user' => (string)($body['web_user'] ?? ''),
+            'web_pass' => (string)($body['web_pass'] ?? ''),
+        ];
+        $result = genieacs_edit_user_interface_params($serial, $fields);
+        echo json_encode($result); exit;
+    }
+
+    if (isset($body['edit_voice_line'])) {
+        $lineNum = (int)($body['line_num'] ?? 0);
+        if (!$lineNum) { echo '{"success":false,"message":"line_num wajib diisi"}'; exit; }
+        $fields = [
+            'enable' => (string)($body['enable'] ?? ''),
+            'directory_number' => (string)($body['directory_number'] ?? ''),
+            'sip_user' => (string)($body['sip_user'] ?? ''),
+            'sip_pass' => (string)($body['sip_pass'] ?? ''),
+            'sip_uri' => (string)($body['sip_uri'] ?? ''),
+        ];
+        $result = genieacs_edit_voice_line_params($serial, $lineNum, $fields);
+        echo json_encode($result); exit;
+    }
+
+    if (isset($body['edit_generic'])) {
+        $items = is_array($body['items'] ?? null) ? $body['items'] : [];
+        $result = genieacs_edit_generic_params($serial, $items);
+        echo json_encode($result); exit;
+    }
+
     if (!$serial || !$provision) { echo '{"error":"Missing serial or provision"}'; exit; }
 
     // Create provision task

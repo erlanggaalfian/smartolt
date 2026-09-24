@@ -1874,22 +1874,24 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         const root = d.InternetGatewayDevice || d.Device || {};
                         // Flatten tree into sections
                         const sections = [];
-                        function walk(obj, path) {
+                        function walk(obj, path, tr069Path) {
                             if (!obj || typeof obj !== 'object') return;
                             // Collect leaf values
                             const params = {};
+                            const writable = {};
                             const children = {};
                             for (const [k, v] of Object.entries(obj)) {
                                 if (k.startsWith('_')) continue;
                                 if (v && typeof v === 'object' && v._object) children[k] = v;
-                                else if (v && typeof v === 'object' && '_value' in v) params[k] = v._value;
+                                else if (v && typeof v === 'object' && '_value' in v) { params[k] = v._value; writable[k] = !!v._writable; }
                             }
-                            if (Object.keys(params).length) sections.push({ title: path, params });
+                            if (Object.keys(params).length) sections.push({ title: path, params, writable, tr069Path });
                             for (const [k, v] of Object.entries(children)) {
                                 // Numeric array index (e.g. WANConnectionDevice.1) → merge with parent segment
                                 // instead of becoming its own bare-number path segment.
                                 const childPath = /^\d+$/.test(k) ? (path + ' ' + k) : (path ? path + ' > ' + k : k);
-                                walk(v, childPath);
+                                const childTr069 = tr069Path ? tr069Path + '.' + k : k;
+                                walk(v, childPath, childTr069);
                             }
                         }
                         // Build General section from ALL DeviceInfo fields
@@ -1974,14 +1976,14 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         if (root.WANDevice) {
                             for (const [wdk, wdv] of Object.entries(root.WANDevice)) {
                                 if (!wdv || typeof wdv !== 'object') continue;
-                                walk(wdv, 'WANDevice ' + wdk);
+                                walk(wdv, 'WANDevice ' + wdk, 'WANDevice.' + wdk);
                             }
                         }
                         // Walk LANDevice
                         if (root.LANDevice) {
                             for (const [ldk, ldv] of Object.entries(root.LANDevice)) {
                                 if (!ldv || typeof ldv !== 'object') continue;
-                                walk(ldv, 'LANDevice ' + ldk);
+                                walk(ldv, 'LANDevice ' + ldk, 'LANDevice.' + ldk);
                             }
                         }
                         // Kumpulkan host terkoneksi (LANDevice.N.Hosts.Host.M) buat card "Connected Hosts"
@@ -2001,6 +2003,44 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                         mac: hv.MACAddress?._value || 'N/A',
                                         name: hv.HostName?._value || '',
                                         active: hv.Active?._value,
+                                    });
+                                }
+                            }
+                        }
+                        // Kumpulkan route (Layer3Forwarding.X_HW_CurrentForwarding.N) buat card "Routing".
+                        const routeList = [];
+                        const l3 = root.Layer3Forwarding?.X_HW_CurrentForwarding;
+                        if (l3 && typeof l3 === 'object') {
+                            for (const [rk, rv] of Object.entries(l3)) {
+                                if (rk.startsWith('_') || !rv || typeof rv !== 'object') continue;
+                                routeList.push({
+                                    dest: rv.DestIPAddress?._value || 'N/A',
+                                    mask: rv.DestSubnetMask?._value || 'N/A',
+                                    gw: rv.GatewayIPAddress?._value || 'N/A',
+                                    iface: rv.Interface?._value || 'N/A',
+                                    origin: rv.Origin?._value || 'N/A',
+                                });
+                            }
+                        }
+                        // Kumpulkan Voice lines (Services.VoiceService.N.VoiceProfile.N.Line.N) ringkas
+                        // — bukan lewat walk() generic (child SIP/RTP/Codec/Tone/dst recurse ratusan
+                        // section kalau di-walk apa adanya).
+                        const voiceLines = [];
+                        for (const vs of Object.values(root.Services?.VoiceService || {})) {
+                            if (!vs || typeof vs !== 'object' || !vs._object) continue;
+                            for (const vp of Object.values(vs.VoiceProfile || {})) {
+                                if (!vp || typeof vp !== 'object' || !vp._object) continue;
+                                for (const [lk, line] of Object.entries(vp.Line || {})) {
+                                    if (lk.startsWith('_') || !line || typeof line !== 'object') continue;
+                                    const sip = line.SIP || {};
+                                    voiceLines.push({
+                                        num: lk,
+                                        enable: line.Enable?._value,
+                                        directoryNumber: line.DirectoryNumber?._value || '',
+                                        status: line.Status?._value || 'N/A',
+                                        sipUser: sip.AuthUserName?._value || '',
+                                        sipPass: sip.AuthPassword?._value || '',
+                                        sipUri: sip.URI?._value || '',
                                     });
                                 }
                             }
@@ -2029,16 +2069,27 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         };
                         function niceLabel(path) {
                             // WANDevice 1 > WANConnectionDevice 1 > WANPPPConnection → "PPP Interface 1.1"
+                            const isWanPath = path.includes('WANDevice');
                             const parts = path.split(' > ');
                             const nums = [];
                             const names = [];
                             for (const p of parts) {
                                 const m = p.match(/^(.+?)\s+(\d+)$/);
                                 if (m) {
-                                    names.push(sectionLabels[m[1]] || lanLabels[m[1]] || m[1]);
+                                    // "Stats" muncul di WAN (WANIPConnection.Stats) DAN LAN
+                                    // (LANEthernetInterfaceConfig.Stats) — beda label sesuai konteks path,
+                                    // supaya tidak duplikat "LAN Counters" utk WAN traffic counter.
+                                    const label = m[1] === 'Stats'
+                                        ? (isWanPath ? 'WAN Counters' : 'LAN Counters')
+                                        : (sectionLabels[m[1]] || lanLabels[m[1]] || m[1]);
+                                    names.push(label);
                                     nums.push(m[2]);
                                 } else {
-                                    names.push(sectionLabels[p] || lanLabels[p] || p);
+                                    // Sama seperti di atas: "Stats" beda label tergantung konteks WAN/LAN.
+                                    const label = p === 'Stats'
+                                        ? (isWanPath ? 'WAN Counters' : 'LAN Counters')
+                                        : (sectionLabels[p] || lanLabels[p] || p);
+                                    names.push(label);
                                 }
                             }
                             // Special: WLANConfiguration → "Wireless LAN {n}" HANYA utk path yang PERSIS
@@ -2065,12 +2116,15 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         // Rewrite section titles
                         sections.forEach(sec => { sec.title = niceLabel(sec.title); });
 
-                        // Walk top-level non-device children (Diagnostics, Time, dst). "Services" dan
-                        // semua child-nya (VoiceService, StorageService, IPTV, dst) sengaja dilewati —
-                        // tidak relevan buat monitoring ONU pelanggan.
+                        // Walk top-level non-device children (Diagnostics, Time, dst). "Services" itu
+                        // sendiri di-skip (StorageService/IPTV/dst tidak relevan). VoiceService
+                        // dirender manual jadi card "Voice lines" ringkas (lihat voiceLines di bawah) —
+                        // TIDAK lewat walk() generic (VoiceService recurse ke ratusan child SIP/RTP/Codec/
+                        // Tone/dst, meledak jadi 150+ section kalau di-walk apa adanya).
+                        // "Layer3Forwarding" (Routing) dan "UserInterface" juga dirender manual.
                         for (const [k, v] of Object.entries(root)) {
                             if (['_object','_timestamp','_writable','_deviceId'].includes(k)) continue;
-                            if (['DeviceInfo','WANDevice','LANDevice','Services'].includes(k)) continue;
+                            if (['DeviceInfo','WANDevice','LANDevice','Services','Layer3Forwarding','UserInterface'].includes(k)) continue;
                             if (v && typeof v === 'object' && v._object) {
                                 // Friendly top-level names
                                 const topLabels = {
@@ -2156,7 +2210,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                     'VirtualDevice': 'Virtual Device',
                                 };
                                 const label = topLabels[k] || k;
-                                walk(v, label);
+                                walk(v, label, k);
                             }
                         }
 
@@ -2332,10 +2386,20 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             const isGeneral = sec.title === 'General';
                             const isPPP = /^PPP Interface/.test(sec.title);
                             const isWLAN = /^Wireless LAN/.test(sec.title);
+                            // Whitelist section yang boleh tampil (sesuai permintaan user) — sisanya
+                            // (Diagnostics, ManagementServer, Time, X_HW_* lain-lain, dst) disembunyikan.
+                            const whitelist = [
+                                /^General$/, /^PPP Interface/, /^Port Forward/, /^IP Interface/,
+                                /^LAN DHCP Server/, /^LAN Ports/, /^LAN Counters/, /^Wireless LAN/,
+                                /^WLAN Counters/, /Site Survey/, /^Hosts/, /^Security/, /^Voice lines/,
+                                /^Miscellaneous/, /^Troubleshooting/, /^Device Logs/, /^File.*Firmware/,
+                            ];
+                            if (!whitelist.some(re => re.test(sec.title))) return;
                             // Host individual (LANDevice > Hosts > Host N) — datanya sudah dirangkum
                             // di card "Connected Hosts" (hostList di atas), jangan tampil dobel sebagai
-                            // section terpisah "Host 1.1-xxxx".
-                            const isHostEntry = /^Host(\s|$)/.test(sec.title) || sec.title.startsWith('Host ');
+                            // section terpisah "Host 1.1-xxxx" ATAU "Hosts N" (parent object-nya sendiri,
+                            // isinya cuma HostNumberOfEntries — sudah ada di judul card Connected Hosts).
+                            const isHostEntry = /^Host(\s|$)/.test(sec.title) || sec.title.startsWith('Host ') || /^Hosts\s+\d+$/.test(sec.title);
                             if (isHostEntry) return;
                             // Child WLAN (PreSharedKey, WPS, Stats/Counters, dst) — field-nya sudah
                             // tercakup di card "Wireless LAN N" (mis. Password = KeyPassphrase dari
@@ -2357,16 +2421,30 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             html += '<div class="tr069-toggle" data-idx="'+i+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
                             html += '<span>' + sec.title + '</span>' + rightHtml + '</div>';
                             html += '<div class="tr069-panel" style="display:' + (i === 0 ? 'block' : 'none') + ';padding:8px 12px;background:var(--bg-main);">';
+                            const genFields = [];
                             for (const [k, v] of Object.entries(sec.params)) {
                                 let val;
-                                if (v && typeof v === 'object' && v.v) {
+                                const isWritable = sec.writable && sec.writable[k];
+                                const fullPath = sec.tr069Path ? 'InternetGatewayDevice.' + sec.tr069Path + '.' + k : '';
+                                if (isWritable && fullPath && typeof v !== 'boolean') {
+                                    const fid = 'gen-' + i + '-' + k;
+                                    genFields.push({ id: fid, path: fullPath, type: typeof v === 'number' ? 'xsd:unsignedInt' : 'xsd:string' });
+                                    val = '<input type="text" id="'+fid+'" value="'+String(v ?? '').replace(/"/g,'&quot;')+'" style="width:100%;max-width:280px;box-sizing:border-box;padding:3px 6px;font-size:0.82rem;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">';
+                                } else if (isWritable && fullPath && typeof v === 'boolean') {
+                                    const fid = 'gen-' + i + '-' + k;
+                                    genFields.push({ id: fid, path: fullPath, type: 'xsd:boolean' });
+                                    val = '<select id="'+fid+'" style="padding:3px 6px;font-size:0.82rem;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);"><option value="true"'+(v?' selected':'')+'>Enabled</option><option value="false"'+(!v?' selected':'')+'>Disabled</option></select>';
+                                } else if (v && typeof v === 'object' && v.v) {
                                     val = '<span style="color:' + (v.color || 'inherit') + ';font-weight:600;">' + v.v + '</span>';
                                 } else {
                                     val = (v === '' || v == null) ? '<span style="color:var(--text-muted);">(empty)</span>' : String(v);
                                 }
-                                html += '<div style="padding:3px 0;border-bottom:1px solid var(--border-color);display:flex;gap:8px;">';
+                                html += '<div style="padding:3px 0;border-bottom:1px solid var(--border-color);display:flex;gap:8px;align-items:center;">';
                                 html += '<span style="min-width:200px;color:var(--text-muted);flex-shrink:0;">' + k + '</span>';
-                                html += '<span style="word-break:break-all;">' + val + '</span></div>';
+                                html += '<span style="word-break:break-all;flex:1;">' + val + '</span></div>';
+                            }
+                            if (genFields.length) {
+                                html += '<div style="padding:10px 0 4px;"><button type="button" class="btn-solt btn-solt-green gen-save" data-idx="'+i+'" data-fields=\''+JSON.stringify(genFields).replace(/'/g,'&#39;')+'\' style="padding:6px 16px;font-size:0.82rem;">Simpan Perubahan</button></div>';
                             }
                             if (isGeneral) {
                                 html += '<div style="padding:3px 0;border-bottom:1px solid var(--border-color);display:flex;gap:8px;align-items:center;">';
@@ -2398,6 +2476,80 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 });
                                 html += '</table>';
                             }
+                            html += '</div></div>';
+                        })();
+                        // Card "Routing" — tabel route aktif (Dest/Mask/Gateway/Interface/Origin).
+                        (() => {
+                            const idx = sections.length + 1;
+                            html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
+                            html += '<div class="tr069-toggle" data-idx="'+idx+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
+                            html += '<span>Routing (' + routeList.length + ')</span></div>';
+                            html += '<div class="tr069-panel" style="display:none;padding:8px 12px;background:var(--bg-main);font-size:0.85rem;">';
+                            if (!routeList.length) {
+                                html += '<div style="color:var(--text-muted);padding:8px 0;">Tidak ada route.</div>';
+                            } else {
+                                html += '<table style="width:100%;border-collapse:collapse;">';
+                                html += '<tr style="text-align:left;color:var(--text-muted);font-size:0.78rem;"><th style="padding:5px 8px 5px 0;">Destination</th><th style="padding:5px 8px;">Subnet Mask</th><th style="padding:5px 8px;">Gateway</th><th style="padding:5px 8px;">Interface</th><th style="padding:5px 0 5px 8px;">Origin</th></tr>';
+                                routeList.forEach(r => {
+                                    html += '<tr style="border-top:1px solid var(--border-color);">'
+                                        + '<td style="padding:6px 8px 6px 0;">' + esc(r.dest) + '</td>'
+                                        + '<td style="padding:6px 8px;">' + esc(r.mask) + '</td>'
+                                        + '<td style="padding:6px 8px;">' + esc(r.gw) + '</td>'
+                                        + '<td style="padding:6px 8px;">' + esc(r.iface) + '</td>'
+                                        + '<td style="padding:6px 0 6px 8px;">' + esc(r.origin) + '</td>'
+                                        + '</tr>';
+                                });
+                                html += '</table>';
+                            }
+                            html += '</div></div>';
+                        })();
+                        // Card "Voice lines" — ringkas per line (Enable/DirectoryNumber/SIP), EDITABLE.
+                        (() => {
+                            const idx = sections.length + 3;
+                            html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
+                            html += '<div class="tr069-toggle" data-idx="'+idx+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
+                            html += '<span>Voice lines (' + voiceLines.length + ')</span></div>';
+                            html += '<div class="tr069-panel" style="display:none;padding:10px 12px;background:var(--bg-main);font-size:0.85rem;">';
+                            if (!voiceLines.length) {
+                                html += '<div style="color:var(--text-muted);padding:8px 0;">Tidak ada voice line.</div>';
+                            } else {
+                                voiceLines.forEach((ln, li) => {
+                                    html += '<div style="border-top:'+(li?'1px solid var(--border-color);':'none;')+'padding:'+(li?'10px 0 0':'0')+' 0 10px;margin-bottom:10px;">';
+                                    html += '<div style="font-weight:600;margin-bottom:6px;">Line ' + ln.num + ' <span style="font-weight:400;color:var(--text-muted);font-size:0.78rem;">(Status: ' + esc(ln.status) + ')</span></div>';
+                                    const rowSel = (label, id, val, opts) => '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><label style="width:160px;color:var(--text-muted);">'+label+'</label><select id="'+id+'" style="flex:1;padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">'
+                                        + opts.map(o => '<option value="'+o[0]+'"'+(String(val)===o[0]?' selected':'')+'>'+o[1]+'</option>').join('') + '</select></div>';
+                                    const rowText = (label, id, val) => '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><label style="width:160px;color:var(--text-muted);">'+label+'</label><input type="text" id="'+id+'" value="'+esc(val)+'" style="flex:1;padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);"></div>';
+                                    html += rowSel('Enable', 'voice-enable-'+ln.num, ln.enable, [['Enabled','Enabled'],['Disabled','Disabled']]);
+                                    html += rowText('Directory Number', 'voice-dn-'+ln.num, ln.directoryNumber);
+                                    html += rowText('SIP Username', 'voice-sipuser-'+ln.num, ln.sipUser);
+                                    html += rowText('SIP Password', 'voice-sippass-'+ln.num, ln.sipPass);
+                                    html += rowText('SIP URI', 'voice-sipuri-'+ln.num, ln.sipUri);
+                                    html += '<button type="button" class="btn-solt btn-solt-green voice-save" data-line="'+ln.num+'" style="padding:5px 14px;font-size:0.8rem;">Simpan Line ' + ln.num + '</button>';
+                                    html += '</div>';
+                                });
+                            }
+                            html += '</div></div>';
+                        })();
+                        // Card "User Interface" — CLI SSH/Telnet + Web login, EDITABLE via TR-069.
+                        (() => {
+                            const ui = root.UserInterface || {};
+                            const ssh = ui.X_HW_CLISSHControl || {};
+                            const telnet = ui.X_HW_CLITelnetAccess || {};
+                            const web1 = ui.X_HW_WebUserInfo?.['1'] || {};
+                            const idx = sections.length + 2;
+                            html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
+                            html += '<div class="tr069-toggle" data-idx="'+idx+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
+                            html += '<span>User Interface</span></div>';
+                            html += '<div class="tr069-panel" style="display:none;padding:10px 12px;background:var(--bg-main);font-size:0.85rem;">';
+                            const rowSel = (label, id, val, opts) => '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><label style="width:160px;color:var(--text-muted);">'+label+'</label><select id="'+id+'" style="flex:1;padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">'
+                                + opts.map(o => '<option value="'+o[0]+'"'+(String(val)===o[0]?' selected':'')+'>'+o[1]+'</option>').join('') + '</select></div>';
+                            const rowText = (label, id, val, type) => '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><label style="width:160px;color:var(--text-muted);">'+label+'</label><input type="'+(type||'text')+'" id="'+id+'" value="'+esc(val)+'" style="flex:1;padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);"></div>';
+                            html += rowSel('CLI SSH', 'ui-ssh', ssh.Enable?._value, [['true','Enabled'],['false','Disabled']]);
+                            html += rowSel('CLI Telnet', 'ui-telnet', telnet.Access?._value, [['true','Enabled'],['false','Disabled']]);
+                            html += rowText('Telnet Port', 'ui-telnet-port', telnet.TelnetPort?._value ?? '', 'number');
+                            html += rowText('Web Username', 'ui-web-user', web1.UserName?._value ?? '', 'text');
+                            html += rowText('Web Password', 'ui-web-pass', web1.Password?._value ?? '', 'text');
+                            html += '<button type="button" class="btn-solt btn-solt-green ui-save" data-idx="'+idx+'" style="padding:5px 14px;font-size:0.8rem;">Simpan Perubahan</button>';
                             html += '</div></div>';
                         })();
                         html += '</div>';
@@ -2476,6 +2628,70 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                     method: 'POST',
                                     headers: {'Content-Type': 'application/json'},
                                     body: JSON.stringify({serial, edit_wlan: true, wlan_index: idx, ...fields})
+                                }).then(r => r.json()).then(d => {
+                                    if (d.success) { alert(d.message || 'Berhasil dikirim.'); loadTr069Status(); }
+                                    else { alert('Error: ' + (d.message || 'Gagal')); btn.disabled = false; btn.textContent = 'Simpan Perubahan'; }
+                                }).catch(() => { alert('Gagal mengirim perubahan.'); btn.disabled = false; btn.textContent = 'Simpan Perubahan'; });
+                            });
+                        });
+                        // Simpan Perubahan (card User Interface) — kirim CLI SSH/Telnet + Web login via TR-069.
+                        cliOutputBox.querySelectorAll('.ui-save').forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                const val = id => document.getElementById(id)?.value ?? '';
+                                const fields = {
+                                    ssh: val('ui-ssh'), telnet: val('ui-telnet'),
+                                    telnet_port: val('ui-telnet-port'), web_user: val('ui-web-user'),
+                                    web_pass: val('ui-web-pass'),
+                                };
+                                btn.disabled = true; btn.textContent = 'Menyimpan...';
+                                fetch('action/genieacs-proxy.php', {
+                                    method: 'POST',
+                                    headers: {'Content-Type': 'application/json'},
+                                    body: JSON.stringify({serial, edit_user_interface: true, ...fields})
+                                }).then(r => r.json()).then(d => {
+                                    if (d.success) { alert(d.message || 'Berhasil dikirim.'); loadTr069Status(); }
+                                    else { alert('Error: ' + (d.message || 'Gagal')); btn.disabled = false; btn.textContent = 'Simpan Perubahan'; }
+                                }).catch(() => { alert('Gagal mengirim perubahan.'); btn.disabled = false; btn.textContent = 'Simpan Perubahan'; });
+                            });
+                        });
+                        // Simpan Perubahan (card Voice lines, per line) — kirim Enable/DirectoryNumber/SIP via TR-069.
+                        cliOutputBox.querySelectorAll('.voice-save').forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                const ln = btn.dataset.line;
+                                const val = id => document.getElementById(id)?.value ?? '';
+                                const fields = {
+                                    line_num: ln,
+                                    enable: val('voice-enable-'+ln), directory_number: val('voice-dn-'+ln),
+                                    sip_user: val('voice-sipuser-'+ln), sip_pass: val('voice-sippass-'+ln),
+                                    sip_uri: val('voice-sipuri-'+ln),
+                                };
+                                btn.disabled = true; btn.textContent = 'Menyimpan...';
+                                fetch('action/genieacs-proxy.php', {
+                                    method: 'POST',
+                                    headers: {'Content-Type': 'application/json'},
+                                    body: JSON.stringify({serial, edit_voice_line: true, ...fields})
+                                }).then(r => r.json()).then(d => {
+                                    if (d.success) { alert(d.message || 'Berhasil dikirim.'); loadTr069Status(); }
+                                    else { alert('Error: ' + (d.message || 'Gagal')); btn.disabled = false; btn.textContent = 'Simpan Line ' + ln; }
+                                }).catch(() => { alert('Gagal mengirim perubahan.'); btn.disabled = false; btn.textContent = 'Simpan Line ' + ln; });
+                            });
+                        });
+                        // Simpan Perubahan (section generic — Port Forward, IP Interface, LAN DHCP
+                        // Server, LAN Ports, Security, dst) — kirim semua field writable via TR-069.
+                        cliOutputBox.querySelectorAll('.gen-save').forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                let fieldsMeta = [];
+                                try { fieldsMeta = JSON.parse(btn.dataset.fields.replace(/&#39;/g, "'")); } catch (e) {}
+                                const items = fieldsMeta.map(f => ({
+                                    path: f.path, type: f.type,
+                                    value: document.getElementById(f.id)?.value ?? '',
+                                }));
+                                if (!items.length) return;
+                                btn.disabled = true; btn.textContent = 'Menyimpan...';
+                                fetch('action/genieacs-proxy.php', {
+                                    method: 'POST',
+                                    headers: {'Content-Type': 'application/json'},
+                                    body: JSON.stringify({serial, edit_generic: true, items})
                                 }).then(r => r.json()).then(d => {
                                     if (d.success) { alert(d.message || 'Berhasil dikirim.'); loadTr069Status(); }
                                     else { alert('Error: ' + (d.message || 'Gagal')); btn.disabled = false; btn.textContent = 'Simpan Perubahan'; }

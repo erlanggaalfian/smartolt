@@ -326,6 +326,107 @@ function genieacs_edit_wlan_params(string $serial, array $fields, int $wlanIndex
     return ['success' => true, 'message' => 'Perubahan WiFi berhasil dikirim via TR-069 (' . implode(', ', $sent) . ').'];
 }
 
+/**
+ * Edit User Interface (CLI SSH/Telnet, Web login) via TR-069. Per-field task
+ * terpisah, sama alasan seperti genieacs_edit_ppp_params (hindari cpeFault 9003).
+ */
+function genieacs_edit_user_interface_params(string $serial, array $fields): array {
+    $deviceId = genieacs_find_device_id($serial);
+    if (!$deviceId) {
+        return ['success' => false, 'message' => 'Device tidak ditemukan di GenieACS.'];
+    }
+    $map = [
+        'ssh' => ['InternetGatewayDevice.UserInterface.X_HW_CLISSHControl.Enable', 'xsd:boolean', 'bool'],
+        'telnet' => ['InternetGatewayDevice.UserInterface.X_HW_CLITelnetAccess.Access', 'xsd:boolean', 'bool'],
+        'telnet_port' => ['InternetGatewayDevice.UserInterface.X_HW_CLITelnetAccess.TelnetPort', 'xsd:unsignedInt', 'int'],
+        'web_user' => ['InternetGatewayDevice.UserInterface.X_HW_WebUserInfo.1.UserName', 'xsd:string', 'string'],
+        'web_pass' => ['InternetGatewayDevice.UserInterface.X_HW_WebUserInfo.1.Password', 'xsd:string', 'string'],
+    ];
+    $sent = [];
+    $failed = [];
+    foreach ($map as $key => [$path, $type, $cast]) {
+        if (!isset($fields[$key]) || $fields[$key] === '') continue;
+        $val = $fields[$key];
+        if ($cast === 'int') $val = (int)$val;
+        elseif ($cast === 'bool') $val = ($val === '1' || $val === 1 || $val === true || $val === 'true');
+        $result = genieacs_set_params($deviceId, [$path => [$val, $type]], 15);
+        if ($result === null) { $failed[] = $key; } else { $sent[] = $key; }
+    }
+    if (!$sent && !$failed) {
+        return ['success' => false, 'message' => 'Tidak ada field untuk diubah.'];
+    }
+    if ($failed) {
+        return ['success' => false, 'message' => 'Sebagian gagal terkirim: ' . implode(', ', $failed) . ($sent ? ' (berhasil: ' . implode(', ', $sent) . ')' : '')];
+    }
+    return ['success' => true, 'message' => 'Perubahan User Interface berhasil dikirim via TR-069 (' . implode(', ', $sent) . ').'];
+}
+
+/**
+ * Edit Voice line (Enable, DirectoryNumber, SIP account) via TR-069. Per-field
+ * task terpisah, sama alasan seperti genieacs_edit_ppp_params.
+ */
+function genieacs_edit_voice_line_params(string $serial, int $lineNum, array $fields, int $voiceServiceIdx = 1, int $voiceProfileIdx = 1): array {
+    $deviceId = genieacs_find_device_id($serial);
+    if (!$deviceId) {
+        return ['success' => false, 'message' => 'Device tidak ditemukan di GenieACS.'];
+    }
+    $base = "InternetGatewayDevice.Services.VoiceService.{$voiceServiceIdx}.VoiceProfile.{$voiceProfileIdx}.Line.{$lineNum}";
+    $map = [
+        'enable' => ["{$base}.Enable", 'xsd:string', 'string'],
+        'directory_number' => ["{$base}.DirectoryNumber", 'xsd:string', 'string'],
+        'sip_user' => ["{$base}.SIP.AuthUserName", 'xsd:string', 'string'],
+        'sip_pass' => ["{$base}.SIP.AuthPassword", 'xsd:string', 'string'],
+        'sip_uri' => ["{$base}.SIP.URI", 'xsd:string', 'string'],
+    ];
+    $sent = [];
+    $failed = [];
+    foreach ($map as $key => [$path, $type, $cast]) {
+        if (!isset($fields[$key]) || $fields[$key] === '') continue;
+        $result = genieacs_set_params($deviceId, [$path => [$fields[$key], $type]], 15);
+        if ($result === null) { $failed[] = $key; } else { $sent[] = $key; }
+    }
+    if (!$sent && !$failed) {
+        return ['success' => false, 'message' => 'Tidak ada field untuk diubah.'];
+    }
+    if ($failed) {
+        return ['success' => false, 'message' => 'Sebagian gagal terkirim: ' . implode(', ', $failed) . ($sent ? ' (berhasil: ' . implode(', ', $sent) . ')' : '')];
+    }
+    return ['success' => true, 'message' => 'Perubahan Voice Line ' . $lineNum . ' berhasil dikirim via TR-069 (' . implode(', ', $sent) . ').'];
+}
+
+/**
+ * Edit generic TR-069 parameters (dipakai section tanpa card khusus: Port
+ * Forward, IP Interface, LAN DHCP Server, LAN Ports, Security, dst). Terima
+ * daftar {path, value, type} dari frontend — path WAJIB diawali
+ * "InternetGatewayDevice." (whitelist domain, cegah path arbitrary). Per-field
+ * task terpisah, sama alasan seperti genieacs_edit_ppp_params.
+ */
+function genieacs_edit_generic_params(string $serial, array $items): array {
+    $deviceId = genieacs_find_device_id($serial);
+    if (!$deviceId) {
+        return ['success' => false, 'message' => 'Device tidak ditemukan di GenieACS.'];
+    }
+    $sent = [];
+    $failed = [];
+    foreach ($items as $item) {
+        $path = (string)($item['path'] ?? '');
+        if (strpos($path, 'InternetGatewayDevice.') !== 0) { $failed[] = $path ?: '(path kosong)'; continue; }
+        $type = (string)($item['type'] ?? 'xsd:string');
+        $val = $item['value'] ?? '';
+        if ($type === 'xsd:unsignedInt' || $type === 'xsd:int') $val = (int)$val;
+        elseif ($type === 'xsd:boolean') $val = ($val === '1' || $val === 1 || $val === true || $val === 'true');
+        $result = genieacs_set_params($deviceId, [$path => [$val, $type]], 15);
+        if ($result === null) { $failed[] = $path; } else { $sent[] = $path; }
+    }
+    if (!$sent && !$failed) {
+        return ['success' => false, 'message' => 'Tidak ada field untuk diubah.'];
+    }
+    if ($failed) {
+        return ['success' => false, 'message' => 'Sebagian gagal terkirim: ' . count($failed) . ' field (berhasil: ' . count($sent) . ')'];
+    }
+    return ['success' => true, 'message' => 'Perubahan berhasil dikirim via TR-069 (' . count($sent) . ' field).'];
+}
+
 /** Reset koneksi PPP — set Enable=false lalu true (trigger reconnect). */
 function genieacs_ppp_reset(string $serial): array {
     $deviceId = genieacs_find_device_id($serial);
