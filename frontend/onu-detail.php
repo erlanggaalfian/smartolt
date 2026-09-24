@@ -2222,50 +2222,82 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             return '<label style="margin-right:18px;display:inline-flex;align-items:center;gap:5px;"><input type="radio" name="ppp-'+key+'-'+i+'" class="ppp-radio" data-key="'+key+'" data-idx="'+i+'" value="1"'+(yes?' checked':'')+'> Yes</label>'
                                 + '<label style="display:inline-flex;align-items:center;gap:5px;"><input type="radio" name="ppp-'+key+'-'+i+'" class="ppp-radio" data-key="'+key+'" data-idx="'+i+'" value="0"'+(!yes?' checked':'')+'> No</label>';
                         }
-                        // Render card Wireless LAN mirip layout webUI router (SSID, status, band, security, channel dst).
+                        // Render card Wireless LAN mirip layout webUI router — semua field bisa diedit.
                         function renderWlanCard(sec, i) {
                             const enabled = pv(sec, 'Enable');
                             const status = pv(sec, 'Status') || (enabled ? 'Up' : 'Down');
                             const statusColor = status === 'Up' ? '#28a745' : '#6c757d';
-                            const ssid = pv(sec, 'SSID') || 'N/A';
+                            const ssid = pv(sec, 'SSID') || '';
                             const standard = pv(sec, 'Standard') || pv(sec, 'X_HW_Standard') || 'N/A';
                             const band = pv(sec, 'X_HW_RFBand') || (/^(a|ac|an)/i.test(String(standard)) ? '5GHz' : '2.4GHz');
-                            const basicEnc = pv(sec, 'BasicEncryptionModes');
-                            const wpaEnc = pv(sec, 'WPAEncryptionModes');
-                            const security = wpaEnc ? 'WPA2' : (basicEnc && basicEnc !== 'None' ? basicEnc : 'None');
-                            const encMode = wpaEnc || basicEnc || 'N/A';
-                            const channel = pv(sec, 'Channel');
+                            const wpaEnc = pv(sec, 'WPAEncryptionModes') || '';
+                            const channel = pv(sec, 'Channel') || '';
                             const autoChannel = pv(sec, 'AutoChannelEnable');
                             const bandwidth = (() => {
                                 const ht20 = pv(sec, 'X_HW_HT20');
                                 if (ht20 !== '' && ht20 != null) return (ht20 === true || ht20 === '1' || ht20 === 1) ? '20 MHz' : '40 MHz';
                                 return pv(sec, 'X_HW_Bandwidth') || 'N/A';
                             })();
-                            const regDomain = pv(sec, 'RegulatoryDomain') || 'N/A';
+                            const regDomain = pv(sec, 'RegulatoryDomain') || 'ID';
                             const ssidAdv = pv(sec, 'SSIDAdvertisementEnabled');
                             const txPower = pv(sec, 'TransmitPower');
                             const maxDev = pv(sec, 'X_HW_AssociateNum') || pv(sec, 'MaxAssociatedDevices');
                             const totalAssoc = pv(sec, 'TotalAssociations');
+                            const password = pv(sec, 'KeyPassphrase') || '';
                             let h = '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
                             h += '<div class="tr069-toggle" data-idx="'+i+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
                             h += '<span>' + sec.title + '</span></div>';
                             h += '<div class="tr069-panel" style="display:' + (i === 0 ? 'block' : 'none') + ';padding:8px 12px;background:var(--bg-main);font-size:0.85rem;">';
-                            h += pppRow('SSID', ssid);
-                            h += pppRow('Status', '<span style="color:'+statusColor+';font-weight:600;">'+status+'</span>');
-                            h += pppRow('Band', band);
-                            h += pppRow('Standard', standard);
-                            h += pppRow('Security', security);
-                            h += pppRow('Encryption', encMode);
-                            h += pppRow('Channel', (channel || 'N/A') + (autoChannel ? ' (Auto)' : ' (Fix)'));
+                            h += pppRow('SSID', wlanInput('ssid', i, ssid, {narrow:false}));
+                            h += pppRow('Password', wlanInput('password', i, password, {narrow:false}));
+                            h += pppRow('Connection status', '<span style="color:'+statusColor+';font-weight:600;">'+status+'</span>');
+                            h += pppRow('Radio', wlanRadio('enable', i, enabled));
+                            h += pppRow('Band', band + ' (' + standard + ')');
+                            h += pppRow('Security', wlanSecuritySelect(i, wpaEnc));
+                            h += pppRow('Channel', wlanChannelRow(i, channel, autoChannel));
                             h += pppRow('Bandwidth', bandwidth);
-                            h += pppRow('Regulatory Domain', regDomain);
-                            h += pppRow('Radio', ppRadioReadonly(enabled));
-                            h += pppRow('SSID Advertisement', ppRadioReadonly(ssidAdv));
-                            h += pppRow('Transmit Power', (txPower !== '' && txPower != null) ? txPower : 'N/A');
+                            h += pppRow('Regulatory Domain', wlanRegDomainSelect(i, regDomain));
+                            h += pppRow('SSID Advertisement', wlanRadio('ssid_broadcast', i, ssidAdv));
+                            h += pppRow('Transmit Power', wlanInput('tx_power', i, txPower, {narrow:true}));
                             h += pppRow('Max Devices', (maxDev !== '' && maxDev != null) ? maxDev : 'N/A');
                             h += pppRow('Total Associations', (totalAssoc !== '' && totalAssoc != null) ? totalAssoc : '0');
+                            h += '<div style="padding:12px 0 4px;">';
+                            h += '<button type="button" class="btn-solt btn-solt-green wlan-save" data-idx="'+i+'" style="padding:6px 16px;font-size:0.82rem;">Simpan Perubahan</button>';
+                            h += '</div>';
                             h += '</div></div>';
                             return h;
+                        }
+                        function wlanInput(key, i, value, opts) {
+                            opts = opts || {};
+                            const w = opts.narrow ? '110px' : '320px';
+                            return '<input type="text" class="wlan-field" data-key="'+key+'" data-idx="'+i+'" value="'+String(value).replace(/"/g,'&quot;')+'"'
+                                + ' style="width:100%;max-width:'+w+';box-sizing:border-box;padding:5px 8px;font-size:0.85rem;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">';
+                        }
+                        function wlanRadio(key, i, current) {
+                            const yes = current === true || current === 'true' || current === 1 || current === '1';
+                            return '<label style="margin-right:18px;display:inline-flex;align-items:center;gap:5px;"><input type="radio" name="wlan-'+key+'-'+i+'" class="wlan-radio" data-key="'+key+'" data-idx="'+i+'" value="1"'+(yes?' checked':'')+'> Enabled</label>'
+                                + '<label style="display:inline-flex;align-items:center;gap:5px;"><input type="radio" name="wlan-'+key+'-'+i+'" class="wlan-radio" data-key="'+key+'" data-idx="'+i+'" value="0"'+(!yes?' checked':'')+'> Disabled</label>';
+                        }
+                        function wlanSecuritySelect(i, current) {
+                            const opts = [['TKIPEncryption','WPA2 (TKIP)'],['AESEncryption','WPA2 (AES)'],['TKIPAndAESEncryption','WPA2 (TKIP+AES)'],['None','None']];
+                            let s = '<select class="wlan-field" data-key="security" data-idx="'+i+'" style="width:100%;max-width:220px;box-sizing:border-box;padding:5px 8px;font-size:0.85rem;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">';
+                            opts.forEach(([val, label]) => { s += '<option value="'+val+'"'+(current===val?' selected':'')+'>'+label+'</option>'; });
+                            s += '</select>';
+                            return s;
+                        }
+                        function wlanRegDomainSelect(i, current) {
+                            const opts = ['ID','US','GB','SG','MY','CN'];
+                            let s = '<select class="wlan-field" data-key="regulatory_domain" data-idx="'+i+'" style="width:100%;max-width:120px;box-sizing:border-box;padding:5px 8px;font-size:0.85rem;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">';
+                            opts.forEach(val => { s += '<option value="'+val+'"'+(current===val?' selected':'')+'>'+val+'</option>'; });
+                            s += '</select>';
+                            return s;
+                        }
+                        function wlanChannelRow(i, channel, autoChannel) {
+                            const isAuto = autoChannel === true || autoChannel === 'true' || autoChannel === 1 || autoChannel === '1';
+                            let s = '<label style="margin-right:14px;display:inline-flex;align-items:center;gap:5px;"><input type="radio" name="wlan-chmode-'+i+'" class="wlan-chmode" data-idx="'+i+'" value="auto"'+(isAuto?' checked':'')+'> Auto</label>';
+                            s += '<label style="display:inline-flex;align-items:center;gap:5px;margin-right:10px;"><input type="radio" name="wlan-chmode-'+i+'" class="wlan-chmode" data-idx="'+i+'" value="fix"'+(!isAuto?' checked':'')+'> Fix</label>';
+                            s += '<input type="text" class="wlan-field" data-key="channel" data-idx="'+i+'" value="'+String(channel).replace(/"/g,'&quot;')+'" style="width:70px;box-sizing:border-box;padding:5px 8px;font-size:0.85rem;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">';
+                            return s;
                         }
                         function ppRadioReadonly(current) {
                             const yes = current === true || current === 'true' || current === 1 || current === '1';
@@ -2366,6 +2398,27 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                     method: 'POST',
                                     headers: {'Content-Type': 'application/json'},
                                     body: JSON.stringify({serial, edit_ppp: true, ...fields})
+                                }).then(r => r.json()).then(d => {
+                                    if (d.success) { alert(d.message || 'Berhasil dikirim.'); loadTr069Status(); }
+                                    else { alert('Error: ' + (d.message || 'Gagal')); btn.disabled = false; btn.textContent = 'Simpan Perubahan'; }
+                                }).catch(() => { alert('Gagal mengirim perubahan.'); btn.disabled = false; btn.textContent = 'Simpan Perubahan'; });
+                            });
+                        });
+                        // Simpan Perubahan (card Wireless LAN) — kirim SSID/password/security/channel/radio dst via TR-069.
+                        cliOutputBox.querySelectorAll('.wlan-save').forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                const idx = btn.dataset.idx;
+                                const fields = {};
+                                cliOutputBox.querySelectorAll('.wlan-field[data-idx="'+idx+'"]').forEach(el => { fields[el.dataset.key] = el.value; });
+                                cliOutputBox.querySelectorAll('.wlan-radio[data-idx="'+idx+'"]:checked').forEach(el => { fields[el.dataset.key] = el.value; });
+                                const chMode = cliOutputBox.querySelector('.wlan-chmode[data-idx="'+idx+'"]:checked');
+                                fields.auto_channel = chMode && chMode.value === 'auto' ? '1' : '0';
+                                if (!fields.password) delete fields.password; // kosong = tidak diubah
+                                btn.disabled = true; btn.textContent = 'Menyimpan...';
+                                fetch('action/genieacs-proxy.php', {
+                                    method: 'POST',
+                                    headers: {'Content-Type': 'application/json'},
+                                    body: JSON.stringify({serial, edit_wlan: true, wlan_index: idx, ...fields})
                                 }).then(r => r.json()).then(d => {
                                     if (d.success) { alert(d.message || 'Berhasil dikirim.'); loadTr069Status(); }
                                     else { alert('Error: ' + (d.message || 'Gagal')); btn.disabled = false; btn.textContent = 'Simpan Perubahan'; }

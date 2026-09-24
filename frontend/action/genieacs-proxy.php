@@ -59,6 +59,23 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         echo json_encode(genieacs_ppp_remove($serial)); exit;
     }
 
+    if (isset($body['edit_wlan'])) {
+        $fields = [
+            'ssid' => (string)($body['ssid'] ?? ''),
+            'enable' => (string)($body['enable'] ?? ''),
+            'password' => (string)($body['password'] ?? ''),
+            'security' => (string)($body['security'] ?? ''),
+            'channel' => preg_replace('/[^0-9]/', '', (string)($body['channel'] ?? '')),
+            'auto_channel' => (string)($body['auto_channel'] ?? ''),
+            'regulatory_domain' => preg_replace('/[^A-Za-z]/', '', (string)($body['regulatory_domain'] ?? '')),
+            'ssid_broadcast' => (string)($body['ssid_broadcast'] ?? ''),
+            'tx_power' => preg_replace('/[^0-9]/', '', (string)($body['tx_power'] ?? '')),
+        ];
+        $wlanIndex = (int)($body['wlan_index'] ?? 1) ?: 1;
+        $result = genieacs_edit_wlan_params($serial, $fields, $wlanIndex);
+        echo json_encode($result); exit;
+    }
+
     if (!$serial || !$provision) { echo '{"error":"Missing serial or provision"}'; exit; }
 
     // Create provision task

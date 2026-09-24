@@ -284,6 +284,48 @@ function genieacs_edit_ppp_params(string $serial, array $fields): array {
     return ['success' => true, 'message' => 'Perubahan PPP berhasil dikirim via TR-069 (' . implode(', ', $sent) . ').'];
 }
 
+/**
+ * Edit parameter WLAN (SSID, password, security, channel, dst) via TR-069.
+ * Password WiFi WPA/WPA2 disimpan di KeyPassphrase (bukan PreSharedKey langsung —
+ * device auto-derive PSK dari passphrase). Kirim per-field terpisah (lihat alasan
+ * di genieacs_edit_ppp_params — hindari cpeFault 9003 saat 1 field ditolak device).
+ */
+function genieacs_edit_wlan_params(string $serial, array $fields, int $wlanIndex = 1): array {
+    $deviceId = genieacs_find_device_id($serial);
+    if (!$deviceId) {
+        return ['success' => false, 'message' => 'Device tidak ditemukan di GenieACS.'];
+    }
+    $base = "InternetGatewayDevice.LANDevice.1.WLANConfiguration.{$wlanIndex}";
+    $map = [
+        'ssid' => ["{$base}.SSID", 'xsd:string', 'string'],
+        'enable' => ["{$base}.Enable", 'xsd:boolean', 'bool'],
+        'password' => ["{$base}.KeyPassphrase", 'xsd:string', 'string'],
+        'security' => ["{$base}.WPAEncryptionModes", 'xsd:string', 'string'],
+        'channel' => ["{$base}.Channel", 'xsd:unsignedInt', 'int'],
+        'auto_channel' => ["{$base}.AutoChannelEnable", 'xsd:boolean', 'bool'],
+        'regulatory_domain' => ["{$base}.RegulatoryDomain", 'xsd:string', 'string'],
+        'ssid_broadcast' => ["{$base}.SSIDAdvertisementEnabled", 'xsd:boolean', 'bool'],
+        'tx_power' => ["{$base}.TransmitPower", 'xsd:unsignedInt', 'int'],
+    ];
+    $sent = [];
+    $failed = [];
+    foreach ($map as $key => [$path, $type, $cast]) {
+        if (!isset($fields[$key]) || $fields[$key] === '') continue;
+        $val = $fields[$key];
+        if ($cast === 'int') $val = (int)$val;
+        elseif ($cast === 'bool') $val = ($val === '1' || $val === 1 || $val === true);
+        $result = genieacs_set_params($deviceId, [$path => [$val, $type]], 15);
+        if ($result === null) { $failed[] = $key; } else { $sent[] = $key; }
+    }
+    if (!$sent && !$failed) {
+        return ['success' => false, 'message' => 'Tidak ada field untuk diubah.'];
+    }
+    if ($failed) {
+        return ['success' => false, 'message' => 'Sebagian gagal terkirim: ' . implode(', ', $failed) . ($sent ? ' (berhasil: ' . implode(', ', $sent) . ')' : '')];
+    }
+    return ['success' => true, 'message' => 'Perubahan WiFi berhasil dikirim via TR-069 (' . implode(', ', $sent) . ').'];
+}
+
 /** Reset koneksi PPP — set Enable=false lalu true (trigger reconnect). */
 function genieacs_ppp_reset(string $serial): array {
     $deviceId = genieacs_find_device_id($serial);
