@@ -12,12 +12,10 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     $serial = preg_replace('/[^a-zA-Z0-9_-]/', '', $body['serial'] ?? '');
     $provision = preg_replace('/[^a-zA-Z0-9_.-]/', '', $body['provision'] ?? '');
 
-    // Find device ID (needed for both provision and refresh)
-    $devId = null;
-    $ch = curl_init($nbi . '/devices/?query=' . urlencode(json_encode(['_id' => ['$regex' => $serial]])) . '&projection=_id');
-    curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 10]);
-    $resp = curl_exec($ch); curl_close($ch);
-    if ($resp) { $arr = json_decode($resp, true); if (!empty($arr[0]['_id'])) $devId = $arr[0]['_id']; }
+    // Find device ID (needed for provision/refresh/edit_ppp/ppp_reset/ppp_remove) —
+    // pakai genieacs_find_device_id() (support konversi serial GPON HWTCxxxx -> hex TR069 id),
+    // JANGAN reinvent regex _id manual di sini (bug lama: selalu "Device not found").
+    $devId = genieacs_find_device_id($serial);
     if (!$devId) { echo '{"error":"Device not found"}'; exit; }
 
     if (!empty($body['refresh'])) {
