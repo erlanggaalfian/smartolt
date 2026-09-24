@@ -2559,28 +2559,37 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             html += '<div class="tr069-toggle" data-idx="'+idx+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
                             html += '<span>Security</span></div>';
                             html += '<div class="tr069-panel" style="display:none;padding:10px 12px;background:var(--bg-main);font-size:0.85rem;">';
-                            const rowSel = (label, id, val, opts) => '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><label style="width:170px;color:var(--text-muted);">'+label+'</label><select id="'+id+'" style="flex:1;padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">'
-                                + opts.map(o => '<option value="'+o[0]+'"'+(String(val)===o[0]?' selected':'')+'>'+o[1]+'</option>').join('') + '</select></div>';
-                            const rowText = (label, id, val, type) => '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><label style="width:170px;color:var(--text-muted);">'+label+'</label><input type="'+(type||'text')+'" id="'+id+'" value="'+esc(val)+'" style="flex:1;padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);"></div>';
-                            const onOff = [['true','Enable'],['false','Disable']];
-                            html += '<div style="color:var(--text-muted);font-weight:600;margin-bottom:6px;">Akses Layanan (WAN / LAN)</div>';
-                            html += rowSel('FTP - WAN', 'sec-ftp-wan', acl.FTPWanEnable?._value, onOff);
-                            html += rowSel('FTP - LAN', 'sec-ftp-lan', acl.FTPLanEnable?._value, onOff);
-                            html += rowSel('User Interface (HTTP) - WAN', 'sec-http-wan', acl.HTTPWanEnable?._value, onOff);
-                            html += rowSel('User Interface (HTTP) - LAN', 'sec-http-lan', acl.HTTPLanEnable?._value, onOff);
-                            html += rowSel('SSH - WAN', 'sec-ssh-wan', acl.SSHWanEnable?._value, onOff);
-                            html += rowSel('SSH - LAN', 'sec-ssh-lan', acl.SSHLanEnable?._value, onOff);
-                            html += rowSel('Telnet - WAN', 'sec-telnet-wan', acl.TELNETWanEnable?._value, onOff);
-                            html += rowSel('Telnet - LAN', 'sec-telnet-lan', acl.TELNETLanEnable?._value, onOff);
-                            html += rowSel('WAN ICMP Echo Reply', 'sec-icmp', dos.IcmpEchoReplyEn?._value, onOff);
-                            html += rowSel('Telnet Service', 'sec-telnet-service', telnet.Access?._value, onOff);
-                            html += '<div style="color:var(--text-muted);font-weight:600;margin:12px 0 6px;">Kredensial Login</div>';
+                            // Radio group persis tampilan router asli (bukan dropdown), 2 opsi per baris.
+                            const rowRadio = (label, id, val, opts) => {
+                                const name = id;
+                                return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><label style="width:230px;color:var(--text-muted);">'+label+'</label><div style="flex:1;display:flex;gap:18px;">'
+                                    + opts.map(o => '<label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-weight:400;"><input type="radio" name="'+name+'" value="'+o[0]+'" id="'+id+'-'+o[0]+'"'+(String(val)===o[0]?' checked':'')+'> '+o[1]+'</label>').join('')
+                                    + '</div></div>';
+                            };
+                            const rowText = (label, id, val, type) => '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><label style="width:230px;color:var(--text-muted);">'+label+'</label><input type="'+(type||'text')+'" id="'+id+'" value="'+esc(val)+'" style="flex:1;padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);"></div>';
+                            const enDis = [['true','Enabled'],['false','Disabled']];
+                            const blockPermit = [['false','Block'],['true','Permit']];
+                            html += rowRadio('FTP access from WAN', 'sec-ftp-wan', acl.FTPWanEnable?._value, enDis);
+                            html += rowRadio('FTP access from LAN', 'sec-ftp-lan', acl.FTPLanEnable?._value, enDis);
+                            html += rowRadio('User interface access from WAN', 'sec-http-wan', acl.HTTPWanEnable?._value, enDis);
+                            html += rowRadio('User interface access from LAN', 'sec-http-lan', acl.HTTPLanEnable?._value, enDis);
+                            html += rowRadio('SSH access from WAN', 'sec-ssh-wan', acl.SSHWanEnable?._value, enDis);
+                            html += rowRadio('SSH access from LAN', 'sec-ssh-lan', acl.SSHLanEnable?._value, enDis);
+                            html += rowRadio('Telnet access from WAN', 'sec-telnet-wan', acl.TELNETWanEnable?._value, enDis);
+                            html += rowRadio('Telnet access from LAN', 'sec-telnet-lan', acl.TELNETLanEnable?._value, enDis);
+                            html += rowRadio('WAN ICMP Echo reply', 'sec-icmp', dos.IcmpEchoReplyEn?._value, blockPermit);
+                            html += rowRadio('Telnet Service', 'sec-telnet-service', telnet.Access?._value, enDis);
+                            html += '<div style="border-top:1px solid var(--border-color);margin:10px 0;"></div>';
                             html += rowText('CLI Username', 'sec-cli-user', cli1.Username?._value ?? '', 'text');
                             html += rowText('CLI Password', 'sec-cli-pass', '', 'text');
-                            html += rowText('Web User Name', 'sec-web1-user', web1.UserName?._value ?? '', 'text');
-                            html += rowText('Web User Password', 'sec-web1-pass', '', 'text');
-                            html += rowText('Web Admin Name', 'sec-web2-user', web2.UserName?._value ?? '', 'text');
-                            html += rowText('Web Admin Password', 'sec-web2-pass', '', 'text');
+                            html += '<div style="border-top:1px solid var(--border-color);margin:10px 0;"></div>';
+                            html += rowRadio('Web user account', 'sec-web1-enable', web1.Enable?._value, enDis);
+                            html += rowText('Web user name', 'sec-web1-user', web1.UserName?._value ?? '', 'text');
+                            html += rowText('Web user password', 'sec-web1-pass', '', 'text');
+                            html += '<div style="border-top:1px solid var(--border-color);margin:10px 0;"></div>';
+                            html += rowRadio('Web admin account', 'sec-web2-enable', web2.Enable?._value, enDis);
+                            html += rowText('Web admin name', 'sec-web2-user', web2.UserName?._value ?? '', 'text');
+                            html += rowText('Web admin password', 'sec-web2-pass', '', 'text');
                             html += '<button type="button" class="btn-solt btn-solt-green sec-save" data-idx="'+idx+'" style="padding:6px 16px;font-size:0.82rem;margin-top:4px;">Simpan Perubahan</button>';
                             html += '</div></div>';
                         })();
@@ -2749,15 +2758,18 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                     ['sec-cli-pass', B+'UserInterface.X_HW_CLIUserInfo.1.Userpassword', 'xsd:string'],
                                     ['sec-web1-user', B+'UserInterface.X_HW_WebUserInfo.1.UserName', 'xsd:string'],
                                     ['sec-web1-pass', B+'UserInterface.X_HW_WebUserInfo.1.Password', 'xsd:string'],
+                                    ['sec-web1-enable', B+'UserInterface.X_HW_WebUserInfo.1.Enable', 'xsd:boolean'],
                                     ['sec-web2-user', B+'UserInterface.X_HW_WebUserInfo.2.UserName', 'xsd:string'],
                                     ['sec-web2-pass', B+'UserInterface.X_HW_WebUserInfo.2.Password', 'xsd:string'],
+                                    ['sec-web2-enable', B+'UserInterface.X_HW_WebUserInfo.2.Enable', 'xsd:boolean'],
                                 ];
                                 // Field password sengaja kosong di form (device tidak expose read-back
                                 // password) — kirim HANYA kalau user isi sesuatu, jangan overwrite jadi
                                 // kosong tanpa sengaja.
                                 const isPassField = id => id.endsWith('-pass');
                                 const items = map.map(([id, path, type]) => {
-                                    const el = document.getElementById(id);
+                                    const radio = document.querySelector('input[name="'+id+'"]:checked');
+                                    const el = radio || document.getElementById(id);
                                     const val = el ? el.value : '';
                                     return { id, path, type, value: val };
                                 }).filter(f => !(isPassField(f.id) && f.value === ''));
