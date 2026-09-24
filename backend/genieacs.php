@@ -67,6 +67,19 @@ function genieacs_get_tr069_ip(string $deviceId): ?string {
 
 
 /**
+ * Ambil IP eksternal WAN PPPoE dari TR-069 (WANPPPConnection.1.ExternalIPAddress).
+ * Dipakai saat config_method=TR069 supaya IP PPPoE tampil dari sumber kebenaran ACS,
+ * bukan cache CLI OLT yang tidak lagi disinkronkan.
+ */
+function genieacs_get_ppp_wan_ip(string $deviceId): ?string {
+    $device = genieacs_get_device($deviceId);
+    if (!$device) return null;
+    $ip = $device['InternetGatewayDevice']['WANDevice']['1']['WANConnectionDevice']['1']['WANPPPConnection']['1']['ExternalIPAddress']['_value'] ?? null;
+    if (!$ip || $ip === '0.0.0.0') return null;
+    return $ip;
+}
+
+/**
  * Parameter path map per kategori & vendor (TR-098, root InternetGatewayDevice).
  * Wildcard [n] diganti index instance (default 1) saat resolve.
  */

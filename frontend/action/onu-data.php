@@ -235,9 +235,16 @@ $onu = $stmt->fetch();
 // (bukan SSH/OLT), jadi dijalankan di kedua mode supaya IP tidak hilang begitu
 // polling ringan (mode=snmp, tiap 15 detik) menimpa respons full sync awal.
 $tr069_ip = null;
+$tr069_dev_id = null;
 if (($onu['config_method'] ?? null) === 'TR069') {
     $tr069_dev_id = genieacs_find_device_id($onu['serial_number'] ?? '');
     $tr069_ip = $tr069_dev_id ? genieacs_get_tr069_ip($tr069_dev_id) : null;
+}
+
+// TR-069 = sumber kebenaran untuk IP PPPoE (bukan CLI OLT) saat wan_mode=PPPoE.
+$tr069_ppp_ip = null;
+if ($tr069_dev_id && ($onu['wan_mode'] ?? '') === 'PPPoE') {
+    $tr069_ppp_ip = genieacs_get_ppp_wan_ip($tr069_dev_id);
 }
 
 echo json_encode([
@@ -249,7 +256,7 @@ echo json_encode([
     'onu_id'            => $onu['onu_id'],
     'rx_onu'            => $rx_onu ?? 'N/A',
     'rx_olt'            => $rx_olt ?? 'N/A',
-    'pppoe_ip'          => $onu['pppoe_ip'] ?: 'N/A',
+    'pppoe_ip'          => $tr069_ppp_ip ?: ($onu['pppoe_ip'] ?: 'N/A'),
     'pppoe_username'    => $onu['pppoe_username'] ?: '',
     'pppoe_password'    => $onu['pppoe_password'] ?: '',
     'vlan'              => $onu['vlan'],
