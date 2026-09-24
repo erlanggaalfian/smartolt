@@ -42,6 +42,10 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             'trigger' => preg_replace('/[^a-zA-Z]/', '', (string)($body['trigger'] ?? '')),
             'nat' => (string)($body['nat'] ?? ''),
             'lcp' => (string)($body['lcp'] ?? ''),
+            'conn_name' => (string)($body['conn_name'] ?? ''),
+            'mac_clone' => (string)($body['mac_clone'] ?? ''),
+            'dmz' => (string)($body['dmz'] ?? ''),
+            'dmz_ip' => preg_replace('/[^0-9.]/', '', (string)($body['dmz_ip'] ?? '')),
         ];
         $result = genieacs_edit_ppp_params($serial, $fields);
         echo json_encode($result); exit;

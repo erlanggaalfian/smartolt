@@ -2143,39 +2143,50 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         function renderPppCard(sec, i) {
                             const status = pv(sec, 'ConnectionStatus') || 'N/A';
                             const statusColor = status === 'Connected' ? '#28a745' : (status === 'Connecting' ? '#fd7e14' : '#6c757d');
+                            const connName = pv(sec, 'Name') || 'Internet_PPPoE';
+                            const uptime = pv(sec, 'Uptime');
                             const username = pv(sec, 'Username');
                             const dns = pv(sec, 'DNSServers');
                             const gw = pv(sec, 'DefaultGateway');
                             const ip = pv(sec, 'ExternalIPAddress');
                             const mru = pv(sec, 'MaxMRUSize');
-                            const svcName = pv(sec, 'PPPoEServiceName');
+                            const acsName = pv(sec, 'ACSName'); // dari General section device info, fallback N/A
                             const trigger = pv(sec, 'ConnectionTrigger') || 'AlwaysOn';
+                            const macClone = pv(sec, 'MACAddressOverride');
                             const mac = pv(sec, 'MACAddress');
+                            const svcList = pv(sec, 'X_HW_SERVICELIST') || 'INTERNET';
                             const nat = pv(sec, 'NATEnabled');
                             const lcp = pv(sec, 'PPPLCPEcho');
-                            const lastErr = pv(sec, 'LastConnectionError');
+                            const dmz = pv(sec, 'X_HW_DMZ_Enable');
+                            const dmzIp = pv(sec, 'X_HW_DMZ_HostIP');
                             const vlan = pv(sec, 'X_HW_VLAN');
                             let h = '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
                             h += '<div class="tr069-toggle" data-idx="'+i+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
                             h += '<span>' + sec.title + '</span></div>';
                             h += '<div class="tr069-panel" style="display:' + (i === 0 ? 'block' : 'none') + ';padding:4px 12px;background:var(--bg-main);">';
+                            h += pppRow('Connection name', connName);
                             h += pppRow('Connection status', '<span style="color:'+statusColor+';font-weight:600;">'+status+'</span>');
+                            h += pppRow('Uptime', uptime || 'N/A');
                             h += pppRow('IP Address', ip || 'N/A');
                             h += pppRow('PPP Gateway', gw || 'N/A');
                             h += pppRow('Username', pppInput('username', i, username, {narrow:false}));
-                            h += pppRow('Password', pppInput('password', i, '', {narrow:false, placeholder:'(unchanged)'}));
+                            h += pppRow('Password', pppInput('password', i, pv(sec, 'Password'), {narrow:false}));
                             h += pppRow('DNS Servers', dns || 'N/A');
-                            h += pppRow('Last connection error', lastErr || 'no error');
+                            h += pppRow('ACS Name', acsName || 'N/A');
                             h += pppRow('Connection trigger', '<select class="ppp-field" data-key="trigger" data-idx="'+i+'" style="width:100%;max-width:320px;box-sizing:border-box;padding:5px 8px;font-size:0.85rem;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);"><option'+(trigger==='AlwaysOn'?' selected':'')+'>AlwaysOn</option><option'+(trigger==='OnDemand'?' selected':'')+'>OnDemand</option><option'+(trigger==='Manual'?' selected':'')+'>Manual</option></select>');
                             h += pppRow('Max MRU Size', pppInput('max_mru', i, mru, {narrow:true}));
-                            h += pppRow('PPPoE Service Name', pppInput('svc_name', i, svcName, {narrow:false}));
+                            h += pppRow('MAC Clone', ppRadio('mac_clone', i, macClone));
                             h += pppRow('MAC Address', mac || 'N/A');
-                            h += pppRow('NAT Enabled', ppRadio('nat', i, nat));
+                            h += pppRow('Service list', svcList);
+                            h += pppRow('Default route', '<span style="background:#212529;color:#fff;padding:1px 8px;border-radius:4px;font-size:0.78rem;">Yes</span>');
+                            h += pppRow('NAT Enabled', ppRadioYN('nat', i, nat));
                             h += pppRow('LCP Detection', ppRadio('lcp', i, lcp));
+                            h += pppRow('DMZ Enable', ppRadio('dmz', i, dmz));
+                            h += pppRow('DMZ Host IP Address', pppInput('dmz_ip', i, dmzIp, {narrow:false}));
                             h += pppRow('VLAN ID', pppInput('vlan', i, vlan, {narrow:true}));
+                            h += pppRow('Reset connection', '<button type="button" class="btn-solt ppp-reset" data-idx="'+i+'" style="padding:5px 14px;font-size:0.8rem;background:#6c757d;color:#fff;border:none;border-radius:4px;cursor:pointer;">Reset Connection</button>');
                             h += '<div style="padding:12px 0 8px;display:flex;gap:8px;">';
                             h += '<button type="button" class="btn-solt btn-solt-green ppp-save" data-idx="'+i+'" style="padding:6px 16px;font-size:0.82rem;">Simpan Perubahan</button>';
-                            h += '<button type="button" class="btn-solt ppp-reset" data-idx="'+i+'" style="padding:6px 16px;font-size:0.82rem;background:#6c757d;color:#fff;border:none;border-radius:4px;cursor:pointer;">Reset Connection</button>';
                             h += '</div>';
                             h += '<div style="padding:8px 0 4px;border-top:1px solid var(--border-color);">';
                             h += '<button type="button" class="btn-solt ppp-remove" data-idx="'+i+'" style="padding:6px 16px;font-size:0.82rem;background:#dc3545;color:#fff;border:none;border-radius:4px;cursor:pointer;">Remove PPP WAN</button>';
@@ -2184,9 +2195,14 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             return h;
                         }
                         function ppRadio(key, i, current) {
-                            const yes = current === true || current === 'true' || current === 'Enabled' || current === 'Yes';
+                            const yes = current === true || current === 'true' || current === 'Enabled' || current === 1 || current === '1';
                             return '<label style="margin-right:18px;display:inline-flex;align-items:center;gap:5px;"><input type="radio" name="ppp-'+key+'-'+i+'" class="ppp-radio" data-key="'+key+'" data-idx="'+i+'" value="1"'+(yes?' checked':'')+'> Enabled</label>'
                                 + '<label style="display:inline-flex;align-items:center;gap:5px;"><input type="radio" name="ppp-'+key+'-'+i+'" class="ppp-radio" data-key="'+key+'" data-idx="'+i+'" value="0"'+(!yes?' checked':'')+'> Disabled</label>';
+                        }
+                        function ppRadioYN(key, i, current) {
+                            const yes = current === true || current === 'true' || current === 'Yes' || current === 1 || current === '1';
+                            return '<label style="margin-right:18px;display:inline-flex;align-items:center;gap:5px;"><input type="radio" name="ppp-'+key+'-'+i+'" class="ppp-radio" data-key="'+key+'" data-idx="'+i+'" value="1"'+(yes?' checked':'')+'> Yes</label>'
+                                + '<label style="display:inline-flex;align-items:center;gap:5px;"><input type="radio" name="ppp-'+key+'-'+i+'" class="ppp-radio" data-key="'+key+'" data-idx="'+i+'" value="0"'+(!yes?' checked':'')+'> No</label>';
                         }
                         sections.forEach((sec, i) => {
                             const count = Object.keys(sec.params).length;

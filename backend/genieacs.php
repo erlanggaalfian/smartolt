@@ -234,8 +234,8 @@ function genieacs_edit_ppp_params(string $serial, array $fields): array {
         return ['success' => false, 'message' => 'Device tidak ditemukan di GenieACS.'];
     }
     $base = 'InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1';
-    $params = [];
     $map = [
+        'conn_name' => ["{$base}.Name", 'xsd:string', 'string'],
         'vlan' => ["{$base}.X_HW_VLAN", 'xsd:unsignedInt', 'int'],
         'max_mru' => ["{$base}.MaxMRUSize", 'xsd:unsignedInt', 'int'],
         'username' => ["{$base}.Username", 'xsd:string', 'string'],
@@ -244,22 +244,31 @@ function genieacs_edit_ppp_params(string $serial, array $fields): array {
         'trigger' => ["{$base}.ConnectionTrigger", 'xsd:string', 'string'],
         'nat' => ["{$base}.NATEnabled", 'xsd:boolean', 'bool'],
         'lcp' => ["{$base}.PPPLCPEcho", 'xsd:boolean', 'bool'],
+        'mac_clone' => ["{$base}.MACAddressOverride", 'xsd:boolean', 'bool'],
+        'dmz' => ["{$base}.X_HW_DMZ.Enable", 'xsd:boolean', 'bool'],
+        'dmz_ip' => ["{$base}.X_HW_DMZ.HostIPAddress", 'xsd:string', 'string'],
     ];
+    // Kirim tiap field sebagai task setParameterValues TERPISAH (bukan 1 batch besar) —
+    // device ZTE/Huawei sering reject SELURUH batch (cpeFault 9003 "Invalid arguments")
+    // kalau salah SATU parameter di dalamnya tidak didukung firmware, sehingga field lain
+    // yang sebenarnya valid ikut gagal tak jelas. Per-field task: 1 gagal tidak menghambat lainnya.
+    $sent = [];
+    $failed = [];
     foreach ($map as $key => [$path, $type, $cast]) {
         if (!isset($fields[$key]) || $fields[$key] === '') continue;
         $val = $fields[$key];
         if ($cast === 'int') $val = (int)$val;
         elseif ($cast === 'bool') $val = ($val === '1' || $val === 1 || $val === true);
-        $params[$path] = [$val, $type];
+        $result = genieacs_set_params($deviceId, [$path => [$val, $type]], 15);
+        if ($result === null) { $failed[] = $key; } else { $sent[] = $key; }
     }
-    if (!$params) {
+    if (!$sent && !$failed) {
         return ['success' => false, 'message' => 'Tidak ada field untuk diubah.'];
     }
-    $result = genieacs_set_params($deviceId, $params, 15);
-    if ($result === null) {
-        return ['success' => false, 'message' => 'Gagal mengirim task TR-069 ke GenieACS (request gagal/timeout).'];
+    if ($failed) {
+        return ['success' => false, 'message' => 'Sebagian gagal terkirim: ' . implode(', ', $failed) . ($sent ? ' (berhasil: ' . implode(', ', $sent) . ')' : '')];
     }
-    return ['success' => true, 'message' => 'Perubahan PPP berhasil dikirim via TR-069.'];
+    return ['success' => true, 'message' => 'Perubahan PPP berhasil dikirim via TR-069 (' . implode(', ', $sent) . ').'];
 }
 
 /** Reset koneksi PPP — set Enable=false lalu true (trigger reconnect). */
