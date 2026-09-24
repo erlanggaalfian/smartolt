@@ -1857,6 +1857,15 @@ $tr069_profiles = tr069_get_profiles($pdo);
         // Handle TR069 Status (GenieACS inline accordion)
         const btnTr069 = document.getElementById('btn-tr069-status');
         const serial = '<?= addslashes($onu['serial_number'] ?? '') ?>';
+        // Setelah Simpan, cache GenieACS (Mongo) masih nilai LAMA sampai device lapor balik
+        // (bisa beberapa menit) — trigger refresh (connection-request) dulu sebelum reload,
+        // supaya user tidak lihat "balik ke Disable" padahal task sukses terkirim.
+        function reloadAfterSave() {
+            fetch('action/genieacs-proxy.php', {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({serial, refresh: true})
+            }).finally(() => loadTr069Status());
+        }
         if (btnTr069 && cliOutputBox) {
             function loadTr069Status() {
                 cliOutputBox.style.display = 'block';
@@ -2631,7 +2640,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                     headers: {'Content-Type': 'application/json'},
                                     body: JSON.stringify({serial, edit_ppp: true, ...fields})
                                 }).then(r => r.json()).then(d => {
-                                    if (d.success) { alert(d.message || 'Berhasil dikirim.'); loadTr069Status(); }
+                                    if (d.success) { alert(d.message || 'Berhasil dikirim.'); reloadAfterSave(); }
                                     else { alert('Error: ' + (d.message || 'Gagal')); btn.disabled = false; btn.textContent = 'Simpan Perubahan'; }
                                 }).catch(() => { alert('Gagal mengirim perubahan.'); btn.disabled = false; btn.textContent = 'Simpan Perubahan'; });
                             });
@@ -2652,7 +2661,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                     headers: {'Content-Type': 'application/json'},
                                     body: JSON.stringify({serial, edit_wlan: true, wlan_index: idx, ...fields})
                                 }).then(r => r.json()).then(d => {
-                                    if (d.success) { alert(d.message || 'Berhasil dikirim.'); loadTr069Status(); }
+                                    if (d.success) { alert(d.message || 'Berhasil dikirim.'); reloadAfterSave(); }
                                     else { alert('Error: ' + (d.message || 'Gagal')); btn.disabled = false; btn.textContent = 'Simpan Perubahan'; }
                                 }).catch(() => { alert('Gagal mengirim perubahan.'); btn.disabled = false; btn.textContent = 'Simpan Perubahan'; });
                             });
@@ -2672,7 +2681,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                     headers: {'Content-Type': 'application/json'},
                                     body: JSON.stringify({serial, edit_user_interface: true, ...fields})
                                 }).then(r => r.json()).then(d => {
-                                    if (d.success) { alert(d.message || 'Berhasil dikirim.'); loadTr069Status(); }
+                                    if (d.success) { alert(d.message || 'Berhasil dikirim.'); reloadAfterSave(); }
                                     else { alert('Error: ' + (d.message || 'Gagal')); btn.disabled = false; btn.textContent = 'Simpan Perubahan'; }
                                 }).catch(() => { alert('Gagal mengirim perubahan.'); btn.disabled = false; btn.textContent = 'Simpan Perubahan'; });
                             });
@@ -2694,7 +2703,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                     headers: {'Content-Type': 'application/json'},
                                     body: JSON.stringify({serial, edit_voice_line: true, ...fields})
                                 }).then(r => r.json()).then(d => {
-                                    if (d.success) { alert(d.message || 'Berhasil dikirim.'); loadTr069Status(); }
+                                    if (d.success) { alert(d.message || 'Berhasil dikirim.'); reloadAfterSave(); }
                                     else { alert('Error: ' + (d.message || 'Gagal')); btn.disabled = false; btn.textContent = 'Simpan Line ' + ln; }
                                 }).catch(() => { alert('Gagal mengirim perubahan.'); btn.disabled = false; btn.textContent = 'Simpan Line ' + ln; });
                             });
@@ -2716,7 +2725,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                     headers: {'Content-Type': 'application/json'},
                                     body: JSON.stringify({serial, edit_generic: true, items})
                                 }).then(r => r.json()).then(d => {
-                                    if (d.success) { alert(d.message || 'Berhasil dikirim.'); loadTr069Status(); }
+                                    if (d.success) { alert(d.message || 'Berhasil dikirim.'); reloadAfterSave(); }
                                     else { alert('Error: ' + (d.message || 'Gagal')); btn.disabled = false; btn.textContent = 'Simpan Perubahan'; }
                                 }).catch(() => { alert('Gagal mengirim perubahan.'); btn.disabled = false; btn.textContent = 'Simpan Perubahan'; });
                             });
@@ -2759,7 +2768,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                     headers: {'Content-Type': 'application/json'},
                                     body: JSON.stringify({serial, edit_generic: true, items})
                                 }).then(r => r.json()).then(d => {
-                                    if (d.success) { alert(d.message || 'Berhasil dikirim.'); loadTr069Status(); }
+                                    if (d.success) { alert(d.message || 'Berhasil dikirim.'); reloadAfterSave(); }
                                     else { alert('Error: ' + (d.message || 'Gagal')); btn.disabled = false; btn.textContent = 'Simpan Perubahan'; }
                                 }).catch(() => { alert('Gagal mengirim perubahan.'); btn.disabled = false; btn.textContent = 'Simpan Perubahan'; });
                             });
