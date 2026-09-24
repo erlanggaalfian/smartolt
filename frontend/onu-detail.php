@@ -2156,7 +2156,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             const lastErr = pv(sec, 'LastConnectionError');
                             const vlan = pv(sec, 'X_HW_VLAN');
                             let h = '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
-                            h += '<div style="padding:8px 12px;background:#e9ecef;font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
+                            h += '<div style="padding:8px 12px;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
                             h += '<span>' + sec.title + '</span></div>';
                             h += '<div style="padding:4px 12px;background:var(--bg-main);">';
                             h += pppRow('Connection status', '<span style="color:'+statusColor+';font-weight:600;">'+status+'</span>');
@@ -2201,7 +2201,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 ? '<span class="tr069-refresh" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;">&#8635;</span>'
                                 : '<span style="color:var(--text-muted);font-size:0.75rem;">' + count + ' params</span>';
                             html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
-                            html += '<div class="tr069-toggle" data-idx="'+i+'" style="padding:8px 12px;cursor:pointer;background:#e9ecef;font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
+                            html += '<div class="tr069-toggle" data-idx="'+i+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
                             html += '<span>' + sec.title + '</span>' + rightHtml + '</div>';
                             html += '<div class="tr069-panel" style="display:' + (i === 0 ? 'block' : 'none') + ';padding:8px 12px;background:var(--bg-main);">';
                             for (const [k, v] of Object.entries(sec.params)) {
