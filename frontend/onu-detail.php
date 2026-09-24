@@ -2129,9 +2129,16 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             return (v === undefined || v === null) ? '' : v;
                         }
                         function pppRow(label, valueHtml) {
-                            return '<div style="padding:5px 0;border-bottom:1px solid var(--border-color);display:flex;gap:8px;align-items:center;">'
-                                + '<span style="min-width:170px;color:var(--text-muted);flex-shrink:0;">' + label + '</span>'
-                                + '<span style="word-break:break-all;flex:1;">' + valueHtml + '</span></div>';
+                            return '<div style="display:grid;grid-template-columns:180px 1fr;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border-color);">'
+                                + '<span style="color:var(--text-muted);font-size:0.82rem;">' + label + '</span>'
+                                + '<span style="word-break:break-all;">' + valueHtml + '</span></div>';
+                        }
+                        function pppInput(key, i, value, opts) {
+                            opts = opts || {};
+                            const w = opts.narrow ? '110px' : '320px';
+                            return '<input type="text" class="ppp-field" data-key="'+key+'" data-idx="'+i+'" value="'+String(value).replace(/"/g,'&quot;')+'"'
+                                + (opts.placeholder ? ' placeholder="'+opts.placeholder+'"' : '')
+                                + ' style="width:100%;max-width:'+w+';box-sizing:border-box;padding:5px 8px;font-size:0.85rem;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">';
                         }
                         function renderPppCard(sec, i) {
                             const status = pv(sec, 'ConnectionStatus') || 'N/A';
@@ -2151,33 +2158,35 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             let h = '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
                             h += '<div style="padding:8px 12px;background:#e9ecef;font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
                             h += '<span>' + sec.title + '</span></div>';
-                            h += '<div style="padding:8px 12px;background:var(--bg-main);">';
+                            h += '<div style="padding:4px 12px;background:var(--bg-main);">';
                             h += pppRow('Connection status', '<span style="color:'+statusColor+';font-weight:600;">'+status+'</span>');
                             h += pppRow('IP Address', ip || 'N/A');
                             h += pppRow('PPP Gateway', gw || 'N/A');
-                            h += pppRow('Username', '<input type="text" class="ppp-field" data-key="username" data-idx="'+i+'" value="'+String(username).replace(/"/g,'&quot;')+'" style="width:100%;max-width:280px;padding:3px 6px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">');
-                            h += pppRow('Password', '<input type="text" class="ppp-field" data-key="password" data-idx="'+i+'" value="" placeholder="(unchanged)" style="width:100%;max-width:280px;padding:3px 6px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">');
+                            h += pppRow('Username', pppInput('username', i, username, {narrow:false}));
+                            h += pppRow('Password', pppInput('password', i, '', {narrow:false, placeholder:'(unchanged)'}));
                             h += pppRow('DNS Servers', dns || 'N/A');
                             h += pppRow('Last connection error', lastErr || 'no error');
-                            h += pppRow('Connection trigger', '<select class="ppp-field" data-key="trigger" data-idx="'+i+'" style="padding:3px 6px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);"><option'+(trigger==='AlwaysOn'?' selected':'')+'>AlwaysOn</option><option'+(trigger==='OnDemand'?' selected':'')+'>OnDemand</option><option'+(trigger==='Manual'?' selected':'')+'>Manual</option></select>');
-                            h += pppRow('Max MRU Size', '<input type="text" class="ppp-field" data-key="max_mru" data-idx="'+i+'" value="'+String(mru)+'" style="width:100px;padding:3px 6px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">');
-                            h += pppRow('PPPoE Service Name', '<input type="text" class="ppp-field" data-key="svc_name" data-idx="'+i+'" value="'+String(svcName).replace(/"/g,'&quot;')+'" style="width:100%;max-width:280px;padding:3px 6px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">');
+                            h += pppRow('Connection trigger', '<select class="ppp-field" data-key="trigger" data-idx="'+i+'" style="width:100%;max-width:320px;box-sizing:border-box;padding:5px 8px;font-size:0.85rem;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);"><option'+(trigger==='AlwaysOn'?' selected':'')+'>AlwaysOn</option><option'+(trigger==='OnDemand'?' selected':'')+'>OnDemand</option><option'+(trigger==='Manual'?' selected':'')+'>Manual</option></select>');
+                            h += pppRow('Max MRU Size', pppInput('max_mru', i, mru, {narrow:true}));
+                            h += pppRow('PPPoE Service Name', pppInput('svc_name', i, svcName, {narrow:false}));
                             h += pppRow('MAC Address', mac || 'N/A');
                             h += pppRow('NAT Enabled', ppRadio('nat', i, nat));
                             h += pppRow('LCP Detection', ppRadio('lcp', i, lcp));
-                            h += pppRow('VLAN ID', '<input type="text" class="ppp-field" data-key="vlan" data-idx="'+i+'" value="'+String(vlan)+'" style="width:100px;padding:3px 6px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">');
-                            h += '<div style="padding:10px 0 4px;display:flex;gap:8px;">';
-                            h += '<button type="button" class="btn-solt btn-solt-green ppp-save" data-idx="'+i+'" style="padding:5px 14px;font-size:0.8rem;">Simpan Perubahan</button>';
-                            h += '<button type="button" class="btn-solt ppp-reset" data-idx="'+i+'" style="padding:5px 14px;font-size:0.8rem;background:#6c757d;color:#fff;border:none;border-radius:4px;cursor:pointer;">Reset Connection</button>';
-                            h += '<button type="button" class="btn-solt ppp-remove" data-idx="'+i+'" style="padding:5px 14px;font-size:0.8rem;background:#dc3545;color:#fff;border:none;border-radius:4px;cursor:pointer;margin-left:auto;">Remove PPP WAN</button>';
+                            h += pppRow('VLAN ID', pppInput('vlan', i, vlan, {narrow:true}));
+                            h += '<div style="padding:12px 0 8px;display:flex;gap:8px;">';
+                            h += '<button type="button" class="btn-solt btn-solt-green ppp-save" data-idx="'+i+'" style="padding:6px 16px;font-size:0.82rem;">Simpan Perubahan</button>';
+                            h += '<button type="button" class="btn-solt ppp-reset" data-idx="'+i+'" style="padding:6px 16px;font-size:0.82rem;background:#6c757d;color:#fff;border:none;border-radius:4px;cursor:pointer;">Reset Connection</button>';
+                            h += '</div>';
+                            h += '<div style="padding:8px 0 4px;border-top:1px solid var(--border-color);">';
+                            h += '<button type="button" class="btn-solt ppp-remove" data-idx="'+i+'" style="padding:6px 16px;font-size:0.82rem;background:#dc3545;color:#fff;border:none;border-radius:4px;cursor:pointer;">Remove PPP WAN</button>';
                             h += '</div>';
                             h += '</div></div>';
                             return h;
                         }
                         function ppRadio(key, i, current) {
                             const yes = current === true || current === 'true' || current === 'Enabled' || current === 'Yes';
-                            return '<label style="margin-right:14px;"><input type="radio" name="ppp-'+key+'-'+i+'" class="ppp-radio" data-key="'+key+'" data-idx="'+i+'" value="1"'+(yes?' checked':'')+'> Enabled</label>'
-                                + '<label><input type="radio" name="ppp-'+key+'-'+i+'" class="ppp-radio" data-key="'+key+'" data-idx="'+i+'" value="0"'+(!yes?' checked':'')+'> Disabled</label>';
+                            return '<label style="margin-right:18px;display:inline-flex;align-items:center;gap:5px;"><input type="radio" name="ppp-'+key+'-'+i+'" class="ppp-radio" data-key="'+key+'" data-idx="'+i+'" value="1"'+(yes?' checked':'')+'> Enabled</label>'
+                                + '<label style="display:inline-flex;align-items:center;gap:5px;"><input type="radio" name="ppp-'+key+'-'+i+'" class="ppp-radio" data-key="'+key+'" data-idx="'+i+'" value="0"'+(!yes?' checked':'')+'> Disabled</label>';
                         }
                         sections.forEach((sec, i) => {
                             const count = Object.keys(sec.params).length;
