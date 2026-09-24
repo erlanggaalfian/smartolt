@@ -2309,6 +2309,11 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             const isGeneral = sec.title === 'General';
                             const isPPP = /^PPP Interface/.test(sec.title);
                             const isWLAN = /^Wireless LAN/.test(sec.title);
+                            // Child WLAN (PreSharedKey, WPS, dst) — field-nya sudah tercakup di card
+                            // "Wireless LAN N" (mis. Password = KeyPassphrase dari PreSharedKey), jadi
+                            // tidak perlu section accordion terpisah.
+                            const isWlanChild = /\(WLAN \d+\)$/.test(sec.title);
+                            if (isWlanChild) return;
                             if (isPPP) {
                                 html += renderPppCard(sec, i);
                                 return;
