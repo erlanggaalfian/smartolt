@@ -228,6 +228,29 @@ function genieacs_find_device_id(string $serial): ?string {
  * ponytail: index hardcoded 1.1, upgrade ke auto-detect index kalau ada ONU dengan
  * struktur WANDevice/WANConnectionDevice selain 1 (belum ditemukan kasusnya).
  */
+function genieacs_edit_ppp_params(string $serial, array $fields): array {
+    $deviceId = genieacs_find_device_id($serial);
+    if (!$deviceId) {
+        return ['success' => false, 'message' => 'Device tidak ditemukan di GenieACS.'];
+    }
+    $base = 'InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1';
+    $params = [];
+    if (isset($fields['vlan']) && $fields['vlan'] !== '') {
+        $params["{$base}.X_HW_VLAN"] = [(int)$fields['vlan'], 'xsd:unsignedInt'];
+    }
+    if (isset($fields['max_mru']) && $fields['max_mru'] !== '') {
+        $params["{$base}.MaxMRUSize"] = [(int)$fields['max_mru'], 'xsd:unsignedInt'];
+    }
+    if (!$params) {
+        return ['success' => false, 'message' => 'Tidak ada field untuk diubah.'];
+    }
+    $result = genieacs_set_params($deviceId, $params, 15);
+    if ($result === null) {
+        return ['success' => false, 'message' => 'Gagal mengirim task TR-069 ke GenieACS (request gagal/timeout).'];
+    }
+    return ['success' => true, 'message' => 'VLAN/MRU berhasil dikirim via TR-069.'];
+}
+
 function genieacs_push_wan(string $serial, string $wan_mode, array $wan): array {
     $deviceId = genieacs_find_device_id($serial);
     if (!$deviceId) {

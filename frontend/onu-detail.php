@@ -2126,8 +2126,11 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             const count = Object.keys(sec.params).length;
                             if (!count) return;
                             const isGeneral = sec.title === 'General';
+                            const isPPP = /^PPP Interface/.test(sec.title);
                             const rightHtml = isGeneral
                                 ? '<span class="tr069-refresh" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;">&#8635;</span>'
+                                : isPPP
+                                ? '<span class="tr069-ppp-edit btn-solt btn-solt-outline" data-idx="'+i+'" style="cursor:pointer;font-size:0.75rem;padding:2px 8px;">Edit</span>'
                                 : '<span style="color:var(--text-muted);font-size:0.75rem;">' + count + ' params</span>';
                             html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
                             html += '<div class="tr069-toggle" data-idx="'+i+'" style="padding:8px 12px;cursor:pointer;background:#e9ecef;font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
@@ -2191,6 +2194,29 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                   .catch(() => { refreshBtn.style.opacity = '1'; alert('Gagal refresh.'); });
                             });
                         }
+                        // Edit button (PPP Interface section header) — edit VLAN ID & Max MRU Size, push via TR-069
+                        cliOutputBox.querySelectorAll('.tr069-ppp-edit').forEach(editBtn => {
+                            editBtn.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                const idx = editBtn.dataset.idx;
+                                const params = sections[idx].params;
+                                const curVlan = (params['X_HW_VLAN'] && params['X_HW_VLAN'].v) ?? params['X_HW_VLAN'] ?? '';
+                                const curMru = (params['MaxMRUSize'] && params['MaxMRUSize'].v) ?? params['MaxMRUSize'] ?? '';
+                                const vlan = prompt('VLAN ID:', curVlan);
+                                if (vlan === null) return;
+                                const maxMru = prompt('Max MRU Size:', curMru);
+                                if (maxMru === null) return;
+                                editBtn.textContent = '...';
+                                fetch('action/genieacs-proxy.php', {
+                                    method: 'POST',
+                                    headers: {'Content-Type': 'application/json'},
+                                    body: JSON.stringify({serial, edit_ppp: true, vlan, max_mru: maxMru})
+                                }).then(r => r.json()).then(d => {
+                                    if (d.success) { alert(d.message || 'Berhasil dikirim.'); loadTr069Status(); }
+                                    else { alert('Error: ' + (d.message || 'Gagal')); editBtn.textContent = 'Edit'; }
+                                }).catch(() => { alert('Gagal mengirim perubahan.'); editBtn.textContent = 'Edit'; });
+                            });
+                        });
                         cliOutputBox.style.maxHeight = 'none';
                     })
                     .catch(() => { cliOutputBox.textContent = 'Gagal mengambil data GenieACS.'; })

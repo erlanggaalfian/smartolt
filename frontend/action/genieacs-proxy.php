@@ -34,6 +34,13 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         echo '{"success":true}'; exit;
     }
 
+    if (isset($body['edit_ppp'])) {
+        $vlan = preg_replace('/[^0-9]/', '', (string)($body['vlan'] ?? ''));
+        $max_mru = preg_replace('/[^0-9]/', '', (string)($body['max_mru'] ?? ''));
+        $result = genieacs_edit_ppp_params($serial, ['vlan' => $vlan, 'max_mru' => $max_mru]);
+        echo json_encode($result); exit;
+    }
+
     if (!$serial || !$provision) { echo '{"error":"Missing serial or provision"}'; exit; }
 
     // Create provision task
