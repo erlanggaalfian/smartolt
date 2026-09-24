@@ -2122,15 +2122,74 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         // Render accordion
                         let html = '<div style="font-size:0.85rem;background:var(--bg-main);">';
                         html += '<div style="font-weight:700;margin-bottom:12px;font-size:0.95rem;display:flex;align-items:center;gap:8px;"><span style="width:10px;height:10px;border-radius:50%;background:#28a745;display:inline-block;"></span> ' + (d._id || serial) + '</div>';
+                        // Render one PPP Interface card matching the ONU-webpage layout (readonly + editable rows).
+                        function pv(sec, key) {
+                            const v = sec.params[key];
+                            if (v && typeof v === 'object' && 'v' in v) return v.v;
+                            return (v === undefined || v === null) ? '' : v;
+                        }
+                        function pppRow(label, valueHtml) {
+                            return '<div style="padding:5px 0;border-bottom:1px solid var(--border-color);display:flex;gap:8px;align-items:center;">'
+                                + '<span style="min-width:170px;color:var(--text-muted);flex-shrink:0;">' + label + '</span>'
+                                + '<span style="word-break:break-all;flex:1;">' + valueHtml + '</span></div>';
+                        }
+                        function renderPppCard(sec, i) {
+                            const status = pv(sec, 'ConnectionStatus') || 'N/A';
+                            const statusColor = status === 'Connected' ? '#28a745' : (status === 'Connecting' ? '#fd7e14' : '#6c757d');
+                            const username = pv(sec, 'Username');
+                            const dns = pv(sec, 'DNSServers');
+                            const gw = pv(sec, 'DefaultGateway');
+                            const ip = pv(sec, 'ExternalIPAddress');
+                            const mru = pv(sec, 'MaxMRUSize');
+                            const svcName = pv(sec, 'PPPoEServiceName');
+                            const trigger = pv(sec, 'ConnectionTrigger') || 'AlwaysOn';
+                            const mac = pv(sec, 'MACAddress');
+                            const nat = pv(sec, 'NATEnabled');
+                            const lcp = pv(sec, 'PPPLCPEcho');
+                            const lastErr = pv(sec, 'LastConnectionError');
+                            const vlan = pv(sec, 'X_HW_VLAN');
+                            let h = '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
+                            h += '<div style="padding:8px 12px;background:#e9ecef;font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
+                            h += '<span>' + sec.title + '</span></div>';
+                            h += '<div style="padding:8px 12px;background:var(--bg-main);">';
+                            h += pppRow('Connection status', '<span style="color:'+statusColor+';font-weight:600;">'+status+'</span>');
+                            h += pppRow('IP Address', ip || 'N/A');
+                            h += pppRow('PPP Gateway', gw || 'N/A');
+                            h += pppRow('Username', '<input type="text" class="ppp-field" data-key="username" data-idx="'+i+'" value="'+String(username).replace(/"/g,'&quot;')+'" style="width:100%;max-width:280px;padding:3px 6px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">');
+                            h += pppRow('Password', '<input type="text" class="ppp-field" data-key="password" data-idx="'+i+'" value="" placeholder="(unchanged)" style="width:100%;max-width:280px;padding:3px 6px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">');
+                            h += pppRow('DNS Servers', dns || 'N/A');
+                            h += pppRow('Last connection error', lastErr || 'no error');
+                            h += pppRow('Connection trigger', '<select class="ppp-field" data-key="trigger" data-idx="'+i+'" style="padding:3px 6px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);"><option'+(trigger==='AlwaysOn'?' selected':'')+'>AlwaysOn</option><option'+(trigger==='OnDemand'?' selected':'')+'>OnDemand</option><option'+(trigger==='Manual'?' selected':'')+'>Manual</option></select>');
+                            h += pppRow('Max MRU Size', '<input type="text" class="ppp-field" data-key="max_mru" data-idx="'+i+'" value="'+String(mru)+'" style="width:100px;padding:3px 6px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">');
+                            h += pppRow('PPPoE Service Name', '<input type="text" class="ppp-field" data-key="svc_name" data-idx="'+i+'" value="'+String(svcName).replace(/"/g,'&quot;')+'" style="width:100%;max-width:280px;padding:3px 6px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">');
+                            h += pppRow('MAC Address', mac || 'N/A');
+                            h += pppRow('NAT Enabled', ppRadio('nat', i, nat));
+                            h += pppRow('LCP Detection', ppRadio('lcp', i, lcp));
+                            h += pppRow('VLAN ID', '<input type="text" class="ppp-field" data-key="vlan" data-idx="'+i+'" value="'+String(vlan)+'" style="width:100px;padding:3px 6px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">');
+                            h += '<div style="padding:10px 0 4px;display:flex;gap:8px;">';
+                            h += '<button type="button" class="btn-solt btn-solt-green ppp-save" data-idx="'+i+'" style="padding:5px 14px;font-size:0.8rem;">Simpan Perubahan</button>';
+                            h += '<button type="button" class="btn-solt ppp-reset" data-idx="'+i+'" style="padding:5px 14px;font-size:0.8rem;background:#6c757d;color:#fff;border:none;border-radius:4px;cursor:pointer;">Reset Connection</button>';
+                            h += '<button type="button" class="btn-solt ppp-remove" data-idx="'+i+'" style="padding:5px 14px;font-size:0.8rem;background:#dc3545;color:#fff;border:none;border-radius:4px;cursor:pointer;margin-left:auto;">Remove PPP WAN</button>';
+                            h += '</div>';
+                            h += '</div></div>';
+                            return h;
+                        }
+                        function ppRadio(key, i, current) {
+                            const yes = current === true || current === 'true' || current === 'Enabled' || current === 'Yes';
+                            return '<label style="margin-right:14px;"><input type="radio" name="ppp-'+key+'-'+i+'" class="ppp-radio" data-key="'+key+'" data-idx="'+i+'" value="1"'+(yes?' checked':'')+'> Enabled</label>'
+                                + '<label><input type="radio" name="ppp-'+key+'-'+i+'" class="ppp-radio" data-key="'+key+'" data-idx="'+i+'" value="0"'+(!yes?' checked':'')+'> Disabled</label>';
+                        }
                         sections.forEach((sec, i) => {
                             const count = Object.keys(sec.params).length;
                             if (!count) return;
                             const isGeneral = sec.title === 'General';
                             const isPPP = /^PPP Interface/.test(sec.title);
+                            if (isPPP) {
+                                html += renderPppCard(sec, i);
+                                return;
+                            }
                             const rightHtml = isGeneral
                                 ? '<span class="tr069-refresh" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;">&#8635;</span>'
-                                : isPPP
-                                ? '<span class="tr069-ppp-edit btn-solt btn-solt-outline" data-idx="'+i+'" style="cursor:pointer;font-size:0.75rem;padding:2px 8px;">Edit</span>'
                                 : '<span style="color:var(--text-muted);font-size:0.75rem;">' + count + ' params</span>';
                             html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
                             html += '<div class="tr069-toggle" data-idx="'+i+'" style="padding:8px 12px;cursor:pointer;background:#e9ecef;font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
@@ -2195,26 +2254,51 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             });
                         }
                         // Edit button (PPP Interface section header) — edit VLAN ID & Max MRU Size, push via TR-069
-                        cliOutputBox.querySelectorAll('.tr069-ppp-edit').forEach(editBtn => {
-                            editBtn.addEventListener('click', (e) => {
-                                e.stopPropagation();
-                                const idx = editBtn.dataset.idx;
-                                const params = sections[idx].params;
-                                const curVlan = (params['X_HW_VLAN'] && params['X_HW_VLAN'].v) ?? params['X_HW_VLAN'] ?? '';
-                                const curMru = (params['MaxMRUSize'] && params['MaxMRUSize'].v) ?? params['MaxMRUSize'] ?? '';
-                                const vlan = prompt('VLAN ID:', curVlan);
-                                if (vlan === null) return;
-                                const maxMru = prompt('Max MRU Size:', curMru);
-                                if (maxMru === null) return;
-                                editBtn.textContent = '...';
+                        cliOutputBox.querySelectorAll('.ppp-save').forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                const idx = btn.dataset.idx;
+                                const fields = {};
+                                cliOutputBox.querySelectorAll('.ppp-field[data-idx="'+idx+'"]').forEach(el => { fields[el.dataset.key] = el.value; });
+                                cliOutputBox.querySelectorAll('.ppp-radio[data-idx="'+idx+'"]:checked').forEach(el => { fields[el.dataset.key] = el.value; });
+                                if (!fields.password) delete fields.password; // kosong = tidak diubah
+                                btn.disabled = true; btn.textContent = 'Menyimpan...';
                                 fetch('action/genieacs-proxy.php', {
                                     method: 'POST',
                                     headers: {'Content-Type': 'application/json'},
-                                    body: JSON.stringify({serial, edit_ppp: true, vlan, max_mru: maxMru})
+                                    body: JSON.stringify({serial, edit_ppp: true, ...fields})
                                 }).then(r => r.json()).then(d => {
                                     if (d.success) { alert(d.message || 'Berhasil dikirim.'); loadTr069Status(); }
-                                    else { alert('Error: ' + (d.message || 'Gagal')); editBtn.textContent = 'Edit'; }
-                                }).catch(() => { alert('Gagal mengirim perubahan.'); editBtn.textContent = 'Edit'; });
+                                    else { alert('Error: ' + (d.message || 'Gagal')); btn.disabled = false; btn.textContent = 'Simpan Perubahan'; }
+                                }).catch(() => { alert('Gagal mengirim perubahan.'); btn.disabled = false; btn.textContent = 'Simpan Perubahan'; });
+                            });
+                        });
+                        cliOutputBox.querySelectorAll('.ppp-reset').forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                if (!confirm('Reset koneksi PPP sekarang? ONU akan reconnect.')) return;
+                                btn.disabled = true; btn.textContent = 'Resetting...';
+                                fetch('action/genieacs-proxy.php', {
+                                    method: 'POST',
+                                    headers: {'Content-Type': 'application/json'},
+                                    body: JSON.stringify({serial, ppp_reset: true})
+                                }).then(r => r.json()).then(d => {
+                                    alert(d.success ? (d.message || 'Reset dikirim.') : 'Error: ' + (d.message || 'Gagal'));
+                                    btn.disabled = false; btn.textContent = 'Reset Connection';
+                                }).catch(() => { alert('Gagal reset.'); btn.disabled = false; btn.textContent = 'Reset Connection'; });
+                            });
+                        });
+                        cliOutputBox.querySelectorAll('.ppp-remove').forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                if (!confirm('HAPUS interface PPP WAN ini dari device? Device akan kehilangan koneksi PPPoE (kembali ke WAN kosong/DHCP default). Aksi ini TIDAK BISA dibatalkan.')) return;
+                                btn.disabled = true; btn.textContent = 'Menghapus...';
+                                fetch('action/genieacs-proxy.php', {
+                                    method: 'POST',
+                                    headers: {'Content-Type': 'application/json'},
+                                    body: JSON.stringify({serial, ppp_remove: true})
+                                }).then(r => r.json()).then(d => {
+                                    alert(d.success ? (d.message || 'PPP WAN dihapus.') : 'Error: ' + (d.message || 'Gagal'));
+                                    if (d.success) loadTr069Status();
+                                    else { btn.disabled = false; btn.textContent = 'Remove PPP WAN'; }
+                                }).catch(() => { alert('Gagal menghapus.'); btn.disabled = false; btn.textContent = 'Remove PPP WAN'; });
                             });
                         });
                         cliOutputBox.style.maxHeight = 'none';

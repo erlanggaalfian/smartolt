@@ -235,11 +235,22 @@ function genieacs_edit_ppp_params(string $serial, array $fields): array {
     }
     $base = 'InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1';
     $params = [];
-    if (isset($fields['vlan']) && $fields['vlan'] !== '') {
-        $params["{$base}.X_HW_VLAN"] = [(int)$fields['vlan'], 'xsd:unsignedInt'];
-    }
-    if (isset($fields['max_mru']) && $fields['max_mru'] !== '') {
-        $params["{$base}.MaxMRUSize"] = [(int)$fields['max_mru'], 'xsd:unsignedInt'];
+    $map = [
+        'vlan' => ["{$base}.X_HW_VLAN", 'xsd:unsignedInt', 'int'],
+        'max_mru' => ["{$base}.MaxMRUSize", 'xsd:unsignedInt', 'int'],
+        'username' => ["{$base}.Username", 'xsd:string', 'string'],
+        'password' => ["{$base}.Password", 'xsd:string', 'string'],
+        'svc_name' => ["{$base}.PPPoEServiceName", 'xsd:string', 'string'],
+        'trigger' => ["{$base}.ConnectionTrigger", 'xsd:string', 'string'],
+        'nat' => ["{$base}.NATEnabled", 'xsd:boolean', 'bool'],
+        'lcp' => ["{$base}.PPPLCPEcho", 'xsd:boolean', 'bool'],
+    ];
+    foreach ($map as $key => [$path, $type, $cast]) {
+        if (!isset($fields[$key]) || $fields[$key] === '') continue;
+        $val = $fields[$key];
+        if ($cast === 'int') $val = (int)$val;
+        elseif ($cast === 'bool') $val = ($val === '1' || $val === 1 || $val === true);
+        $params[$path] = [$val, $type];
     }
     if (!$params) {
         return ['success' => false, 'message' => 'Tidak ada field untuk diubah.'];
@@ -248,7 +259,39 @@ function genieacs_edit_ppp_params(string $serial, array $fields): array {
     if ($result === null) {
         return ['success' => false, 'message' => 'Gagal mengirim task TR-069 ke GenieACS (request gagal/timeout).'];
     }
-    return ['success' => true, 'message' => 'VLAN/MRU berhasil dikirim via TR-069.'];
+    return ['success' => true, 'message' => 'Perubahan PPP berhasil dikirim via TR-069.'];
+}
+
+/** Reset koneksi PPP — set Enable=false lalu true (trigger reconnect). */
+function genieacs_ppp_reset(string $serial): array {
+    $deviceId = genieacs_find_device_id($serial);
+    if (!$deviceId) {
+        return ['success' => false, 'message' => 'Device tidak ditemukan di GenieACS.'];
+    }
+    $base = 'InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1';
+    $off = genieacs_set_params($deviceId, [$base . '.Enable' => [false, 'xsd:boolean']], 15);
+    if ($off === null) {
+        return ['success' => false, 'message' => 'Gagal mengirim task reset (request gagal/timeout).'];
+    }
+    $on = genieacs_set_params($deviceId, [$base . '.Enable' => [true, 'xsd:boolean']], 15);
+    if ($on === null) {
+        return ['success' => false, 'message' => 'Task disable terkirim tapi enable-ulang gagal — cek koneksi device.'];
+    }
+    return ['success' => true, 'message' => 'Reset koneksi PPP dikirim via TR-069 (disable lalu enable ulang).'];
+}
+
+/** Hapus instance WANPPPConnection dari device (deleteObject). Destruktif — device kembali ke WAN kosong/DHCP default. */
+function genieacs_ppp_remove(string $serial): array {
+    $deviceId = genieacs_find_device_id($serial);
+    if (!$deviceId) {
+        return ['success' => false, 'message' => 'Device tidak ditemukan di GenieACS.'];
+    }
+    $result = genieacs_request('POST', "/devices/" . rawurlencode($deviceId) . "/tasks?connection_request",
+        ['name' => 'deleteObject', 'objectName' => 'InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1'], 15);
+    if ($result === null) {
+        return ['success' => false, 'message' => 'Gagal menghapus (device tidak reachable).'];
+    }
+    return ['success' => true, 'message' => 'Instance PPP WAN dihapus dari device via TR-069.'];
 }
 
 function genieacs_push_wan(string $serial, string $wan_mode, array $wan): array {

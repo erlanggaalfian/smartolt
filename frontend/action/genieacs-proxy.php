@@ -35,10 +35,26 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     }
 
     if (isset($body['edit_ppp'])) {
-        $vlan = preg_replace('/[^0-9]/', '', (string)($body['vlan'] ?? ''));
-        $max_mru = preg_replace('/[^0-9]/', '', (string)($body['max_mru'] ?? ''));
-        $result = genieacs_edit_ppp_params($serial, ['vlan' => $vlan, 'max_mru' => $max_mru]);
+        $fields = [
+            'vlan' => preg_replace('/[^0-9]/', '', (string)($body['vlan'] ?? '')),
+            'max_mru' => preg_replace('/[^0-9]/', '', (string)($body['max_mru'] ?? '')),
+            'username' => (string)($body['username'] ?? ''),
+            'password' => (string)($body['password'] ?? ''),
+            'svc_name' => (string)($body['svc_name'] ?? ''),
+            'trigger' => preg_replace('/[^a-zA-Z]/', '', (string)($body['trigger'] ?? '')),
+            'nat' => (string)($body['nat'] ?? ''),
+            'lcp' => (string)($body['lcp'] ?? ''),
+        ];
+        $result = genieacs_edit_ppp_params($serial, $fields);
         echo json_encode($result); exit;
+    }
+
+    if (!empty($body['ppp_reset'])) {
+        echo json_encode(genieacs_ppp_reset($serial)); exit;
+    }
+
+    if (!empty($body['ppp_remove'])) {
+        echo json_encode(genieacs_ppp_remove($serial)); exit;
     }
 
     if (!$serial || !$provision) { echo '{"error":"Missing serial or provision"}'; exit; }
