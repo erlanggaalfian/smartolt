@@ -2406,6 +2406,10 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             // PreSharedKey), jadi tidak perlu section accordion terpisah.
                             const isWlanChild = /\(WLAN \d+\)$/.test(sec.title) || /^WLAN Counters/.test(sec.title);
                             if (isWlanChild) return;
+                            // Section "Security" (top-level X_HW_Security + child ARPFilter/AclServices/
+                            // Dosfilter/dst) sudah digantikan card "Security" khusus (akses WAN/LAN +
+                            // kredensial) — jangan tampil dobel lewat accordion generic.
+                            if (/^Security/.test(sec.title)) return;
                             if (isPPP) {
                                 html += renderPppCard(sec, i);
                                 return;
@@ -2530,26 +2534,45 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             }
                             html += '</div></div>';
                         })();
-                        // Card "User Interface" — CLI SSH/Telnet + Web login, EDITABLE via TR-069.
+                        // Card "Security" — akses layanan WAN/LAN (FTP/HTTP/SSH/Telnet), ICMP Echo
+                        // Reply, dan kredensial CLI+Web login, semua EDITABLE via TR-069.
                         (() => {
+                            const secObj = root.X_HW_Security || {};
+                            const acl = secObj.AclServices || {};
+                            const dos = secObj.Dosfilter || {};
                             const ui = root.UserInterface || {};
-                            const ssh = ui.X_HW_CLISSHControl || {};
                             const telnet = ui.X_HW_CLITelnetAccess || {};
+                            const cli1 = ui.X_HW_CLIUserInfo?.['1'] || {};
                             const web1 = ui.X_HW_WebUserInfo?.['1'] || {};
+                            const web2 = ui.X_HW_WebUserInfo?.['2'] || {};
                             const idx = sections.length + 2;
                             html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
                             html += '<div class="tr069-toggle" data-idx="'+idx+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
-                            html += '<span>User Interface</span></div>';
+                            html += '<span>Security</span></div>';
                             html += '<div class="tr069-panel" style="display:none;padding:10px 12px;background:var(--bg-main);font-size:0.85rem;">';
-                            const rowSel = (label, id, val, opts) => '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><label style="width:160px;color:var(--text-muted);">'+label+'</label><select id="'+id+'" style="flex:1;padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">'
+                            const rowSel = (label, id, val, opts) => '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><label style="width:170px;color:var(--text-muted);">'+label+'</label><select id="'+id+'" style="flex:1;padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">'
                                 + opts.map(o => '<option value="'+o[0]+'"'+(String(val)===o[0]?' selected':'')+'>'+o[1]+'</option>').join('') + '</select></div>';
-                            const rowText = (label, id, val, type) => '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><label style="width:160px;color:var(--text-muted);">'+label+'</label><input type="'+(type||'text')+'" id="'+id+'" value="'+esc(val)+'" style="flex:1;padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);"></div>';
-                            html += rowSel('CLI SSH', 'ui-ssh', ssh.Enable?._value, [['true','Enabled'],['false','Disabled']]);
-                            html += rowSel('CLI Telnet', 'ui-telnet', telnet.Access?._value, [['true','Enabled'],['false','Disabled']]);
-                            html += rowText('Telnet Port', 'ui-telnet-port', telnet.TelnetPort?._value ?? '', 'number');
-                            html += rowText('Web Username', 'ui-web-user', web1.UserName?._value ?? '', 'text');
-                            html += rowText('Web Password', 'ui-web-pass', web1.Password?._value ?? '', 'text');
-                            html += '<button type="button" class="btn-solt btn-solt-green ui-save" data-idx="'+idx+'" style="padding:5px 14px;font-size:0.8rem;">Simpan Perubahan</button>';
+                            const rowText = (label, id, val, type) => '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><label style="width:170px;color:var(--text-muted);">'+label+'</label><input type="'+(type||'text')+'" id="'+id+'" value="'+esc(val)+'" style="flex:1;padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);"></div>';
+                            const onOff = [['true','Enable'],['false','Disable']];
+                            html += '<div style="color:var(--text-muted);font-weight:600;margin-bottom:6px;">Akses Layanan (WAN / LAN)</div>';
+                            html += rowSel('FTP - WAN', 'sec-ftp-wan', acl.FTPWanEnable?._value, onOff);
+                            html += rowSel('FTP - LAN', 'sec-ftp-lan', acl.FTPLanEnable?._value, onOff);
+                            html += rowSel('User Interface (HTTP) - WAN', 'sec-http-wan', acl.HTTPWanEnable?._value, onOff);
+                            html += rowSel('User Interface (HTTP) - LAN', 'sec-http-lan', acl.HTTPLanEnable?._value, onOff);
+                            html += rowSel('SSH - WAN', 'sec-ssh-wan', acl.SSHWanEnable?._value, onOff);
+                            html += rowSel('SSH - LAN', 'sec-ssh-lan', acl.SSHLanEnable?._value, onOff);
+                            html += rowSel('Telnet - WAN', 'sec-telnet-wan', acl.TELNETWanEnable?._value, onOff);
+                            html += rowSel('Telnet - LAN', 'sec-telnet-lan', acl.TELNETLanEnable?._value, onOff);
+                            html += rowSel('WAN ICMP Echo Reply', 'sec-icmp', dos.IcmpEchoReplyEn?._value, onOff);
+                            html += rowSel('Telnet Service', 'sec-telnet-service', telnet.Access?._value, onOff);
+                            html += '<div style="color:var(--text-muted);font-weight:600;margin:12px 0 6px;">Kredensial Login</div>';
+                            html += rowText('CLI Username', 'sec-cli-user', cli1.Username?._value ?? '', 'text');
+                            html += rowText('CLI Password', 'sec-cli-pass', '', 'text');
+                            html += rowText('Web User Name', 'sec-web1-user', web1.UserName?._value ?? '', 'text');
+                            html += rowText('Web User Password', 'sec-web1-pass', '', 'text');
+                            html += rowText('Web Admin Name', 'sec-web2-user', web2.UserName?._value ?? '', 'text');
+                            html += rowText('Web Admin Password', 'sec-web2-pass', '', 'text');
+                            html += '<button type="button" class="btn-solt btn-solt-green sec-save" data-idx="'+idx+'" style="padding:6px 16px;font-size:0.82rem;margin-top:4px;">Simpan Perubahan</button>';
                             html += '</div></div>';
                         })();
                         html += '</div>';
@@ -2686,6 +2709,49 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                     path: f.path, type: f.type,
                                     value: document.getElementById(f.id)?.value ?? '',
                                 }));
+                                if (!items.length) return;
+                                btn.disabled = true; btn.textContent = 'Menyimpan...';
+                                fetch('action/genieacs-proxy.php', {
+                                    method: 'POST',
+                                    headers: {'Content-Type': 'application/json'},
+                                    body: JSON.stringify({serial, edit_generic: true, items})
+                                }).then(r => r.json()).then(d => {
+                                    if (d.success) { alert(d.message || 'Berhasil dikirim.'); loadTr069Status(); }
+                                    else { alert('Error: ' + (d.message || 'Gagal')); btn.disabled = false; btn.textContent = 'Simpan Perubahan'; }
+                                }).catch(() => { alert('Gagal mengirim perubahan.'); btn.disabled = false; btn.textContent = 'Simpan Perubahan'; });
+                            });
+                        });
+                        // Simpan Perubahan (card Security) — akses WAN/LAN + kredensial CLI/Web via TR-069.
+                        cliOutputBox.querySelectorAll('.sec-save').forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                const B = 'InternetGatewayDevice.';
+                                const map = [
+                                    ['sec-ftp-wan', B+'X_HW_Security.AclServices.FTPWanEnable', 'xsd:boolean'],
+                                    ['sec-ftp-lan', B+'X_HW_Security.AclServices.FTPLanEnable', 'xsd:boolean'],
+                                    ['sec-http-wan', B+'X_HW_Security.AclServices.HTTPWanEnable', 'xsd:boolean'],
+                                    ['sec-http-lan', B+'X_HW_Security.AclServices.HTTPLanEnable', 'xsd:boolean'],
+                                    ['sec-ssh-wan', B+'X_HW_Security.AclServices.SSHWanEnable', 'xsd:boolean'],
+                                    ['sec-ssh-lan', B+'X_HW_Security.AclServices.SSHLanEnable', 'xsd:boolean'],
+                                    ['sec-telnet-wan', B+'X_HW_Security.AclServices.TELNETWanEnable', 'xsd:boolean'],
+                                    ['sec-telnet-lan', B+'X_HW_Security.AclServices.TELNETLanEnable', 'xsd:boolean'],
+                                    ['sec-icmp', B+'X_HW_Security.Dosfilter.IcmpEchoReplyEn', 'xsd:boolean'],
+                                    ['sec-telnet-service', B+'UserInterface.X_HW_CLITelnetAccess.Access', 'xsd:boolean'],
+                                    ['sec-cli-user', B+'UserInterface.X_HW_CLIUserInfo.1.Username', 'xsd:string'],
+                                    ['sec-cli-pass', B+'UserInterface.X_HW_CLIUserInfo.1.Userpassword', 'xsd:string'],
+                                    ['sec-web1-user', B+'UserInterface.X_HW_WebUserInfo.1.UserName', 'xsd:string'],
+                                    ['sec-web1-pass', B+'UserInterface.X_HW_WebUserInfo.1.Password', 'xsd:string'],
+                                    ['sec-web2-user', B+'UserInterface.X_HW_WebUserInfo.2.UserName', 'xsd:string'],
+                                    ['sec-web2-pass', B+'UserInterface.X_HW_WebUserInfo.2.Password', 'xsd:string'],
+                                ];
+                                // Field password sengaja kosong di form (device tidak expose read-back
+                                // password) — kirim HANYA kalau user isi sesuatu, jangan overwrite jadi
+                                // kosong tanpa sengaja.
+                                const isPassField = id => id.endsWith('-pass');
+                                const items = map.map(([id, path, type]) => {
+                                    const el = document.getElementById(id);
+                                    const val = el ? el.value : '';
+                                    return { id, path, type, value: val };
+                                }).filter(f => !(isPassField(f.id) && f.value === ''));
                                 if (!items.length) return;
                                 btn.disabled = true; btn.textContent = 'Menyimpan...';
                                 fetch('action/genieacs-proxy.php', {
