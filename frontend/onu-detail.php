@@ -2159,7 +2159,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             const gw = pv(sec, 'DefaultGateway');
                             const ip = pv(sec, 'ExternalIPAddress');
                             const mru = pv(sec, 'MaxMRUSize');
-                            const acsName = pv(sec, 'ACSName'); // dari General section device info, fallback N/A
+                            const acsName = root?.ManagementServer?.URL?._value || ''; // ACS Name = URL server ACS, bukan field WANPPPConnection
                             const trigger = pv(sec, 'ConnectionTrigger') || 'AlwaysOn';
                             const macClone = pv(sec, 'MACAddressOverride');
                             const mac = pv(sec, 'MACAddress');
