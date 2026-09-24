@@ -2227,7 +2227,11 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             const encMode = wpaEnc || basicEnc || 'N/A';
                             const channel = pv(sec, 'Channel');
                             const autoChannel = pv(sec, 'AutoChannelEnable');
-                            const bandwidth = pv(sec, 'X_HW_HT20') || pv(sec, 'X_HW_Bandwidth') || 'N/A';
+                            const bandwidth = (() => {
+                                const ht20 = pv(sec, 'X_HW_HT20');
+                                if (ht20 !== '' && ht20 != null) return (ht20 === true || ht20 === '1' || ht20 === 1) ? '20 MHz' : '40 MHz';
+                                return pv(sec, 'X_HW_Bandwidth') || 'N/A';
+                            })();
                             const regDomain = pv(sec, 'RegulatoryDomain') || 'N/A';
                             const ssidAdv = pv(sec, 'SSIDAdvertisementEnabled');
                             const txPower = pv(sec, 'TransmitPower');
