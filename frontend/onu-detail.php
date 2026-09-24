@@ -2213,9 +2213,9 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 html += renderPppCard(sec, i);
                                 return;
                             }
-                            const rightHtml = isGeneral
-                                ? '<span class="tr069-refresh" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;">&#8635;</span>'
-                                : '<span style="color:var(--text-muted);font-size:0.75rem;">' + count + ' params</span>';
+                            // Ikon refresh muncul HANYA saat section sedang terbuka (di-toggle via JS di bawah),
+                            // tidak ada lagi badge "N params" permanen di semua section.
+                            const rightHtml = '<span class="tr069-refresh" data-idx="'+i+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:' + (i === 0 ? 'inline' : 'none') + ';">&#8635;</span>';
                             html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
                             html += '<div class="tr069-toggle" data-idx="'+i+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
                             html += '<span>' + sec.title + '</span>' + rightHtml + '</div>';
@@ -2241,10 +2241,14 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         });
                         html += '</div>';
                         cliOutputBox.innerHTML = html;
-                        // Accordion: single-open
+                        // Accordion: single-open — buka panel yang diklik, sembunyikan sisanya;
+                        // ikon refresh (.tr069-refresh) ikut muncul HANYA di header yang sedang terbuka.
                         cliOutputBox.querySelectorAll('.tr069-toggle').forEach(t => t.addEventListener('click', function() {
                             cliOutputBox.querySelectorAll('.tr069-panel').forEach(p => p.style.display = 'none');
+                            cliOutputBox.querySelectorAll('.tr069-refresh').forEach(r => r.style.display = 'none');
                             this.nextElementSibling.style.display = 'block';
+                            const refreshIcon = this.querySelector('.tr069-refresh');
+                            if (refreshIcon) refreshIcon.style.display = 'inline';
                         }));
                         // Add provision handler
                         const provBtn = document.getElementById('tr069-prov-add');
@@ -2264,9 +2268,8 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 }).catch(() => alert('Gagal menambahkan provision.')).finally(() => { provBtn.disabled = false; });
                             });
                         }
-                        // Refresh button (General section header)
-                        const refreshBtn = cliOutputBox.querySelector('.tr069-refresh');
-                        if (refreshBtn) {
+                        // Refresh button — sekarang ada di tiap section header (muncul saat section terbuka)
+                        cliOutputBox.querySelectorAll('.tr069-refresh').forEach(refreshBtn => {
                             refreshBtn.addEventListener('click', (e) => {
                                 e.stopPropagation();
                                 refreshBtn.style.opacity = '0.4';
@@ -2277,7 +2280,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 }).then(r => r.json()).then(() => loadTr069Status())
                                   .catch(() => { refreshBtn.style.opacity = '1'; alert('Gagal refresh.'); });
                             });
-                        }
+                        });
                         // Edit button (PPP Interface section header) — edit VLAN ID & Max MRU Size, push via TR-069
                         cliOutputBox.querySelectorAll('.ppp-save').forEach(btn => {
                             btn.addEventListener('click', () => {
