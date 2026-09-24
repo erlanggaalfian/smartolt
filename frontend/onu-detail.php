@@ -2020,12 +2020,21 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                     names.push(sectionLabels[p] || lanLabels[p] || p);
                                 }
                             }
-                            // Special: WLANConfiguration → "Wireless LAN {n}" (but Stats child → "WLAN Counters {n}")
+                            // Special: WLANConfiguration → "Wireless LAN {n}" HANYA utk path yang PERSIS
+                            // berhenti di WLANConfiguration N (root konfigurasi WLAN itu sendiri).
+                            // Child object di dalamnya (Stats, WPS, PreSharedKey, dst) TIDAK boleh
+                            // ikut dilabeli "Wireless LAN N" juga — itu bikin section duplikat.
+                            const wlanMatch = path.trim().match(/WLANConfiguration\s+(\d+)$/);
+                            if (wlanMatch) {
+                                return 'Wireless LAN ' + wlanMatch[1];
+                            }
                             if (path.includes('WLANConfiguration')) {
                                 const wlanNum = path.match(/WLANConfiguration\s+(\d+)/);
-                                const isStats = /\bStats\b/.test(path) && !path.trim().endsWith('WLANConfiguration ' + (wlanNum ? wlanNum[1] : ''));
+                                const isStats = /\bStats\b/.test(path);
                                 if (isStats) return 'WLAN Counters' + (wlanNum ? ' ' + wlanNum[1] : '');
-                                return 'Wireless LAN ' + (wlanNum ? wlanNum[1] : '');
+                                // Child lain (WPS, PreSharedKey, AssociatedDevice, X_HW_*, dst): pakai nama child asli.
+                                const lastChild = names[names.length - 1] || path;
+                                return lastChild + (wlanNum ? ' (WLAN ' + wlanNum[1] + ')' : '');
                             }
                             // For WAN paths: use last meaningful name + numeric suffix
                             const last = names[names.length - 1] || path;
