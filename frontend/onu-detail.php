@@ -2569,6 +2569,12 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             const rowText = (label, id, val, type) => '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><label style="width:230px;color:var(--text-muted);">'+label+'</label><input type="'+(type||'text')+'" id="'+id+'" value="'+esc(val)+'" style="flex:1;padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);"></div>';
                             const enDis = [['true','Enabled'],['false','Disabled']];
                             const blockPermit = [['false','Block'],['true','Permit']];
+                            const fwLevel = secObj.X_HW_FirewallLevel?._value;
+                            const rowSelect = (label, id, val, opts) => '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><label style="width:230px;color:var(--text-muted);">'+label+'</label><select id="'+id+'" style="flex:1;padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">'
+                                + opts.map(o => '<option value="'+o[0]+'"'+(String(val)===o[0]?' selected':'')+'>'+o[1]+'</option>').join('') + '</select></div>';
+                            html += rowSelect('Firewall Level', 'sec-fw-level', fwLevel, [['Low','Low'],['Middle','Middle'],['High','High']]);
+                            html += '<div style="color:var(--text-muted);font-size:0.78rem;margin:-4px 0 10px;">Level "High" memblokir akses WAN meski toggle di bawah Enabled — turunkan ke Low/Middle kalau butuh akses dari luar.</div>';
+                            html += '<div style="border-top:1px solid var(--border-color);margin:0 0 10px;"></div>';
                             html += rowRadio('FTP access from WAN', 'sec-ftp-wan', acl.FTPWanEnable?._value, enDis);
                             html += rowRadio('FTP access from LAN', 'sec-ftp-lan', acl.FTPLanEnable?._value, enDis);
                             html += rowRadio('User interface access from WAN', 'sec-http-wan', acl.HTTPWanEnable?._value, enDis);
@@ -2744,6 +2750,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             btn.addEventListener('click', () => {
                                 const B = 'InternetGatewayDevice.';
                                 const map = [
+                                    ['sec-fw-level', B+'X_HW_Security.X_HW_FirewallLevel', 'xsd:string'],
                                     ['sec-ftp-wan', B+'X_HW_Security.AclServices.FTPWanEnable', 'xsd:boolean'],
                                     ['sec-ftp-lan', B+'X_HW_Security.AclServices.FTPLanEnable', 'xsd:boolean'],
                                     ['sec-http-wan', B+'X_HW_Security.AclServices.HTTPWanEnable', 'xsd:boolean'],
