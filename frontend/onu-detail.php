@@ -2065,10 +2065,12 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         // Rewrite section titles
                         sections.forEach(sec => { sec.title = niceLabel(sec.title); });
 
-                        // Walk top-level non-device children (Services, Diagnostics, etc.)
+                        // Walk top-level non-device children (Diagnostics, Time, dst). "Services" dan
+                        // semua child-nya (VoiceService, StorageService, IPTV, dst) sengaja dilewati —
+                        // tidak relevan buat monitoring ONU pelanggan.
                         for (const [k, v] of Object.entries(root)) {
                             if (['_object','_timestamp','_writable','_deviceId'].includes(k)) continue;
-                            if (['DeviceInfo','WANDevice','LANDevice'].includes(k)) continue;
+                            if (['DeviceInfo','WANDevice','LANDevice','Services'].includes(k)) continue;
                             if (v && typeof v === 'object' && v._object) {
                                 // Friendly top-level names
                                 const topLabels = {
