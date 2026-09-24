@@ -406,7 +406,11 @@ function genieacs_edit_generic_params(string $serial, array $items): array {
     if (!$deviceId) {
         return ['success' => false, 'message' => 'Device tidak ditemukan di GenieACS.'];
     }
-    $sent = [];
+    // Gabung SEMUA field jadi 1 task setParameterValues (bukan loop N task terpisah)
+    // — loop lama sering silently kehilangan field di tengah jalan (device lambat
+    // respond ke connection-request field sebelumnya, request field berikutnya
+    // timeout tanpa dilaporkan jelas). Satu task = atomic, lebih cepat, tidak race.
+    $paramValues = [];
     $failed = [];
     foreach ($items as $item) {
         $path = (string)($item['path'] ?? '');
@@ -415,16 +419,19 @@ function genieacs_edit_generic_params(string $serial, array $items): array {
         $val = $item['value'] ?? '';
         if ($type === 'xsd:unsignedInt' || $type === 'xsd:int') $val = (int)$val;
         elseif ($type === 'xsd:boolean') $val = ($val === '1' || $val === 1 || $val === true || $val === 'true');
-        $result = genieacs_set_params($deviceId, [$path => [$val, $type]], 15);
-        if ($result === null) { $failed[] = $path; } else { $sent[] = $path; }
+        $paramValues[$path] = [$val, $type];
     }
-    if (!$sent && !$failed) {
+    if (!$paramValues && !$failed) {
         return ['success' => false, 'message' => 'Tidak ada field untuk diubah.'];
     }
     if ($failed) {
-        return ['success' => false, 'message' => 'Sebagian gagal terkirim: ' . count($failed) . ' field (berhasil: ' . count($sent) . ')'];
+        return ['success' => false, 'message' => 'Path tidak valid: ' . implode(', ', $failed)];
     }
-    return ['success' => true, 'message' => 'Perubahan berhasil dikirim via TR-069 (' . count($sent) . ' field).'];
+    $result = genieacs_set_params($deviceId, $paramValues, 15);
+    if ($result === null) {
+        return ['success' => false, 'message' => 'Gagal mengirim task ke GenieACS (device mungkin offline).'];
+    }
+    return ['success' => true, 'message' => 'Perubahan berhasil dikirim via TR-069 (' . count($paramValues) . ' field, 1 task).'];
 }
 
 /** Reset koneksi PPP — set Enable=false lalu true (trigger reconnect). */
