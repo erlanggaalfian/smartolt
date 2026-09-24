@@ -2772,7 +2772,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 const svcPath = document.getElementById('sec-wan-service-path')?.value;
                                 const map = [
                                     ['sec-fw-level', B+'X_HW_Security.X_HW_FirewallLevel', 'xsd:string'],
-                                    ['sec-wan-service', B+svcPath, 'xsd:string'],
+                                    ['sec-wan-service', B+svcPath+'.X_HW_SERVICELIST', 'xsd:string'],
                                     ['sec-ftp-wan', B+'X_HW_Security.AclServices.FTPWanEnable', 'xsd:boolean'],
                                     ['sec-ftp-lan', B+'X_HW_Security.AclServices.FTPLanEnable', 'xsd:boolean'],
                                     ['sec-http-wan', B+'X_HW_Security.AclServices.HTTPWanEnable', 'xsd:boolean'],

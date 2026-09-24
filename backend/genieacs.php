@@ -415,6 +415,13 @@ function genieacs_edit_generic_params(string $serial, array $items): array {
     foreach ($items as $item) {
         $path = (string)($item['path'] ?? '');
         if (strpos($path, 'InternetGatewayDevice.') !== 0) { $failed[] = $path ?: '(path kosong)'; continue; }
+        // Guard: segmen terakhir path TR-069 harus nama field (huruf), BUKAN angka
+        // index murni — kalau angka, hampir pasti bug frontend lupa suffix nama field
+        // (mis. "...WANPPPConnection.1" tanpa ".X_HW_SERVICELIST" di belakangnya).
+        // Kirim path begini akan bikin SELURUH task 1-RPC ditolak device (all-or-nothing),
+        // jadi field lain yang sudah benar pun ikut gagal — makanya wajib dicegat di sini.
+        $lastSegment = substr($path, strrpos($path, '.') + 1);
+        if (ctype_digit($lastSegment)) { $failed[] = $path . ' (path tidak lengkap — kurang nama field di akhir)'; continue; }
         $type = (string)($item['type'] ?? 'xsd:string');
         $val = $item['value'] ?? '';
         if ($type === 'xsd:unsignedInt' || $type === 'xsd:int') $val = (int)$val;
