@@ -1984,6 +1984,27 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 walk(ldv, 'LANDevice ' + ldk);
                             }
                         }
+                        // Kumpulkan host terkoneksi (LANDevice.N.Hosts.Host.M) buat card "Connected Hosts"
+                        // terpisah — bukan lewat walk() generic (itu bikin 1 section per host, misal
+                        // "Host 1.1-abcd", berantakan kalau banyak device connect).
+                        const hostList = [];
+                        if (root.LANDevice) {
+                            for (const ldv of Object.values(root.LANDevice)) {
+                                const hosts = ldv?.Hosts?.Host;
+                                if (!hosts || typeof hosts !== 'object') continue;
+                                for (const [hk, hv] of Object.entries(hosts)) {
+                                    if (hk.startsWith('_') || !hv || typeof hv !== 'object') continue;
+                                    hostList.push({
+                                        ip: hv.IPAddress?._value || 'N/A',
+                                        iface: hv.InterfaceType?._value || 'N/A',
+                                        ssid: hv.SSID?._value || hv.X_HW_SSID?._value || '',
+                                        mac: hv.MACAddress?._value || 'N/A',
+                                        name: hv.HostName?._value || '',
+                                        active: hv.Active?._value,
+                                    });
+                                }
+                            }
+                        }
                         // Map TR-069 path to friendly section name
                         const sectionLabels = {
                             'WANDevice': 'WAN',
@@ -2309,10 +2330,15 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             const isGeneral = sec.title === 'General';
                             const isPPP = /^PPP Interface/.test(sec.title);
                             const isWLAN = /^Wireless LAN/.test(sec.title);
-                            // Child WLAN (PreSharedKey, WPS, dst) — field-nya sudah tercakup di card
-                            // "Wireless LAN N" (mis. Password = KeyPassphrase dari PreSharedKey), jadi
-                            // tidak perlu section accordion terpisah.
-                            const isWlanChild = /\(WLAN \d+\)$/.test(sec.title);
+                            // Host individual (LANDevice > Hosts > Host N) — datanya sudah dirangkum
+                            // di card "Connected Hosts" (hostList di atas), jangan tampil dobel sebagai
+                            // section terpisah "Host 1.1-xxxx".
+                            const isHostEntry = /^Host(\s|$)/.test(sec.title) || sec.title.startsWith('Host ');
+                            if (isHostEntry) return;
+                            // Child WLAN (PreSharedKey, WPS, Stats/Counters, dst) — field-nya sudah
+                            // tercakup di card "Wireless LAN N" (mis. Password = KeyPassphrase dari
+                            // PreSharedKey), jadi tidak perlu section accordion terpisah.
+                            const isWlanChild = /\(WLAN \d+\)$/.test(sec.title) || /^WLAN Counters/.test(sec.title);
                             if (isWlanChild) return;
                             if (isPPP) {
                                 html += renderPppCard(sec, i);
@@ -2348,6 +2374,30 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             }
                             html += '</div></div>';
                         });
+                        // Card "Connected Hosts" — jumlah host + tabel ringkas (IP, InterfaceType, SSID, MAC).
+                        (() => {
+                            const idx = sections.length; // index unik buat accordion toggle
+                            html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
+                            html += '<div class="tr069-toggle" data-idx="'+idx+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
+                            html += '<span>Connected Hosts (' + hostList.length + ')</span></div>';
+                            html += '<div class="tr069-panel" style="display:none;padding:8px 12px;background:var(--bg-main);font-size:0.85rem;">';
+                            if (!hostList.length) {
+                                html += '<div style="color:var(--text-muted);padding:8px 0;">Tidak ada host terkoneksi.</div>';
+                            } else {
+                                html += '<table style="width:100%;border-collapse:collapse;">';
+                                html += '<tr style="text-align:left;color:var(--text-muted);font-size:0.78rem;"><th style="padding:5px 8px 5px 0;">IP Address</th><th style="padding:5px 8px;">Interface</th><th style="padding:5px 8px;">SSID</th><th style="padding:5px 0 5px 8px;">MAC Address</th></tr>';
+                                hostList.forEach(h => {
+                                    html += '<tr style="border-top:1px solid var(--border-color);">'
+                                        + '<td style="padding:6px 8px 6px 0;">' + esc(h.ip) + '</td>'
+                                        + '<td style="padding:6px 8px;">' + esc(h.iface) + '</td>'
+                                        + '<td style="padding:6px 8px;">' + esc(h.ssid || '-') + '</td>'
+                                        + '<td style="padding:6px 0 6px 8px;">' + esc(h.mac) + '</td>'
+                                        + '</tr>';
+                                });
+                                html += '</table>';
+                            }
+                            html += '</div></div>';
+                        })();
                         html += '</div>';
                         cliOutputBox.innerHTML = html;
                         // Accordion: single-open — buka panel yang diklik, sembunyikan sisanya;
