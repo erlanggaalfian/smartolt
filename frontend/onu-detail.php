@@ -2213,13 +2213,63 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             return '<label style="margin-right:18px;display:inline-flex;align-items:center;gap:5px;"><input type="radio" name="ppp-'+key+'-'+i+'" class="ppp-radio" data-key="'+key+'" data-idx="'+i+'" value="1"'+(yes?' checked':'')+'> Yes</label>'
                                 + '<label style="display:inline-flex;align-items:center;gap:5px;"><input type="radio" name="ppp-'+key+'-'+i+'" class="ppp-radio" data-key="'+key+'" data-idx="'+i+'" value="0"'+(!yes?' checked':'')+'> No</label>';
                         }
+                        // Render card Wireless LAN mirip layout webUI router (SSID, status, band, security, channel dst).
+                        function renderWlanCard(sec, i) {
+                            const enabled = pv(sec, 'Enable');
+                            const status = pv(sec, 'Status') || (enabled ? 'Up' : 'Down');
+                            const statusColor = status === 'Up' ? '#28a745' : '#6c757d';
+                            const ssid = pv(sec, 'SSID') || 'N/A';
+                            const standard = pv(sec, 'Standard') || pv(sec, 'X_HW_Standard') || 'N/A';
+                            const band = pv(sec, 'X_HW_RFBand') || (/^(a|ac|an)/i.test(String(standard)) ? '5GHz' : '2.4GHz');
+                            const basicEnc = pv(sec, 'BasicEncryptionModes');
+                            const wpaEnc = pv(sec, 'WPAEncryptionModes');
+                            const security = wpaEnc ? 'WPA2' : (basicEnc && basicEnc !== 'None' ? basicEnc : 'None');
+                            const encMode = wpaEnc || basicEnc || 'N/A';
+                            const channel = pv(sec, 'Channel');
+                            const autoChannel = pv(sec, 'AutoChannelEnable');
+                            const bandwidth = pv(sec, 'X_HW_HT20') || pv(sec, 'X_HW_Bandwidth') || 'N/A';
+                            const regDomain = pv(sec, 'RegulatoryDomain') || 'N/A';
+                            const ssidAdv = pv(sec, 'SSIDAdvertisementEnabled');
+                            const txPower = pv(sec, 'TransmitPower');
+                            const maxDev = pv(sec, 'X_HW_AssociateNum') || pv(sec, 'MaxAssociatedDevices');
+                            const totalAssoc = pv(sec, 'TotalAssociations');
+                            let h = '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
+                            h += '<div class="tr069-toggle" data-idx="'+i+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
+                            h += '<span>' + sec.title + '</span></div>';
+                            h += '<div class="tr069-panel" style="display:' + (i === 0 ? 'block' : 'none') + ';padding:8px 12px;background:var(--bg-main);font-size:0.85rem;">';
+                            h += pppRow('SSID', ssid);
+                            h += pppRow('Status', '<span style="color:'+statusColor+';font-weight:600;">'+status+'</span>');
+                            h += pppRow('Band', band);
+                            h += pppRow('Standard', standard);
+                            h += pppRow('Security', security);
+                            h += pppRow('Encryption', encMode);
+                            h += pppRow('Channel', (channel || 'N/A') + (autoChannel ? ' (Auto)' : ' (Fix)'));
+                            h += pppRow('Bandwidth', bandwidth);
+                            h += pppRow('Regulatory Domain', regDomain);
+                            h += pppRow('Radio', ppRadioReadonly(enabled));
+                            h += pppRow('SSID Advertisement', ppRadioReadonly(ssidAdv));
+                            h += pppRow('Transmit Power', (txPower !== '' && txPower != null) ? txPower : 'N/A');
+                            h += pppRow('Max Devices', (maxDev !== '' && maxDev != null) ? maxDev : 'N/A');
+                            h += pppRow('Total Associations', (totalAssoc !== '' && totalAssoc != null) ? totalAssoc : '0');
+                            h += '</div></div>';
+                            return h;
+                        }
+                        function ppRadioReadonly(current) {
+                            const yes = current === true || current === 'true' || current === 1 || current === '1';
+                            return '<span style="color:'+(yes?'#28a745':'#6c757d')+';font-weight:600;">' + (yes ? 'Enabled' : 'Disabled') + '</span>';
+                        }
                         sections.forEach((sec, i) => {
                             const count = Object.keys(sec.params).length;
                             if (!count) return;
                             const isGeneral = sec.title === 'General';
                             const isPPP = /^PPP Interface/.test(sec.title);
+                            const isWLAN = /^Wireless LAN/.test(sec.title);
                             if (isPPP) {
                                 html += renderPppCard(sec, i);
+                                return;
+                            }
+                            if (isWLAN) {
+                                html += renderWlanCard(sec, i);
                                 return;
                             }
                             // Ikon refresh muncul HANYA saat section sedang terbuka (di-toggle via JS di bawah),
