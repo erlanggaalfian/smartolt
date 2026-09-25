@@ -259,7 +259,7 @@ def main():
                     rx_onu = float(sig['rx_onu']) if sig['rx_onu'] != 'N/A' else None
                     rx_olt = float(sig['rx_olt']) if sig['rx_olt'] != 'N/A' else None
                     status = sig['status']
-                    update_params.append((status, rx_onu, rx_olt, onu['id']))
+                    update_params.append((status, rx_onu, rx_olt, status, onu['id']))
                     onu['_fetched_signal'] = {'rx_onu': rx_onu, 'rx_olt': rx_olt, 'status': status}
                 else:
                     onu['_fetched_signal'] = None
@@ -268,7 +268,12 @@ def main():
             if update_params:
                 with conn.cursor() as cursor:
                     cursor.executemany(
-                        "UPDATE onus SET status=%s, last_rx_power=%s, last_rx_olt_power=%s, updated_at=CURRENT_TIMESTAMP WHERE id=%s",
+                        # Saat offline, hapus pppoe_ip/mgmt_ip cache di DB -- IP lama tidak valid lagi,
+                        # jangan biarkan tersisa dan tampil seolah masih terhubung.
+                        "UPDATE onus SET status=%s, last_rx_power=%s, last_rx_olt_power=%s, "
+                        "pppoe_ip=IF(%s='offline', NULL, pppoe_ip), "
+                        "mgmt_ip=IF(%s='offline', NULL, mgmt_ip), "
+                        "updated_at=CURRENT_TIMESTAMP WHERE id=%s",
                         update_params,
                     )
                     conn.commit()

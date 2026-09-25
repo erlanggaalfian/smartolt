@@ -66,7 +66,7 @@ router.post('/:id/reboot', async (req, res) => {
   if (!row) return res.status(404).json({ success: false, message: 'ONU tidak ditemukan.' });
   const r = await callEngine('rebootOnu', rowToOlt(row), [{ pon_port: row.pon_port, onu_id: row.onu_id, serial_number: row.serial_number }]);
   if (r.success) {
-    await pool.execute("UPDATE onus SET status='offline', last_rx_power=NULL WHERE id=?", [row.id]);
+    await pool.execute("UPDATE onus SET status='offline', last_rx_power=NULL, pppoe_ip=NULL, mgmt_ip=NULL WHERE id=?", [row.id]);
     await writeAuditLog(pool, row.olt_id, 'ONU_REBOOT', `ONU ${row.name} (${row.serial_number}) di-reboot.`);
   }
   res.json(r);

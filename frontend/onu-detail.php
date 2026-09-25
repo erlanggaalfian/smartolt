@@ -480,8 +480,9 @@ if (!empty($onu['onu_type'])) {
                     <span id="detail-pppoe-ip-wrapper">
                         <?php
                         // TR-069 = sumber kebenaran IP PPPoE saat config_method=TR069 (bukan cache CLI OLT).
-                        $pppoe_ip_display = $onu['pppoe_ip'] ?: null;
-                        if (($onu['wan_mode'] ?? '') === 'PPPoE' && ($onu['config_method'] ?? null) === 'TR069') {
+                        // Kalau status offline, jangan tampilkan IP cache lama -- device sudah tidak terhubung.
+                        $pppoe_ip_display = ($onu['status'] ?? '') !== 'offline' ? ($onu['pppoe_ip'] ?: null) : null;
+                        if (($onu['wan_mode'] ?? '') === 'PPPoE' && ($onu['config_method'] ?? null) === 'TR069' && ($onu['status'] ?? '') !== 'offline') {
                             $tr069_dev_id_ppp = genieacs_find_device_id($onu['serial_number'] ?? '');
                             $tr069_ppp_ip_display = $tr069_dev_id_ppp ? genieacs_get_ppp_wan_ip($tr069_dev_id_ppp) : null;
                             if ($tr069_ppp_ip_display) $pppoe_ip_display = $tr069_ppp_ip_display;
@@ -491,7 +492,7 @@ if (!empty($onu['onu_type'])) {
                             <a href="http://<?php echo htmlspecialchars($pppoe_ip_display); ?>" target="_blank" class="chip chip-green" style="text-decoration: none;" onclick="event.stopPropagation();">
                                 <i data-lucide="external-link" style="width:11px;height:11px;vertical-align:middle;margin-right:4px;"></i><?php echo htmlspecialchars($pppoe_ip_display); ?>
                             </a>
-                        <?php elseif (($onu['wan_mode'] ?? '') === 'PPPoE'): ?>
+                        <?php elseif (($onu['wan_mode'] ?? '') === 'PPPoE' && ($onu['status'] ?? '') !== 'offline'): ?>
                             <span style="color:var(--text-muted);">Memuat...</span>
                         <?php else: ?>
                             <span style="color:var(--text-muted);">-</span>
