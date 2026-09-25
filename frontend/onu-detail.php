@@ -805,10 +805,10 @@ if (!empty($onu['onu_type'])) {
             return btn && btn.dataset.live === 'on';
         }
 
-        // Load pertama & polling berikutnya SAMA-SAMA pakai SNMP (mode=snmp) --
-        // render awal halaman sudah dari DB (PHP), SNMP cuma update status/sinyal/IP.
-        // full=1 (SSH/CLI OLT) HANYA dipicu manual via tombol "Resync" (#btn-resync-config).
-        let needFullSync = false;
+        // Load pertama pakai full=1 (CLI/SSH OLT sekali) supaya Rx OLT & config
+        // lengkap langsung ada tanpa perlu klik manual. Polling berikutnya SNMP
+        // (ringan, tapi tak bisa baca Rx OLT -- makanya load pertama tetap CLI).
+        let needFullSync = true;
         let lastTraffic = null; // { t, rx, tx } — sample sebelumnya utk hitung delta Mbps
         let maxUpSpeed = 0, maxDownSpeed = 0;
 
