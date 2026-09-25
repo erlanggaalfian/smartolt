@@ -401,9 +401,9 @@ if (!empty($onu['onu_type'])) {
                         $olt_color = ($olt_val < -30) ? 'var(--color-danger)' : (($olt_val < -28) ? 'var(--color-orange)' : (($olt_val < -25) ? 'var(--color-amber)' : 'var(--color-success)'));
                     }
                     ?>
-                    <strong id="detail-rx-onu" style="color:<?php echo $onu_color; ?>;"><?php echo $onu['last_rx_power'] !== null ? htmlspecialchars($onu['last_rx_power']) . ' dBm' : '<span class="skel-text" style="width:52px;"></span>'; ?></strong>
+                    <strong id="detail-rx-onu" style="color:<?php echo $onu_color; ?>;"><?php echo $onu['last_rx_power'] !== null ? number_format((float)$onu['last_rx_power'], 2) . ' dBm' : '<span class="skel-text" style="width:52px;"></span>'; ?></strong>
                     <span style="color:var(--text-muted);">/</span>
-                    <strong id="detail-rx-olt" style="color:<?php echo $olt_color; ?>;"><?php echo $onu['last_rx_olt_power'] !== null ? htmlspecialchars($onu['last_rx_olt_power']) . ' dBm' : '<span class="skel-text" style="width:52px;"></span>'; ?></strong>
+                    <strong id="detail-rx-olt" style="color:<?php echo $olt_color; ?>;"><?php echo $onu['last_rx_olt_power'] !== null ? number_format((float)$onu['last_rx_olt_power'], 2) . ' dBm' : '<span class="skel-text" style="width:52px;"></span>'; ?></strong>
                     <span id="detail-distance" style="color:var(--text-muted);"><span class="skel-text" style="width:44px;"></span></span>
                     <i data-lucide="signal" style="width:14px;height:14px;color:var(--color-success);"></i>
                 </span>
@@ -580,12 +580,12 @@ if (!empty($onu['onu_type'])) {
                 <div class="chart-legend-stats">
                     <div class="legend-row">
                         <span class="legend-label"><span class="legend-dot" style="background:#22d3ee;"></span>Rx ONU</span>
-                        <span class="legend-current"><span id="stat-sig-curr"><?php echo $onu['last_rx_power'] !== null ? htmlspecialchars($onu['last_rx_power']) . ' dBm' : 'N/A'; ?></span></span>
+                        <span class="legend-current"><span id="stat-sig-curr"><?php echo $onu['last_rx_power'] !== null ? number_format((float)$onu['last_rx_power'], 2) . ' dBm' : 'N/A'; ?></span></span>
                         <span></span>
                     </div>
                     <div class="legend-row">
                         <span class="legend-label"><span class="legend-dot" style="background:#a855f7;"></span>Rx OLT</span>
-                        <span class="legend-current"><span id="stat-sig-olt-curr"><?php echo $onu['last_rx_olt_power'] !== null ? htmlspecialchars($onu['last_rx_olt_power']) . ' dBm' : 'N/A'; ?></span></span>
+                        <span class="legend-current"><span id="stat-sig-olt-curr"><?php echo $onu['last_rx_olt_power'] !== null ? number_format((float)$onu['last_rx_olt_power'], 2) . ' dBm' : 'N/A'; ?></span></span>
                         <span></span>
                     </div>
                 </div>
@@ -988,16 +988,16 @@ if (!empty($onu['onu_type'])) {
                             if (sigOltCurrOff) sigOltCurrOff.textContent = 'N/A';
                             lastTraffic = null; // reset traffic delta so next online reading starts clean
                         } else {
-                            rxOnuText.textContent = data.rx_onu !== 'N/A' ? `${data.rx_onu} dBm` : 'N/A';
+                            rxOnuText.textContent = data.rx_onu !== 'N/A' ? `${parseFloat(data.rx_onu).toFixed(2)} dBm` : 'N/A';
                             // Only update rx_olt if we have a real value (SNMP mode doesn't provide it)
                             if (data.rx_olt !== 'N/A' && data.rx_olt !== null) {
-                                rxOltText.textContent = `${data.rx_olt} dBm`;
+                                rxOltText.textContent = `${parseFloat(data.rx_olt).toFixed(2)} dBm`;
                             }
 
                             const sigCurrEl = document.getElementById('stat-sig-curr');
                             const sigOltCurrEl = document.getElementById('stat-sig-olt-curr');
-                            if (sigCurrEl && data.rx_onu !== 'N/A' && data.rx_onu !== null) sigCurrEl.textContent = `${data.rx_onu} dBm`;
-                            if (sigOltCurrEl && data.rx_olt !== 'N/A' && data.rx_olt !== null) sigOltCurrEl.textContent = `${data.rx_olt} dBm`;
+                            if (sigCurrEl && data.rx_onu !== 'N/A' && data.rx_onu !== null) sigCurrEl.textContent = `${parseFloat(data.rx_onu).toFixed(2)} dBm`;
+                            if (sigOltCurrEl && data.rx_olt !== 'N/A' && data.rx_olt !== null) sigOltCurrEl.textContent = `${parseFloat(data.rx_olt).toFixed(2)} dBm`;
 
                             if (data.rx_onu !== 'N/A' && data.rx_onu !== null) {
                                 const rxVal = parseFloat(data.rx_onu);
@@ -1765,14 +1765,14 @@ $tr069_profiles = tr069_get_profiles($pdo);
 
                             const rxOnuText = document.getElementById('detail-rx-onu');
                             if (rxOnuText && data.rx_onu && data.rx_onu !== 'N/A') {
-                                rxOnuText.textContent = `${data.rx_onu} dBm`;
+                                rxOnuText.textContent = `${parseFloat(data.rx_onu).toFixed(2)} dBm`;
                                 const rxVal = parseFloat(data.rx_onu);
                                 rxOnuText.style.color = signalColor(rxVal);
                             }
 
                             const rxOltText = document.getElementById('detail-rx-olt');
                             if (rxOltText && data.rx_olt && data.rx_olt !== 'N/A') {
-                                rxOltText.textContent = `${data.rx_olt} dBm`;
+                                rxOltText.textContent = `${parseFloat(data.rx_olt).toFixed(2)} dBm`;
                                 const rxOltVal = parseFloat(data.rx_olt);
                                 rxOltText.style.color = signalColor(rxOltVal);
                             }
