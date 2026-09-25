@@ -240,6 +240,19 @@ if (!empty($onu['onu_type'])) {
     to { transform: rotate(360deg); }
 }
 .animate-spin { animation: spin 1.2s linear infinite; display: inline-block; }
+.skel-text {
+    display: inline-block;
+    height: 0.85em;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--border-subtle, #e2e2e2) 25%, var(--surface-hover, #f0f0f0) 50%, var(--border-subtle, #e2e2e2) 75%);
+    background-size: 200% 100%;
+    animation: skel-shimmer 1.3s ease-in-out infinite;
+    vertical-align: middle;
+}
+@keyframes skel-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
 </style>
 
 <div class="smartolt-layout">
@@ -388,10 +401,10 @@ if (!empty($onu['onu_type'])) {
                         $olt_color = ($olt_val < -30) ? 'var(--color-danger)' : (($olt_val < -28) ? 'var(--color-orange)' : (($olt_val < -25) ? 'var(--color-amber)' : 'var(--color-success)'));
                     }
                     ?>
-                    <strong id="detail-rx-onu" style="color:<?php echo $onu_color; ?>;"><?php echo $onu['last_rx_power'] !== null ? htmlspecialchars($onu['last_rx_power']) . ' dBm' : 'N/A'; ?></strong>
+                    <strong id="detail-rx-onu" style="color:<?php echo $onu_color; ?>;"><?php echo $onu['last_rx_power'] !== null ? htmlspecialchars($onu['last_rx_power']) . ' dBm' : '<span class="skel-text" style="width:52px;"></span>'; ?></strong>
                     <span style="color:var(--text-muted);">/</span>
-                    <strong id="detail-rx-olt" style="color:<?php echo $olt_color; ?>;"><?php echo $onu['last_rx_olt_power'] !== null ? htmlspecialchars($onu['last_rx_olt_power']) . ' dBm' : 'N/A'; ?></strong>
-                    <span id="detail-distance" style="color:var(--text-muted);">(N/A)</span>
+                    <strong id="detail-rx-olt" style="color:<?php echo $olt_color; ?>;"><?php echo $onu['last_rx_olt_power'] !== null ? htmlspecialchars($onu['last_rx_olt_power']) . ' dBm' : '<span class="skel-text" style="width:52px;"></span>'; ?></strong>
+                    <span id="detail-distance" style="color:var(--text-muted);"><span class="skel-text" style="width:44px;"></span></span>
                     <i data-lucide="signal" style="width:14px;height:14px;color:var(--color-success);"></i>
                 </span>
             </div>
