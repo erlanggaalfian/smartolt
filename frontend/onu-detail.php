@@ -442,7 +442,7 @@ if (!empty($onu['onu_type'])) {
                 <span class="detail-plain-value" id="detail-tr609">
                     <i data-lucide="pencil" style="width:11px;height:11px;"></i>
                     <?php
-                    $tr609 = $onu['tr069_profile'] ?? 'ACS-Smartolt';
+                    $tr609 = $onu['tr069_profile'] ?: 'Nonaktif';
                     echo htmlspecialchars($tr609);
                     ?>
                 </span>
@@ -3383,11 +3383,11 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         <td style="width:120px;font-weight:600;color:var(--text-main);vertical-align:middle;">Profil</td>
                         <td>
                             <select name="tr609_profile" style="width:100%;max-width:300px;padding:8px 12px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);font-size:0.9rem;color:var(--text-main);">
-                                <option value="Nonaktif" <?php echo ($onu['tr069_profile'] ?? '') === 'Nonaktif' ? 'selected' : ''; ?>>Nonaktifkan TR069</option>
-                                <option value="ACS-Smartolt" <?php echo ($onu['tr069_profile'] ?? 'ACS-Smartolt') === 'ACS-Smartolt' ? 'selected' : ''; ?>>ACS-Smartolt</option>
+                                <option value="Nonaktif" <?php echo ($onu['tr069_profile'] ?: 'Nonaktif') === 'Nonaktif' ? 'selected' : ''; ?>>Nonaktifkan TR069</option>
+                                <option value="ACS-Smartolt" <?php echo ($onu['tr069_profile'] ?? '') === 'ACS-Smartolt' ? 'selected' : ''; ?>>ACS-Smartolt</option>
                                 <?php foreach ($tr069_profiles as $tp): ?>
                                     <?php if (!empty($tp['is_default'])) continue; ?>
-                                    <option value="<?php echo htmlspecialchars($tp['name']); ?>" <?php echo ($onu['tr069_profile'] ?? 'ACS-Smartolt') === $tp['name'] ? 'selected' : ''; ?>><?php echo htmlspecialchars($tp['name']); ?></option>
+                                    <option value="<?php echo htmlspecialchars($tp['name']); ?>" <?php echo ($onu['tr069_profile'] ?? '') === $tp['name'] ? 'selected' : ''; ?>><?php echo htmlspecialchars($tp['name']); ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </td>
