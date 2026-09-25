@@ -2450,6 +2450,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             const macFilter = pv(sec, 'MACAddressControlEnabled');
                             const wmm = pv(sec, 'WMMEnable');
                             const vlanId = pv(sec, 'X_HW_VLAN') || '';
+                            const txPowerSupported = (pv(sec, 'TransmitPowerSupported') || '').split(',').map(s => s.trim()).filter(Boolean);
                             let h = '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
                             h += '<div class="tr069-toggle" data-idx="'+i+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
                             h += '<span>' + sec.title + '</span><span class="tr069-refresh" data-idx="'+i+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:' + (i === 0 ? 'inline' : 'none') + ';">&#8635;</span></div>';
@@ -2465,7 +2466,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             h += pppRow('Wireless Mode', wlanModeSelect(i, wirelessMode));
                             h += pppRow('Regulatory Domain', wlanRegDomainSelect(i, regDomain));
                             h += pppRow('SSID Advertisement', wlanRadio('ssid_broadcast', i, ssidAdv));
-                            h += pppRow('Transmit Power', wlanInput('tx_power', i, txPower, {narrow:true}));
+                            h += pppRow('Transmit Power', wlanTxPowerSelect(i, txPower, txPowerSupported));
                             h += pppRow('Max Devices', wlanInput('max_devices', i, maxDev, {narrow:true}));
                             h += pppRow('MAC Address Control', wlanRadio('mac_filter', i, macFilter));
                             h += pppRow('WMM (QoS)', wlanRadio('wmm', i, wmm));
@@ -2507,6 +2508,13 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             const opts = ['11b','11g','11bg','11n','11bgn'];
                             let s = '<select class="wlan-field" data-key="wireless_mode" data-idx="'+i+'" style="width:100%;max-width:140px;box-sizing:border-box;padding:5px 8px;font-size:0.85rem;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">';
                             opts.forEach(val => { s += '<option value="'+val+'"'+(current===val?' selected':'')+'>'+val+'</option>'; });
+                            s += '</select>';
+                            return s;
+                        }
+                        function wlanTxPowerSelect(i, current, supported) {
+                            const opts = (supported && supported.length) ? supported : ['20','40','60','80','100'];
+                            let s = '<select class="wlan-field" data-key="tx_power" data-idx="'+i+'" style="width:100%;max-width:120px;box-sizing:border-box;padding:5px 8px;font-size:0.85rem;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">';
+                            opts.forEach(val => { s += '<option value="'+val+'"'+(String(current)===String(val)?' selected':'')+'>'+val+'%</option>'; });
                             s += '</select>';
                             return s;
                         }
