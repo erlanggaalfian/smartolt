@@ -2308,6 +2308,56 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             return '<label style="margin-right:18px;display:inline-flex;align-items:center;gap:5px;"><input type="radio" name="ppp-'+key+'-'+i+'" class="ppp-radio" data-key="'+key+'" data-idx="'+i+'" value="1"'+(yes?' checked':'')+'> Yes</label>'
                                 + '<label style="display:inline-flex;align-items:center;gap:5px;"><input type="radio" name="ppp-'+key+'-'+i+'" class="ppp-radio" data-key="'+key+'" data-idx="'+i+'" value="0"'+(!yes?' checked':'')+'> No</label>';
                         }
+                        // Render card IP Interface (WANIPConnection) — layout mirip webUI router asli,
+                        // Static Address/Gateway/DNS/MTU/NAT editable, DHCP field read-only (device kelola sendiri).
+                        function renderIpCard(sec, i) {
+                            const name = pv(sec, 'Name') || '';
+                            const enabled = pv(sec, 'Enable');
+                            const addrType = pv(sec, 'AddressingType') || 'DHCP';
+                            const status = pv(sec, 'ConnectionStatus') || 'N/A';
+                            const statusColor = status === 'Connected' ? '#28a745' : (status === 'Connecting' ? '#fd7e14' : '#6c757d');
+                            const uptime = pv(sec, 'Uptime');
+                            const ip = pv(sec, 'ExternalIPAddress') || '';
+                            const mask = pv(sec, 'SubnetMask') || '';
+                            const gw = pv(sec, 'DefaultGateway') || '';
+                            const dns = pv(sec, 'DNSServers') || '';
+                            const lastErr = pv(sec, 'LastConnectionError') || 'N/A';
+                            const mac = pv(sec, 'MACAddress') || 'N/A';
+                            const mtu = pv(sec, 'MaxMTUSize') || '';
+                            const svcList = pv(sec, 'X_HW_SERVICELIST') || pv(sec, 'X_HW_ExServiceList') || 'N/A';
+                            const nat = pv(sec, 'NATEnabled');
+                            const vlan = pv(sec, 'X_HW_VLAN') || '';
+                            const isStatic = String(addrType).toUpperCase() === 'STATIC';
+                            const ipInput = (key, val, narrow) => '<input type="text" class="ip-field" data-key="'+key+'" data-idx="'+i+'" value="'+String(val ?? '').replace(/"/g,'&quot;')+'" style="width:100%;max-width:'+(narrow?'120px':'280px')+';box-sizing:border-box;padding:5px 8px;font-size:0.85rem;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">';
+                            let h = '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
+                            h += '<div class="tr069-toggle" data-idx="'+i+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
+                            h += '<span>' + sec.title + '</span><span class="tr069-refresh" data-idx="'+i+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:' + (i === 0 ? 'inline' : 'none') + ';">&#8635;</span></div>';
+                            h += '<div class="tr069-panel" style="display:' + (i === 0 ? 'block' : 'none') + ';padding:4px 12px;background:var(--bg-main);">';
+                            h += pppRow('Name', name || 'N/A');
+                            h += pppRow('Enabled', enabled ? '1' : '0');
+                            h += pppRow('Addressing type', addrType);
+                            h += pppRow('Connection status', '<span style="color:'+statusColor+';font-weight:600;">'+status+'</span>');
+                            h += pppRow('Uptime', uptime || 'N/A');
+                            h += pppRow('IP Address', isStatic ? ipInput('ip_address', ip, false) : (ip || 'N/A'));
+                            h += pppRow('Subnet Mask', isStatic ? ipInput('subnet_mask', mask, false) : (mask || 'N/A'));
+                            h += pppRow('Default Gateway', isStatic ? ipInput('gateway', gw, false) : (gw || 'N/A'));
+                            h += pppRow('DNS Servers', isStatic ? ipInput('dns', dns, false) : (dns || 'N/A'));
+                            h += pppRow('Last connection error', lastErr);
+                            h += pppRow('MAC Address', mac);
+                            h += pppRow('Max MTU Size', ipInput('mtu', mtu, true));
+                            h += pppRow('Service list', svcList);
+                            h += pppRow('Default route', '<span style="background:#212529;color:#fff;padding:1px 8px;border-radius:4px;font-size:0.78rem;">No</span>');
+                            h += pppRow('NAT Enabled', ppRadioYN('nat', i, nat).replace(/name="ppp-/g, 'name="ip-').replace(/class="ppp-radio"/g, 'class="ip-radio"'));
+                            h += pppRow('VLAN ID', vlan || 'N/A');
+                            h += '<div style="padding:12px 0 8px;display:flex;gap:8px;">';
+                            h += '<button type="button" class="btn-solt btn-solt-green ip-save" data-idx="'+i+'" data-path="'+sec.tr069Path+'" style="padding:6px 16px;font-size:0.82rem;">Simpan Perubahan</button>';
+                            h += '</div>';
+                            h += '<div style="padding:8px 0 4px;border-top:1px solid var(--border-color);">';
+                            h += '<button type="button" class="btn-solt ip-remove" data-idx="'+i+'" data-path="'+sec.tr069Path+'" style="padding:6px 16px;font-size:0.82rem;background:#dc3545;color:#fff;border:none;border-radius:4px;cursor:pointer;">Remove IP WAN</button>';
+                            h += '</div>';
+                            h += '</div></div>';
+                            return h;
+                        }
                         // Render card Wireless LAN mirip layout webUI router — semua field bisa diedit.
                         function renderWlanCard(sec, i) {
                             const enabled = pv(sec, 'Enable');
@@ -2395,6 +2445,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             const isGeneral = sec.title === 'General';
                             const isPPP = /^PPP Interface/.test(sec.title);
                             const isWLAN = /^Wireless LAN/.test(sec.title);
+                            const isIP = /^IP Interface/.test(sec.title);
                             // Whitelist section yang boleh tampil (sesuai permintaan user) — sisanya
                             // (Diagnostics, ManagementServer, Time, X_HW_* lain-lain, dst) disembunyikan.
                             const whitelist = [
@@ -2425,6 +2476,10 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             }
                             if (isWLAN) {
                                 html += renderWlanCard(sec, i);
+                                return;
+                            }
+                            if (isIP) {
+                                html += renderIpCard(sec, i);
                                 return;
                             }
                             // Ikon refresh muncul HANYA saat section sedang terbuka (di-toggle via JS di bawah),
@@ -2841,6 +2896,41 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                     if (d.success) loadTr069Status();
                                     else { btn.disabled = false; btn.textContent = 'Remove PPP WAN'; }
                                 }).catch(() => { alert('Gagal menghapus.'); btn.disabled = false; btn.textContent = 'Remove PPP WAN'; });
+                            });
+                        });
+                        // Simpan Perubahan (card IP Interface) — Static Address/Gateway/DNS/MTU/NAT via TR-069.
+                        cliOutputBox.querySelectorAll('.ip-save').forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                const idx = btn.dataset.idx;
+                                const wanPath = 'InternetGatewayDevice.' + btn.dataset.path;
+                                const fields = { wan_path: wanPath };
+                                cliOutputBox.querySelectorAll('.ip-field[data-idx="'+idx+'"]').forEach(el => { fields[el.dataset.key] = el.value; });
+                                cliOutputBox.querySelectorAll('.ip-radio[data-idx="'+idx+'"]:checked').forEach(el => { fields[el.dataset.key] = el.value; });
+                                btn.disabled = true; btn.textContent = 'Menyimpan...';
+                                fetch('action/genieacs-proxy.php', {
+                                    method: 'POST',
+                                    headers: {'Content-Type': 'application/json'},
+                                    body: JSON.stringify({serial, edit_ip: true, ...fields})
+                                }).then(r => r.json()).then(d => {
+                                    if (d.success) { alert(d.message || 'Berhasil dikirim.'); reloadAfterSave(); }
+                                    else { alert('Error: ' + (d.message || 'Gagal')); btn.disabled = false; btn.textContent = 'Simpan Perubahan'; }
+                                }).catch(() => { alert('Gagal mengirim perubahan.'); btn.disabled = false; btn.textContent = 'Simpan Perubahan'; });
+                            });
+                        });
+                        cliOutputBox.querySelectorAll('.ip-remove').forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                const wanPath = 'InternetGatewayDevice.' + btn.dataset.path;
+                                if (!confirm('HAPUS interface IP WAN ini dari device? Device akan kehilangan koneksi ini. Aksi ini TIDAK BISA dibatalkan.')) return;
+                                btn.disabled = true; btn.textContent = 'Menghapus...';
+                                fetch('action/genieacs-proxy.php', {
+                                    method: 'POST',
+                                    headers: {'Content-Type': 'application/json'},
+                                    body: JSON.stringify({serial, ip_remove: true, wan_path: wanPath})
+                                }).then(r => r.json()).then(d => {
+                                    alert(d.success ? (d.message || 'IP WAN dihapus.') : 'Error: ' + (d.message || 'Gagal'));
+                                    if (d.success) loadTr069Status();
+                                    else { btn.disabled = false; btn.textContent = 'Remove IP WAN'; }
+                                }).catch(() => { alert('Gagal menghapus.'); btn.disabled = false; btn.textContent = 'Remove IP WAN'; });
                             });
                         });
                         cliOutputBox.style.maxHeight = 'none';

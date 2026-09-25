@@ -473,6 +473,64 @@ function genieacs_ppp_remove(string $serial): array {
     return ['success' => true, 'message' => 'Instance PPP WAN dihapus dari device via TR-069.'];
 }
 
+/**
+ * Edit parameter WANIPConnection (IP Interface) via TR-069 — Static Address/Subnet/
+ * Gateway/DNS/MTU/NAT. Path pakai wanDevIdx.connDevIdx.ipConnIdx dinamis (bukan
+ * hardcode 1.1.1) — device bisa punya lebih dari 1 IP Interface (mis. WAN internet
+ * DHCP + WAN TR069 management terpisah, masing-masing index beda).
+ */
+function genieacs_edit_ip_params(string $serial, string $wanPath, array $fields): array {
+    $deviceId = genieacs_find_device_id($serial);
+    if (!$deviceId) {
+        return ['success' => false, 'message' => 'Device tidak ditemukan di GenieACS.'];
+    }
+    if (!preg_match('/^InternetGatewayDevice\.WANDevice\.\d+\.WANConnectionDevice\.\d+\.WANIPConnection\.\d+$/', $wanPath)) {
+        return ['success' => false, 'message' => 'Path WAN IP Interface tidak valid.'];
+    }
+    $map = [
+        'ip_address'   => ["{$wanPath}.ExternalIPAddress", 'xsd:string', 'string'],
+        'subnet_mask'  => ["{$wanPath}.SubnetMask", 'xsd:string', 'string'],
+        'gateway'      => ["{$wanPath}.DefaultGateway", 'xsd:string', 'string'],
+        'dns'          => ["{$wanPath}.DNSServers", 'xsd:string', 'string'],
+        'mtu'          => ["{$wanPath}.MaxMTUSize", 'xsd:unsignedInt', 'int'],
+        'nat'          => ["{$wanPath}.NATEnabled", 'xsd:boolean', 'bool'],
+    ];
+    $sent = [];
+    $failed = [];
+    foreach ($map as $key => [$path, $type, $cast]) {
+        if (!isset($fields[$key]) || $fields[$key] === '') continue;
+        $val = $fields[$key];
+        if ($cast === 'int') $val = (int)$val;
+        elseif ($cast === 'bool') $val = ($val === '1' || $val === 1 || $val === true);
+        $result = genieacs_set_params($deviceId, [$path => [$val, $type]], 15);
+        if ($result === null) { $failed[] = $key; } else { $sent[] = $key; }
+    }
+    if (!$sent && !$failed) {
+        return ['success' => false, 'message' => 'Tidak ada field untuk diubah.'];
+    }
+    if ($failed) {
+        return ['success' => false, 'message' => 'Sebagian gagal terkirim: ' . implode(', ', $failed) . ($sent ? ' (berhasil: ' . implode(', ', $sent) . ')' : '')];
+    }
+    return ['success' => true, 'message' => 'Perubahan IP Interface berhasil dikirim via TR-069 (' . implode(', ', $sent) . ').'];
+}
+
+/** Hapus instance WANIPConnection dari device (deleteObject). Destruktif — WAN itu hilang dari device. */
+function genieacs_ip_remove(string $serial, string $wanPath): array {
+    $deviceId = genieacs_find_device_id($serial);
+    if (!$deviceId) {
+        return ['success' => false, 'message' => 'Device tidak ditemukan di GenieACS.'];
+    }
+    if (!preg_match('/^InternetGatewayDevice\.WANDevice\.\d+\.WANConnectionDevice\.\d+\.WANIPConnection\.\d+$/', $wanPath)) {
+        return ['success' => false, 'message' => 'Path WAN IP Interface tidak valid.'];
+    }
+    $result = genieacs_request('POST', "/devices/" . rawurlencode($deviceId) . "/tasks?connection_request",
+        ['name' => 'deleteObject', 'objectName' => $wanPath], 15);
+    if ($result === null) {
+        return ['success' => false, 'message' => 'Gagal menghapus (device tidak reachable).'];
+    }
+    return ['success' => true, 'message' => 'Instance IP WAN dihapus dari device via TR-069.'];
+}
+
 function genieacs_push_wan(string $serial, string $wan_mode, array $wan): array {
     $deviceId = genieacs_find_device_id($serial);
     if (!$deviceId) {

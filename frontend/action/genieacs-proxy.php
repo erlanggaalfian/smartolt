@@ -59,6 +59,24 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         echo json_encode(genieacs_ppp_remove($serial)); exit;
     }
 
+    if (isset($body['edit_ip'])) {
+        $wanPath = preg_replace('/[^a-zA-Z0-9_.]/', '', (string)($body['wan_path'] ?? ''));
+        $fields = [
+            'ip_address' => preg_replace('/[^0-9.]/', '', (string)($body['ip_address'] ?? '')),
+            'subnet_mask' => preg_replace('/[^0-9.]/', '', (string)($body['subnet_mask'] ?? '')),
+            'gateway' => preg_replace('/[^0-9.]/', '', (string)($body['gateway'] ?? '')),
+            'dns' => preg_replace('/[^0-9.,]/', '', (string)($body['dns'] ?? '')),
+            'mtu' => preg_replace('/[^0-9]/', '', (string)($body['mtu'] ?? '')),
+            'nat' => (string)($body['nat'] ?? ''),
+        ];
+        echo json_encode(genieacs_edit_ip_params($serial, $wanPath, $fields)); exit;
+    }
+
+    if (!empty($body['ip_remove'])) {
+        $wanPath = preg_replace('/[^a-zA-Z0-9_.]/', '', (string)($body['wan_path'] ?? ''));
+        echo json_encode(genieacs_ip_remove($serial, $wanPath)); exit;
+    }
+
     if (isset($body['edit_wlan'])) {
         $fields = [
             'ssid' => (string)($body['ssid'] ?? ''),
