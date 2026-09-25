@@ -2012,6 +2012,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                         mac: hv.MACAddress?._value || 'N/A',
                                         name: hv.HostName?._value || '',
                                         active: hv.Active?._value,
+                                        addressSource: hv.AddressSource?._value || 'N/A',
                                     });
                                 }
                             }
@@ -2533,13 +2534,18 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 html += '<div style="color:var(--text-muted);padding:8px 0;">Tidak ada host terkoneksi.</div>';
                             } else {
                                 html += '<table style="width:100%;border-collapse:collapse;">';
-                                html += '<tr style="text-align:left;color:var(--text-muted);font-size:0.78rem;"><th style="padding:5px 8px 5px 0;">IP Address</th><th style="padding:5px 8px;">Interface</th><th style="padding:5px 8px;">SSID</th><th style="padding:5px 0 5px 8px;">MAC Address</th></tr>';
-                                hostList.forEach(h => {
+                                html += '<tr style="text-align:left;color:var(--text-muted);font-size:0.78rem;"><th style="padding:5px 8px 5px 0;">#</th><th style="padding:5px 8px;">MAC Address</th><th style="padding:5px 8px;">IP Address</th><th style="padding:5px 8px;">Address source</th><th style="padding:5px 8px;">Hostname</th><th style="padding:5px 8px;">Port</th><th style="padding:5px 0 5px 8px;">Active</th></tr>';
+                                hostList.forEach((h, hi) => {
+                                    const activeText = h.active === true || h.active === '1' || h.active === 1 ? 'Yes' : 'No';
+                                    const port = h.ssid || h.iface;
                                     html += '<tr style="border-top:1px solid var(--border-color);">'
-                                        + '<td style="padding:6px 8px 6px 0;">' + esc(h.ip) + '</td>'
-                                        + '<td style="padding:6px 8px;">' + esc(h.iface) + '</td>'
-                                        + '<td style="padding:6px 8px;">' + esc(h.ssid || '-') + '</td>'
-                                        + '<td style="padding:6px 0 6px 8px;">' + esc(h.mac) + '</td>'
+                                        + '<td style="padding:6px 8px 6px 0;">' + (hi + 1) + '</td>'
+                                        + '<td style="padding:6px 8px;">' + esc(h.mac) + '</td>'
+                                        + '<td style="padding:6px 8px;">' + esc(h.ip) + '</td>'
+                                        + '<td style="padding:6px 8px;">' + esc(h.addressSource) + '</td>'
+                                        + '<td style="padding:6px 8px;">' + esc(h.name || '-') + '</td>'
+                                        + '<td style="padding:6px 8px;">' + esc(port) + '</td>'
+                                        + '<td style="padding:6px 0 6px 8px;">' + activeText + '</td>'
                                         + '</tr>';
                                 });
                                 html += '</table>';
