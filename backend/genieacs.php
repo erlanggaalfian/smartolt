@@ -553,6 +553,10 @@ function genieacs_push_wan(string $serial, string $wan_mode, array $wan): array 
         $params["{$base}.WANPPPConnection.1.Password"] = [$wan['pppoe_password'] ?? '', 'xsd:string'];
         $params["{$base}.WANPPPConnection.1.ConnectionType"] = ['IP_Routed', 'xsd:string'];
         $params["{$base}.WANPPPConnection.1.Enable"] = [true, 'xsd:boolean'];
+        // WAN Service ini adalah jalur internet utama pelanggan (bukan akses manajemen ACS),
+        // jadi service type WAJIB "INTERNET" — kalau device default/kepake "OTHER" pelanggan
+        // tidak bisa browsing walau PPPoE-nya sendiri connect.
+        $params["{$base}.WANPPPConnection.1.X_HW_SERVICELIST"] = ['INTERNET', 'xsd:string'];
     } elseif ($wan_mode === 'Static') {
         $params["{$base}.WANIPConnection.1.AddressingType"] = ['Static', 'xsd:string'];
         $params["{$base}.WANIPConnection.1.ExternalIPAddress"] = [$wan['static_ip'] ?? '', 'xsd:string'];
@@ -561,9 +565,11 @@ function genieacs_push_wan(string $serial, string $wan_mode, array $wan): array 
         $dns = trim(($wan['static_dns_primary'] ?? '') . ',' . ($wan['static_dns_secondary'] ?? ''), ',');
         $params["{$base}.WANIPConnection.1.DNSServers"] = [$dns, 'xsd:string'];
         $params["{$base}.WANIPConnection.1.Enable"] = [true, 'xsd:boolean'];
+        $params["{$base}.WANIPConnection.1.X_HW_SERVICELIST"] = ['INTERNET', 'xsd:string'];
     } elseif ($wan_mode === 'DHCP') {
         $params["{$base}.WANIPConnection.1.AddressingType"] = ['DHCP', 'xsd:string'];
         $params["{$base}.WANIPConnection.1.Enable"] = [true, 'xsd:boolean'];
+        $params["{$base}.WANIPConnection.1.X_HW_SERVICELIST"] = ['INTERNET', 'xsd:string'];
     } else {
         // 'Setup via ONU webpage' — tidak ada parameter WAN yang dipush.
         return ['success' => true, 'message' => 'Mode "Setup via ONU webpage" — tidak ada perubahan WAN dikirim via TR-069.'];
