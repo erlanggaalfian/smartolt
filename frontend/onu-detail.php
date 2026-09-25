@@ -2174,6 +2174,19 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         }
                         // Rewrite section titles
                         sections.forEach(sec => { sec.title = niceLabel(sec.title); });
+                        // Router IP LAN (IPInterfaceIPAddress/SubnetMask) tersimpan sebagai section anak
+                        // terpisah "IPInterface N" di bawah LANHostConfigManagement — gabungkan ke section
+                        // "LAN DHCP Server N" induknya supaya card DHCP bisa tampilkan Router IP+Netmask.
+                        sections.forEach(sec => {
+                            if (!/^LAN DHCP Server\s+\d+$/.test(sec.title)) return;
+                            const child = sections.find(s => s.tr069Path && s.tr069Path.startsWith(sec.tr069Path + '.IPInterface'));
+                            if (child) {
+                                Object.assign(sec.params, child.params);
+                                Object.assign(sec.writable, child.writable);
+                                sec._ipInterfacePath = child.tr069Path;
+                                child._merged = true;
+                            }
+                        });
 
                         // Walk top-level non-device children (Diagnostics, Time, dst). "Services" itu
                         // sendiri di-skip (StorageService/IPTV/dst tidak relevan). VoiceService
@@ -2491,13 +2504,60 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             const yes = current === true || current === 'true' || current === 1 || current === '1';
                             return '<span style="color:'+(yes?'#28a745':'#6c757d')+';font-weight:600;">' + (yes ? 'Enabled' : 'Disabled') + '</span>';
                         }
+                        // Render card LAN DHCP Server — layout mirip webUI router: Router IP, Netmask,
+                        // DHCP Server toggle, pool range, gateway, DNS, lease time — semua editable.
+                        // Reuse endpoint generic 'edit_generic' (sama seperti LAN Ports), karena field
+                        // Router IP/Netmask path-nya beda cabang (IPInterface.N) dari field DHCP lain
+                        // (langsung di LANHostConfigManagement) — path lengkap disimpan di JSON data-fields.
+                        function renderDhcpCard(sec, i) {
+                            const base = 'InternetGatewayDevice.' + sec.tr069Path + '.';
+                            const ipBase = sec._ipInterfacePath ? 'InternetGatewayDevice.' + sec._ipInterfacePath + '.' : base;
+                            const ip = pv(sec, 'IPInterfaceIPAddress') || '';
+                            const mask = pv(sec, 'IPInterfaceSubnetMask') || '';
+                            const dhcpEnable = pv(sec, 'DHCPServerEnable');
+                            const minAddr = pv(sec, 'MinAddress') || '';
+                            const maxAddr = pv(sec, 'MaxAddress') || '';
+                            const gw = pv(sec, 'IPRouters') || '';
+                            const dns = pv(sec, 'DNSServers') || '';
+                            const lease = pv(sec, 'DHCPLeaseTime') || '';
+                            const genFields = [];
+                            const textInput = (key, val, path, type, narrow) => {
+                                const fid = 'dhcp-' + i + '-' + key;
+                                genFields.push({ id: fid, path, type: type || 'xsd:string' });
+                                return '<input type="text" id="'+fid+'" value="'+String(val ?? '').replace(/"/g,'&quot;')+'" style="width:100%;max-width:'+(narrow?'160px':'280px')+';box-sizing:border-box;padding:5px 8px;font-size:0.85rem;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">';
+                            };
+                            const boolSelect = (key, val, path) => {
+                                const fid = 'dhcp-' + i + '-' + key;
+                                genFields.push({ id: fid, path, type: 'xsd:boolean' });
+                                return '<select id="'+fid+'" style="padding:5px 8px;font-size:0.85rem;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);"><option value="true"'+(val?' selected':'')+'>Yes</option><option value="false"'+(!val?' selected':'')+'>No</option></select>';
+                            };
+                            let h = '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
+                            h += '<div class="tr069-toggle" data-idx="'+i+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
+                            h += '<span>' + sec.title + '</span><span class="tr069-refresh" data-idx="'+i+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:' + (i === 0 ? 'inline' : 'none') + ';">&#8635;</span></div>';
+                            h += '<div class="tr069-panel" style="display:' + (i === 0 ? 'block' : 'none') + ';padding:4px 12px;background:var(--bg-main);">';
+                            h += pppRow('Router IP', textInput('ip', ip, ipBase + 'IPInterfaceIPAddress'));
+                            h += pppRow('Netmask', textInput('mask', mask, ipBase + 'IPInterfaceSubnetMask'));
+                            h += pppRow('DHCP Server', boolSelect('dhcp_enable', dhcpEnable, base + 'DHCPServerEnable'));
+                            h += pppRow('Start IP Address', textInput('min', minAddr, base + 'MinAddress'));
+                            h += pppRow('End IP Address', textInput('max', maxAddr, base + 'MaxAddress'));
+                            h += pppRow('Default Gateway', textInput('gw', gw, base + 'IPRouters'));
+                            h += pppRow('DNS Server', textInput('dns', dns, base + 'DNSServers'));
+                            h += pppRow('Lease Time (detik)', textInput('lease', lease, base + 'DHCPLeaseTime', 'xsd:int', true));
+                            h += '<div style="padding:12px 0 8px;">';
+                            h += '<button type="button" class="btn-solt btn-solt-green gen-save" data-idx="'+i+'" data-fields=\''+JSON.stringify(genFields).replace(/'/g,'&#39;')+'\' style="padding:6px 16px;font-size:0.82rem;">Simpan Perubahan</button>';
+                            h += '</div>';
+                            h += '</div></div>';
+                            return h;
+                        }
                         sections.forEach((sec, i) => {
+                            if (sec._merged) return;
                             const count = Object.keys(sec.params).length;
                             if (!count) return;
                             const isGeneral = sec.title === 'General';
                             const isPPP = /^PPP Interface/.test(sec.title);
                             const isWLAN = /^Wireless LAN/.test(sec.title);
                             const isIP = /^IP Interface/.test(sec.title);
+                            const isDHCP = /^LAN DHCP Server/.test(sec.title);
                             // Whitelist section yang boleh tampil (sesuai permintaan user) — sisanya
                             // (Diagnostics, ManagementServer, Time, X_HW_* lain-lain, dst) disembunyikan.
                             const whitelist = [
@@ -2537,6 +2597,10 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             }
                             if (isIP) {
                                 html += renderIpCard(sec, i);
+                                return;
+                            }
+                            if (isDHCP) {
+                                html += renderDhcpCard(sec, i);
                                 return;
                             }
                             // Ikon refresh muncul HANYA saat section sedang terbuka (di-toggle via JS di bawah),
