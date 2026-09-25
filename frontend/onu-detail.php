@@ -2266,7 +2266,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             const vlan = pv(sec, 'X_HW_VLAN');
                             let h = '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
                             h += '<div class="tr069-toggle" data-idx="'+i+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
-                            h += '<span>' + sec.title + '</span></div>';
+                            h += '<span>' + sec.title + '</span><span class="tr069-refresh" data-idx="'+i+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:' + (i === 0 ? 'inline' : 'none') + ';">&#8635;</span></div>';
                             h += '<div class="tr069-panel" style="display:' + (i === 0 ? 'block' : 'none') + ';padding:4px 12px;background:var(--bg-main);">';
                             h += pppRow('Connection name', connName);
                             h += pppRow('Connection status', '<span style="color:'+statusColor+';font-weight:600;">'+status+'</span>');
@@ -2332,7 +2332,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             const password = pv(sec, 'KeyPassphrase') || '';
                             let h = '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
                             h += '<div class="tr069-toggle" data-idx="'+i+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
-                            h += '<span>' + sec.title + '</span></div>';
+                            h += '<span>' + sec.title + '</span><span class="tr069-refresh" data-idx="'+i+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:' + (i === 0 ? 'inline' : 'none') + ';">&#8635;</span></div>';
                             h += '<div class="tr069-panel" style="display:' + (i === 0 ? 'block' : 'none') + ';padding:8px 12px;background:var(--bg-main);font-size:0.85rem;">';
                             h += pppRow('SSID', wlanInput('ssid', i, ssid, {narrow:false}));
                             h += pppRow('Password', wlanInput('password', i, password, {narrow:false}));
@@ -2472,7 +2472,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             const idx = sections.length; // index unik buat accordion toggle
                             html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
                             html += '<div class="tr069-toggle" data-idx="'+idx+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
-                            html += '<span>Connected Hosts (' + hostList.length + ')</span></div>';
+                            html += '<span>Connected Hosts (' + hostList.length + ')</span><span class="tr069-refresh" data-idx="'+idx+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:none;">&#8635;</span></div>';
                             html += '<div class="tr069-panel" style="display:none;padding:8px 12px;background:var(--bg-main);font-size:0.85rem;">';
                             if (!hostList.length) {
                                 html += '<div style="color:var(--text-muted);padding:8px 0;">Tidak ada host terkoneksi.</div>';
@@ -2496,7 +2496,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             const idx = sections.length + 1;
                             html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
                             html += '<div class="tr069-toggle" data-idx="'+idx+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
-                            html += '<span>Routing (' + routeList.length + ')</span></div>';
+                            html += '<span>Routing (' + routeList.length + ')</span><span class="tr069-refresh" data-idx="'+idx+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:none;">&#8635;</span></div>';
                             html += '<div class="tr069-panel" style="display:none;padding:8px 12px;background:var(--bg-main);font-size:0.85rem;">';
                             if (!routeList.length) {
                                 html += '<div style="color:var(--text-muted);padding:8px 0;">Tidak ada route.</div>';
@@ -2521,7 +2521,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             const idx = sections.length + 3;
                             html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
                             html += '<div class="tr069-toggle" data-idx="'+idx+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
-                            html += '<span>Voice lines (' + voiceLines.length + ')</span></div>';
+                            html += '<span>Voice lines (' + voiceLines.length + ')</span><span class="tr069-refresh" data-idx="'+idx+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:none;">&#8635;</span></div>';
                             html += '<div class="tr069-panel" style="display:none;padding:10px 12px;background:var(--bg-main);font-size:0.85rem;">';
                             if (!voiceLines.length) {
                                 html += '<div style="color:var(--text-muted);padding:8px 0;">Tidak ada voice line.</div>';
@@ -2574,7 +2574,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             const idx = sections.length + 2;
                             html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
                             html += '<div class="tr069-toggle" data-idx="'+idx+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
-                            html += '<span>Security</span></div>';
+                            html += '<span>Security</span><span class="tr069-refresh" data-idx="'+idx+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:none;">&#8635;</span></div>';
                             html += '<div class="tr069-panel" style="display:none;padding:10px 12px;background:var(--bg-main);font-size:0.85rem;">';
                             // Radio group persis tampilan router asli (bukan dropdown), 2 opsi per baris.
                             const rowRadio = (label, id, val, opts) => {
