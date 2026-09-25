@@ -2,6 +2,7 @@
 session_start();
 if (!isset($_SESSION['smartolt_role'])) { http_response_code(403); echo 'Forbidden'; exit; }
 require_once __DIR__ . '/../../backend/genieacs.php';
+require_once __DIR__ . '/../../backend/db.php';
 
 $nbi = 'http://127.0.0.1:7559';
 header('Content-Type: application/json');
@@ -57,6 +58,28 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
 
     if (!empty($body['ppp_remove'])) {
         echo json_encode(genieacs_ppp_remove($serial)); exit;
+    }
+
+    // Auto-sync field Mode ONU/Mode setup WAN/Username-Password PPPoE di halaman
+    // detail (kolom DB onus.*) dari data PPP Interface TR-069 yang barusan dibaca —
+    // supaya user tidak perlu buka modal manual isi ulang data yang device sudah punya.
+    // TIDAK push balik ke device (device tetap sumber kebenaran, DB cuma cermin tampilan).
+    if (isset($body['sync_ppp_to_db'])) {
+        $username = (string)($body['username'] ?? '');
+        $password = (string)($body['password'] ?? '');
+        if ($username === '') { echo json_encode(['success' => false, 'message' => 'Username kosong.']); exit; }
+        $stmt = $pdo->prepare("SELECT id, onu_mode, wan_mode, pppoe_username, pppoe_password, config_method FROM onus WHERE serial_number = ? LIMIT 1");
+        $stmt->execute([$serial]);
+        $row = $stmt->fetch();
+        if (!$row) { echo json_encode(['success' => false, 'message' => 'ONU tidak ditemukan di database.']); exit; }
+        // Skip kalau data DB sudah sama (hindari write sia-sia tiap refresh/reload page).
+        if ($row['onu_mode'] === 'Routing' && $row['wan_mode'] === 'PPPoE'
+            && $row['pppoe_username'] === $username && ($password === '' || $row['pppoe_password'] === $password)) {
+            echo json_encode(['success' => true, 'message' => 'Sudah sinkron.', 'changed' => false]); exit;
+        }
+        $upd = $pdo->prepare("UPDATE onus SET onu_mode = 'Routing', wan_mode = 'PPPoE', pppoe_username = ?, pppoe_password = COALESCE(NULLIF(?, ''), pppoe_password), updated_at = CURRENT_TIMESTAMP WHERE id = ?");
+        $upd->execute([$username, $password, $row['id']]);
+        echo json_encode(['success' => true, 'message' => 'Mode ONU/WAN/PPPoE disinkronkan dari TR-069.', 'changed' => true]); exit;
     }
 
     if (isset($body['edit_ip'])) {

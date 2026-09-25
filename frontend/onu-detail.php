@@ -2897,6 +2897,19 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         })();
                         html += '</div>';
                         cliOutputBox.innerHTML = html;
+                        // Auto-sync Mode ONU/Mode setup WAN/Username PPPoE di header halaman dari
+                        // section PPP Interface TR-069 yang barusan dibaca — sekali per load, silent,
+                        // gagal-diam (bukan aksi utama user, jangan ganggu kalau error).
+                        const pppSec = sections.find(s => /^PPP Interface/.test(s.title));
+                        const pppUsername = pppSec ? pv(pppSec, 'Username') : '';
+                        if (pppUsername) {
+                            fetch('action/genieacs-proxy.php', {
+                                method: 'POST', headers: {'Content-Type': 'application/json'},
+                                body: JSON.stringify({serial, sync_ppp_to_db: true, username: pppUsername})
+                            }).then(r => r.json()).then(d => {
+                                if (d.success && d.changed) location.reload();
+                            }).catch(() => {});
+                        }
                         // Buka lagi card yang tadi sedang dilihat user (kalau ada) — jangan
                         // collapse balik ke card pertama tiap refresh/save.
                         if (openTitle) {
