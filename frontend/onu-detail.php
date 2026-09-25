@@ -1901,7 +1901,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                 fetch(`action/genieacs-proxy.php?serial=${encodeURIComponent(serial)}`)
                     .then(r => r.json())
                     .then(d => {
-                        if (d.error) { cliOutputBox.textContent = 'Error: ' + d.error; return; }
+                        if (d.error) { cliOutputBox.innerHTML = '<div style="padding:12px 0;color:var(--text-muted);">⚠️ Tidak terkoneksi ke ACS (device belum pernah lapor TR-069 atau serial tidak ditemukan).</div>'; return; }
                         const root = d.InternetGatewayDevice || d.Device || {};
                         // Flatten tree into sections
                         const sections = [];
@@ -3236,7 +3236,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         });
                         cliOutputBox.style.maxHeight = 'none';
                     })
-                    .catch(() => { cliOutputBox.textContent = 'Gagal mengambil data GenieACS.'; })
+                    .catch(() => { cliOutputBox.innerHTML = '<div style="padding:12px 0;color:var(--text-muted);">⚠️ Tidak terkoneksi ke ACS.</div>'; })
                     .finally(() => { btnTr069.disabled = false; });
             }
             btnTr069.addEventListener('click', loadTr069Status);
