@@ -306,6 +306,12 @@ function genieacs_edit_wlan_params(string $serial, array $fields, int $wlanIndex
         'regulatory_domain' => ["{$base}.RegulatoryDomain", 'xsd:string', 'string'],
         'ssid_broadcast' => ["{$base}.SSIDAdvertisementEnabled", 'xsd:boolean', 'bool'],
         'tx_power' => ["{$base}.TransmitPower", 'xsd:unsignedInt', 'int'],
+        'bandwidth' => ["{$base}.X_HW_HT20", 'xsd:boolean', 'bool'],
+        'wireless_mode' => ["{$base}.X_HW_Standard", 'xsd:string', 'string'],
+        'max_devices' => ["{$base}.X_HW_AssociateNum", 'xsd:unsignedInt', 'int'],
+        'mac_filter' => ["{$base}.MACAddressControlEnabled", 'xsd:boolean', 'bool'],
+        'wmm' => ["{$base}.WMMEnable", 'xsd:boolean', 'bool'],
+        'vlan' => ["{$base}.X_HW_VLAN", 'xsd:string', 'string'],
     ];
     $sent = [];
     $failed = [];

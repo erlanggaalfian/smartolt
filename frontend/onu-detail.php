@@ -2445,6 +2445,11 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             const maxDev = pv(sec, 'X_HW_AssociateNum') || pv(sec, 'MaxAssociatedDevices');
                             const totalAssoc = pv(sec, 'TotalAssociations');
                             const password = pv(sec, 'KeyPassphrase') || '';
+                            const ht20 = pv(sec, 'X_HW_HT20');
+                            const wirelessMode = pv(sec, 'X_HW_Standard') || pv(sec, 'Standard') || '';
+                            const macFilter = pv(sec, 'MACAddressControlEnabled');
+                            const wmm = pv(sec, 'WMMEnable');
+                            const vlanId = pv(sec, 'X_HW_VLAN') || '';
                             let h = '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
                             h += '<div class="tr069-toggle" data-idx="'+i+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
                             h += '<span>' + sec.title + '</span><span class="tr069-refresh" data-idx="'+i+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:' + (i === 0 ? 'inline' : 'none') + ';">&#8635;</span></div>';
@@ -2456,11 +2461,15 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             h += pppRow('Band', band + ' (' + standard + ')');
                             h += pppRow('Security', wlanSecuritySelect(i, wpaEnc));
                             h += pppRow('Channel', wlanChannelRow(i, channel, autoChannel));
-                            h += pppRow('Bandwidth', bandwidth);
+                            h += pppRow('Bandwidth', wlanBandwidthSelect(i, ht20));
+                            h += pppRow('Wireless Mode', wlanModeSelect(i, wirelessMode));
                             h += pppRow('Regulatory Domain', wlanRegDomainSelect(i, regDomain));
                             h += pppRow('SSID Advertisement', wlanRadio('ssid_broadcast', i, ssidAdv));
                             h += pppRow('Transmit Power', wlanInput('tx_power', i, txPower, {narrow:true}));
-                            h += pppRow('Max Devices', (maxDev !== '' && maxDev != null) ? maxDev : 'N/A');
+                            h += pppRow('Max Devices', wlanInput('max_devices', i, maxDev, {narrow:true}));
+                            h += pppRow('MAC Address Control', wlanRadio('mac_filter', i, macFilter));
+                            h += pppRow('WMM (QoS)', wlanRadio('wmm', i, wmm));
+                            h += pppRow('VLAN ID', wlanInput('vlan', i, vlanId, {narrow:true}));
                             h += pppRow('Total Associations', (totalAssoc !== '' && totalAssoc != null) ? totalAssoc : '0');
                             h += '<div style="padding:12px 0 4px;">';
                             h += '<button type="button" class="btn-solt btn-solt-green wlan-save" data-idx="'+i+'" data-wlan-num="'+wlanNum+'" style="padding:6px 16px;font-size:0.82rem;">Simpan Perubahan</button>';
@@ -2483,6 +2492,21 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             const opts = [['TKIPEncryption','WPA2 (TKIP)'],['AESEncryption','WPA2 (AES)'],['TKIPAndAESEncryption','WPA2 (TKIP+AES)'],['None','None']];
                             let s = '<select class="wlan-field" data-key="security" data-idx="'+i+'" style="width:100%;max-width:220px;box-sizing:border-box;padding:5px 8px;font-size:0.85rem;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">';
                             opts.forEach(([val, label]) => { s += '<option value="'+val+'"'+(current===val?' selected':'')+'>'+label+'</option>'; });
+                            s += '</select>';
+                            return s;
+                        }
+                        function wlanBandwidthSelect(i, ht20) {
+                            const cur = (ht20 === true || ht20 === '1' || ht20 === 1) ? '1' : '0';
+                            let s = '<select class="wlan-field" data-key="bandwidth" data-idx="'+i+'" style="width:100%;max-width:140px;box-sizing:border-box;padding:5px 8px;font-size:0.85rem;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">';
+                            s += '<option value="1"'+(cur==='1'?' selected':'')+'>20 MHz</option>';
+                            s += '<option value="0"'+(cur==='0'?' selected':'')+'>40 MHz</option>';
+                            s += '</select>';
+                            return s;
+                        }
+                        function wlanModeSelect(i, current) {
+                            const opts = ['11b','11g','11bg','11n','11bgn'];
+                            let s = '<select class="wlan-field" data-key="wireless_mode" data-idx="'+i+'" style="width:100%;max-width:140px;box-sizing:border-box;padding:5px 8px;font-size:0.85rem;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">';
+                            opts.forEach(val => { s += '<option value="'+val+'"'+(current===val?' selected':'')+'>'+val+'</option>'; });
                             s += '</select>';
                             return s;
                         }
