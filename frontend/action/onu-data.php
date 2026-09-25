@@ -75,7 +75,7 @@ try {
         // bukan CLI OLT (CLI sengaja tidak menyimpan WAN saat config_method=TR069).
         // Jangan biarkan sync CLI menimpa balik wan_mode/pppoe_* ke nilai lama OLT.
         if (($onu['config_method'] ?? null) === 'TR069') {
-            unset($d['wan_mode'], $d['pppoe_username'], $d['pppoe_password']);
+            unset($d['wan_mode'], $d['pppoe_username'], $d['pppoe_password'], $d['pppoe_ip']);
         }
         // Tarik juga sinyal & status realtime agar tidak kosong/offline saat full sync
         try {
@@ -85,6 +85,27 @@ try {
             }
         } catch (Exception $e) {
             // Abaikan error sinyal agar tidak membatalkan pembacaan konfigurasi dasar
+        }
+        // Ulangi guard TR069 setelah merge sinyal -- get_onu_signal() juga bisa bawa
+        // pppoe_ip dari CLI OLT (salah, itu bukan IP PPPoE asli utk device TR069).
+        if (($onu['config_method'] ?? null) === 'TR069') {
+            unset($d['pppoe_ip']);
+            // Isi pppoe_ip dengan nilai TR-069 asli (bukan cache CLI OLT) supaya
+            // DB tidak menyimpan IP basi -- polling snmp_lite berikutnya baca dari
+            // DB, jadi kalau DB tidak diisi di sini, IP lama (mis. IP mgmt DHCP)
+            // akan nyangkut dan muncul salah saat sync CLI berikutnya menimpa balik.
+            if (($d['status'] ?? $onu['status']) !== 'offline' && ($onu['wan_mode'] ?? '') === 'PPPoE') {
+                $tr069_dev_id_full = genieacs_find_device_id($onu['serial_number'] ?? '');
+                if ($tr069_dev_id_full) {
+                    $ppp_ip = genieacs_get_ppp_wan_ip($tr069_dev_id_full);
+                    if ($ppp_ip) $d['pppoe_ip'] = $ppp_ip;
+                }
+            }
+            // Offline: COALESCE tidak bisa dipakai untuk clear (NULL diabaikan),
+            // jadi hapus pppoe_ip DB langsung dengan query terpisah.
+            if (($d['status'] ?? $onu['status']) === 'offline') {
+                $pdo->prepare("UPDATE onus SET pppoe_ip = NULL WHERE id = ?")->execute([$id]);
+            }
         }
     } elseif ($snmp_lite) {
         // SNMP-only: Rx power + traffic counters + status, tanpa SSH/VTY
