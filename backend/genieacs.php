@@ -583,6 +583,9 @@ function genieacs_push_wan(string $serial, string $wan_mode, array $wan): array 
         $params["{$pppPath}.{$pppIndex}.Password"] = [$wan['pppoe_password'] ?? '', 'xsd:string'];
         $params["{$pppPath}.{$pppIndex}.ConnectionType"] = ['IP_Routed', 'xsd:string'];
         $params["{$pppPath}.{$pppIndex}.Enable"] = [true, 'xsd:boolean'];
+        // ConnectionType IP_Routed tanpa NAT bikin ONT jadi router tanpa NAT -- pelanggan
+        // dapat IP publik tapi trafik LAN tidak di-translate, browsing normal gagal.
+        $params["{$pppPath}.{$pppIndex}.NATEnabled"] = [true, 'xsd:boolean'];
         // WAN Service ini adalah jalur internet utama pelanggan (bukan akses manajemen ACS),
         // jadi service type WAJIB "INTERNET" — kalau device default/kepake "OTHER" pelanggan
         // tidak bisa browsing walau PPPoE-nya sendiri connect.
