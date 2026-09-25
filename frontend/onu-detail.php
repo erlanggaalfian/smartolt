@@ -2706,13 +2706,14 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         cliOutputBox.querySelectorAll('.tr069-refresh').forEach(refreshBtn => {
                             refreshBtn.addEventListener('click', (e) => {
                                 e.stopPropagation();
-                                refreshBtn.style.opacity = '0.4';
+                                refreshBtn.classList.add('animate-spin');
+                                refreshBtn.style.pointerEvents = 'none';
                                 fetch('action/genieacs-proxy.php', {
                                     method: 'POST',
                                     headers: {'Content-Type': 'application/json'},
                                     body: JSON.stringify({serial, refresh: true})
                                 }).then(r => r.json()).then(() => loadTr069Status())
-                                  .catch(() => { refreshBtn.style.opacity = '1'; alert('Gagal refresh.'); });
+                                  .catch(() => { refreshBtn.classList.remove('animate-spin'); refreshBtn.style.pointerEvents = 'auto'; alert('Gagal refresh.'); });
                             });
                         });
                         // Edit button (PPP Interface section header) — edit VLAN ID & Max MRU Size, push via TR-069
