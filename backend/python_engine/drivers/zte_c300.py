@@ -1210,11 +1210,31 @@ class OltZteC300Driver(BaseDriver):
         # penolakan asli.
         BENIGN_CODES = ('62391', '66661', '66662', '63869', '63873', '63856', '63933', '63953', '62397', '63993')
         errors = [e for e in errors if not any(c in e for c in BENIGN_CODES)]
+        # security-mgmt ingress-type wan (blokir akses web/telnet dari internet luar) tidak
+        # didukung sebagian model ONT (mis. HG8145V5) -- ONT balas 'command not supported'.
+        # Fitur ini cuma hardening opsional, BUKAN bagian inti WAN/PPPoE -- kalau error itu
+        # muncul spesifik dari command security-mgmt, jangan gagalkan seluruh operasi (VLAN/
+        # PPPoE tetap sudah diterapkan sukses di command sebelumnya), cukup catat sebagai warning.
+        skipped_security = []
+        if any(c.strip().startswith('security-mgmt') for c in commands) and errors:
+            blocks = re.split(r'(?=OLT# show )', log)
+            errors = []
+            for block in blocks:
+                block_errors = [e for e in self._vlan_errors(block) if not any(c in e for c in BENIGN_CODES)]
+                if not block_errors:
+                    continue
+                if block.strip().startswith('OLT# show security-mgmt') and 'wan' in block.split('\n', 1)[0]:
+                    skipped_security.extend(block_errors)
+                else:
+                    errors.extend(block_errors)
         ok = len(errors) == 0
+        message = 'Konfigurasi PPPoE & VLAN berhasil diterapkan.' if ok \
+            else f"OLT menolak perintah: {'; '.join(errors)}"
+        if ok and skipped_security:
+            message += ' (Catatan: fitur blokir akses WAN tidak didukung ONT ini, dilewati.)'
         return {
             'success': ok,
-            'message': 'Konfigurasi PPPoE & VLAN berhasil diterapkan.' if ok
-                       else f"OLT menolak perintah: {'; '.join(errors)}",
+            'message': message,
             'log': log
         }
 
