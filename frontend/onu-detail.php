@@ -3383,7 +3383,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         <td style="width:120px;font-weight:600;color:var(--text-main);vertical-align:middle;">Profil</td>
                         <td>
                             <select name="tr609_profile" style="width:100%;max-width:300px;padding:8px 12px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);font-size:0.9rem;color:var(--text-main);">
-                                <option value="Nonaktif" <?php echo ($onu['tr069_profile'] ?: 'Nonaktif') === 'Nonaktif' ? 'selected' : ''; ?>>Nonaktifkan TR069</option>
+                                <option value="Nonaktif" <?php echo ($onu['tr069_profile'] ?: 'Nonaktif') === 'Nonaktif' ? 'selected' : ''; ?>>Disable</option>
                                 <option value="ACS-Smartolt" <?php echo ($onu['tr069_profile'] ?? '') === 'ACS-Smartolt' ? 'selected' : ''; ?>>ACS-Smartolt</option>
                                 <?php foreach ($tr069_profiles as $tp): ?>
                                     <?php if (!empty($tp['is_default'])) continue; ?>
