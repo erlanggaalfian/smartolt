@@ -547,22 +547,46 @@ function genieacs_push_wan(string $serial, string $wan_mode, array $wan): array 
     $params = [];
 
     if ($wan_mode === 'PPPoE') {
-        // Device mungkin belum pernah punya instance WANPPPConnection (default DHCP-only) —
-        // setParameterValues ke path 'WANPPPConnection.1.*' gagal diam-diam kalau instance-nya
-        // belum ada. addObject dulu (no-op/aman kalau sudah ada, GenieACS/device idempotent).
-        $add_result = genieacs_request('POST', "/devices/" . rawurlencode($deviceId) . "/tasks?connection_request",
-            ['name' => 'addObject', 'objectName' => "{$base}.WANPPPConnection"], 15);
-        if ($add_result === null) {
-            return ['success' => false, 'message' => 'Gagal membuat instance WANPPPConnection di device (device tidak reachable).'];
+        // BUG LAMA: kode ini selalu hardcode instance '.1', tapi banyak device (migrasi dari
+        // ACS lain) sudah punya instance WANPPPConnection dengan index BEDA (mis. '.2') --
+        // nulis ke '.1' bikin GenieACS/device addObject instance BARU di samping yang lama,
+        // hasilnya muncul "PPP Interface 1.1.1" DAN "1.1.2" dobel di UI, device bingung device
+        // mana yang dipakai BRAS. Cek instance yang SUDAH ADA dulu, reuse index itu; addObject
+        // HANYA kalau device belum punya WANPPPConnection sama sekali.
+        $pppPath = "{$base}.WANPPPConnection";
+        $existing = genieacs_request('GET', "/devices/?query=" . rawurlencode(json_encode(['_id' => $deviceId]))
+            . "&projection=" . rawurlencode($pppPath), null, 10);
+        $pppIndex = '1';
+        if (is_array($existing) && !empty($existing[0])) {
+            $node = $existing[0];
+            foreach (explode('.', $pppPath) as $seg) {
+                $node = $node[$seg] ?? null;
+                if ($node === null) break;
+            }
+            if (is_array($node)) {
+                $indices = array_filter(array_keys($node), fn($k) => $k[0] !== '_');
+                if (!empty($indices)) {
+                    $pppIndex = (string) $indices[0];
+                }
+            }
         }
-        $params["{$base}.WANPPPConnection.1.Username"] = [$wan['pppoe_username'] ?? '', 'xsd:string'];
-        $params["{$base}.WANPPPConnection.1.Password"] = [$wan['pppoe_password'] ?? '', 'xsd:string'];
-        $params["{$base}.WANPPPConnection.1.ConnectionType"] = ['IP_Routed', 'xsd:string'];
-        $params["{$base}.WANPPPConnection.1.Enable"] = [true, 'xsd:boolean'];
+        $needsAdd = !is_array($existing) || empty($existing[0])
+            || !isset($existing[0]['InternetGatewayDevice']['WANDevice']['1']['WANConnectionDevice']['1']['WANPPPConnection']);
+        if ($needsAdd) {
+            $add_result = genieacs_request('POST', "/devices/" . rawurlencode($deviceId) . "/tasks?connection_request",
+                ['name' => 'addObject', 'objectName' => $pppPath], 15);
+            if ($add_result === null) {
+                return ['success' => false, 'message' => 'Gagal membuat instance WANPPPConnection di device (device tidak reachable).'];
+            }
+        }
+        $params["{$pppPath}.{$pppIndex}.Username"] = [$wan['pppoe_username'] ?? '', 'xsd:string'];
+        $params["{$pppPath}.{$pppIndex}.Password"] = [$wan['pppoe_password'] ?? '', 'xsd:string'];
+        $params["{$pppPath}.{$pppIndex}.ConnectionType"] = ['IP_Routed', 'xsd:string'];
+        $params["{$pppPath}.{$pppIndex}.Enable"] = [true, 'xsd:boolean'];
         // WAN Service ini adalah jalur internet utama pelanggan (bukan akses manajemen ACS),
         // jadi service type WAJIB "INTERNET" — kalau device default/kepake "OTHER" pelanggan
         // tidak bisa browsing walau PPPoE-nya sendiri connect.
-        $params["{$base}.WANPPPConnection.1.X_HW_SERVICELIST"] = ['INTERNET', 'xsd:string'];
+        $params["{$pppPath}.{$pppIndex}.X_HW_SERVICELIST"] = ['INTERNET', 'xsd:string'];
     } elseif ($wan_mode === 'Static') {
         $params["{$base}.WANIPConnection.1.AddressingType"] = ['Static', 'xsd:string'];
         $params["{$base}.WANIPConnection.1.ExternalIPAddress"] = [$wan['static_ip'] ?? '', 'xsd:string'];
