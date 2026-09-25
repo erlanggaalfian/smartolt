@@ -234,16 +234,21 @@ $onu = $stmt->fetch();
 // TR-069 IP (dari ConnectionRequestURL GenieACS) — lookup NBI localhost ringan
 // (bukan SSH/OLT), jadi dijalankan di kedua mode supaya IP tidak hilang begitu
 // polling ringan (mode=snmp, tiap 15 detik) menimpa respons full sync awal.
+// Kalau ONU offline, ConnectionRequestURL di GenieACS TIDAK ikut terhapus
+// (cuma cache dari Inform terakhir) — jangan tampilkan IP basi itu sbg aktif.
 $tr069_ip = null;
 $tr069_dev_id = null;
-if (($onu['config_method'] ?? null) === 'TR069') {
+if (($onu['config_method'] ?? null) === 'TR069' && ($status ?? '') !== 'offline') {
     $tr069_dev_id = genieacs_find_device_id($onu['serial_number'] ?? '');
     $tr069_ip = $tr069_dev_id ? genieacs_get_tr069_ip($tr069_dev_id) : null;
+} elseif (($onu['config_method'] ?? null) === 'TR069') {
+    $tr069_dev_id = genieacs_find_device_id($onu['serial_number'] ?? '');
 }
 
 // TR-069 = sumber kebenaran untuk IP PPPoE (bukan CLI OLT) saat wan_mode=PPPoE.
+// Sama seperti tr069_ip: kalau offline, cache lama jangan ditampilkan seolah aktif.
 $tr069_ppp_ip = null;
-if ($tr069_dev_id && ($onu['wan_mode'] ?? '') === 'PPPoE') {
+if ($tr069_dev_id && ($onu['wan_mode'] ?? '') === 'PPPoE' && ($status ?? '') !== 'offline') {
     $tr069_ppp_ip = genieacs_get_ppp_wan_ip($tr069_dev_id);
 }
 

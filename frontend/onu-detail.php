@@ -405,7 +405,7 @@ if (!empty($onu['onu_type'])) {
                     // IP yang dipakai untuk chip: Static/DHCP dari OLT, atau fallback TR-069
                     // (satu jalur VLAN management, sering DHCP-nya belum dilaporkan OLT).
                     $mgmt_ip_display = $onu['mgmt_ip'] ?: null;
-                    if (!$mgmt_ip_display && ($onu['config_method'] ?? null) === 'TR069') {
+                    if (!$mgmt_ip_display && ($onu['config_method'] ?? null) === 'TR069' && ($onu['status'] ?? '') !== 'offline') {
                         $tr069_dev_id = genieacs_find_device_id($onu['serial_number'] ?? '');
                         $mgmt_ip_display = $tr069_dev_id ? genieacs_get_tr069_ip($tr069_dev_id) : null;
                     }
