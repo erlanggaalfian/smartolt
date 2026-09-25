@@ -123,9 +123,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     olt_id, pon_port, onu_id, name, serial_number, vlan, status, last_rx_power,
                     onu_type, config_preset, zone, splitter, odb_port, address, contact,
                     onu_mode, external_id, latitude, longitude, download_profile, upload_profile,
-                    wan_mode, pppoe_username, pppoe_password, description, wan_remote_access, tr069_profile
+                    wan_mode, pppoe_username, pppoe_password, description, wan_remote_access
                 ) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
             $stmt_ins->execute([
                 $olt_id,
@@ -153,8 +153,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $pppoe_username !== '' ? $pppoe_username : null,
                 $pppoe_password !== '' ? $pppoe_password : null,
                 $structured_desc,
-                'yes', // authorize always enables security-mgmt 998/999 (remote access)
-                'Nonaktif' // TR069 Profile default disabled -- tidak push TR069 config otomatis saat auth
+                'yes' // authorize always enables security-mgmt 998/999 (remote access)
             ]);
 
             // Catat audit log
