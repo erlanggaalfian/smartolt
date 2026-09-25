@@ -2022,7 +2022,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         // pecah jadi 1 section per port, berantakan kalau ada banyak port).
                         const lanPortList = [];
                         if (root.LANDevice) {
-                            for (const ldv of Object.values(root.LANDevice)) {
+                            for (const [ldk, ldv] of Object.entries(root.LANDevice)) {
                                 const eths = ldv?.LANEthernetInterfaceConfig;
                                 if (!eths || typeof eths !== 'object') continue;
                                 for (const [ek, ev] of Object.entries(eths)) {
@@ -2031,6 +2031,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                     const rawSpeed = ev.X_HW_Speed?._value || '';
                                     const rawDuplex = ev.X_HW_DuplexMode?._value || '';
                                     lanPortList.push({
+                                        path: 'LANDevice.' + ldk + '.LANEthernetInterfaceConfig.' + ek,
                                         name: ev.Name?._value || ('eth0:' + ek),
                                         enable: ev.Enable?._value,
                                         status: ev.Status?._value || 'N/A',
@@ -2582,18 +2583,30 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 html += '<div style="color:var(--text-muted);padding:8px 0;">Tidak ada port LAN.</div>';
                             } else {
                                 html += '<table style="width:100%;border-collapse:collapse;">';
-                                html += '<tr style="text-align:left;color:var(--text-muted);font-size:0.78rem;"><th style="padding:5px 8px 5px 0;">Port</th><th style="padding:5px 8px;">Enable</th><th style="padding:5px 8px;">Status</th><th style="padding:5px 8px;">Speed</th><th style="padding:5px 8px;">Duplex</th><th style="padding:5px 8px;">L3 Enable</th><th style="padding:5px 8px;">Speed mode</th><th style="padding:5px 8px;">Duplex mode</th><th style="padding:5px 0 5px 8px;">Flow control</th></tr>';
+                                html += '<tr style="text-align:left;color:var(--text-muted);font-size:0.78rem;"><th style="padding:5px 8px 5px 0;">Port</th><th style="padding:5px 8px;">Enable</th><th style="padding:5px 8px;">Status</th><th style="padding:5px 8px;">Speed</th><th style="padding:5px 8px;">Duplex</th><th style="padding:5px 8px;">L3 Enable</th><th style="padding:5px 8px;">Speed mode</th><th style="padding:5px 8px;">Duplex mode</th><th style="padding:5px 8px;">Flow control</th><th style="padding:5px 0 5px 8px;"></th></tr>';
                                 lanPortList.forEach((p, pi) => {
+                                    const B = 'InternetGatewayDevice.' + p.path + '.';
+                                    const sel = (id, opts, cur) => '<select id="'+id+'" style="padding:3px 4px;font-size:0.8rem;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">'
+                                        + opts.map(o => '<option value="'+o.v+'"'+(String(cur)===String(o.v)?' selected':'')+'>'+o.l+'</option>').join('') + '</select>';
+                                    const enableId = 'lan-enable-'+pi, l3Id = 'lan-l3-'+pi, speedId = 'lan-speedmode-'+pi, duplexId = 'lan-duplexmode-'+pi, flowId = 'lan-flow-'+pi;
+                                    const fieldsMeta = [
+                                        {id: enableId, path: B+'Enable', type: 'xsd:boolean'},
+                                        {id: l3Id, path: B+'X_HW_L3Enable', type: 'xsd:boolean'},
+                                        {id: speedId, path: B+'MaxBitRate', type: 'xsd:string'},
+                                        {id: duplexId, path: B+'DuplexMode', type: 'xsd:string'},
+                                        {id: flowId, path: B+'X_HW_FlowCtrlEnable', type: 'xsd:boolean'},
+                                    ];
                                     html += '<tr style="border-top:1px solid var(--border-color);">'
                                         + '<td style="padding:6px 8px 6px 0;">' + esc(p.name) + '</td>'
-                                        + '<td style="padding:6px 8px;">' + (p.enable ? 'Yes' : 'No') + '</td>'
+                                        + '<td style="padding:6px 8px;">' + sel(enableId, [{v:'true',l:'Yes'},{v:'false',l:'No'}], p.enable) + '</td>'
                                         + '<td style="padding:6px 8px;">' + esc(p.status) + '</td>'
                                         + '<td style="padding:6px 8px;">' + esc(p.speed) + '</td>'
                                         + '<td style="padding:6px 8px;">' + esc(p.duplex) + '</td>'
-                                        + '<td style="padding:6px 8px;">' + (p.l3Enable ? 'yes' : 'no') + '</td>'
-                                        + '<td style="padding:6px 8px;">' + esc(p.speedMode) + '</td>'
-                                        + '<td style="padding:6px 8px;">' + esc(p.duplexMode) + '</td>'
-                                        + '<td style="padding:6px 0 6px 8px;">' + (p.flowCtrl ? 'Enable' : 'Disable') + '</td>'
+                                        + '<td style="padding:6px 8px;">' + sel(l3Id, [{v:'true',l:'yes'},{v:'false',l:'no'}], p.l3Enable) + '</td>'
+                                        + '<td style="padding:6px 8px;">' + sel(speedId, [{v:'Auto',l:'Auto'},{v:'10Mbps',l:'10Mbps'},{v:'100Mbps',l:'100Mbps'},{v:'1Gbps',l:'1Gbps'}], p.speedMode) + '</td>'
+                                        + '<td style="padding:6px 8px;">' + sel(duplexId, [{v:'Auto',l:'Auto'},{v:'Half',l:'Half'},{v:'Full',l:'Full'}], p.duplexMode) + '</td>'
+                                        + '<td style="padding:6px 8px;">' + sel(flowId, [{v:'true',l:'Enable'},{v:'false',l:'Disable'}], p.flowCtrl) + '</td>'
+                                        + '<td style="padding:6px 0 6px 8px;"><button type="button" class="btn-solt btn-solt-green gen-save" data-idx="lanport'+pi+'" data-fields=\''+JSON.stringify(fieldsMeta).replace(/'/g,'&#39;')+'\' style="padding:4px 10px;font-size:0.78rem;white-space:nowrap;">Simpan</button></td>'
                                         + '</tr>';
                                 });
                                 html += '</table>';
