@@ -154,6 +154,34 @@ if (preg_match('/^HWTC([A-F0-9]+)$/i', $serial, $m)) {
 }
 $serials = array_filter(array_unique([$serial, $alt_serial]));
 
+// Password PPPoE TIDAK PERNAH dibalikin device via TR-069 (write-only field, standar
+// keamanan CWMP) — GenieACS akan selalu kasih string kosong. Satu-satunya sumber sah
+// adalah value yang KITA sendiri kirim waktu push WAN (tersimpan di DB kita).
+$db_pppoe_password = null;
+require_once __DIR__ . '/../../backend/db.php';
+$stmt = $pdo->prepare('SELECT pppoe_password FROM onus WHERE serial_number = ? LIMIT 1');
+$stmt->execute([$serial]);
+$db_pppoe_password = $stmt->fetchColumn() ?: null;
+function emit_device(array $data, ?string $dbPassword): void {
+    if ($dbPassword !== null && is_array($data['InternetGatewayDevice']['WANDevice'] ?? null)) {
+        foreach ($data['InternetGatewayDevice']['WANDevice'] as &$wanDev) {
+            if (!is_array($wanDev['WANConnectionDevice'] ?? null)) { continue; }
+            foreach ($wanDev['WANConnectionDevice'] as &$connDev) {
+                if (!is_array($connDev['WANPPPConnection'] ?? null)) { continue; }
+                foreach ($connDev['WANPPPConnection'] as &$ppp) {
+                    if (!is_array($ppp)) { continue; }
+                    if (!is_array($ppp['Password'] ?? null)) { $ppp['Password'] = []; }
+                    if (($ppp['Password']['_value'] ?? '') === '') {
+                        $ppp['Password']['_value'] = $dbPassword;
+                        $ppp['Password']['_from_db'] = true; // tanda ke frontend: ini bukan dari device
+                    }
+                }
+            }
+        }
+    }
+    echo json_encode($data); exit;
+}
+
 // Try direct ID + query by SerialNumber for each serial variant
 foreach ($serials as $s) {
     // Direct ID lookup
@@ -163,7 +191,7 @@ foreach ($serials as $s) {
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
     if ($code === 200 && $resp && ($data = json_decode($resp, true)) && !empty($data['_id'])) {
-        echo json_encode($data); exit;
+        emit_device($data, $db_pppoe_password);
     }
 
     // Query by SerialNumber
@@ -176,7 +204,7 @@ foreach ($serials as $s) {
         if ($resp) {
             $arr = json_decode($resp, true);
             if (is_array($arr) && !empty($arr[0]['_id'])) {
-                echo json_encode($arr[0]); exit;
+                emit_device($arr[0], $db_pppoe_password);
             }
         }
     }
@@ -197,7 +225,7 @@ if ($resp) {
                 curl_setopt_array($ch2, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 10]);
                 $full = curl_exec($ch2);
                 curl_close($ch2);
-                if ($full) { echo $full; exit; }
+                if ($full && ($fullData = json_decode($full, true))) { emit_device($fullData, $db_pppoe_password); }
             }
         }
     }
