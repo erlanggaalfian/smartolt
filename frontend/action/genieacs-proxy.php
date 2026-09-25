@@ -72,6 +72,12 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         $stmt->execute([$serial]);
         $row = $stmt->fetch();
         if (!$row) { echo json_encode(['success' => false, 'message' => 'ONU tidak ditemukan di database.']); exit; }
+        if (($row['config_method'] ?? '') !== 'TR069') {
+            // Guard: ONU config_method=OMCI (WAN dikelola CLI OLT) TIDAK boleh disentuh walau
+            // device kebetulan melapor PPP Interface di TR-069 (bisa monitoring-only) -- sync CLI
+            // OLT akan tetap menimpa wan_mode balik, auto-sync ini malah bikin data oscillating.
+            echo json_encode(['success' => false, 'message' => 'Dilewati: config_method bukan TR069.', 'changed' => false]); exit;
+        }
         // Skip kalau data DB sudah sama (hindari write sia-sia tiap refresh/reload page).
         if ($row['onu_mode'] === 'Routing' && $row['wan_mode'] === 'PPPoE'
             && $row['pppoe_username'] === $username && ($password === '' || $row['pppoe_password'] === $password)) {

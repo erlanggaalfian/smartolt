@@ -1857,6 +1857,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
         // Handle TR069 Status (GenieACS inline accordion)
         const btnTr069 = document.getElementById('btn-tr069-status');
         const serial = '<?= addslashes($onu['serial_number'] ?? '') ?>';
+        const configMethodPage = '<?= addslashes($onu['config_method'] ?? 'OMCI') ?>';
         // Setelah Simpan, cache GenieACS (Mongo) masih nilai LAMA sampai device lapor balik
         // (bisa beberapa menit) — trigger refresh (connection-request) dulu sebelum reload,
         // supaya user tidak lihat "balik ke Disable" padahal task sukses terkirim.
@@ -2898,9 +2899,14 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         html += '</div>';
                         cliOutputBox.innerHTML = html;
                         // Auto-sync Mode ONU/Mode setup WAN/Username PPPoE di header halaman dari
-                        // section PPP Interface TR-069 yang barusan dibaca — sekali per load, silent,
-                        // gagal-diam (bukan aksi utama user, jangan ganggu kalau error).
-                        const pppSec = sections.find(s => /^PPP Interface/.test(s.title));
+                        // section PPP Interface TR-069 yang barusan dibaca — HANYA untuk ONU dengan
+                        // config_method=TR069 (WAN benar-benar dikelola via TR-069). ONU config_method=OMCI
+                        // yang kebetulan device-nya juga melapor PPP Interface (monitoring only, WAN
+                        // sebenarnya dikelola CLI OLT) TIDAK boleh disentuh -- sync CLI OLT akan tetap
+                        // menimpa wan_mode balik tiap load, auto-sync ini malah bikin data oscillating
+                        // dan berisiko ganggu pelanggan aktif (insiden nyata: id=11318400, wan_mode DHCP
+                        // asli sempat ketiban jadi PPPoE oleh fitur ini sebelum guard ini ditambahkan).
+                        const pppSec = configMethodPage === 'TR069' ? sections.find(s => /^PPP Interface/.test(s.title)) : null;
                         const pppUsername = pppSec ? pv(pppSec, 'Username') : '';
                         if (pppUsername) {
                             fetch('action/genieacs-proxy.php', {
