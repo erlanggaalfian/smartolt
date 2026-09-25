@@ -805,10 +805,10 @@ if (!empty($onu['onu_type'])) {
             return btn && btn.dataset.live === 'on';
         }
 
-        // Panggilan pertama pakai full=1: backend tarik config lengkap (VLAN, PPPoE,
-        // mode) dari driver lalu simpan ke DB. Polling berikutnya mode ringan,
-        // hanya sinyal + IP, supaya OLT tidak dibebani tiap 15 detik.
-        let needFullSync = true;
+        // Load pertama & polling berikutnya SAMA-SAMA pakai SNMP (mode=snmp) --
+        // render awal halaman sudah dari DB (PHP), SNMP cuma update status/sinyal/IP.
+        // full=1 (SSH/CLI OLT) HANYA dipicu manual via tombol "Resync" (#btn-resync-config).
+        let needFullSync = false;
         let lastTraffic = null; // { t, rx, tx } — sample sebelumnya utk hitung delta Mbps
         let maxUpSpeed = 0, maxDownSpeed = 0;
 

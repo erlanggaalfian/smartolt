@@ -135,6 +135,14 @@ try {
                 if (!empty($snmp_result['distance_m'])) $d['distance_m'] = $snmp_result['distance_m'];
             }
         }
+        // SNMP deteksi offline: hapus IP lama (pppoe_ip + mgmt_ip) di DB -- IP itu
+        // milik sesi koneksi sebelumnya, begitu online lagi kemungkinan besar IP
+        // beda (DHCP lease baru / re-auth PPPoE). COALESCE di UPDATE utama tidak
+        // bisa clear (NULL diabaikan), jadi query terpisah.
+        if (($d['status'] ?? null) === 'offline') {
+            $pdo->prepare("UPDATE onus SET pppoe_ip = NULL, mgmt_ip = NULL WHERE id = ?")->execute([$id]);
+            $d['pppoe_ip'] = null;
+        }
     } else {
         $d = get_onu_signal($olt, $onu);
     }
