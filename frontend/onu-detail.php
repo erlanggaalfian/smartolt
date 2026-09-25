@@ -2017,6 +2017,47 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 }
                             }
                         }
+                        // Kumpulkan port LAN Ethernet (LANDevice.N.LANEthernetInterfaceConfig.M) buat
+                        // card "LAN Ports" + "LAN Counters" — custom (bukan lewat walk() generic yang
+                        // pecah jadi 1 section per port, berantakan kalau ada banyak port).
+                        const lanPortList = [];
+                        if (root.LANDevice) {
+                            for (const ldv of Object.values(root.LANDevice)) {
+                                const eths = ldv?.LANEthernetInterfaceConfig;
+                                if (!eths || typeof eths !== 'object') continue;
+                                for (const [ek, ev] of Object.entries(eths)) {
+                                    if (ek.startsWith('_') || !ev || typeof ev !== 'object') continue;
+                                    const stats = ev.Stats || {};
+                                    const rawSpeed = ev.X_HW_Speed?._value || '';
+                                    const rawDuplex = ev.X_HW_DuplexMode?._value || '';
+                                    lanPortList.push({
+                                        name: ev.Name?._value || ('eth0:' + ek),
+                                        enable: ev.Enable?._value,
+                                        status: ev.Status?._value || 'N/A',
+                                        speed: rawSpeed.includes('_') ? rawSpeed.split('_')[1] : (rawSpeed || 'N/A'),
+                                        duplex: rawDuplex.includes('_') ? rawDuplex.split('_')[1] : (rawDuplex || 'N/A'),
+                                        l3Enable: ev.X_HW_L3Enable?._value,
+                                        speedMode: ev.MaxBitRate?._value || 'Auto',
+                                        duplexMode: ev.DuplexMode?._value || 'Auto',
+                                        flowCtrl: ev.X_HW_FlowCtrlEnable?._value,
+                                        bytesIn: stats.BytesReceived?._value ?? 0,
+                                        bytesOut: stats.BytesSent?._value ?? 0,
+                                        pktsIn: stats.PacketsReceived?._value ?? 0,
+                                        pktsOut: stats.PacketsSent?._value ?? 0,
+                                        uniIn: stats.UnicastPacketsReceived?._value ?? 0,
+                                        uniOut: stats.UnicastPacketsSent?._value ?? 0,
+                                        multiIn: stats.MulticastPacketsReceived?._value ?? 0,
+                                        multiOut: stats.MulticastPacketsSent?._value ?? 0,
+                                        broIn: stats.BroadcastPacketsReceived?._value ?? 0,
+                                        broOut: stats.BroadcastPacketsSent?._value ?? 0,
+                                        errIn: stats.ErrorsReceived?._value ?? 0,
+                                        errOut: stats.ErrorsSent?._value ?? 0,
+                                        discIn: stats.DiscardPacketsReceived?._value ?? 0,
+                                        discOut: stats.DiscardPacketsSent?._value ?? 0,
+                                    });
+                                }
+                            }
+                        }
                         // Kumpulkan route (Layer3Forwarding.X_HW_CurrentForwarding.N) buat card "Routing".
                         const routeList = [];
                         const l3 = root.Layer3Forwarding?.X_HW_CurrentForwarding;
@@ -2456,6 +2497,11 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 /^Miscellaneous/, /^Troubleshooting/, /^Device Logs/, /^File.*Firmware/,
                             ];
                             if (!whitelist.some(re => re.test(sec.title))) return;
+                            // Port LAN individual (LANEthernetInterfaceConfig N.M) — datanya sudah
+                            // dirangkum di card custom "LAN Ports"/"LAN Counters" (lanPortList di atas),
+                            // jangan tampil dobel sebagai section accordion generic per-port.
+                            const isLanPortEntry = /^LAN (Ports|Counters)\s/.test(sec.title);
+                            if (isLanPortEntry) return;
                             // Host individual (LANDevice > Hosts > Host N) — datanya sudah dirangkum
                             // di card "Connected Hosts" (hostList di atas), jangan tampil dobel sebagai
                             // section terpisah "Host 1.1-xxxx" ATAU "Hosts N" (parent object-nya sendiri,
@@ -2523,6 +2569,58 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             }
                             html += '</div></div>';
                         });
+                        // Card "LAN Ports" — status live (Enable/Status/Speed/Duplex) + config dropdown
+                        // (L3 Enable/Speed mode/Duplex mode/Flow control) per port, sama persis layout
+                        // webUI router asli (tabel eth0:1..N).
+                        (() => {
+                            const idx = sections.length + 100; // offset unik, jangan tabrakan sama sections/hosts/routes
+                            html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
+                            html += '<div class="tr069-toggle" data-idx="'+idx+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
+                            html += '<span>LAN Ports (' + lanPortList.length + ')</span><span class="tr069-refresh" data-idx="'+idx+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:none;">&#8635;</span></div>';
+                            html += '<div class="tr069-panel" style="display:none;padding:8px 12px;background:var(--bg-main);font-size:0.85rem;">';
+                            if (!lanPortList.length) {
+                                html += '<div style="color:var(--text-muted);padding:8px 0;">Tidak ada port LAN.</div>';
+                            } else {
+                                html += '<table style="width:100%;border-collapse:collapse;">';
+                                html += '<tr style="text-align:left;color:var(--text-muted);font-size:0.78rem;"><th style="padding:5px 8px 5px 0;">Port</th><th style="padding:5px 8px;">Enable</th><th style="padding:5px 8px;">Status</th><th style="padding:5px 8px;">Speed</th><th style="padding:5px 8px;">Duplex</th><th style="padding:5px 8px;">L3 Enable</th><th style="padding:5px 8px;">Speed mode</th><th style="padding:5px 8px;">Duplex mode</th><th style="padding:5px 0 5px 8px;">Flow control</th></tr>';
+                                lanPortList.forEach((p, pi) => {
+                                    html += '<tr style="border-top:1px solid var(--border-color);">'
+                                        + '<td style="padding:6px 8px 6px 0;">' + esc(p.name) + '</td>'
+                                        + '<td style="padding:6px 8px;">' + (p.enable ? 'Yes' : 'No') + '</td>'
+                                        + '<td style="padding:6px 8px;">' + esc(p.status) + '</td>'
+                                        + '<td style="padding:6px 8px;">' + esc(p.speed) + '</td>'
+                                        + '<td style="padding:6px 8px;">' + esc(p.duplex) + '</td>'
+                                        + '<td style="padding:6px 8px;">' + (p.l3Enable ? 'yes' : 'no') + '</td>'
+                                        + '<td style="padding:6px 8px;">' + esc(p.speedMode) + '</td>'
+                                        + '<td style="padding:6px 8px;">' + esc(p.duplexMode) + '</td>'
+                                        + '<td style="padding:6px 0 6px 8px;">' + (p.flowCtrl ? 'Enable' : 'Disable') + '</td>'
+                                        + '</tr>';
+                                });
+                                html += '</table>';
+                            }
+                            html += '</div></div>';
+                        })();
+                        // Card "LAN Counters" — traffic counter per port (Bytes/Pkts/Uni/Multi/Bro/Err/Disc, In/Out).
+                        (() => {
+                            const idx = sections.length + 200;
+                            html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
+                            html += '<div class="tr069-toggle" data-idx="'+idx+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
+                            html += '<span>LAN Counters (' + lanPortList.length + ')</span><span class="tr069-refresh" data-idx="'+idx+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:none;">&#8635;</span></div>';
+                            html += '<div class="tr069-panel" style="display:none;padding:8px 12px;background:var(--bg-main);font-size:0.8rem;overflow-x:auto;">';
+                            if (!lanPortList.length) {
+                                html += '<div style="color:var(--text-muted);padding:8px 0;">Tidak ada data counter.</div>';
+                            } else {
+                                html += '<table style="width:100%;border-collapse:collapse;white-space:nowrap;">';
+                                const cols = ['#','Bytes In','Bytes Out','Pkts In','Pkts Out','Uni In','Uni Out','Multi In','Multi Out','Bro In','Bro Out','Err In','Err Out','Disc In','Disc Out'];
+                                html += '<tr style="text-align:left;color:var(--text-muted);font-size:0.75rem;">' + cols.map(c => '<th style="padding:5px 8px;">'+c+'</th>').join('') + '</tr>';
+                                lanPortList.forEach((p, pi) => {
+                                    const vals = [pi+1, p.bytesIn, p.bytesOut, p.pktsIn, p.pktsOut, p.uniIn, p.uniOut, p.multiIn, p.multiOut, p.broIn, p.broOut, p.errIn, p.errOut, p.discIn, p.discOut];
+                                    html += '<tr style="border-top:1px solid var(--border-color);">' + vals.map(v => '<td style="padding:6px 8px;">'+v+'</td>').join('') + '</tr>';
+                                });
+                                html += '</table>';
+                            }
+                            html += '</div></div>';
+                        })();
                         // Card "Connected Hosts" — jumlah host + tabel ringkas (IP, InterfaceType, SSID, MAC).
                         (() => {
                             const idx = sections.length; // index unik buat accordion toggle
