@@ -475,7 +475,7 @@ if (!empty($onu['onu_type'])) {
                         }
                         ?>
                         <?php if (!empty($pppoe_ip_display)): ?>
-                            <a href="http://<?php echo htmlspecialchars($pppoe_ip_display); ?>" target="_blank" style="opacity:0.65;" onclick="event.stopPropagation();">
+                            <a href="http://<?php echo htmlspecialchars($pppoe_ip_display); ?>" target="_blank" class="chip chip-green" style="text-decoration: none;" onclick="event.stopPropagation();">
                                 <i data-lucide="external-link" style="width:11px;height:11px;vertical-align:middle;margin-right:4px;"></i><?php echo htmlspecialchars($pppoe_ip_display); ?>
                             </a>
                         <?php elseif (($onu['wan_mode'] ?? '') === 'PPPoE'): ?>
