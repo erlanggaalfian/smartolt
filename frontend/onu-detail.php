@@ -2911,8 +2911,8 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             html += '</div></div>';
                         })();
                         // Tombol perintah TR-069 (Refresh interfaces / Reboot / Reset to factory) --
-                        // di paling bawah panel, setara tombol yang sama di UI GenieACS langsung.
-                        html += '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;padding-top:16px;border-top:1px solid var(--border-color);">';
+                        // di paling bawah panel, rata kanan, tanpa garis pembatas (sesuai layout referensi GenieACS).
+                        html += '<div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:16px;">';
                         html += '<button type="button" class="btn-solt btn-solt-blue tr069-cmd-btn" data-cmd="refresh"><i data-lucide="refresh-cw" style="width:14px;height:14px;"></i> Refresh interfaces</button>';
                         html += '<button type="button" class="btn-solt btn-solt-orange tr069-cmd-btn" data-cmd="reboot"><i data-lucide="power" style="width:14px;height:14px;"></i> Reboot</button>';
                         html += '<button type="button" class="btn-solt btn-solt-red tr069-cmd-btn" data-cmd="factory_reset"><i data-lucide="rotate-ccw" style="width:14px;height:14px;"></i> Reset to factory</button>';
