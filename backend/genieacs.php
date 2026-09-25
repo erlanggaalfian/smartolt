@@ -199,6 +199,40 @@ function genieacs_refresh(string $deviceId, string $objectName = ''): ?array {
 }
 
 /**
+ * Refresh interfaces via TR-069 (RPC refreshObject scoped ke WANDevice/LANDevice)
+ * -- setara tombol "Refresh interfaces" di GenieACS UI, dipanggil dari SmartOLT
+ * supaya admin tak perlu buka GenieACS terpisah.
+ */
+function genieacs_refresh_interfaces(string $serial): array {
+    $deviceId = genieacs_find_device_id($serial);
+    if (!$deviceId) return ['success' => false, 'message' => 'Device tidak ditemukan di GenieACS.'];
+    $result = genieacs_request('POST', "/devices/" . rawurlencode($deviceId) . "/tasks?connection_request",
+        ['name' => 'refreshObject', 'objectName' => 'InternetGatewayDevice.WANDevice'], 15);
+    if ($result === null) return ['success' => false, 'message' => 'Gagal refresh interfaces -- device mungkin offline/tidak reachable.'];
+    return ['success' => true, 'message' => 'Perintah refresh interfaces berhasil dikirim via TR-069.'];
+}
+
+/** Reboot device via TR-069 RPC bawaan (task name "reboot"). */
+function genieacs_reboot_device(string $serial): array {
+    $deviceId = genieacs_find_device_id($serial);
+    if (!$deviceId) return ['success' => false, 'message' => 'Device tidak ditemukan di GenieACS.'];
+    $result = genieacs_request('POST', "/devices/" . rawurlencode($deviceId) . "/tasks?connection_request",
+        ['name' => 'reboot'], 15);
+    if ($result === null) return ['success' => false, 'message' => 'Gagal mengirim perintah reboot -- device mungkin offline/tidak reachable.'];
+    return ['success' => true, 'message' => 'Perintah reboot berhasil dikirim via TR-069.'];
+}
+
+/** Reset ke factory default via TR-069 RPC bawaan (task name "factoryReset"). */
+function genieacs_factory_reset_device(string $serial): array {
+    $deviceId = genieacs_find_device_id($serial);
+    if (!$deviceId) return ['success' => false, 'message' => 'Device tidak ditemukan di GenieACS.'];
+    $result = genieacs_request('POST', "/devices/" . rawurlencode($deviceId) . "/tasks?connection_request",
+        ['name' => 'factoryReset'], 15);
+    if ($result === null) return ['success' => false, 'message' => 'Gagal mengirim perintah factory reset -- device mungkin offline/tidak reachable.'];
+    return ['success' => true, 'message' => 'Perintah reset ke factory default berhasil dikirim via TR-069.'];
+}
+
+/**
  * Hapus record device dari GenieACS (DELETE /devices/{id}) -- dipanggil saat ONU
  * dihapus/unbind dari SmartOLT supaya tidak ada data "sampah" (SSID/password/WAN lama)
  * nyangkut di ACS kalau SN yang sama dipasang ulang ke pelanggan lain nanti.

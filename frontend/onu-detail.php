@@ -2910,6 +2910,13 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             html += '<button type="button" class="btn-solt btn-solt-green sec-save" data-idx="'+idx+'" style="padding:6px 16px;font-size:0.82rem;margin-top:4px;">Simpan Perubahan</button>';
                             html += '</div></div>';
                         })();
+                        // Tombol perintah TR-069 (Refresh interfaces / Reboot / Reset to factory) --
+                        // di paling bawah panel, setara tombol yang sama di UI GenieACS langsung.
+                        html += '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;padding-top:16px;border-top:1px solid var(--border-color);">';
+                        html += '<button type="button" class="btn-solt btn-solt-blue tr069-cmd-btn" data-cmd="refresh"><i data-lucide="refresh-cw" style="width:14px;height:14px;"></i> Refresh interfaces</button>';
+                        html += '<button type="button" class="btn-solt btn-solt-orange tr069-cmd-btn" data-cmd="reboot"><i data-lucide="power" style="width:14px;height:14px;"></i> Reboot</button>';
+                        html += '<button type="button" class="btn-solt btn-solt-red tr069-cmd-btn" data-cmd="factory_reset"><i data-lucide="rotate-ccw" style="width:14px;height:14px;"></i> Reset to factory</button>';
+                        html += '</div>';
                         html += '</div>';
                         cliOutputBox.innerHTML = html;
                         // Auto-sync Mode ONU/Mode setup WAN/Username PPPoE di header halaman dari
@@ -2970,6 +2977,30 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 }).catch(() => alert('Gagal menambahkan provision.')).finally(() => { provBtn.disabled = false; });
                             });
                         }
+                        // Tombol perintah TR-069 (Refresh interfaces / Reboot / Reset to factory) --
+                        // kirim via action/tr069-action.php (form POST id + csrf, fetch() auto-inject token).
+                        const onuId = <?php echo (int)$onu['id']; ?>;
+                        cliOutputBox.querySelectorAll('.tr069-cmd-btn').forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                const cmd = btn.dataset.cmd;
+                                const confirmMsg = {
+                                    refresh: 'Refresh interfaces via TR-069?',
+                                    reboot: 'Reboot ONT via TR-069?',
+                                    factory_reset: 'Reset to factory via TR-069 akan MENGHAPUS semua konfigurasi ONT. ONT perlu diotorisasi ulang. Lanjutkan?'
+                                }[cmd];
+                                if (!confirm(confirmMsg)) return;
+                                btn.disabled = true;
+                                const body = new URLSearchParams({ id: onuId, tr069_action: cmd });
+                                fetch('action/tr069-action.php', { method: 'POST', body })
+                                    .then(r => r.json())
+                                    .then(d => {
+                                        alert(d.message || (d.success ? 'Berhasil.' : 'Gagal.'));
+                                        if (d.success && cmd !== 'refresh') fetchRealtimeData();
+                                    })
+                                    .catch(() => alert('Gagal mengirim perintah.'))
+                                    .finally(() => { btn.disabled = false; });
+                            });
+                        });
                         // Refresh button — sekarang ada di tiap section header (muncul saat section terbuka)
                         cliOutputBox.querySelectorAll('.tr069-refresh').forEach(refreshBtn => {
                             refreshBtn.addEventListener('click', (e) => {
