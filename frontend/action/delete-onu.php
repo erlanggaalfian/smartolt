@@ -5,6 +5,7 @@
 set_time_limit(0); // SSH delete command can exceed 30s default
 require_once __DIR__ . '/../../backend/db.php';
 require_once __DIR__ . '/../../backend/driver.php';
+require_once __DIR__ . '/../../backend/genieacs.php';
 
 if (!isset($_SESSION['smartolt_role'])) {
     $_SESSION['error'] = 'Akses ditolak! Silakan login terlebih dahulu.';
@@ -52,6 +53,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             if ($res['success']) {
+                // TR-069: hapus juga record device dari GenieACS supaya tidak ada data
+                // sampah (SSID/password/WAN lama) nyangkut kalau SN sama dipasang ulang
+                // ke pelanggan lain nanti. Gagal hapus ACS tidak membatalkan penghapusan
+                // (OLT + DB lokal sudah bersih) -- cukup dicatat sebagai warning.
+                $genieacs_warning = '';
+                if (($onu['config_method'] ?? '') === 'TR069') {
+                    $ga_res = genieacs_delete_device($onu['serial_number']);
+                    if (!$ga_res['success']) {
+                        $genieacs_warning = " (Peringatan: {$ga_res['message']})";
+                        error_log("[SmartOLT delete-onu] GenieACS delete failed: " . $ga_res['message']);
+                    }
+                }
+
                 // Hapus dari database local cache
                 $stmt_del = $pdo->prepare("DELETE FROM onus WHERE id = ?");
                 $stmt_del->execute([$id]);
@@ -59,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Audit Log
                 write_audit_log($onu['olt_id_raw'], 'ONU_DELETE', "ONT {$onu['serial_number']} ({$onu['name']}) berhasil dihapus / unbind dari PON {$onu['pon_port']} ID {$onu['onu_id']}.");
 
-                $_SESSION['success'] = "ONT {$onu['serial_number']} berhasil dihapus dari OLT dan database lokal.";
+                $_SESSION['success'] = "ONT {$onu['serial_number']} berhasil dihapus dari OLT dan database lokal." . $genieacs_warning;
             } else {
                 $_SESSION['error'] = "Gagal menghapus ONT dari OLT: " . $res['message'];
                 $redirect_url = '../onu-detail.php?id=' . $id;

@@ -199,6 +199,28 @@ function genieacs_refresh(string $deviceId, string $objectName = ''): ?array {
 }
 
 /**
+ * Hapus record device dari GenieACS (DELETE /devices/{id}) -- dipanggil saat ONU
+ * dihapus/unbind dari SmartOLT supaya tidak ada data "sampah" (SSID/password/WAN lama)
+ * nyangkut di ACS kalau SN yang sama dipasang ulang ke pelanggan lain nanti.
+ * Device offline juga tetap bisa dihapus (DELETE langsung ke NBI/MongoDB, tidak butuh
+ * connection-request ke CPE).
+ */
+function genieacs_delete_device(string $serial): array {
+    $deviceId = genieacs_find_device_id($serial);
+    if (!$deviceId) {
+        // Tidak ketemu di GenieACS = tidak ada yang perlu dihapus, bukan kegagalan.
+        return ['success' => true, 'message' => 'Device tidak ditemukan di GenieACS (tidak ada yang dihapus).'];
+    }
+    // genieacs_request return null KHUSUS kalau curl gagal / HTTP >=400 -- itu sinyal error asli
+    // (beda dari respons sukses kosong yang balik '' bukan null). Pakai itu utk deteksi gagal.
+    $result = genieacs_request('DELETE', '/devices/' . rawurlencode($deviceId), null, 10);
+    if ($result === null) {
+        return ['success' => false, 'message' => "Gagal menghapus device {$deviceId} dari GenieACS (HTTP error / timeout)."];
+    }
+    return ['success' => true, 'message' => "Device {$deviceId} dihapus dari GenieACS."];
+}
+
+/**
  * Resolve GenieACS device _id dari serial ONU. Coba: ID langsung, query SerialNumber,
  * lalu Huawei GPON→TR-069 hex convert (HWTCxxxx → 48575443xxxx), lalu suffix-match fallback.
  */
