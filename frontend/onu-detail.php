@@ -443,7 +443,7 @@ if (!empty($onu['onu_type'])) {
                     <i data-lucide="pencil" style="width:11px;height:11px;"></i>
                     <?php
                     $tr609 = $onu['tr069_profile'] ?: 'Nonaktif';
-                    echo htmlspecialchars($tr609);
+                    echo htmlspecialchars($tr609 === 'Nonaktif' ? 'Disable' : $tr609);
                     ?>
                 </span>
             </div>
