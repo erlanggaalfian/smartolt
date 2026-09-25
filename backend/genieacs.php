@@ -299,7 +299,7 @@ function genieacs_edit_wlan_params(string $serial, array $fields, int $wlanIndex
     $map = [
         'ssid' => ["{$base}.SSID", 'xsd:string', 'string'],
         'enable' => ["{$base}.Enable", 'xsd:boolean', 'bool'],
-        'password' => ["{$base}.KeyPassphrase", 'xsd:string', 'string'],
+        'password' => ["{$base}.PreSharedKey.1.KeyPassphrase", 'xsd:string', 'string'],
         'security' => ["{$base}.WPAEncryptionModes", 'xsd:string', 'string'],
         'channel' => ["{$base}.Channel", 'xsd:unsignedInt', 'int'],
         'auto_channel' => ["{$base}.AutoChannelEnable", 'xsd:boolean', 'bool'],
