@@ -854,7 +854,7 @@ class OltZteC300Driver(BaseDriver):
         status = 'online'
         pppoe_ip = 'N/A'
 
-        if any(x in output.lower() for x in ['not online', 'not active', 'offline']):
+        if any(x in output.lower() for x in ['not online', 'not active', 'offline', 'no signal']):
             status = 'offline'
 
         m = re.search(r'1490nm\s+Tx\s*:\s*\S+\s+Rx\s*:\s*([-]?\d+\.?\d*)', output, re.IGNORECASE)
