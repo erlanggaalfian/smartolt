@@ -1864,17 +1864,24 @@ $tr069_profiles = tr069_get_profiles($pdo);
             fetch('action/genieacs-proxy.php', {
                 method: 'POST', headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({serial, refresh: true})
-            }).finally(() => loadTr069Status());
+            }).finally(() => loadTr069Status({silent: true}));
         }
         if (btnTr069 && cliOutputBox) {
-            function loadTr069Status() {
-                cliOutputBox.style.display = 'block';
-                cliOutputBox.style.fontFamily = 'inherit';
-                cliOutputBox.style.whiteSpace = 'normal';
-                cliOutputBox.style.background = 'none';
-                cliOutputBox.style.border = 'none';
-                cliOutputBox.style.borderRadius = '0';
-                cliOutputBox.innerHTML = '<em>Memuat data GenieACS...</em>';
+            function loadTr069Status(opts) {
+                opts = opts || {};
+                // Simpan card mana yang lagi terbuka (by title, bukan index — index section
+                // bisa geser antar reload) supaya refresh scoped tidak collapse ke card pertama.
+                const openTitleEl = cliOutputBox.querySelector('.tr069-panel[style*="display: block"]');
+                const openTitle = openTitleEl ? openTitleEl.previousElementSibling.querySelector('span').textContent : null;
+                if (!opts.silent) {
+                    cliOutputBox.style.display = 'block';
+                    cliOutputBox.style.fontFamily = 'inherit';
+                    cliOutputBox.style.whiteSpace = 'normal';
+                    cliOutputBox.style.background = 'none';
+                    cliOutputBox.style.border = 'none';
+                    cliOutputBox.style.borderRadius = '0';
+                    cliOutputBox.innerHTML = '<em>Memuat data GenieACS...</em>';
+                }
                 btnTr069.disabled = true;
                 fetch(`action/genieacs-proxy.php?serial=${encodeURIComponent(serial)}`)
                     .then(r => r.json())
@@ -2794,6 +2801,19 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         })();
                         html += '</div>';
                         cliOutputBox.innerHTML = html;
+                        // Buka lagi card yang tadi sedang dilihat user (kalau ada) — jangan
+                        // collapse balik ke card pertama tiap refresh/save.
+                        if (openTitle) {
+                            const toggles = [...cliOutputBox.querySelectorAll('.tr069-toggle')];
+                            const match = toggles.find(t => t.querySelector('span').textContent === openTitle);
+                            if (match) {
+                                cliOutputBox.querySelectorAll('.tr069-panel').forEach(p => p.style.display = 'none');
+                                cliOutputBox.querySelectorAll('.tr069-refresh').forEach(r => r.style.display = 'none');
+                                match.nextElementSibling.style.display = 'block';
+                                const ri = match.querySelector('.tr069-refresh');
+                                if (ri) ri.style.display = 'inline';
+                            }
+                        }
                         // Accordion: single-open — buka panel yang diklik, sembunyikan sisanya;
                         // ikon refresh (.tr069-refresh) ikut muncul HANYA di header yang sedang terbuka.
                         cliOutputBox.querySelectorAll('.tr069-toggle').forEach(t => t.addEventListener('click', function() {
@@ -2831,7 +2851,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                     method: 'POST',
                                     headers: {'Content-Type': 'application/json'},
                                     body: JSON.stringify({serial, refresh: true})
-                                }).then(r => r.json()).then(() => loadTr069Status())
+                                }).then(r => r.json()).then(() => loadTr069Status({silent: true}))
                                   .catch(() => { refreshBtn.classList.remove('animate-spin'); refreshBtn.style.pointerEvents = 'auto'; alert('Gagal refresh.'); });
                             });
                         });
