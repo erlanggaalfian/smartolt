@@ -2403,6 +2403,8 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         }
                         // Render card Wireless LAN mirip layout webUI router — semua field bisa diedit.
                         function renderWlanCard(sec, i) {
+                            const wlanNumMatch = sec.title.match(/Wireless LAN\s+(\d+)/);
+                            const wlanNum = wlanNumMatch ? wlanNumMatch[1] : '1'; // instance TR-069 asli (WLANConfiguration.N), BEDA dari i (index section global, cuma buat DOM/accordion)
                             const enabled = pv(sec, 'Enable');
                             const status = pv(sec, 'Status') || (enabled ? 'Up' : 'Down');
                             const statusColor = status === 'Up' ? '#28a745' : '#6c757d';
@@ -2441,7 +2443,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             h += pppRow('Max Devices', (maxDev !== '' && maxDev != null) ? maxDev : 'N/A');
                             h += pppRow('Total Associations', (totalAssoc !== '' && totalAssoc != null) ? totalAssoc : '0');
                             h += '<div style="padding:12px 0 4px;">';
-                            h += '<button type="button" class="btn-solt btn-solt-green wlan-save" data-idx="'+i+'" style="padding:6px 16px;font-size:0.82rem;">Simpan Perubahan</button>';
+                            h += '<button type="button" class="btn-solt btn-solt-green wlan-save" data-idx="'+i+'" data-wlan-num="'+wlanNum+'" style="padding:6px 16px;font-size:0.82rem;">Simpan Perubahan</button>';
                             h += '</div>';
                             h += '</div></div>';
                             return h;
@@ -2862,11 +2864,12 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 const chMode = cliOutputBox.querySelector('.wlan-chmode[data-idx="'+idx+'"]:checked');
                                 fields.auto_channel = chMode && chMode.value === 'auto' ? '1' : '0';
                                 if (!fields.password) delete fields.password; // kosong = tidak diubah
+                                const wlanNum = btn.dataset.wlanNum || '1'; // instance TR-069 asli, BEDA dari idx (DOM index global)
                                 btn.disabled = true; btn.textContent = 'Menyimpan...';
                                 fetch('action/genieacs-proxy.php', {
                                     method: 'POST',
                                     headers: {'Content-Type': 'application/json'},
-                                    body: JSON.stringify({serial, edit_wlan: true, wlan_index: idx, ...fields})
+                                    body: JSON.stringify({serial, edit_wlan: true, wlan_index: wlanNum, ...fields})
                                 }).then(r => r.json()).then(d => {
                                     if (d.success) { alert(d.message || 'Berhasil dikirim.'); reloadAfterSave(); }
                                     else { alert('Error: ' + (d.message || 'Gagal')); btn.disabled = false; btn.textContent = 'Simpan Perubahan'; }
