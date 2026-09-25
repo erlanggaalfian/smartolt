@@ -537,6 +537,32 @@ function genieacs_ip_remove(string $serial, string $wanPath): array {
     return ['success' => true, 'message' => 'Instance IP WAN dihapus dari device via TR-069.'];
 }
 
+/**
+ * Cari index instance TR-069 yang SUDAH ADA di device untuk sebuah path object
+ * (mis. WANPPPConnection atau WANIPConnection), dan tandai kalau perlu addObject.
+ * Dipakai supaya push WAN tidak hardcode '.1' -- device migrasi dari ACS lain sering
+ * sudah punya instance dengan index BEDA (mis. '.2'); menulis ke index yang salah bikin
+ * GenieACS/device addObject instance BARU di samping yang lama (muncul dobel di UI,
+ * BRAS/device bingung instance mana yang aktif).
+ */
+function genieacs_find_wan_instance(string $deviceId, string $objectPath): array {
+    $existing = genieacs_request('GET', "/devices/?query=" . rawurlencode(json_encode(['_id' => $deviceId]))
+        . "&projection=" . rawurlencode($objectPath), null, 10);
+    $index = '1';
+    $node = (is_array($existing) && !empty($existing[0])) ? $existing[0] : null;
+    foreach (explode('.', $objectPath) as $seg) {
+        if ($node === null) break;
+        $node = $node[$seg] ?? null;
+    }
+    if (is_array($node)) {
+        $indices = array_filter(array_keys($node), fn($k) => ((string) $k)[0] !== '_');
+        if (!empty($indices)) {
+            $index = (string) $indices[0];
+        }
+    }
+    return ['index' => $index, 'needs_add' => !is_array($node) || empty(array_filter(array_keys($node), fn($k) => ((string) $k)[0] !== '_'))];
+}
+
 function genieacs_push_wan(string $serial, string $wan_mode, array $wan): array {
     $deviceId = genieacs_find_device_id($serial);
     if (!$deviceId) {
@@ -547,32 +573,10 @@ function genieacs_push_wan(string $serial, string $wan_mode, array $wan): array 
     $params = [];
 
     if ($wan_mode === 'PPPoE') {
-        // BUG LAMA: kode ini selalu hardcode instance '.1', tapi banyak device (migrasi dari
-        // ACS lain) sudah punya instance WANPPPConnection dengan index BEDA (mis. '.2') --
-        // nulis ke '.1' bikin GenieACS/device addObject instance BARU di samping yang lama,
-        // hasilnya muncul "PPP Interface 1.1.1" DAN "1.1.2" dobel di UI, device bingung device
-        // mana yang dipakai BRAS. Cek instance yang SUDAH ADA dulu, reuse index itu; addObject
-        // HANYA kalau device belum punya WANPPPConnection sama sekali.
         $pppPath = "{$base}.WANPPPConnection";
-        $existing = genieacs_request('GET', "/devices/?query=" . rawurlencode(json_encode(['_id' => $deviceId]))
-            . "&projection=" . rawurlencode($pppPath), null, 10);
-        $pppIndex = '1';
-        if (is_array($existing) && !empty($existing[0])) {
-            $node = $existing[0];
-            foreach (explode('.', $pppPath) as $seg) {
-                $node = $node[$seg] ?? null;
-                if ($node === null) break;
-            }
-            if (is_array($node)) {
-                $indices = array_filter(array_keys($node), fn($k) => $k[0] !== '_');
-                if (!empty($indices)) {
-                    $pppIndex = (string) $indices[0];
-                }
-            }
-        }
-        $needsAdd = !is_array($existing) || empty($existing[0])
-            || !isset($existing[0]['InternetGatewayDevice']['WANDevice']['1']['WANConnectionDevice']['1']['WANPPPConnection']);
-        if ($needsAdd) {
+        $inst = genieacs_find_wan_instance($deviceId, $pppPath);
+        $pppIndex = $inst['index'];
+        if ($inst['needs_add']) {
             $add_result = genieacs_request('POST', "/devices/" . rawurlencode($deviceId) . "/tasks?connection_request",
                 ['name' => 'addObject', 'objectName' => $pppPath], 15);
             if ($add_result === null) {
@@ -594,19 +598,37 @@ function genieacs_push_wan(string $serial, string $wan_mode, array $wan): array 
         if (!empty($wan['vlan_service'])) {
             $params["{$pppPath}.{$pppIndex}.X_HW_VLAN"] = [(int) $wan['vlan_service'], 'xsd:int'];
         }
-    } elseif ($wan_mode === 'Static') {
-        $params["{$base}.WANIPConnection.1.AddressingType"] = ['Static', 'xsd:string'];
-        $params["{$base}.WANIPConnection.1.ExternalIPAddress"] = [$wan['static_ip'] ?? '', 'xsd:string'];
-        $params["{$base}.WANIPConnection.1.SubnetMask"] = [$wan['static_netmask'] ?? '', 'xsd:string'];
-        $params["{$base}.WANIPConnection.1.DefaultGateway"] = [$wan['static_gateway'] ?? '', 'xsd:string'];
-        $dns = trim(($wan['static_dns_primary'] ?? '') . ',' . ($wan['static_dns_secondary'] ?? ''), ',');
-        $params["{$base}.WANIPConnection.1.DNSServers"] = [$dns, 'xsd:string'];
-        $params["{$base}.WANIPConnection.1.Enable"] = [true, 'xsd:boolean'];
-        $params["{$base}.WANIPConnection.1.X_HW_SERVICELIST"] = ['INTERNET', 'xsd:string'];
-    } elseif ($wan_mode === 'DHCP') {
-        $params["{$base}.WANIPConnection.1.AddressingType"] = ['DHCP', 'xsd:string'];
-        $params["{$base}.WANIPConnection.1.Enable"] = [true, 'xsd:boolean'];
-        $params["{$base}.WANIPConnection.1.X_HW_SERVICELIST"] = ['INTERNET', 'xsd:string'];
+    } elseif ($wan_mode === 'Static' || $wan_mode === 'DHCP') {
+        // Sama seperti PPPoE: jangan hardcode index '.1', device migrasi bisa sudah punya
+        // instance WANIPConnection dengan index lain -- reuse, jangan addObject sembarangan.
+        $ipPath = "{$base}.WANIPConnection";
+        $inst = genieacs_find_wan_instance($deviceId, $ipPath);
+        $ipIndex = $inst['index'];
+        if ($inst['needs_add']) {
+            $add_result = genieacs_request('POST', "/devices/" . rawurlencode($deviceId) . "/tasks?connection_request",
+                ['name' => 'addObject', 'objectName' => $ipPath], 15);
+            if ($add_result === null) {
+                return ['success' => false, 'message' => 'Gagal membuat instance WANIPConnection di device (device tidak reachable).'];
+            }
+        }
+        if ($wan_mode === 'Static') {
+            $params["{$ipPath}.{$ipIndex}.AddressingType"] = ['Static', 'xsd:string'];
+            $params["{$ipPath}.{$ipIndex}.ExternalIPAddress"] = [$wan['static_ip'] ?? '', 'xsd:string'];
+            $params["{$ipPath}.{$ipIndex}.SubnetMask"] = [$wan['static_netmask'] ?? '', 'xsd:string'];
+            $params["{$ipPath}.{$ipIndex}.DefaultGateway"] = [$wan['static_gateway'] ?? '', 'xsd:string'];
+            $dns = trim(($wan['static_dns_primary'] ?? '') . ',' . ($wan['static_dns_secondary'] ?? ''), ',');
+            $params["{$ipPath}.{$ipIndex}.DNSServers"] = [$dns, 'xsd:string'];
+        } else {
+            $params["{$ipPath}.{$ipIndex}.AddressingType"] = ['DHCP', 'xsd:string'];
+        }
+        $params["{$ipPath}.{$ipIndex}.Enable"] = [true, 'xsd:boolean'];
+        $params["{$ipPath}.{$ipIndex}.X_HW_SERVICELIST"] = ['INTERNET', 'xsd:string'];
+        // Sama seperti PPPoE: NAT wajib aktif, kalau tidak trafik LAN tidak ditranslate.
+        $params["{$ipPath}.{$ipIndex}.NATEnabled"] = [true, 'xsd:boolean'];
+        // Sama seperti PPPoE: VLAN wajib match VLAN service ONU di OLT.
+        if (!empty($wan['vlan_service'])) {
+            $params["{$ipPath}.{$ipIndex}.X_HW_VLAN"] = [(int) $wan['vlan_service'], 'xsd:int'];
+        }
     } else {
         // 'Setup via ONU webpage' — tidak ada parameter WAN yang dipush.
         return ['success' => true, 'message' => 'Mode "Setup via ONU webpage" — tidak ada perubahan WAN dikirim via TR-069.'];
