@@ -647,6 +647,36 @@ function genieacs_push_wan(string $serial, string $wan_mode, array $wan): array 
 
     $params = [];
 
+    // Mode ONU = Bridging: ONU jadi transparan (bridge), bukan router ber-NAT.
+    // TR-069 standar: ConnectionType=IP_Bridged di WANIPConnection, NAT off, tidak perlu
+    // DefaultConnectionService (tidak ada routing L3 untuk diarahkan). wan_mode diabaikan
+    // di mode ini karena bridge tidak kenal PPPoE/DHCP/Static di sisi ONU.
+    if (($wan['onu_mode'] ?? 'Routing') === 'Bridging') {
+        $inst = genieacs_find_wan_instance_anywhere($deviceId, 'WANIPConnection');
+        $ipPath = $inst['path'];
+        $ipIndex = $inst['index'];
+        if ($inst['needs_add']) {
+            $add_result = genieacs_request('POST', "/devices/" . rawurlencode($deviceId) . "/tasks?connection_request",
+                ['name' => 'addObject', 'objectName' => $ipPath], 15);
+            if ($add_result === null) {
+                return ['success' => false, 'message' => 'Gagal membuat instance WANIPConnection di device (device tidak reachable).'];
+            }
+        }
+        $params["{$ipPath}.{$ipIndex}.ConnectionType"] = ['IP_Bridged', 'xsd:string'];
+        $params["{$ipPath}.{$ipIndex}.Enable"] = [true, 'xsd:boolean'];
+        $params["{$ipPath}.{$ipIndex}.NATEnabled"] = [false, 'xsd:boolean'];
+        if (!empty($wan['vlan_service'])) {
+            $params["{$ipPath}.{$ipIndex}.X_HW_VLAN"] = [(int) $wan['vlan_service'], 'xsd:int'];
+            $params["{$ipPath}.{$ipIndex}.VLANEnable"] = [true, 'xsd:boolean'];
+            $params["{$ipPath}.{$ipIndex}.VLANID"] = [(int) $wan['vlan_service'], 'xsd:unsignedInt'];
+        }
+        $result = genieacs_set_params($deviceId, $params, 15);
+        if ($result === null) {
+            return ['success' => false, 'message' => 'Gagal mengirim task TR-069 ke GenieACS (request gagal/timeout).'];
+        }
+        return ['success' => true, 'message' => 'Mode Bridging (IP_Bridged) berhasil dikirim via TR-069.'];
+    }
+
     if ($wan_mode === 'PPPoE') {
         $inst = genieacs_find_wan_instance_anywhere($deviceId, 'WANPPPConnection');
         $pppPath = $inst['path'];
