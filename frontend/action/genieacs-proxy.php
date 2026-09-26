@@ -283,6 +283,43 @@ function emit_device(array $data, ?string $dbPassword, array $wlanPasswords = []
         unset($lanDev);
     };
     $filterWlan($data);
+    // Filter: strip VoiceService child object dalam (Codec/Tone/RTP/SIP detail) yang tidak
+    // dipakai JS — JS cuma butuh Enable/DirectoryNumber/Status/SIP.* per VoiceProfile.Line.
+    // VoiceService bisa 137KB raw (Huawei), ini potong jauh.
+    $rootKey = isset($data['InternetGatewayDevice']) ? 'InternetGatewayDevice' : 'Device';
+    if (is_array($data[$rootKey]['Services']['VoiceService'] ?? null)) {
+        foreach ($data[$rootKey]['Services']['VoiceService'] as &$vs) {
+            if (!is_array($vs) || !isset($vs['VoiceProfile'])) continue;
+            foreach ($vs['VoiceProfile'] as &$vp) {
+                if (!is_array($vp) || !isset($vp['Line'])) continue;
+                $lines = $vp['Line'];
+                // Strip semua field Line SELAIN Enable/DirectoryNumber/Status/SIP + metadata
+                foreach ($lines as &$line) {
+                    if (!is_array($line)) continue;
+                    $keep = [];
+                    foreach ($line as $lk => $lv) {
+                        if (is_string($lk) && $lk[0] === '_') { $keep[$lk] = $lv; continue; }
+                        if ($lk === 'Enable' || $lk === 'DirectoryNumber' || $lk === 'Status') { $keep[$lk] = $lv; continue; }
+                        if ($lk === 'SIP' && is_array($lv)) {
+                            // Cuma keep AuthUserName, AuthPassword, URI dari SIP
+                            $sipKeep = [];
+                            foreach ($lv as $sk => $sv) {
+                                if (is_string($sk) && $sk[0] === '_') { $sipKeep[$sk] = $sv; continue; }
+                                if (in_array($sk, ['AuthUserName', 'AuthPassword', 'URI'])) $sipKeep[$sk] = $sv;
+                            }
+                            $keep['SIP'] = $sipKeep;
+                        }
+                        // Buat objek lain (Codec, Tone, CallingFeatures, RTP, dsb) — skip
+                    }
+                    $line = $keep;
+                }
+                unset($line);
+                $vp['Line'] = $lines;
+            }
+            unset($vp);
+        }
+        unset($vs);
+    }
     echo json_encode($data); exit;
 }
 
