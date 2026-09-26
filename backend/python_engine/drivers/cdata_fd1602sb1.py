@@ -686,7 +686,44 @@ class OltCdataFd1602sb1Driver(BaseDriver):
         return {
             'success': ok,
             'message': f'Deskripsi ONU {pon_port}/{onu_id} berhasil diperbarui.' if ok
-                       else f"OLT menolak perintah: {log}",
+                       else f'OLT menolak: {log}',
+            'log': log
+        }
+
+    def set_mgmt_ip(self, olt: dict, pon_port: str, onu_id: int, mode: str, vlan: int = 0, ip: str = '', wan_remote: str = 'no') -> dict:
+        """Push IP Manajemen ke ONU via OLT CLI CDATA.
+        mode: 'Inactive' (disable), 'DHCP', 'Static'.
+        Dipisah dari WAN internet pelanggan pakai ip-index 1 (ip-index 0 = WAN),
+        pola ini terverifikasi vendor: 1 ONU boleh punya 2 ip-index berbeda sekaligus
+        (referensi: citraweb.com/artikel/574 -- WAN Configuration ONU via CLI OLT C-DATA).
+        """
+        if is_demo_olt(olt):
+            return {'success': True, 'message': f'MGMT IP set to {mode} (Mode Demo).'}
+        parts = pon_port.split('/')
+        port = int(parts[-1]) if len(parts) >= 3 else 1
+        interface_path = "/".join(parts[:-1]) if len(parts) >= 3 else pon_port
+
+        commands = ["enable", "config", f"interface gpon {interface_path}"]
+        if mode == 'Inactive':
+            commands.append(f"no ont ipconfig {port} {onu_id} ip-index 1")
+        elif mode == 'DHCP':
+            commands.append(f"no ont ipconfig {port} {onu_id} ip-index 1")
+            commands.append(f"ont ipconfig {port} {onu_id} ip-index 1 dhcp vlan {vlan} priority 0")
+        elif mode == 'Static':
+            if not ip:
+                return {'success': False, 'message': 'IP address wajib diisi untuk mode Static.'}
+            mask = '255.255.255.0'
+            commands.append(f"no ont ipconfig {port} {onu_id} ip-index 1")
+            commands.append(f"ont ipconfig {port} {onu_id} ip-index 1 static ip-address {ip} mask {mask} vlan {vlan} priority 0 gateway 0.0.0.0")
+        else:
+            return {'success': False, 'message': f'Mode {mode} tidak didukung.'}
+        commands += ["exit", "write"]
+
+        log = execute_ssh_commands(olt, commands)
+        ok = not any(x in log.lower() for x in ['failed', 'error', 'invalid'])
+        return {
+            'success': ok,
+            'message': f'IP Manajemen berhasil diubah ke {mode}.' if ok else f'OLT menolak: {log}',
             'log': log
         }
 
