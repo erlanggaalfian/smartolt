@@ -2936,6 +2936,23 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         if (isFiberHomeSecurity) (() => {
                             const acl = root.X_FH_ACL || {};
                             const lcs = root.LANConfigSecurity || {};
+                            // Daftar interface WAN NYATA dari device (Name field tiap WANIPConnection/
+                            // WANPPPConnection) -- dipakai isi <select> modal, user TIDAK ketik manual
+                            // (device tolak nama sembarang, fault 9005 "Invalid parameter name").
+                            window.fhAclInterfaces = (() => {
+                                const names = [];
+                                Object.values(root.WANDevice || {}).forEach(wdev => {
+                                    Object.values(wdev?.WANConnectionDevice || {}).forEach(wcd => {
+                                        ['WANIPConnection', 'WANPPPConnection'].forEach(kind => {
+                                            Object.values(wcd?.[kind] || {}).forEach(conn => {
+                                                const n = conn?.Name?._value;
+                                                if (n && !names.includes(n)) names.push(n);
+                                            });
+                                        });
+                                    });
+                                });
+                                return names;
+                            })();
                             const idx = sections.length + 2;
                             html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
                             html += '<div class="tr069-toggle" data-idx="'+idx+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
@@ -3327,7 +3344,8 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 document.getElementById('fhacl-modal-srcstart').value = '';
                                 document.getElementById('fhacl-modal-srcend').value = '';
                                 document.getElementById('fhacl-modal-protocol').value = 'ALL';
-                                document.getElementById('fhacl-modal-interface').value = '';
+                                const sel = document.getElementById('fhacl-modal-interface');
+                                sel.innerHTML = (window.fhAclInterfaces || []).map(n => '<option value="'+n+'">'+n+'</option>').join('');
                                 document.getElementById('fhacl-modal').classList.add('open');
                             });
                         });
@@ -3340,7 +3358,11 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 document.getElementById('fhacl-modal-srcstart').value = btn.dataset.srcstart === '0.0.0.0' ? '' : btn.dataset.srcstart;
                                 document.getElementById('fhacl-modal-srcend').value = (btn.dataset.srcend === '255.255.255.255' ? '' : btn.dataset.srcend);
                                 document.getElementById('fhacl-modal-protocol').value = btn.dataset.protocol || 'ALL';
-                                document.getElementById('fhacl-modal-interface').value = btn.dataset.interface;
+                                const sel = document.getElementById('fhacl-modal-interface');
+                                const opts = [...(window.fhAclInterfaces || [])];
+                                if (btn.dataset.interface && !opts.includes(btn.dataset.interface)) opts.push(btn.dataset.interface);
+                                sel.innerHTML = opts.map(n => '<option value="'+n+'">'+n+'</option>').join('');
+                                sel.value = btn.dataset.interface;
                                 document.getElementById('fhacl-modal').classList.add('open');
                             });
                         });
@@ -3605,7 +3627,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                 </tr>
                 <tr style="height:46px;">
                     <td style="font-weight:600;color:var(--text-main);">Interface</td>
-                    <td><input type="text" id="fhacl-modal-interface" placeholder="contoh: 1_INTERNET_R_VID_15" style="width:100%;padding:8px 12px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);color:var(--text-main);"></td>
+                    <td><select id="fhacl-modal-interface" style="width:100%;padding:8px 12px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);color:var(--text-main);"></select></td>
                 </tr>
             </table>
         </div>
