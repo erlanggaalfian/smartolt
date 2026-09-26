@@ -253,6 +253,36 @@ function emit_device(array $data, ?string $dbPassword, array $wlanPasswords = []
             }
         }
     }
+    // Filter: buang WLANConfiguration yang tidak aktif (Enable bukan 1) DAN SSID default
+    // vendor/kosong — device FiberHome sering lapor 16 profil WiFi padahal cuma 2 yang
+    // benar-benar aktif, sisanya placeholder (fh_ssid2, fh_ssid3, dst). Ini potong
+    // payload dari ~430KB ke ~170KB, langsung kena akar masalah lambatnya frontend.
+    $filterWlan = function (array &$data) {
+        $rootKey = isset($data['InternetGatewayDevice']) ? 'InternetGatewayDevice' : 'Device';
+        if (!is_array($data[$rootKey]['LANDevice'] ?? null)) return;
+        foreach ($data[$rootKey]['LANDevice'] as &$lanDev) {
+            if (!is_array($lanDev['WLANConfiguration'] ?? null)) continue;
+            $filtered = [];
+            foreach ($lanDev['WLANConfiguration'] as $wk => $wv) {
+                // Skip metadata keys (_object, _timestamp, _writable) — bukan entry WiFi.
+                if (is_string($wk) && $wk[0] === '_') { $filtered[$wk] = $wv; continue; }
+                if (!is_array($wv)) { $filtered[$wk] = $wv; continue; }
+                $en = $wv['Enable']['_value'] ?? null;
+                $ssid = (string)($wv['SSID']['_value'] ?? '');
+                $totalAssoc = (int)($wv['TotalAssociations']['_value'] ?? 0);
+                $isActive = ($en === 1 || $en === '1' || $en === true);
+                $hasAssoc = $totalAssoc > 0;
+                // Custom = bukan default vendor (fh_* atau BH_*) DAN bukan kosong.
+                $hasCustomSsid = ($ssid !== '' && !preg_match('/^(fh_|BH_)/', $ssid));
+                if ($isActive || $hasAssoc || $hasCustomSsid) {
+                    $filtered[$wk] = $wv;
+                }
+            }
+            $lanDev['WLANConfiguration'] = $filtered;
+        }
+        unset($lanDev);
+    };
+    $filterWlan($data);
     echo json_encode($data); exit;
 }
 
