@@ -1339,7 +1339,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                     <tr id="row-pppoe-user" style="height: 50px;">
                         <td style="font-weight: 600; color:var(--text-main); vertical-align: middle; padding: 6px 0;">Nama Pengguna</td>
                         <td style="vertical-align: middle; padding: 6px 0;">
-                            <input type="text" name="pppoe_username" value="<?php echo htmlspecialchars($onu['pppoe_username'] ?: ''); ?>" style="width:100%; max-width: 320px; padding:8px 12px; border:1px solid var(--border-color); border-radius:4px; font-size:0.9rem; box-sizing:border-box; color:var(--text-main); background:var(--bg-tertiary);">
+                            <input type="text" name="pppoe_username" autocomplete="off" data-lpignore="true" data-form-type="other" value="<?php echo htmlspecialchars($onu['pppoe_username'] ?: ''); ?>" style="width:100%; max-width: 320px; padding:8px 12px; border:1px solid var(--border-color); border-radius:4px; font-size:0.9rem; box-sizing:border-box; color:var(--text-main); background:var(--bg-tertiary);">
                         </td>
                     </tr>
 
@@ -1347,7 +1347,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                     <tr id="row-pppoe-pass" style="height: 50px;">
                         <td style="font-weight: 600; color:var(--text-main); vertical-align: middle; padding: 6px 0;">Kata Sandi</td>
                         <td style="vertical-align: middle; padding: 6px 0;">
-                            <input type="password" name="pppoe_password" value="<?php echo htmlspecialchars($onu['pppoe_password'] ?: ''); ?>" style="width:100%; max-width: 320px; padding:8px 12px; border:1px solid var(--border-color); border-radius:4px; font-size:0.9rem; box-sizing:border-box; color:var(--text-main); background:var(--bg-tertiary);">
+                            <input type="password" name="pppoe_password" autocomplete="new-password" data-lpignore="true" data-form-type="other" value="<?php echo htmlspecialchars($onu['pppoe_password'] ?: ''); ?>" style="width:100%; max-width: 320px; padding:8px 12px; border:1px solid var(--border-color); border-radius:4px; font-size:0.9rem; box-sizing:border-box; color:var(--text-main); background:var(--bg-tertiary);">
                         </td>
                     </tr>
 
