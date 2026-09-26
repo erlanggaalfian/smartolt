@@ -594,29 +594,42 @@ function genieacs_ip_remove(string $serial, string $wanPath): array {
 }
 
 /**
- * Cari index instance TR-069 yang SUDAH ADA di device untuk sebuah path object
- * (mis. WANPPPConnection atau WANIPConnection), dan tandai kalau perlu addObject.
- * Dipakai supaya push WAN tidak hardcode '.1' -- device migrasi dari ACS lain sering
- * sudah punya instance dengan index BEDA (mis. '.2'); menulis ke index yang salah bikin
- * GenieACS/device addObject instance BARU di samping yang lama (muncul dobel di UI,
- * BRAS/device bingung instance mana yang aktif).
+ * Cari LINTAS semua WANDevice.*.WANConnectionDevice.* -- bukan cuma WANDevice.1.WANConnectionDevice.1.
+ * Reuse path yang SUDAH ADA supaya klik Simpan berulang tidak bikin instance dobel;
+ * addObject hanya dipakai kalau device benar-benar belum punya instance jenis ini sama sekali.
+ * $objectType: 'WANPPPConnection' atau 'WANIPConnection'.
  */
-function genieacs_find_wan_instance(string $deviceId, string $objectPath): array {
-    $existing = genieacs_request('GET', "/devices/?query=" . rawurlencode(json_encode(['_id' => $deviceId]))
-        . "&projection=" . rawurlencode($objectPath), null, 10);
-    $index = '1';
-    $node = (is_array($existing) && !empty($existing[0])) ? $existing[0] : null;
-    foreach (explode('.', $objectPath) as $seg) {
-        if ($node === null) break;
-        $node = $node[$seg] ?? null;
-    }
-    if (is_array($node)) {
-        $indices = array_filter(array_keys($node), fn($k) => ((string) $k)[0] !== '_');
-        if (!empty($indices)) {
-            $index = (string) $indices[0];
+function genieacs_find_wan_instance_anywhere(string $deviceId, string $objectType): array {
+    $result = genieacs_request('GET', "/devices/?query=" . rawurlencode(json_encode(['_id' => $deviceId]))
+        . "&projection=InternetGatewayDevice.WANDevice", null, 10);
+    $wanDevices = (is_array($result) && !empty($result[0]['InternetGatewayDevice']['WANDevice']))
+        ? $result[0]['InternetGatewayDevice']['WANDevice'] : null;
+    if (is_array($wanDevices)) {
+        foreach ($wanDevices as $wKey => $wVal) {
+            if (((string) $wKey)[0] === '_' || !is_array($wVal)) continue;
+            $connDevices = $wVal['WANConnectionDevice'] ?? null;
+            if (!is_array($connDevices)) continue;
+            foreach ($connDevices as $cKey => $cVal) {
+                if (((string) $cKey)[0] === '_' || !is_array($cVal)) continue;
+                $objNode = $cVal[$objectType] ?? null;
+                if (!is_array($objNode)) continue;
+                $indices = array_filter(array_keys($objNode), fn($k) => ((string) $k)[0] !== '_');
+                if (!empty($indices)) {
+                    return [
+                        'path' => "InternetGatewayDevice.WANDevice.{$wKey}.WANConnectionDevice.{$cKey}.{$objectType}",
+                        'index' => (string) reset($indices),
+                        'needs_add' => false,
+                    ];
+                }
+            }
         }
     }
-    return ['index' => $index, 'needs_add' => !is_array($node) || empty(array_filter(array_keys($node), fn($k) => ((string) $k)[0] !== '_'))];
+    // Tidak ketemu sama sekali di device manapun -- pakai default base untuk addObject.
+    return [
+        'path' => "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.{$objectType}",
+        'index' => '1',
+        'needs_add' => true,
+    ];
 }
 
 function genieacs_push_wan(string $serial, string $wan_mode, array $wan): array {
@@ -625,12 +638,11 @@ function genieacs_push_wan(string $serial, string $wan_mode, array $wan): array 
         return ['success' => false, 'message' => 'Device tidak ditemukan di GenieACS.'];
     }
 
-    $base = 'InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1';
     $params = [];
 
     if ($wan_mode === 'PPPoE') {
-        $pppPath = "{$base}.WANPPPConnection";
-        $inst = genieacs_find_wan_instance($deviceId, $pppPath);
+        $inst = genieacs_find_wan_instance_anywhere($deviceId, 'WANPPPConnection');
+        $pppPath = $inst['path'];
         $pppIndex = $inst['index'];
         if ($inst['needs_add']) {
             $add_result = genieacs_request('POST', "/devices/" . rawurlencode($deviceId) . "/tasks?connection_request",
@@ -657,8 +669,8 @@ function genieacs_push_wan(string $serial, string $wan_mode, array $wan): array 
     } elseif ($wan_mode === 'Static' || $wan_mode === 'DHCP') {
         // Sama seperti PPPoE: jangan hardcode index '.1', device migrasi bisa sudah punya
         // instance WANIPConnection dengan index lain -- reuse, jangan addObject sembarangan.
-        $ipPath = "{$base}.WANIPConnection";
-        $inst = genieacs_find_wan_instance($deviceId, $ipPath);
+        $inst = genieacs_find_wan_instance_anywhere($deviceId, 'WANIPConnection');
+        $ipPath = $inst['path'];
         $ipIndex = $inst['index'];
         if ($inst['needs_add']) {
             $add_result = genieacs_request('POST', "/devices/" . rawurlencode($deviceId) . "/tasks?connection_request",
