@@ -1295,8 +1295,8 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         </td>
                     </tr>
 
-                    <!-- WAN mode -->
-                    <tr>
+                    <!-- WAN mode (disembunyikan kalau Mode ONU = Bridging, karena bridge tidak kenal WAN mode) -->
+                    <tr id="row-wan-mode">
                         <td style="font-weight: 600; color:var(--text-main); vertical-align: top; padding: 12px 0;">Mode WAN</td>
                         <td style="padding: 8px 0;">
                             <div style="margin-bottom: 8px;">
@@ -1613,7 +1613,15 @@ $tr069_profiles = tr069_get_profiles($pdo);
         document.querySelectorAll('.wan-mode-radio').forEach(r => r.addEventListener('change', toggleWanModeFields));
         toggleWanModeFields();
 
-        // Zone -> Splitter dropdown chaining
+        // Mode ONU = Bridging: sembunyikan seluruh section Mode WAN (tidak relevan, ONU jadi transparan)
+        function toggleOnuModeFields() {
+            const checked = document.querySelector('input[name="onu_mode"]:checked');
+            const mode = checked ? checked.value : 'Routing';
+            const rowWanMode = document.getElementById('row-wan-mode');
+            if (rowWanMode) rowWanMode.style.display = (mode === 'Bridging') ? 'none' : '';
+        }
+        document.querySelectorAll('input[name="onu_mode"]').forEach(r => r.addEventListener('change', toggleOnuModeFields));
+        toggleOnuModeFields();
         const zoneSelect = document.getElementById('identity-zone-select');
         const splitterSelect = document.getElementById('identity-splitter-select');
         const currentSplitter = <?php echo json_encode(($parsed_desc['splitter'] && strtolower($parsed_desc['splitter']) !== 'none') ? $parsed_desc['splitter'] : ''); ?>;
