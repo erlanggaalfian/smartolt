@@ -661,10 +661,14 @@ function genieacs_push_wan(string $serial, string $wan_mode, array $wan): array 
         // jadi service type WAJIB "INTERNET" — kalau device default/kepake "OTHER" pelanggan
         // tidak bisa browsing walau PPPoE-nya sendiri connect.
         $params["{$pppPath}.{$pppIndex}.X_HW_SERVICELIST"] = ['INTERNET', 'xsd:string'];
-        // X_HW_VLAN wajib match VLAN service ONU di OLT -- kalau device masih default/beda VLAN,
+        // VLAN wajib match VLAN service ONU di OLT -- kalau device masih default/beda VLAN,
         // PPP tetap bisa "Connected" ke BRAS tapi trafik salah VLAN, pelanggan gagal browsing.
+        // Kirim KEDUA param: X_HW_VLAN (vendor Huawei) dan VLANID (param TR-069 standar,
+        // dipakai FiberHome/vendor lain) -- device abaikan param yang tidak ia kenal.
         if (!empty($wan['vlan_service'])) {
             $params["{$pppPath}.{$pppIndex}.X_HW_VLAN"] = [(int) $wan['vlan_service'], 'xsd:int'];
+            $params["{$pppPath}.{$pppIndex}.VLANEnable"] = [true, 'xsd:boolean'];
+            $params["{$pppPath}.{$pppIndex}.VLANID"] = [(int) $wan['vlan_service'], 'xsd:unsignedInt'];
         }
     } elseif ($wan_mode === 'Static' || $wan_mode === 'DHCP') {
         // Sama seperti PPPoE: jangan hardcode index '.1', device migrasi bisa sudah punya
@@ -694,8 +698,11 @@ function genieacs_push_wan(string $serial, string $wan_mode, array $wan): array 
         // Sama seperti PPPoE: NAT wajib aktif, kalau tidak trafik LAN tidak ditranslate.
         $params["{$ipPath}.{$ipIndex}.NATEnabled"] = [true, 'xsd:boolean'];
         // Sama seperti PPPoE: VLAN wajib match VLAN service ONU di OLT.
+        // Kirim KEDUA param: X_HW_VLAN (Huawei) dan VLANID (standar, dipakai FiberHome dkk).
         if (!empty($wan['vlan_service'])) {
             $params["{$ipPath}.{$ipIndex}.X_HW_VLAN"] = [(int) $wan['vlan_service'], 'xsd:int'];
+            $params["{$ipPath}.{$ipIndex}.VLANEnable"] = [true, 'xsd:boolean'];
+            $params["{$ipPath}.{$ipIndex}.VLANID"] = [(int) $wan['vlan_service'], 'xsd:unsignedInt'];
         }
     } else {
         // 'Setup via ONU webpage' — tidak ada parameter WAN yang dipush.
