@@ -2892,27 +2892,50 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                     + opts.map(o => '<label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-weight:400;"><input type="radio" name="'+id+'" value="'+o[0]+'" id="'+id+'-'+o[0]+'"'+(String(val)===o[0]?' checked':'')+'> '+o[1]+'</label>').join('')
                                     + '</div></div>';
                             };
-                            const rowText = (label, id, val, type) => '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><label style="width:230px;color:var(--text-muted);">'+label+'</label><input type="'+(type||'text')+'" id="'+id+'" value="'+esc(val)+'" style="flex:1;padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);"></div>';
+                            const rowText = (label, id, val, ph) => '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><label style="width:150px;color:var(--text-muted);">'+label+'</label><input type="text" id="'+id+'" value="'+esc(val)+'" placeholder="'+(ph||'')+'" style="flex:1;padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);"></div>';
                             const enDis = [['1','Enabled'],['0','Disabled']];
-                            // LanIPV4Rule.<svc> berupa bitmask (0 = diblokir semua, non-zero = diizinkan) --
-                            // disederhanakan jadi toggle Enable/Disable, sesuai instruksi "tampilan boleh
-                            // beda yang penting config jalan". Saat Enable, kirim 1048575 (semua host, nilai
-                            // asli device saat servis itu aktif -- dikonfirmasi dari data device test).
-                            const ruleOn = k => String(acl['LanIPV4Rule.'+k]?._value ?? 0) !== '0' ? '1' : '0';
-                            html += rowRadio('ACL Enable (master switch)', 'fhsec-acl-enable', acl.Enable?._value, enDis);
-                            html += '<div style="color:var(--text-muted);font-size:0.78rem;margin:-4px 0 10px;">Kalau ACL Enable = Disabled, semua service di bawah dianggap terbuka (ACL tidak aktif).</div>';
-                            html += '<div style="border-top:1px solid var(--border-color);margin:0 0 10px;"></div>';
-                            html += rowRadio('HTTP (Web UI) access', 'fhsec-http', ruleOn('HTTP'), enDis);
-                            html += rowRadio('HTTPS access', 'fhsec-https', ruleOn('HTTPS'), enDis);
-                            html += rowRadio('SSH access', 'fhsec-ssh', ruleOn('SSH'), enDis);
-                            html += rowRadio('Telnet access', 'fhsec-telnet', ruleOn('TELNET'), enDis);
-                            html += rowRadio('FTP access', 'fhsec-ftp', ruleOn('FTP'), enDis);
-                            html += rowRadio('Ping (ICMP) reply', 'fhsec-ping', ruleOn('PING'), enDis);
-                            html += '<div style="border-top:1px solid var(--border-color);margin:10px 0;"></div>';
-                            html += rowText('Web Login Username', 'fhsec-web-user', lcs.ConfigUsername?._value ?? '', 'text');
-                            html += rowText('Web Login Password', 'fhsec-web-pass', '', 'text');
-                            html += '<div style="color:var(--text-muted);font-size:0.78rem;margin:-4px 0 10px;">Password kosong = tidak diubah (device tidak lapor balik password, standar TR-069).</div>';
-                            html += '<button type="button" class="btn-solt btn-solt-green fhsec-save" data-idx="'+idx+'" style="padding:6px 16px;font-size:0.82rem;margin-top:4px;">Simpan Perubahan</button>';
+                            html += rowRadio('ACL Enable (master switch)', 'fhsec-acl-enable', acl.Enable?._value === true || acl.Enable?._value === 'true' || acl.Enable?._value === 1 ? '1' : '0', enDis);
+                            html += '<div style="border-top:1px solid var(--border-color);margin:4px 0 10px;"></div>';
+
+                            // Tabel ACL Settings -- mirror GUI asli device: ID | Active | Source IP | Protocol | Interface.
+                            html += '<div style="font-weight:600;margin-bottom:6px;">ACL Settings (Akses WAN)</div>';
+                            const ruleTbl = acl.Rule || {};
+                            const ruleIds = Object.keys(ruleTbl).filter(k => /^\d+$/.test(k)).sort((a,b) => a - b);
+                            html += '<table style="width:100%;border-collapse:collapse;font-size:0.8rem;margin-bottom:8px;">';
+                            html += '<tr style="background:var(--bg-secondary);"><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);">ID</th><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);">Active</th><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);">Source IP</th><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);">Protocol</th><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);">Interface</th></tr>';
+                            if (ruleIds.length === 0) {
+                                html += '<tr><td colspan="5" style="padding:6px;border:1px solid var(--border-color);color:var(--text-muted);">Belum ada rule.</td></tr>';
+                            }
+                            ruleIds.forEach(rid => {
+                                const r = ruleTbl[rid];
+                                const active = String(r.Enable?._value) === '1' ? 'YES' : 'NO';
+                                const srcIp = (r.StartIp?._value || r.EndIp?._value) ? (esc(r.StartIp?._value||'0.0.0.0')+' - '+esc(r.EndIp?._value||'*')) : '--';
+                                html += '<tr class="fhacl-row" data-rule="'+rid+'" style="cursor:pointer;">'
+                                    + '<td style="padding:5px 6px;border:1px solid var(--border-color);">'+rid+'</td>'
+                                    + '<td style="padding:5px 6px;border:1px solid var(--border-color);">'+active+'</td>'
+                                    + '<td style="padding:5px 6px;border:1px solid var(--border-color);">'+srcIp+'</td>'
+                                    + '<td style="padding:5px 6px;border:1px solid var(--border-color);">'+esc(r.Protocol?._value||'')+'</td>'
+                                    + '<td style="padding:5px 6px;border:1px solid var(--border-color);">'+esc(r.Interface?._value||'')+'</td>'
+                                    + '</tr>';
+                            });
+                            html += '</table>';
+
+                            // Form edit rule -- klik baris di atas untuk isi form ini.
+                            html += '<div style="border:1px solid var(--border-color);border-radius:6px;padding:10px;background:var(--bg-secondary);">';
+                            html += '<div style="font-weight:600;margin-bottom:8px;font-size:0.8rem;">Edit Rule <span id="fhacl-editing-id" style="color:var(--text-muted);font-weight:400;">(pilih baris di atas)</span></div>';
+                            html += '<input type="hidden" id="fhacl-rule-id" value="'+(ruleIds[0]||'')+'">';
+                            html += rowRadio('Active', 'fhacl-active', ruleIds[0] ? (String(ruleTbl[ruleIds[0]].Enable?._value)==='1'?'1':'0') : '1', [['1','YES'],['0','NO']]);
+                            html += rowText('Source IP Start', 'fhacl-srcstart', ruleIds[0] ? (ruleTbl[ruleIds[0]].StartIp?._value||'') : '', 'kosong = semua IP');
+                            html += rowText('Source IP End', 'fhacl-srcend', ruleIds[0] ? (ruleTbl[ruleIds[0]].EndIp?._value||'') : '', 'kosong = semua IP');
+                            html += rowText('Protocol', 'fhacl-protocol', ruleIds[0] ? (ruleTbl[ruleIds[0]].Protocol?._value||'ALL') : 'ALL', 'ALL / TCP / UDP / ICMP');
+                            html += rowText('Interface', 'fhacl-interface', ruleIds[0] ? (ruleTbl[ruleIds[0]].Interface?._value||'') : '', 'contoh: 1_INTERNET_R_VID_15');
+                            html += '<button type="button" class="btn-solt btn-solt-green fhacl-save" data-idx="'+idx+'" style="padding:6px 16px;font-size:0.82rem;margin-top:4px;" '+(ruleIds.length===0?'disabled':'')+'>Simpan Rule</button>';
+                            html += '</div>';
+
+                            html += '<div style="border-top:1px solid var(--border-color);margin:12px 0 10px;"></div>';
+                            html += rowText('Web Login Username', 'fhsec-web-user', lcs.ConfigUsername?._value ?? '', '');
+                            html += rowText('Web Login Password', 'fhsec-web-pass', '', 'kosong = tidak diubah');
+                            html += '<button type="button" class="btn-solt btn-solt-green fhsec-save" data-idx="'+idx+'" style="padding:6px 16px;font-size:0.82rem;margin-top:4px;">Simpan Login</button>';
                             html += '</div></div>';
                         })();
                         else (() => {
@@ -3248,29 +3271,73 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 }).catch(() => { alert('Gagal mengirim perubahan.'); btn.disabled = false; btn.textContent = 'Simpan Perubahan'; });
                             });
                         });
-                        // Simpan Perubahan (card Security FiberHome) — X_FH_ACL + LANConfigSecurity via TR-069.
+                        // Klik baris tabel ACL -- isi form edit di bawahnya.
+                        cliOutputBox.querySelectorAll('.fhacl-row').forEach(row => {
+                            row.addEventListener('click', () => {
+                                const rid = row.dataset.rule;
+                                const cells = row.querySelectorAll('td');
+                                document.getElementById('fhacl-rule-id').value = rid;
+                                document.getElementById('fhacl-editing-id').textContent = '(ID ' + rid + ')';
+                                const active = cells[1].textContent.trim() === 'YES' ? '1' : '0';
+                                document.querySelector('input[name="fhacl-active"][value="'+active+'"]').checked = true;
+                                const srcIp = cells[2].textContent.trim();
+                                const [srcStart, srcEnd] = srcIp === '--' ? ['', ''] : srcIp.split(' - ');
+                                document.getElementById('fhacl-srcstart').value = srcStart === '0.0.0.0' ? '' : (srcStart || '');
+                                document.getElementById('fhacl-srcend').value = (srcEnd === '*' || srcEnd === '255.255.255.255') ? '' : (srcEnd || '');
+                                document.getElementById('fhacl-protocol').value = cells[3].textContent.trim();
+                                document.getElementById('fhacl-interface').value = cells[4].textContent.trim();
+                            });
+                        });
+                        // Simpan Rule ACL -- kirim field SATU-PER-SATU (bukan batch), device FiberHome
+                        // menolak batch multi-field pada object Rule (fault 9007). EndIp SENGAJA tidak
+                        // dikirim kalau kosong -- field ini konsisten ditolak device apapun nilainya;
+                        // StartIp kosong = 0.0.0.0 (wildcard) sudah cukup untuk "semua sumber IP".
+                        cliOutputBox.querySelectorAll('.fhacl-save').forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                const rid = document.getElementById('fhacl-rule-id').value;
+                                if (!rid) return;
+                                const B = 'InternetGatewayDevice.X_FH_ACL.Rule.' + rid + '.';
+                                const radioVal = id => document.querySelector('input[name="'+id+'"]:checked')?.value ?? '';
+                                const textVal = id => document.getElementById(id)?.value ?? '';
+                                const items = [
+                                    { path: 'InternetGatewayDevice.X_FH_ACL.Enable', type: 'xsd:boolean', value: radioVal('fhsec-acl-enable') === '1' },
+                                    { path: B+'Enable', type: 'xsd:unsignedInt', value: radioVal('fhacl-active') === '1' ? 1 : 0 },
+                                    { path: B+'StartIp', type: 'xsd:string', value: textVal('fhacl-srcstart') || '0.0.0.0' },
+                                    { path: B+'Protocol', type: 'xsd:string', value: textVal('fhacl-protocol') || 'ALL' },
+                                    { path: B+'Interface', type: 'xsd:string', value: textVal('fhacl-interface') },
+                                    { path: B+'Direction', type: 'xsd:unsignedInt', value: 1 },
+                                ];
+                                const endIp = textVal('fhacl-srcend');
+                                if (endIp) items.push({ path: B+'EndIp', type: 'xsd:string', value: endIp });
+                                btn.disabled = true; btn.textContent = 'Menyimpan...';
+                                (async () => {
+                                    let allOk = true, lastMsg = '';
+                                    for (const it of items) {
+                                        try {
+                                            const r = await fetch('action/genieacs-proxy.php', {
+                                                method: 'POST', headers: {'Content-Type': 'application/json'},
+                                                body: JSON.stringify({serial, edit_generic: true, items: [{ id: it.path, path: it.path, type: it.type, value: it.value }]})
+                                            });
+                                            const d = await r.json();
+                                            if (!d.success) { allOk = false; lastMsg = d.message || 'Gagal'; }
+                                        } catch (e) { allOk = false; lastMsg = 'Koneksi gagal'; }
+                                    }
+                                    if (allOk) { alert('Rule ACL berhasil disimpan.'); reloadAfterSave(); }
+                                    else { alert('Sebagian field gagal: ' + lastMsg); btn.disabled = false; btn.textContent = 'Simpan Rule'; }
+                                })();
+                            });
+                        });
+                        // Simpan Login (card Security FiberHome) — LANConfigSecurity via TR-069.
                         cliOutputBox.querySelectorAll('.fhsec-save').forEach(btn => {
                             btn.addEventListener('click', () => {
                                 const B = 'InternetGatewayDevice.';
-                                const radioVal = id => document.querySelector('input[name="'+id+'"]:checked')?.value ?? '';
                                 const textVal = id => document.getElementById(id)?.value ?? '';
-                                const aclEnable = radioVal('fhsec-acl-enable');
-                                // Bitmask: '1' -> 1048575 (semua host diizinkan), '0' -> 0 (diblokir semua).
-                                // Nilai 1048575 dikonfirmasi dari data device asli saat servis itu aktif.
-                                const bit = key => radioVal(key) === '1' ? 1048575 : 0;
-                                const items = [
-                                    { id: 'fhsec-acl-enable', path: B+'X_FH_ACL.Enable', type: 'xsd:boolean', value: aclEnable === '1' },
-                                    { id: 'fhsec-http', path: B+'X_FH_ACL.LanIPV4Rule.HTTP', type: 'xsd:unsignedInt', value: bit('fhsec-http') },
-                                    { id: 'fhsec-https', path: B+'X_FH_ACL.LanIPV4Rule.HTTPS', type: 'xsd:unsignedInt', value: bit('fhsec-https') },
-                                    { id: 'fhsec-ssh', path: B+'X_FH_ACL.LanIPV4Rule.SSH', type: 'xsd:unsignedInt', value: bit('fhsec-ssh') },
-                                    { id: 'fhsec-telnet', path: B+'X_FH_ACL.LanIPV4Rule.TELNET', type: 'xsd:unsignedInt', value: bit('fhsec-telnet') },
-                                    { id: 'fhsec-ftp', path: B+'X_FH_ACL.LanIPV4Rule.FTP', type: 'xsd:unsignedInt', value: bit('fhsec-ftp') },
-                                    { id: 'fhsec-ping', path: B+'X_FH_ACL.LanIPV4Rule.PING', type: 'xsd:unsignedInt', value: bit('fhsec-ping') },
-                                ];
                                 const webUser = textVal('fhsec-web-user');
                                 const webPass = textVal('fhsec-web-pass');
+                                const items = [];
                                 if (webUser !== '') items.push({ id: 'fhsec-web-user', path: B+'LANConfigSecurity.ConfigUsername', type: 'xsd:string', value: webUser });
                                 if (webPass !== '') items.push({ id: 'fhsec-web-pass', path: B+'LANConfigSecurity.ConfigPassword', type: 'xsd:string', value: webPass });
+                                if (items.length === 0) { alert('Isi username/password dulu.'); return; }
                                 btn.disabled = true; btn.textContent = 'Menyimpan...';
                                 fetch('action/genieacs-proxy.php', {
                                     method: 'POST',
@@ -3278,8 +3345,8 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                     body: JSON.stringify({serial, edit_generic: true, items})
                                 }).then(r => r.json()).then(d => {
                                     if (d.success) { alert(d.message || 'Berhasil dikirim.'); reloadAfterSave(); }
-                                    else { alert('Error: ' + (d.message || 'Gagal')); btn.disabled = false; btn.textContent = 'Simpan Perubahan'; }
-                                }).catch(() => { alert('Gagal mengirim perubahan.'); btn.disabled = false; btn.textContent = 'Simpan Perubahan'; });
+                                    else { alert('Error: ' + (d.message || 'Gagal')); btn.disabled = false; btn.textContent = 'Simpan Login'; }
+                                }).catch(() => { alert('Gagal mengirim perubahan.'); btn.disabled = false; btn.textContent = 'Simpan Login'; });
                             });
                         });
                         cliOutputBox.querySelectorAll('.ppp-reset').forEach(btn => {
