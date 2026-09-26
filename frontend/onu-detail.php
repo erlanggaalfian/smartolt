@@ -2341,7 +2341,9 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             const lcp = pv(sec, 'PPPLCPEcho');
                             const dmz = pv(sec, 'X_HW_DMZ_Enable');
                             const dmzIp = pv(sec, 'X_HW_DMZ_HostIP');
-                            const vlan = pv(sec, 'X_HW_VLAN');
+                            // Fallback ke VLANID (param TR-069 standar) kalau device tidak
+                            // punya X_HW_VLAN (mis. FiberHome pakai VLANID native, bukan vendor Huawei).
+                            const vlan = pv(sec, 'X_HW_VLAN') || pv(sec, 'VLANID');
                             let h = '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
                             h += '<div class="tr069-toggle" data-idx="'+i+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
                             h += '<span>' + sec.title + '</span><span class="tr069-refresh" data-idx="'+i+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:' + (i === 0 ? 'inline' : 'none') + ';">&#8635;</span></div>';
@@ -2404,7 +2406,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             const mtu = pv(sec, 'MaxMTUSize') || '';
                             const svcList = pv(sec, 'X_HW_SERVICELIST') || pv(sec, 'X_HW_ExServiceList') || 'N/A';
                             const nat = pv(sec, 'NATEnabled');
-                            const vlan = pv(sec, 'X_HW_VLAN') || '';
+                            const vlan = pv(sec, 'X_HW_VLAN') || pv(sec, 'VLANID') || '';
                             const isStatic = String(addrType).toUpperCase() === 'STATIC';
                             const ipInput = (key, val, narrow) => '<input type="text" class="ip-field" data-key="'+key+'" data-idx="'+i+'" value="'+String(val ?? '').replace(/"/g,'&quot;')+'" style="width:100%;max-width:'+(narrow?'120px':'280px')+';box-sizing:border-box;padding:5px 8px;font-size:0.85rem;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">';
                             let h = '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';

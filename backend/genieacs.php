@@ -331,6 +331,13 @@ function genieacs_edit_ppp_params(string $serial, array $fields): array {
         $result = genieacs_set_params($deviceId, [$path => [$val, $type]], 15);
         if ($result === null) { $failed[] = $key; } else { $sent[] = $key; }
     }
+    // VLAN juga dikirim ke param TR-069 standar VLANID/VLANEnable -- device non-Huawei
+    // (mis. FiberHome) tidak baca X_HW_VLAN sama sekali, hanya param native ini.
+    if (isset($fields['vlan']) && $fields['vlan'] !== '') {
+        $vlanVal = (int) $fields['vlan'];
+        genieacs_set_params($deviceId, ["{$base}.VLANID" => [$vlanVal, 'xsd:unsignedInt']], 15);
+        genieacs_set_params($deviceId, ["{$base}.VLANEnable" => [true, 'xsd:boolean']], 15);
+    }
     if (!$sent && !$failed) {
         return ['success' => false, 'message' => 'Tidak ada field untuk diubah.'];
     }
