@@ -1889,6 +1889,60 @@ $tr069_profiles = tr069_get_profiles($pdo);
                 body: JSON.stringify({serial, refresh: true})
             }).finally(() => loadTr069Status({silent: true}));
         }
+        // Simpan Rule ACL (card Security FiberHome, modal fhacl-modal) -- kalau rule ID
+        // kosong (Add Rule), addObject dulu untuk dapat ID baru, baru isi field. Field
+        // dikirim SATU-PER-SATU (bukan batch) -- device FiberHome menolak batch multi-field
+        // pada object Rule baru (fault 9007). EndIp SENGAJA tidak dikirim kalau kosong --
+        // field ini konsisten ditolak device apapun nilainya; StartIp kosong = 0.0.0.0
+        // (wildcard) sudah cukup untuk "semua sumber IP".
+        document.getElementById('fhacl-modal-save')?.addEventListener('click', async () => {
+            const btn = document.getElementById('fhacl-modal-save');
+            let rid = document.getElementById('fhacl-modal-rule-id').value;
+            const radioVal = name => document.querySelector('input[name="'+name+'"]:checked')?.value ?? '';
+            const val = id => document.getElementById(id)?.value ?? '';
+            btn.disabled = true; btn.textContent = 'Menyimpan...';
+            try {
+                if (!rid) {
+                    const addResp = await fetch('action/genieacs-proxy.php', {
+                        method: 'POST', headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({serial, add_object: true, object_name: 'InternetGatewayDevice.X_FH_ACL.Rule'})
+                    });
+                    const addData = await addResp.json();
+                    if (!addData.success) { alert('Gagal membuat rule baru: ' + (addData.message || '')); btn.disabled = false; btn.textContent = 'Simpan'; return; }
+                }
+                const B = 'InternetGatewayDevice.X_FH_ACL.Rule.' + (rid || '') + '.';
+                const items = [
+                    { path: B+'Enable', type: 'xsd:unsignedInt', value: radioVal('fhacl-modal-active') === '1' ? 1 : 0 },
+                    { path: B+'StartIp', type: 'xsd:string', value: val('fhacl-modal-srcstart') || '0.0.0.0' },
+                    { path: B+'Protocol', type: 'xsd:string', value: val('fhacl-modal-protocol') || 'ALL' },
+                    { path: B+'Interface', type: 'xsd:string', value: val('fhacl-modal-interface') },
+                    { path: B+'Direction', type: 'xsd:unsignedInt', value: 1 },
+                ];
+                const endIp = val('fhacl-modal-srcend');
+                if (endIp) items.push({ path: B+'EndIp', type: 'xsd:string', value: endIp });
+                if (rid) {
+                    let allOk = true, lastMsg = '';
+                    for (const it of items) {
+                        const r = await fetch('action/genieacs-proxy.php', {
+                            method: 'POST', headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({serial, edit_generic: true, items: [it]})
+                        });
+                        const d = await r.json();
+                        if (!d.success) { allOk = false; lastMsg = d.message || 'Gagal'; }
+                    }
+                    if (allOk) { alert('Rule ACL berhasil disimpan.'); document.getElementById('fhacl-modal').classList.remove('open'); reloadAfterSave(); }
+                    else { alert('Sebagian field gagal: ' + lastMsg); }
+                } else {
+                    alert('Rule baru dibuat. Klik "Edit" pada baris baru untuk isi detailnya.');
+                    document.getElementById('fhacl-modal').classList.remove('open');
+                    reloadAfterSave();
+                }
+            } catch (e) {
+                alert('Gagal mengirim perubahan.');
+            } finally {
+                btn.disabled = false; btn.textContent = 'Simpan';
+            }
+        });
         if (btnTr069 && cliOutputBox) {
             function loadTr069Status(opts) {
                 opts = opts || {};
@@ -2897,40 +2951,33 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             html += rowRadio('ACL Enable (master switch)', 'fhsec-acl-enable', acl.Enable?._value === true || acl.Enable?._value === 'true' || acl.Enable?._value === 1 ? '1' : '0', enDis);
                             html += '<div style="border-top:1px solid var(--border-color);margin:4px 0 10px;"></div>';
 
-                            // Tabel ACL Settings -- mirror GUI asli device: ID | Active | Source IP | Protocol | Interface.
-                            html += '<div style="font-weight:600;margin-bottom:6px;">ACL Settings (Akses WAN)</div>';
+                            // Tabel ACL Settings -- mirror GUI asli device: ID | Active | Source IP | Protocol | Interface,
+                            // plus tombol Add dan Edit (bukan form inline) yang buka modal.
+                            html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">';
+                            html += '<div style="font-weight:600;">ACL Settings (Akses WAN)</div>';
+                            html += '<button type="button" class="btn-solt btn-solt-blue fhacl-add" style="padding:4px 12px;font-size:0.78rem;">+ Add Rule</button>';
+                            html += '</div>';
                             const ruleTbl = acl.Rule || {};
                             const ruleIds = Object.keys(ruleTbl).filter(k => /^\d+$/.test(k)).sort((a,b) => a - b);
                             html += '<table style="width:100%;border-collapse:collapse;font-size:0.8rem;margin-bottom:8px;">';
-                            html += '<tr style="background:var(--bg-secondary);"><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);">ID</th><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);">Active</th><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);">Source IP</th><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);">Protocol</th><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);">Interface</th></tr>';
+                            html += '<tr style="background:var(--bg-secondary);"><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);">ID</th><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);">Active</th><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);">Source IP</th><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);">Protocol</th><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);">Interface</th><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);"></th></tr>';
                             if (ruleIds.length === 0) {
-                                html += '<tr><td colspan="5" style="padding:6px;border:1px solid var(--border-color);color:var(--text-muted);">Belum ada rule.</td></tr>';
+                                html += '<tr><td colspan="6" style="padding:6px;border:1px solid var(--border-color);color:var(--text-muted);">Belum ada rule.</td></tr>';
                             }
                             ruleIds.forEach(rid => {
                                 const r = ruleTbl[rid];
                                 const active = String(r.Enable?._value) === '1' ? 'YES' : 'NO';
                                 const srcIp = (r.StartIp?._value || r.EndIp?._value) ? (esc(r.StartIp?._value||'0.0.0.0')+' - '+esc(r.EndIp?._value||'*')) : '--';
-                                html += '<tr class="fhacl-row" data-rule="'+rid+'" style="cursor:pointer;">'
+                                html += '<tr>'
                                     + '<td style="padding:5px 6px;border:1px solid var(--border-color);">'+rid+'</td>'
                                     + '<td style="padding:5px 6px;border:1px solid var(--border-color);">'+active+'</td>'
                                     + '<td style="padding:5px 6px;border:1px solid var(--border-color);">'+srcIp+'</td>'
                                     + '<td style="padding:5px 6px;border:1px solid var(--border-color);">'+esc(r.Protocol?._value||'')+'</td>'
                                     + '<td style="padding:5px 6px;border:1px solid var(--border-color);">'+esc(r.Interface?._value||'')+'</td>'
+                                    + '<td style="padding:5px 6px;border:1px solid var(--border-color);"><button type="button" class="btn-solt btn-solt-blue fhacl-edit" data-rule="'+rid+'" data-active="'+(active==='YES'?'1':'0')+'" data-srcstart="'+esc(r.StartIp?._value||'')+'" data-srcend="'+esc(r.EndIp?._value||'')+'" data-protocol="'+esc(r.Protocol?._value||'')+'" data-interface="'+esc(r.Interface?._value||'')+'" style="padding:3px 10px;font-size:0.76rem;">Edit</button></td>'
                                     + '</tr>';
                             });
                             html += '</table>';
-
-                            // Form edit rule -- klik baris di atas untuk isi form ini.
-                            html += '<div style="border:1px solid var(--border-color);border-radius:6px;padding:10px;background:var(--bg-secondary);">';
-                            html += '<div style="font-weight:600;margin-bottom:8px;font-size:0.8rem;">Edit Rule <span id="fhacl-editing-id" style="color:var(--text-muted);font-weight:400;">(pilih baris di atas)</span></div>';
-                            html += '<input type="hidden" id="fhacl-rule-id" value="'+(ruleIds[0]||'')+'">';
-                            html += rowRadio('Active', 'fhacl-active', ruleIds[0] ? (String(ruleTbl[ruleIds[0]].Enable?._value)==='1'?'1':'0') : '1', [['1','YES'],['0','NO']]);
-                            html += rowText('Source IP Start', 'fhacl-srcstart', ruleIds[0] ? (ruleTbl[ruleIds[0]].StartIp?._value||'') : '', 'kosong = semua IP');
-                            html += rowText('Source IP End', 'fhacl-srcend', ruleIds[0] ? (ruleTbl[ruleIds[0]].EndIp?._value||'') : '', 'kosong = semua IP');
-                            html += rowText('Protocol', 'fhacl-protocol', ruleIds[0] ? (ruleTbl[ruleIds[0]].Protocol?._value||'ALL') : 'ALL', 'ALL / TCP / UDP / ICMP');
-                            html += rowText('Interface', 'fhacl-interface', ruleIds[0] ? (ruleTbl[ruleIds[0]].Interface?._value||'') : '', 'contoh: 1_INTERNET_R_VID_15');
-                            html += '<button type="button" class="btn-solt btn-solt-green fhacl-save" data-idx="'+idx+'" style="padding:6px 16px;font-size:0.82rem;margin-top:4px;" '+(ruleIds.length===0?'disabled':'')+'>Simpan Rule</button>';
-                            html += '</div>';
 
                             html += '<div style="border-top:1px solid var(--border-color);margin:12px 0 10px;"></div>';
                             html += rowText('Web Login Username', 'fhsec-web-user', lcs.ConfigUsername?._value ?? '', '');
@@ -3271,62 +3318,35 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 }).catch(() => { alert('Gagal mengirim perubahan.'); btn.disabled = false; btn.textContent = 'Simpan Perubahan'; });
                             });
                         });
-                        // Klik baris tabel ACL -- isi form edit di bawahnya.
-                        cliOutputBox.querySelectorAll('.fhacl-row').forEach(row => {
-                            row.addEventListener('click', () => {
-                                const rid = row.dataset.rule;
-                                const cells = row.querySelectorAll('td');
-                                document.getElementById('fhacl-rule-id').value = rid;
-                                document.getElementById('fhacl-editing-id').textContent = '(ID ' + rid + ')';
-                                const active = cells[1].textContent.trim() === 'YES' ? '1' : '0';
-                                document.querySelector('input[name="fhacl-active"][value="'+active+'"]').checked = true;
-                                const srcIp = cells[2].textContent.trim();
-                                const [srcStart, srcEnd] = srcIp === '--' ? ['', ''] : srcIp.split(' - ');
-                                document.getElementById('fhacl-srcstart').value = srcStart === '0.0.0.0' ? '' : (srcStart || '');
-                                document.getElementById('fhacl-srcend').value = (srcEnd === '*' || srcEnd === '255.255.255.255') ? '' : (srcEnd || '');
-                                document.getElementById('fhacl-protocol').value = cells[3].textContent.trim();
-                                document.getElementById('fhacl-interface').value = cells[4].textContent.trim();
-                            });
-                        });
-                        // Simpan Rule ACL -- kirim field SATU-PER-SATU (bukan batch), device FiberHome
-                        // menolak batch multi-field pada object Rule (fault 9007). EndIp SENGAJA tidak
-                        // dikirim kalau kosong -- field ini konsisten ditolak device apapun nilainya;
-                        // StartIp kosong = 0.0.0.0 (wildcard) sudah cukup untuk "semua sumber IP".
-                        cliOutputBox.querySelectorAll('.fhacl-save').forEach(btn => {
+                        // Tombol "+ Add Rule" -- buka modal kosong (rule ID belum ada, addObject dulu saat save).
+                        cliOutputBox.querySelectorAll('.fhacl-add').forEach(btn => {
                             btn.addEventListener('click', () => {
-                                const rid = document.getElementById('fhacl-rule-id').value;
-                                if (!rid) return;
-                                const B = 'InternetGatewayDevice.X_FH_ACL.Rule.' + rid + '.';
-                                const radioVal = id => document.querySelector('input[name="'+id+'"]:checked')?.value ?? '';
-                                const textVal = id => document.getElementById(id)?.value ?? '';
-                                const items = [
-                                    { path: 'InternetGatewayDevice.X_FH_ACL.Enable', type: 'xsd:boolean', value: radioVal('fhsec-acl-enable') === '1' },
-                                    { path: B+'Enable', type: 'xsd:unsignedInt', value: radioVal('fhacl-active') === '1' ? 1 : 0 },
-                                    { path: B+'StartIp', type: 'xsd:string', value: textVal('fhacl-srcstart') || '0.0.0.0' },
-                                    { path: B+'Protocol', type: 'xsd:string', value: textVal('fhacl-protocol') || 'ALL' },
-                                    { path: B+'Interface', type: 'xsd:string', value: textVal('fhacl-interface') },
-                                    { path: B+'Direction', type: 'xsd:unsignedInt', value: 1 },
-                                ];
-                                const endIp = textVal('fhacl-srcend');
-                                if (endIp) items.push({ path: B+'EndIp', type: 'xsd:string', value: endIp });
-                                btn.disabled = true; btn.textContent = 'Menyimpan...';
-                                (async () => {
-                                    let allOk = true, lastMsg = '';
-                                    for (const it of items) {
-                                        try {
-                                            const r = await fetch('action/genieacs-proxy.php', {
-                                                method: 'POST', headers: {'Content-Type': 'application/json'},
-                                                body: JSON.stringify({serial, edit_generic: true, items: [{ id: it.path, path: it.path, type: it.type, value: it.value }]})
-                                            });
-                                            const d = await r.json();
-                                            if (!d.success) { allOk = false; lastMsg = d.message || 'Gagal'; }
-                                        } catch (e) { allOk = false; lastMsg = 'Koneksi gagal'; }
-                                    }
-                                    if (allOk) { alert('Rule ACL berhasil disimpan.'); reloadAfterSave(); }
-                                    else { alert('Sebagian field gagal: ' + lastMsg); btn.disabled = false; btn.textContent = 'Simpan Rule'; }
-                                })();
+                                document.getElementById('fhacl-modal-title').textContent = 'Add Rule';
+                                document.getElementById('fhacl-modal-rule-id').value = '';
+                                document.querySelector('input[name="fhacl-modal-active"][value="1"]').checked = true;
+                                document.getElementById('fhacl-modal-srcstart').value = '';
+                                document.getElementById('fhacl-modal-srcend').value = '';
+                                document.getElementById('fhacl-modal-protocol').value = 'ALL';
+                                document.getElementById('fhacl-modal-interface').value = '';
+                                document.getElementById('fhacl-modal').classList.add('open');
                             });
                         });
+                        // Tombol "Edit" per baris -- buka modal terisi data rule tsb.
+                        cliOutputBox.querySelectorAll('.fhacl-edit').forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                document.getElementById('fhacl-modal-title').textContent = 'Edit Rule';
+                                document.getElementById('fhacl-modal-rule-id').value = btn.dataset.rule;
+                                document.querySelector('input[name="fhacl-modal-active"][value="'+btn.dataset.active+'"]').checked = true;
+                                document.getElementById('fhacl-modal-srcstart').value = btn.dataset.srcstart === '0.0.0.0' ? '' : btn.dataset.srcstart;
+                                document.getElementById('fhacl-modal-srcend').value = (btn.dataset.srcend === '255.255.255.255' ? '' : btn.dataset.srcend);
+                                document.getElementById('fhacl-modal-protocol').value = btn.dataset.protocol || 'ALL';
+                                document.getElementById('fhacl-modal-interface').value = btn.dataset.interface;
+                                document.getElementById('fhacl-modal').classList.add('open');
+                            });
+                        });
+                        // NOTE: Simpan Rule ACL dipindah ke handler global tombol modal #fhacl-modal-save
+                        // (di luar cliOutputBox, lihat script dekat modal fhacl-modal) -- modal dirender
+                        // sekali di HTML statis, bukan di-generate ulang tiap refresh panel seperti tombol lain.
                         // Simpan Login (card Security FiberHome) — LANConfigSecurity via TR-069.
                         cliOutputBox.querySelectorAll('.fhsec-save').forEach(btn => {
                             btn.addEventListener('click', () => {
@@ -3544,6 +3564,55 @@ $tr069_profiles = tr069_get_profiles($pdo);
                 <button type="submit" class="btn btn-primary">Simpan</button>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- Modal ACL Rule (Add/Edit) — card Security FiberHome -->
+<div class="modal" id="fhacl-modal">
+    <div class="modal-content" style="max-width:480px; width:90%;">
+        <div class="modal-header" style="padding:15px 24px; display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="margin:0; font-size:1.3rem; font-weight:700;" id="fhacl-modal-title">Add Rule</h3>
+            <button type="button" onclick="document.getElementById('fhacl-modal').classList.remove('open')" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-muted);">&times;</button>
+        </div>
+        <div class="modal-body" style="padding:24px;">
+            <input type="hidden" id="fhacl-modal-rule-id" value="">
+            <table style="width:100%;border-collapse:collapse;">
+                <tr style="height:46px;">
+                    <td style="width:150px;font-weight:600;color:var(--text-main);">Active</td>
+                    <td>
+                        <label style="margin-right:16px;cursor:pointer;"><input type="radio" name="fhacl-modal-active" value="1" checked> YES</label>
+                        <label style="cursor:pointer;"><input type="radio" name="fhacl-modal-active" value="0"> NO</label>
+                    </td>
+                </tr>
+                <tr style="height:46px;">
+                    <td style="font-weight:600;color:var(--text-main);">Source IP Start</td>
+                    <td><input type="text" id="fhacl-modal-srcstart" placeholder="kosong = semua IP" style="width:100%;padding:8px 12px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);color:var(--text-main);"></td>
+                </tr>
+                <tr style="height:46px;">
+                    <td style="font-weight:600;color:var(--text-main);">Source IP End</td>
+                    <td><input type="text" id="fhacl-modal-srcend" placeholder="kosong = semua IP" style="width:100%;padding:8px 12px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);color:var(--text-main);"></td>
+                </tr>
+                <tr style="height:46px;">
+                    <td style="font-weight:600;color:var(--text-main);">Protocol</td>
+                    <td>
+                        <select id="fhacl-modal-protocol" style="width:100%;padding:8px 12px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);color:var(--text-main);">
+                            <option value="ALL">ALL</option>
+                            <option value="TCP">TCP</option>
+                            <option value="UDP">UDP</option>
+                            <option value="ICMP">ICMP</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr style="height:46px;">
+                    <td style="font-weight:600;color:var(--text-main);">Interface</td>
+                    <td><input type="text" id="fhacl-modal-interface" placeholder="contoh: 1_INTERNET_R_VID_15" style="width:100%;padding:8px 12px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);color:var(--text-main);"></td>
+                </tr>
+            </table>
+        </div>
+        <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:8px;padding:16px 24px;">
+            <button type="button" class="btn btn-secondary" onclick="document.getElementById('fhacl-modal').classList.remove('open')">Batal</button>
+            <button type="button" class="btn btn-primary" id="fhacl-modal-save">Simpan</button>
+        </div>
     </div>
 </div>
 

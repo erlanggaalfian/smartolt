@@ -512,6 +512,47 @@ function genieacs_edit_generic_params(string $serial, array $items): array {
     return ['success' => true, 'message' => 'Perubahan berhasil dikirim via TR-069 (' . count($paramValues) . ' field, 1 task).'];
 }
 
+/**
+ * Add generic TR-069 object instance (addObject) — dipakai card Security FiberHome
+ * untuk menambah rule ACL baru. Path WAJIB diawali "InternetGatewayDevice." (whitelist
+ * domain sama seperti genieacs_edit_generic_params, cegah path arbitrary).
+ */
+function genieacs_add_object(string $serial, string $objectName): array {
+    if (strpos($objectName, 'InternetGatewayDevice.') !== 0) {
+        return ['success' => false, 'message' => 'Path objek tidak valid.'];
+    }
+    $deviceId = genieacs_find_device_id($serial);
+    if (!$deviceId) {
+        return ['success' => false, 'message' => 'Device tidak ditemukan di GenieACS.'];
+    }
+    $result = genieacs_request('POST', "/devices/" . rawurlencode($deviceId) . "/tasks?connection_request",
+        ['name' => 'addObject', 'objectName' => $objectName], 15);
+    if ($result === null) {
+        return ['success' => false, 'message' => 'Gagal membuat instance baru (device tidak reachable).'];
+    }
+    return ['success' => true, 'message' => 'Instance baru dibuat via TR-069.', 'data' => $result];
+}
+
+/**
+ * Delete generic TR-069 object instance (deleteObject) — dipakai card Security
+ * FiberHome untuk menghapus rule ACL. Path WAJIB diawali "InternetGatewayDevice.".
+ */
+function genieacs_delete_object(string $serial, string $objectName): array {
+    if (strpos($objectName, 'InternetGatewayDevice.') !== 0) {
+        return ['success' => false, 'message' => 'Path objek tidak valid.'];
+    }
+    $deviceId = genieacs_find_device_id($serial);
+    if (!$deviceId) {
+        return ['success' => false, 'message' => 'Device tidak ditemukan di GenieACS.'];
+    }
+    $result = genieacs_request('POST', "/devices/" . rawurlencode($deviceId) . "/tasks?connection_request",
+        ['name' => 'deleteObject', 'objectName' => $objectName], 15);
+    if ($result === null) {
+        return ['success' => false, 'message' => 'Gagal menghapus instance (device tidak reachable).'];
+    }
+    return ['success' => true, 'message' => 'Instance dihapus via TR-069.'];
+}
+
 /** Reset koneksi PPP — set Enable=false lalu true (trigger reconnect). */
 function genieacs_ppp_reset(string $serial): array {
     $deviceId = genieacs_find_device_id($serial);

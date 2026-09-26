@@ -166,6 +166,18 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         echo json_encode($result); exit;
     }
 
+    if (isset($body['add_object'])) {
+        $objectName = (string)($body['object_name'] ?? '');
+        $result = genieacs_add_object($serial, $objectName);
+        echo json_encode($result); exit;
+    }
+
+    if (isset($body['delete_object'])) {
+        $objectName = (string)($body['object_name'] ?? '');
+        $result = genieacs_delete_object($serial, $objectName);
+        echo json_encode($result); exit;
+    }
+
     if (!$serial || !$provision) { echo '{"error":"Missing serial or provision"}'; exit; }
 
     // Create provision task
