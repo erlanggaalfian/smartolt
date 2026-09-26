@@ -695,9 +695,13 @@ function genieacs_push_wan(string $serial, string $wan_mode, array $wan): array 
         // NAT wajib aktif di IP_Routed, kalau tidak trafik LAN pelanggan tidak di-translate.
         $params["{$pppPath}.{$pppIndex}.NATEnabled"] = [true, 'xsd:boolean'];
         // WAN Service ini adalah jalur internet utama pelanggan (bukan akses manajemen ACS),
-        // jadi service type WAJIB "INTERNET" — kalau device default/kepake "OTHER" pelanggan
+        // jadi service type WAJIB "INTERNET" -- kalau device default/kepake "OTHER" pelanggan
         // tidak bisa browsing walau PPPoE-nya sendiri connect.
+        // Kirim KEDUA param: X_HW_SERVICELIST (Huawei) dan X_FH_ServiceList (FiberHome) --
+        // device FiberHome TIDAK punya param Huawei sama sekali, jadi tanpa ini device tetap
+        // pakai X_FH_ServiceList kosong dan web UI ONU salah tampil "TR069" bukan "Internet".
         $params["{$pppPath}.{$pppIndex}.X_HW_SERVICELIST"] = ['INTERNET', 'xsd:string'];
+        $params["{$pppPath}.{$pppIndex}.X_FH_ServiceList"] = ['INTERNET', 'xsd:string'];
         // VLAN wajib match VLAN service ONU di OLT -- kalau device masih default/beda VLAN,
         // PPP tetap bisa "Connected" ke BRAS tapi trafik salah VLAN, pelanggan gagal browsing.
         // Kirim KEDUA param: X_HW_VLAN (vendor Huawei) dan VLANID (param TR-069 standar,
@@ -736,6 +740,7 @@ function genieacs_push_wan(string $serial, string $wan_mode, array $wan): array 
         }
         $params["{$ipPath}.{$ipIndex}.Enable"] = [true, 'xsd:boolean'];
         $params["{$ipPath}.{$ipIndex}.X_HW_SERVICELIST"] = ['INTERNET', 'xsd:string'];
+        $params["{$ipPath}.{$ipIndex}.X_FH_ServiceList"] = ['INTERNET', 'xsd:string'];
         // Sama seperti PPPoE: NAT wajib aktif, kalau tidak trafik LAN tidak ditranslate.
         $params["{$ipPath}.{$ipIndex}.NATEnabled"] = [true, 'xsd:boolean'];
         // Sama seperti PPPoE: VLAN wajib match VLAN service ONU di OLT.
