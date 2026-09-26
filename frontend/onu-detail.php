@@ -2533,11 +2533,14 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         }
                         function wlanModeSelect(i, current) {
                             const opts = ['11b','11g','11bg','11n','11bgn','11a','11ac','11ax'];
-                            // Kalau nilai asli device (mis. 'ax' dari Standard TR-069) tidak ada di daftar
-                            // tetap, tetap tampilkan apa adanya -- jangan diam-diam default ke opsi pertama.
-                            if (current && !opts.includes(current)) opts.unshift(current);
+                            // Device TR-069 standar kirim raw value pendek (a/b/g/n/ac/ax dari param
+                            // 'Standard'), sedangkan param Huawei X_HW_Standard sudah format '11xx'.
+                            // Normalisasi dulu supaya tidak dobel entry (mis. 'ax' dan '11ax' terpisah).
+                            let normalized = current || '';
+                            if (normalized && !normalized.startsWith('11')) normalized = '11' + normalized;
+                            if (normalized && !opts.includes(normalized)) opts.unshift(normalized);
                             let s = '<select class="wlan-field" data-key="wireless_mode" data-idx="'+i+'" style="width:100%;max-width:140px;box-sizing:border-box;padding:5px 8px;font-size:0.85rem;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">';
-                            opts.forEach(val => { s += '<option value="'+val+'"'+(current===val?' selected':'')+'>'+val+'</option>'; });
+                            opts.forEach(val => { s += '<option value="'+val+'"'+(normalized===val?' selected':'')+'>'+val+'</option>'; });
                             s += '</select>';
                             return s;
                         }
