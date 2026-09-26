@@ -120,6 +120,17 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         ];
         $wlanIndex = (int)($body['wlan_index'] ?? 1) ?: 1;
         $result = genieacs_edit_wlan_params($serial, $fields, $wlanIndex);
+        // TR-069 tidak pernah lapor balik KeyPassphrase (write-only, standar keamanan CWMP) --
+        // simpan password yang KITA kirim ke DB kita sendiri, supaya UI bisa tampilkan lagi nanti.
+        if (($result['success'] ?? false) && $fields['password'] !== '') {
+            $stmt = $pdo->prepare('SELECT wlan_passwords FROM onus WHERE serial_number = ? LIMIT 1');
+            $stmt->execute([$serial]);
+            $raw = $stmt->fetchColumn();
+            $map = $raw ? (json_decode($raw, true) ?: []) : [];
+            $map[(string)$wlanIndex] = $fields['password'];
+            $upd = $pdo->prepare('UPDATE onus SET wlan_passwords = ? WHERE serial_number = ?');
+            $upd->execute([json_encode($map), $serial]);
+        }
         echo json_encode($result); exit;
     }
 
@@ -188,10 +199,12 @@ $serials = array_filter(array_unique([$serial, $alt_serial]));
 // adalah value yang KITA sendiri kirim waktu push WAN (tersimpan di DB kita).
 $db_pppoe_password = null;
 require_once __DIR__ . '/../../backend/db.php';
-$stmt = $pdo->prepare('SELECT pppoe_password FROM onus WHERE serial_number = ? LIMIT 1');
+$stmt = $pdo->prepare('SELECT pppoe_password, wlan_passwords FROM onus WHERE serial_number = ? LIMIT 1');
 $stmt->execute([$serial]);
-$db_pppoe_password = $stmt->fetchColumn() ?: null;
-function emit_device(array $data, ?string $dbPassword): void {
+$row_dbpass = $stmt->fetch();
+$db_pppoe_password = ($row_dbpass['pppoe_password'] ?? '') ?: null;
+$db_wlan_passwords = $row_dbpass && $row_dbpass['wlan_passwords'] ? (json_decode($row_dbpass['wlan_passwords'], true) ?: []) : [];
+function emit_device(array $data, ?string $dbPassword, array $wlanPasswords = []): void {
     if ($dbPassword !== null && is_array($data['InternetGatewayDevice']['WANDevice'] ?? null)) {
         foreach ($data['InternetGatewayDevice']['WANDevice'] as &$wanDev) {
             if (!is_array($wanDev['WANConnectionDevice'] ?? null)) { continue; }
@@ -208,6 +221,21 @@ function emit_device(array $data, ?string $dbPassword): void {
             }
         }
     }
+    // Sama seperti PPPoE Password: KeyPassphrase juga write-only, device selalu lapor kosong --
+    // suntik dari DB kita (nilai yang KITA kirim terakhir lewat form) kalau device kosong.
+    if ($wlanPasswords && is_array($data['InternetGatewayDevice']['LANDevice'] ?? null)) {
+        foreach ($data['InternetGatewayDevice']['LANDevice'] as &$lanDev) {
+            if (!is_array($lanDev['WLANConfiguration'] ?? null)) { continue; }
+            foreach ($lanDev['WLANConfiguration'] as $wlanIdx => &$wlanCfg) {
+                if (!is_array($wlanCfg) || !isset($wlanPasswords[(string)$wlanIdx])) { continue; }
+                if (!is_array($wlanCfg['PreSharedKey'][1] ?? null)) { continue; }
+                if (($wlanCfg['PreSharedKey'][1]['KeyPassphrase']['_value'] ?? '') === '') {
+                    $wlanCfg['PreSharedKey'][1]['KeyPassphrase']['_value'] = $wlanPasswords[(string)$wlanIdx];
+                    $wlanCfg['PreSharedKey'][1]['KeyPassphrase']['_from_db'] = true;
+                }
+            }
+        }
+    }
     echo json_encode($data); exit;
 }
 
@@ -220,7 +248,7 @@ foreach ($serials as $s) {
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
     if ($code === 200 && $resp && ($data = json_decode($resp, true)) && !empty($data['_id'])) {
-        emit_device($data, $db_pppoe_password);
+        emit_device($data, $db_pppoe_password, $db_wlan_passwords);
     }
 
     // Query by SerialNumber
@@ -233,7 +261,7 @@ foreach ($serials as $s) {
         if ($resp) {
             $arr = json_decode($resp, true);
             if (is_array($arr) && !empty($arr[0]['_id'])) {
-                emit_device($arr[0], $db_pppoe_password);
+                emit_device($arr[0], $db_pppoe_password, $db_wlan_passwords);
             }
         }
     }
@@ -254,7 +282,7 @@ if ($resp) {
                 curl_setopt_array($ch2, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 10]);
                 $full = curl_exec($ch2);
                 curl_close($ch2);
-                if ($full && ($fullData = json_decode($full, true))) { emit_device($fullData, $db_pppoe_password); }
+                if ($full && ($fullData = json_decode($full, true))) { emit_device($fullData, $db_pppoe_password, $db_wlan_passwords); }
             }
         }
     }
