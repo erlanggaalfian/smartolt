@@ -2457,7 +2457,19 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             const statusColor = status === 'Up' ? '#28a745' : '#6c757d';
                             const ssid = pv(sec, 'SSID') || '';
                             const standard = pv(sec, 'Standard') || pv(sec, 'X_HW_Standard') || 'N/A';
-                            const band = pv(sec, 'X_HW_RFBand') || (/^(a|ac|an)/i.test(String(standard)) ? '5GHz' : '2.4GHz');
+                            // Band ditentukan dari PossibleChannels (channel 1-14 = 2.4GHz, >14 = 5GHz)
+                            // -- BUKAN dari Standard, karena 'ax' (WiFi 6) bisa jalan di 2.4GHz maupun
+                            // 5GHz, jadi tebak-tebakan lama salah nge-cap semua radio 'ax' jadi 5GHz.
+                            const band = (() => {
+                                const explicit = pv(sec, 'X_HW_RFBand');
+                                if (explicit) return explicit;
+                                const possible = String(pv(sec, 'PossibleChannels') || '');
+                                const firstNum = parseInt(possible.split(/[,-]/)[0], 10);
+                                if (!isNaN(firstNum)) return firstNum > 14 ? '5GHz' : '2.4GHz';
+                                const ch = parseInt(pv(sec, 'Channel'), 10);
+                                if (!isNaN(ch) && ch > 0) return ch > 14 ? '5GHz' : '2.4GHz';
+                                return 'N/A';
+                            })();
                             const wpaEnc = pv(sec, 'WPAEncryptionModes') || '';
                             const channel = pv(sec, 'Channel') || '';
                             const autoChannel = pv(sec, 'AutoChannelEnable');
