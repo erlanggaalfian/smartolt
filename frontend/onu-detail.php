@@ -2875,7 +2875,47 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         })();
                         // Card "Security" — akses layanan WAN/LAN (FTP/HTTP/SSH/Telnet), ICMP Echo
                         // Reply, dan kredensial CLI+Web login, semua EDITABLE via TR-069.
-                        (() => {
+                        // Device FiberHome TIDAK punya X_HW_Security/UserInterface sama sekali --
+                        // pakai struktur native-nya sendiri (X_FH_ACL + LANConfigSecurity).
+                        // Tampilan beda, tapi tujuan (kontrol akses WAN/LAN + kredensial) sama.
+                        const isFiberHomeSecurity = !root.X_HW_Security && !!(root.X_FH_ACL || root.LANConfigSecurity);
+                        if (isFiberHomeSecurity) (() => {
+                            const acl = root.X_FH_ACL || {};
+                            const lcs = root.LANConfigSecurity || {};
+                            const idx = sections.length + 2;
+                            html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
+                            html += '<div class="tr069-toggle" data-idx="'+idx+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
+                            html += '<span>Security</span><span class="tr069-refresh" data-idx="'+idx+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:none;">&#8635;</span></div>';
+                            html += '<div class="tr069-panel" style="display:none;padding:10px 12px;background:var(--bg-main);font-size:0.85rem;">';
+                            const rowRadio = (label, id, val, opts) => {
+                                return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><label style="width:230px;color:var(--text-muted);">'+label+'</label><div style="flex:1;display:flex;gap:18px;">'
+                                    + opts.map(o => '<label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-weight:400;"><input type="radio" name="'+id+'" value="'+o[0]+'" id="'+id+'-'+o[0]+'"'+(String(val)===o[0]?' checked':'')+'> '+o[1]+'</label>').join('')
+                                    + '</div></div>';
+                            };
+                            const rowText = (label, id, val, type) => '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><label style="width:230px;color:var(--text-muted);">'+label+'</label><input type="'+(type||'text')+'" id="'+id+'" value="'+esc(val)+'" style="flex:1;padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);"></div>';
+                            const enDis = [['1','Enabled'],['0','Disabled']];
+                            // LanIPV4Rule.<svc> berupa bitmask (0 = diblokir semua, non-zero = diizinkan) --
+                            // disederhanakan jadi toggle Enable/Disable, sesuai instruksi "tampilan boleh
+                            // beda yang penting config jalan". Saat Enable, kirim 1048575 (semua host, nilai
+                            // asli device saat servis itu aktif -- dikonfirmasi dari data device test).
+                            const ruleOn = k => String(acl['LanIPV4Rule.'+k]?._value ?? 0) !== '0' ? '1' : '0';
+                            html += rowRadio('ACL Enable (master switch)', 'fhsec-acl-enable', acl.Enable?._value, enDis);
+                            html += '<div style="color:var(--text-muted);font-size:0.78rem;margin:-4px 0 10px;">Kalau ACL Enable = Disabled, semua service di bawah dianggap terbuka (ACL tidak aktif).</div>';
+                            html += '<div style="border-top:1px solid var(--border-color);margin:0 0 10px;"></div>';
+                            html += rowRadio('HTTP (Web UI) access', 'fhsec-http', ruleOn('HTTP'), enDis);
+                            html += rowRadio('HTTPS access', 'fhsec-https', ruleOn('HTTPS'), enDis);
+                            html += rowRadio('SSH access', 'fhsec-ssh', ruleOn('SSH'), enDis);
+                            html += rowRadio('Telnet access', 'fhsec-telnet', ruleOn('TELNET'), enDis);
+                            html += rowRadio('FTP access', 'fhsec-ftp', ruleOn('FTP'), enDis);
+                            html += rowRadio('Ping (ICMP) reply', 'fhsec-ping', ruleOn('PING'), enDis);
+                            html += '<div style="border-top:1px solid var(--border-color);margin:10px 0;"></div>';
+                            html += rowText('Web Login Username', 'fhsec-web-user', lcs.ConfigUsername?._value ?? '', 'text');
+                            html += rowText('Web Login Password', 'fhsec-web-pass', '', 'text');
+                            html += '<div style="color:var(--text-muted);font-size:0.78rem;margin:-4px 0 10px;">Password kosong = tidak diubah (device tidak lapor balik password, standar TR-069).</div>';
+                            html += '<button type="button" class="btn-solt btn-solt-green fhsec-save" data-idx="'+idx+'" style="padding:6px 16px;font-size:0.82rem;margin-top:4px;">Simpan Perubahan</button>';
+                            html += '</div></div>';
+                        })();
+                        else (() => {
                             const secObj = root.X_HW_Security || {};
                             const acl = secObj.AclServices || {};
                             const dos = secObj.Dosfilter || {};
@@ -3197,6 +3237,40 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                     return { id, path, type, value: val };
                                 }).filter(f => !(isPassField(f.id) && f.value === '')).filter(f => !(f.id === 'sec-wan-service' && !svcPath));
                                 if (!items.length) return;
+                                btn.disabled = true; btn.textContent = 'Menyimpan...';
+                                fetch('action/genieacs-proxy.php', {
+                                    method: 'POST',
+                                    headers: {'Content-Type': 'application/json'},
+                                    body: JSON.stringify({serial, edit_generic: true, items})
+                                }).then(r => r.json()).then(d => {
+                                    if (d.success) { alert(d.message || 'Berhasil dikirim.'); reloadAfterSave(); }
+                                    else { alert('Error: ' + (d.message || 'Gagal')); btn.disabled = false; btn.textContent = 'Simpan Perubahan'; }
+                                }).catch(() => { alert('Gagal mengirim perubahan.'); btn.disabled = false; btn.textContent = 'Simpan Perubahan'; });
+                            });
+                        });
+                        // Simpan Perubahan (card Security FiberHome) — X_FH_ACL + LANConfigSecurity via TR-069.
+                        cliOutputBox.querySelectorAll('.fhsec-save').forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                const B = 'InternetGatewayDevice.';
+                                const radioVal = id => document.querySelector('input[name="'+id+'"]:checked')?.value ?? '';
+                                const textVal = id => document.getElementById(id)?.value ?? '';
+                                const aclEnable = radioVal('fhsec-acl-enable');
+                                // Bitmask: '1' -> 1048575 (semua host diizinkan), '0' -> 0 (diblokir semua).
+                                // Nilai 1048575 dikonfirmasi dari data device asli saat servis itu aktif.
+                                const bit = key => radioVal(key) === '1' ? 1048575 : 0;
+                                const items = [
+                                    { id: 'fhsec-acl-enable', path: B+'X_FH_ACL.Enable', type: 'xsd:boolean', value: aclEnable === '1' },
+                                    { id: 'fhsec-http', path: B+'X_FH_ACL.LanIPV4Rule.HTTP', type: 'xsd:unsignedInt', value: bit('fhsec-http') },
+                                    { id: 'fhsec-https', path: B+'X_FH_ACL.LanIPV4Rule.HTTPS', type: 'xsd:unsignedInt', value: bit('fhsec-https') },
+                                    { id: 'fhsec-ssh', path: B+'X_FH_ACL.LanIPV4Rule.SSH', type: 'xsd:unsignedInt', value: bit('fhsec-ssh') },
+                                    { id: 'fhsec-telnet', path: B+'X_FH_ACL.LanIPV4Rule.TELNET', type: 'xsd:unsignedInt', value: bit('fhsec-telnet') },
+                                    { id: 'fhsec-ftp', path: B+'X_FH_ACL.LanIPV4Rule.FTP', type: 'xsd:unsignedInt', value: bit('fhsec-ftp') },
+                                    { id: 'fhsec-ping', path: B+'X_FH_ACL.LanIPV4Rule.PING', type: 'xsd:unsignedInt', value: bit('fhsec-ping') },
+                                ];
+                                const webUser = textVal('fhsec-web-user');
+                                const webPass = textVal('fhsec-web-pass');
+                                if (webUser !== '') items.push({ id: 'fhsec-web-user', path: B+'LANConfigSecurity.ConfigUsername', type: 'xsd:string', value: webUser });
+                                if (webPass !== '') items.push({ id: 'fhsec-web-pass', path: B+'LANConfigSecurity.ConfigPassword', type: 'xsd:string', value: webPass });
                                 btn.disabled = true; btn.textContent = 'Menyimpan...';
                                 fetch('action/genieacs-proxy.php', {
                                     method: 'POST',
