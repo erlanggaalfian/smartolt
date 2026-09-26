@@ -2464,7 +2464,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             const bandwidth = (() => {
                                 const ht20 = pv(sec, 'X_HW_HT20');
                                 if (ht20 !== '' && ht20 != null) return (ht20 === true || ht20 === '1' || ht20 === 1) ? '20 MHz' : '40 MHz';
-                                return pv(sec, 'X_HW_Bandwidth') || 'N/A';
+                                return pv(sec, 'X_HW_Bandwidth') || pv(sec, 'X_FH_DSBandwidth') || 'N/A';
                             })();
                             const regDomain = pv(sec, 'RegulatoryDomain') || 'ID';
                             const ssidAdv = pv(sec, 'SSIDAdvertisementEnabled');
@@ -2489,8 +2489,8 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             h += pppRow('Band', band + ' (' + standard + ')');
                             h += pppRow('Security', wlanSecuritySelect(i, wpaEnc));
                             h += pppRow('Channel', wlanChannelRow(i, channel, autoChannel));
-                            h += pppRow('Bandwidth', wlanBandwidthSelect(i, ht20));
-                            h += pppRow('Wireless Mode', wlanModeSelect(i, wirelessMode));
+                            h += pppRow('Bandwidth', (ht20 === '' || ht20 == null) ? (bandwidth || 'N/A') : wlanBandwidthSelect(i, ht20));
+                            h += pppRow('Wireless Mode', wlanModeSelect(i, wirelessMode || standard));
                             h += pppRow('Regulatory Domain', wlanRegDomainSelect(i, regDomain));
                             h += pppRow('SSID Advertisement', wlanRadio('ssid_broadcast', i, ssidAdv));
                             h += pppRow('Transmit Power', wlanTxPowerSelect(i, txPower, txPowerSupported));
@@ -2532,7 +2532,10 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             return s;
                         }
                         function wlanModeSelect(i, current) {
-                            const opts = ['11b','11g','11bg','11n','11bgn'];
+                            const opts = ['11b','11g','11bg','11n','11bgn','11a','11ac','11ax'];
+                            // Kalau nilai asli device (mis. 'ax' dari Standard TR-069) tidak ada di daftar
+                            // tetap, tetap tampilkan apa adanya -- jangan diam-diam default ke opsi pertama.
+                            if (current && !opts.includes(current)) opts.unshift(current);
                             let s = '<select class="wlan-field" data-key="wireless_mode" data-idx="'+i+'" style="width:100%;max-width:140px;box-sizing:border-box;padding:5px 8px;font-size:0.85rem;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">';
                             opts.forEach(val => { s += '<option value="'+val+'"'+(current===val?' selected':'')+'>'+val+'</option>'; });
                             s += '</select>';
