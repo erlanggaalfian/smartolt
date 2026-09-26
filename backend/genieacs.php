@@ -364,8 +364,10 @@ function genieacs_edit_wlan_params(string $serial, array $fields, int $wlanIndex
         'enable' => ["{$base}.Enable", 'xsd:boolean', 'bool'],
         'password' => ["{$base}.PreSharedKey.1.KeyPassphrase", 'xsd:string', 'string'],
         'security' => ["{$base}.WPAEncryptionModes", 'xsd:string', 'string'],
-        'channel' => ["{$base}.Channel", 'xsd:unsignedInt', 'int'],
+        // auto_channel HARUS dikirim & diproses SEBELUM channel -- device menolak set
+        // Channel manual selama AutoChannelEnable masih true (order array = order task).
         'auto_channel' => ["{$base}.AutoChannelEnable", 'xsd:boolean', 'bool'],
+        'channel' => ["{$base}.Channel", 'xsd:unsignedInt', 'int'],
         'regulatory_domain' => ["{$base}.RegulatoryDomain", 'xsd:string', 'string'],
         'ssid_broadcast' => ["{$base}.SSIDAdvertisementEnabled", 'xsd:boolean', 'bool'],
         'tx_power' => ["{$base}.TransmitPower", 'xsd:unsignedInt', 'int'],
