@@ -1909,6 +1909,26 @@ $tr069_profiles = tr069_get_profiles($pdo);
                     });
                     const addData = await addResp.json();
                     if (!addData.success) { alert('Gagal membuat rule baru: ' + (addData.message || '')); btn.disabled = false; btn.textContent = 'Simpan'; return; }
+                    // Device FiberHome BUG: addObject mereset SEMUA rule lama jadi kosong --
+                    // re-push field rule lama dari snapshot SEBELUM isi rule baru.
+                    const existing = window.fhAclExistingRules || {};
+                    for (const [oldRid, oldR] of Object.entries(existing)) {
+                        const OB = 'InternetGatewayDevice.X_FH_ACL.Rule.' + oldRid + '.';
+                        const restoreItems = [
+                            { path: OB+'Enable', type: 'xsd:unsignedInt', value: oldR.Enable ? 1 : 0 },
+                            { path: OB+'Protocol', type: 'xsd:string', value: oldR.Protocol || 'ALL' },
+                            { path: OB+'Interface', type: 'xsd:string', value: oldR.Interface || 'WAN' },
+                            { path: OB+'Direction', type: 'xsd:unsignedInt', value: oldR.Direction || 1 },
+                        ];
+                        if (oldR.StartIp) restoreItems.push({ path: OB+'StartIp', type: 'xsd:string', value: oldR.StartIp });
+                        if (oldR.EndIp) restoreItems.push({ path: OB+'EndIp', type: 'xsd:string', value: oldR.EndIp });
+                        for (const it of restoreItems) {
+                            await fetch('action/genieacs-proxy.php', {
+                                method: 'POST', headers: {'Content-Type': 'application/json'},
+                                body: JSON.stringify({serial, edit_generic: true, items: [it]})
+                            });
+                        }
+                    }
                 }
                 const B = 'InternetGatewayDevice.X_FH_ACL.Rule.' + (rid || '') + '.';
                 const items = [
@@ -2946,6 +2966,19 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             // internal seperti "1_INTERNET_R_VID_15") -- device TERBUKTI menerima
                             // literal "WAN"/"LAN" langsung tanpa fault.
                             window.fhAclInterfaces = ['WAN', 'LAN'];
+                            // Snapshot rule EXISTING (sebelum addObject) -- device FiberHome punya bug:
+                            // addObject di tabel Rule me-RESET SEMUA rule lama jadi kosong (bukan cuma
+                            // nambah instance baru). Snapshot ini dipakai untuk re-push field rule lama
+                            // setelah addObject selesai (lihat handler #fhacl-modal-save).
+                            window.fhAclExistingRules = {};
+                            Object.keys(acl.Rule || {}).filter(k => /^\d+$/.test(k)).forEach(k => {
+                                const r = acl.Rule[k];
+                                window.fhAclExistingRules[k] = {
+                                    Enable: r.Enable?._value, Protocol: r.Protocol?._value,
+                                    Interface: r.Interface?._value, Direction: r.Direction?._value,
+                                    StartIp: r.StartIp?._value, EndIp: r.EndIp?._value,
+                                };
+                            });
                             const idx = sections.length + 2;
                             html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
                             html += '<div class="tr069-toggle" data-idx="'+idx+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';

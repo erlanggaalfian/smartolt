@@ -505,7 +505,10 @@ function genieacs_edit_generic_params(string $serial, array $items): array {
     if ($failed) {
         return ['success' => false, 'message' => 'Path tidak valid: ' . implode(', ', $failed)];
     }
-    $result = genieacs_set_params($deviceId, $paramValues, 15);
+    // Timeout 25 detik (bukan 15) -- beberapa device (FiberHome NAT/CGNAT) butuh waktu
+    // lebih lama untuk connection-request nyampai. Proxy endpoint sudah set_time_limit(60)
+    // jadi aman menaikkan ini.
+    $result = genieacs_set_params($deviceId, $paramValues, 25);
     if ($result === null) {
         return ['success' => false, 'message' => 'Gagal mengirim task ke GenieACS (device mungkin offline).'];
     }
