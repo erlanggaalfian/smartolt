@@ -2329,7 +2329,9 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             const uptime = pv(sec, 'Uptime');
                             const username = pv(sec, 'Username');
                             const dns = pv(sec, 'DNSServers');
-                            const gw = pv(sec, 'DefaultGateway');
+                            // PPP tidak selalu isi DefaultGateway (read-only, kosong di banyak vendor);
+                            // gateway peer sebenarnya ada di RemoteIPAddress saat status Connected.
+                            const gw = pv(sec, 'DefaultGateway') || pv(sec, 'RemoteIPAddress');
                             const ip = pv(sec, 'ExternalIPAddress');
                             const mru = pv(sec, 'MaxMRUSize');
                             const acsName = root?.ManagementServer?.URL?._value || ''; // ACS Name = URL server ACS, bukan field WANPPPConnection
