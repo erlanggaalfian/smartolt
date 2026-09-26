@@ -39,11 +39,18 @@ if ($profile_name === 'Nonaktif') {
     }
     if (!$profile) { echo json_encode(['success'=>false,'message'=>'Profil tidak ditemukan']); exit; }
 
+    // VLAN tag management wajib supaya traffic TR069 ter-route ke ACS.
+    // Prioritas: mgmt_vlan ONU sendiri, lalu mgmt_vlan profil, fallback 100 (VLAN mgmt standar).
+    $mgmt_vlan = (int)($row['mgmt_vlan'] ?: $profile['mgmt_vlan'] ?: 100);
+    $mgmt_priority = (int)($profile['mgmt_priority'] ?: 2);
+
     $result = call_driver($olt, 'set_tr069_profile', [
         $row['pon_port'], (int)$row['onu_id'],
         $profile['acs_url'],
         $profile['acs_username'] ?? '',
         $profile['acs_password'] ?? '',
+        $mgmt_vlan,
+        $mgmt_priority,
     ]);
 }
 
