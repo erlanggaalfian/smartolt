@@ -1913,11 +1913,14 @@ $tr069_profiles = tr069_get_profiles($pdo);
                 const B = 'InternetGatewayDevice.X_FH_ACL.Rule.' + (rid || '') + '.';
                 const items = [
                     { path: B+'Enable', type: 'xsd:unsignedInt', value: radioVal('fhacl-modal-active') === '1' ? 1 : 0 },
-                    { path: B+'StartIp', type: 'xsd:string', value: val('fhacl-modal-srcstart') || '0.0.0.0' },
                     { path: B+'Protocol', type: 'xsd:string', value: val('fhacl-modal-protocol') || 'ALL' },
                     { path: B+'Interface', type: 'xsd:string', value: val('fhacl-modal-interface') },
                     { path: B+'Direction', type: 'xsd:unsignedInt', value: 1 },
                 ];
+                // Source IP kosong = "semua sumber" (sesuai tampilan GUI asli device, field
+                // dibiarkan kosong bukan diisi 0.0.0.0) -- kirim StartIp/EndIp HANYA kalau user isi.
+                const startIp = val('fhacl-modal-srcstart');
+                if (startIp) items.push({ path: B+'StartIp', type: 'xsd:string', value: startIp });
                 const endIp = val('fhacl-modal-srcend');
                 if (endIp) items.push({ path: B+'EndIp', type: 'xsd:string', value: endIp });
                 if (rid) {
@@ -2939,20 +2942,10 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             // Daftar interface WAN NYATA dari device (Name field tiap WANIPConnection/
                             // WANPPPConnection) -- dipakai isi <select> modal, user TIDAK ketik manual
                             // (device tolak nama sembarang, fault 9005 "Invalid parameter name").
-                            window.fhAclInterfaces = (() => {
-                                const names = [];
-                                Object.values(root.WANDevice || {}).forEach(wdev => {
-                                    Object.values(wdev?.WANConnectionDevice || {}).forEach(wcd => {
-                                        ['WANIPConnection', 'WANPPPConnection'].forEach(kind => {
-                                            Object.values(wcd?.[kind] || {}).forEach(conn => {
-                                                const n = conn?.Name?._value;
-                                                if (n && !names.includes(n)) names.push(n);
-                                            });
-                                        });
-                                    });
-                                });
-                                return names;
-                            })();
+                            // Daftar interface generik LAN/WAN, SESUAI GUI asli device (bukan nama VID
+                            // internal seperti "1_INTERNET_R_VID_15") -- device TERBUKTI menerima
+                            // literal "WAN"/"LAN" langsung tanpa fault.
+                            window.fhAclInterfaces = ['WAN', 'LAN'];
                             const idx = sections.length + 2;
                             html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
                             html += '<div class="tr069-toggle" data-idx="'+idx+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
@@ -2965,7 +2958,14 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             };
                             const rowText = (label, id, val, ph) => '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><label style="width:150px;color:var(--text-muted);">'+label+'</label><input type="text" id="'+id+'" value="'+esc(val)+'" placeholder="'+(ph||'')+'" style="flex:1;padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);"></div>';
                             const enDis = [['1','Enabled'],['0','Disabled']];
-                            html += rowRadio('ACL Enable (master switch)', 'fhsec-acl-enable', acl.Enable?._value === true || acl.Enable?._value === 'true' || acl.Enable?._value === 1 ? '1' : '0', enDis);
+                            // ACL Enable: kalau device belum eksplisit set (mis. field kosong/tidak dikenal),
+                            // JANGAN paksa default Enabled/Disabled -- biarkan tidak ada radio tercentang,
+                            // sesuai device asli (user laporan: GUI ONU tidak ada yang ke-checked).
+                            const aclEnableRaw = acl.Enable?._value;
+                            const aclEnableVal = (aclEnableRaw === true || aclEnableRaw === 'true' || aclEnableRaw === 1 || aclEnableRaw === '1') ? '1'
+                                : (aclEnableRaw === false || aclEnableRaw === 'false' || aclEnableRaw === 0 || aclEnableRaw === '0') ? '0'
+                                : null;
+                            html += rowRadio('ACL Enable (master switch)', 'fhsec-acl-enable', aclEnableVal, enDis);
                             html += '<div style="border-top:1px solid var(--border-color);margin:4px 0 10px;"></div>';
 
                             // Tabel ACL Settings -- mirror GUI asli device: ID | Active | Source IP | Protocol | Interface,
@@ -2984,14 +2984,20 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             ruleIds.forEach(rid => {
                                 const r = ruleTbl[rid];
                                 const active = String(r.Enable?._value) === '1' ? 'YES' : 'NO';
-                                const srcIp = (r.StartIp?._value || r.EndIp?._value) ? (esc(r.StartIp?._value||'0.0.0.0')+' - '+esc(r.EndIp?._value||'*')) : '--';
+                                // 0.0.0.0/255.255.255.255 dianggap wildcard (device isi otomatis) --
+                                // tampil kosong "--", BUKAN nilai teknisnya, sesuai tampilan GUI asli.
+                                const rawStart = r.StartIp?._value || '';
+                                const rawEnd = r.EndIp?._value || '';
+                                const startShown = (rawStart && rawStart !== '0.0.0.0') ? rawStart : '';
+                                const endShown = (rawEnd && rawEnd !== '255.255.255.255') ? rawEnd : '';
+                                const srcIp = (startShown || endShown) ? (esc(startShown||'*')+' - '+esc(endShown||'*')) : '--';
                                 html += '<tr>'
                                     + '<td style="padding:5px 6px;border:1px solid var(--border-color);">'+rid+'</td>'
                                     + '<td style="padding:5px 6px;border:1px solid var(--border-color);">'+active+'</td>'
                                     + '<td style="padding:5px 6px;border:1px solid var(--border-color);">'+srcIp+'</td>'
                                     + '<td style="padding:5px 6px;border:1px solid var(--border-color);">'+esc(r.Protocol?._value||'')+'</td>'
                                     + '<td style="padding:5px 6px;border:1px solid var(--border-color);">'+esc(r.Interface?._value||'')+'</td>'
-                                    + '<td style="padding:5px 6px;border:1px solid var(--border-color);"><button type="button" class="btn-solt btn-solt-blue fhacl-edit" data-rule="'+rid+'" data-active="'+(active==='YES'?'1':'0')+'" data-srcstart="'+esc(r.StartIp?._value||'')+'" data-srcend="'+esc(r.EndIp?._value||'')+'" data-protocol="'+esc(r.Protocol?._value||'')+'" data-interface="'+esc(r.Interface?._value||'')+'" style="padding:3px 10px;font-size:0.76rem;">Edit</button></td>'
+                                    + '<td style="padding:5px 6px;border:1px solid var(--border-color);"><button type="button" class="btn-solt btn-solt-blue fhacl-edit" data-rule="'+rid+'" data-active="'+(active==='YES'?'1':'0')+'" data-srcstart="'+esc(startShown)+'" data-srcend="'+esc(endShown)+'" data-protocol="'+esc(r.Protocol?._value||'')+'" data-interface="'+esc(r.Interface?._value||'')+'" style="padding:3px 10px;font-size:0.76rem;">Edit</button></td>'
                                     + '</tr>';
                             });
                             html += '</table>';
@@ -3355,8 +3361,8 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 document.getElementById('fhacl-modal-title').textContent = 'Edit Rule';
                                 document.getElementById('fhacl-modal-rule-id').value = btn.dataset.rule;
                                 document.querySelector('input[name="fhacl-modal-active"][value="'+btn.dataset.active+'"]').checked = true;
-                                document.getElementById('fhacl-modal-srcstart').value = btn.dataset.srcstart === '0.0.0.0' ? '' : btn.dataset.srcstart;
-                                document.getElementById('fhacl-modal-srcend').value = (btn.dataset.srcend === '255.255.255.255' ? '' : btn.dataset.srcend);
+                                document.getElementById('fhacl-modal-srcstart').value = btn.dataset.srcstart || '';
+                                document.getElementById('fhacl-modal-srcend').value = btn.dataset.srcend || '';
                                 document.getElementById('fhacl-modal-protocol').value = btn.dataset.protocol || 'ALL';
                                 const sel = document.getElementById('fhacl-modal-interface');
                                 const opts = [...(window.fhAclInterfaces || [])];
