@@ -1,6 +1,11 @@
 <?php
 session_start();
 if (!isset($_SESSION['smartolt_role'])) { http_response_code(403); echo 'Forbidden'; exit; }
+// Beberapa endpoint (addObject/deleteObject) bisa nunggu connection-request device NAT/CGNAT
+// sampai 45 detik -- default php.ini Apache max_execution_time=30 detik motong duluan sebelum
+// tugas TR-069 selesai, bikin frontend lapor gagal padahal task tetap jalan di GenieACS (rule
+// numpuk kosong akibat retry berulang). Naikkan limit KHUSUS proxy ini.
+set_time_limit(60);
 require_once __DIR__ . '/../../backend/genieacs.php';
 require_once __DIR__ . '/../../backend/db.php';
 

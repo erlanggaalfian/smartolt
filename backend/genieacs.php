@@ -525,10 +525,12 @@ function genieacs_add_object(string $serial, string $objectName): array {
     if (!$deviceId) {
         return ['success' => false, 'message' => 'Device tidak ditemukan di GenieACS.'];
     }
+    // Timeout 45 detik -- device di belakang NAT/CGNAT terbukti butuh 7-28+ detik untuk
+    // connection-request nyampai & device balas addObject, variatif tiap kali.
     $result = genieacs_request('POST', "/devices/" . rawurlencode($deviceId) . "/tasks?connection_request",
-        ['name' => 'addObject', 'objectName' => $objectName], 15);
+        ['name' => 'addObject', 'objectName' => $objectName], 45);
     if ($result === null) {
-        return ['success' => false, 'message' => 'Gagal membuat instance baru (device tidak reachable).'];
+        return ['success' => false, 'message' => 'Gagal membuat instance baru (device tidak reachable, sudah dicoba 45 detik).'];
     }
     return ['success' => true, 'message' => 'Instance baru dibuat via TR-069.', 'data' => $result];
 }
@@ -546,9 +548,9 @@ function genieacs_delete_object(string $serial, string $objectName): array {
         return ['success' => false, 'message' => 'Device tidak ditemukan di GenieACS.'];
     }
     $result = genieacs_request('POST', "/devices/" . rawurlencode($deviceId) . "/tasks?connection_request",
-        ['name' => 'deleteObject', 'objectName' => $objectName], 15);
+        ['name' => 'deleteObject', 'objectName' => $objectName], 45);
     if ($result === null) {
-        return ['success' => false, 'message' => 'Gagal menghapus instance (device tidak reachable).'];
+        return ['success' => false, 'message' => 'Gagal menghapus instance (device tidak reachable, sudah dicoba 45 detik).'];
     }
     return ['success' => true, 'message' => 'Instance dihapus via TR-069.'];
 }
