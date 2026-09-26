@@ -2997,7 +2997,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                     + '<td style="padding:5px 6px;border:1px solid var(--border-color);">'+srcIp+'</td>'
                                     + '<td style="padding:5px 6px;border:1px solid var(--border-color);">'+esc(r.Protocol?._value||'')+'</td>'
                                     + '<td style="padding:5px 6px;border:1px solid var(--border-color);">'+esc(r.Interface?._value||'')+'</td>'
-                                    + '<td style="padding:5px 6px;border:1px solid var(--border-color);"><button type="button" class="btn-solt btn-solt-blue fhacl-edit" data-rule="'+rid+'" data-active="'+(active==='YES'?'1':'0')+'" data-srcstart="'+esc(startShown)+'" data-srcend="'+esc(endShown)+'" data-protocol="'+esc(r.Protocol?._value||'')+'" data-interface="'+esc(r.Interface?._value||'')+'" style="padding:3px 10px;font-size:0.76rem;">Edit</button></td>'
+                                    + '<td style="padding:5px 6px;border:1px solid var(--border-color);"><button type="button" class="btn-solt btn-solt-blue fhacl-edit" data-rule="'+rid+'" data-active="'+(active==='YES'?'1':'0')+'" data-srcstart="'+esc(startShown)+'" data-srcend="'+esc(endShown)+'" data-protocol="'+esc(r.Protocol?._value||'')+'" data-interface="'+esc(r.Interface?._value||'')+'" style="padding:3px 10px;font-size:0.76rem;">Edit</button> <button type="button" class="btn-solt btn-solt-red fhacl-delete" data-rule="'+rid+'" style="padding:3px 10px;font-size:0.76rem;">Delete</button></td>'
                                     + '</tr>';
                             });
                             html += '</table>';
@@ -3370,6 +3370,24 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 sel.innerHTML = opts.map(n => '<option value="'+n+'">'+n+'</option>').join('');
                                 sel.value = btn.dataset.interface;
                                 document.getElementById('fhacl-modal').classList.add('open');
+                            });
+                        });
+                        // Tombol "Delete" per baris -- hapus instance Rule dari device via TR-069.
+                        cliOutputBox.querySelectorAll('.fhacl-delete').forEach(btn => {
+                            btn.addEventListener('click', async () => {
+                                if (!confirm('Hapus rule ACL ID ' + btn.dataset.rule + '? Tindakan ini permanen di device.')) return;
+                                btn.disabled = true; btn.textContent = 'Menghapus...';
+                                try {
+                                    const r = await fetch('action/genieacs-proxy.php', {
+                                        method: 'POST', headers: {'Content-Type': 'application/json'},
+                                        body: JSON.stringify({serial, delete_object: true, object_name: 'InternetGatewayDevice.X_FH_ACL.Rule.' + btn.dataset.rule})
+                                    });
+                                    const d = await r.json();
+                                    if (d.success) { alert('Rule ACL dihapus.'); reloadAfterSave(); }
+                                    else { alert('Gagal menghapus: ' + (d.message || '')); btn.disabled = false; btn.textContent = 'Delete'; }
+                                } catch (e) {
+                                    alert('Gagal mengirim perintah hapus.'); btn.disabled = false; btn.textContent = 'Delete';
+                                }
                             });
                         });
                         // NOTE: Simpan Rule ACL dipindah ke handler global tombol modal #fhacl-modal-save
