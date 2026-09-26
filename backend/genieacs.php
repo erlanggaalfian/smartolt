@@ -677,6 +677,10 @@ function genieacs_push_wan(string $serial, string $wan_mode, array $wan): array 
             $params["{$pppPath}.{$pppIndex}.VLANEnable"] = [true, 'xsd:boolean'];
             $params["{$pppPath}.{$pppIndex}.VLANID"] = [(int) $wan['vlan_service'], 'xsd:unsignedInt'];
         }
+        // Wajib: tanpa ini device tidak tahu interface mana jadi default route,
+        // jadi PPP bisa "Connected" dapat IP tapi client LAN tetap tidak bisa browsing.
+        $params['InternetGatewayDevice.Layer3Forwarding.DefaultConnectionService'] =
+            ["1 {$pppPath}.{$pppIndex}", 'xsd:string'];
     } elseif ($wan_mode === 'Static' || $wan_mode === 'DHCP') {
         // Sama seperti PPPoE: jangan hardcode index '.1', device migrasi bisa sudah punya
         // instance WANIPConnection dengan index lain -- reuse, jangan addObject sembarangan.
@@ -711,6 +715,9 @@ function genieacs_push_wan(string $serial, string $wan_mode, array $wan): array 
             $params["{$ipPath}.{$ipIndex}.VLANEnable"] = [true, 'xsd:boolean'];
             $params["{$ipPath}.{$ipIndex}.VLANID"] = [(int) $wan['vlan_service'], 'xsd:unsignedInt'];
         }
+        // Sama seperti PPPoE: wajib set default route, kalau tidak client LAN tidak internet.
+        $params['InternetGatewayDevice.Layer3Forwarding.DefaultConnectionService'] =
+            ["1 {$ipPath}.{$ipIndex}", 'xsd:string'];
     } else {
         // 'Setup via ONU webpage' — tidak ada parameter WAN yang dipush.
         return ['success' => true, 'message' => 'Mode "Setup via ONU webpage" — tidak ada perubahan WAN dikirim via TR-069.'];
