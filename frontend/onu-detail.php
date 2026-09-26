@@ -1961,11 +1961,11 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         const d = await r.json();
                         if (!d.success) { allOk = false; lastMsg = d.message || 'Gagal'; }
                     }
-                    if (allOk) { alert('Rule ACL berhasil disimpan.'); document.getElementById('fhacl-modal').classList.remove('open'); reloadAfterSave(); }
+                    if (allOk) { alert('Rule ACL berhasil disimpan.'); document.getElementById('fhacl-inline-panel').style.display = 'none'; reloadAfterSave(); }
                     else { alert('Sebagian field gagal: ' + lastMsg); }
                 } else {
                     alert('Rule baru dibuat. Klik "Edit" pada baris baru untuk isi detailnya.');
-                    document.getElementById('fhacl-modal').classList.remove('open');
+                    document.getElementById('fhacl-inline-panel').style.display = 'none';
                     reloadAfterSave();
                 }
             } catch (e) {
@@ -3043,6 +3043,25 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             });
                             html += '</table>';
 
+                            // Panel Add/Edit Rule -- INLINE di bawah tabel (bukan popup modal),
+                            // hidden by default, dibuka oleh tombol Add/Edit.
+                            html += '<div id="fhacl-inline-panel" style="display:none;border:1px solid var(--border-color);border-radius:6px;padding:14px;margin-bottom:10px;background:var(--bg-secondary);">';
+                            html += '<div style="font-weight:600;margin-bottom:10px;" id="fhacl-modal-title">Add Rule</div>';
+                            html += '<input type="hidden" id="fhacl-modal-rule-id" value="">';
+                            html += '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">';
+                            html += '<tr style="height:38px;"><td style="width:140px;font-weight:600;">Active</td><td>'
+                                + '<label style="margin-right:16px;cursor:pointer;"><input type="radio" name="fhacl-modal-active" value="1" checked> YES</label>'
+                                + '<label style="cursor:pointer;"><input type="radio" name="fhacl-modal-active" value="0"> NO</label></td></tr>';
+                            html += '<tr style="height:38px;"><td style="font-weight:600;">Source IP Start</td><td><input type="text" id="fhacl-modal-srcstart" placeholder="kosong = semua IP" style="width:100%;padding:6px 10px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);color:var(--text-main);"></td></tr>';
+                            html += '<tr style="height:38px;"><td style="font-weight:600;">Source IP End</td><td><input type="text" id="fhacl-modal-srcend" placeholder="kosong = semua IP" style="width:100%;padding:6px 10px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);color:var(--text-main);"></td></tr>';
+                            html += '<tr style="height:38px;"><td style="font-weight:600;">Protocol</td><td><select id="fhacl-modal-protocol" style="width:100%;padding:6px 10px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);color:var(--text-main);"><option value="ALL">ALL</option><option value="TCP">TCP</option><option value="UDP">UDP</option><option value="ICMP">ICMP</option></select></td></tr>';
+                            html += '<tr style="height:38px;"><td style="font-weight:600;">Interface</td><td><select id="fhacl-modal-interface" style="width:100%;padding:6px 10px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);color:var(--text-main);"></select></td></tr>';
+                            html += '</table>';
+                            html += '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px;">'
+                                + '<button type="button" class="btn btn-secondary" id="fhacl-inline-cancel" style="padding:6px 16px;font-size:0.82rem;">Batal</button>'
+                                + '<button type="button" class="btn btn-primary" id="fhacl-modal-save" style="padding:6px 16px;font-size:0.82rem;">Simpan</button></div>';
+                            html += '</div>';
+
                             html += '<div style="border-top:1px solid var(--border-color);margin:12px 0 10px;"></div>';
                             html += rowText('Web Login Username', 'fhsec-web-user', lcs.ConfigUsername?._value ?? '', '');
                             html += rowText('Web Login Password', 'fhsec-web-pass', '', 'kosong = tidak diubah');
@@ -3382,7 +3401,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 }).catch(() => { alert('Gagal mengirim perubahan.'); btn.disabled = false; btn.textContent = 'Simpan Perubahan'; });
                             });
                         });
-                        // Tombol "+ Add Rule" -- buka modal kosong (rule ID belum ada, addObject dulu saat save).
+                        // Tombol "+ Add Rule" -- buka panel inline kosong (rule ID belum ada, addObject dulu saat save).
                         cliOutputBox.querySelectorAll('.fhacl-add').forEach(btn => {
                             btn.addEventListener('click', () => {
                                 document.getElementById('fhacl-modal-title').textContent = 'Add Rule';
@@ -3393,7 +3412,9 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 document.getElementById('fhacl-modal-protocol').value = 'ALL';
                                 const sel = document.getElementById('fhacl-modal-interface');
                                 sel.innerHTML = (window.fhAclInterfaces || []).map(n => '<option value="'+n+'">'+n+'</option>').join('');
-                                document.getElementById('fhacl-modal').classList.add('open');
+                                const panel = document.getElementById('fhacl-inline-panel');
+                                panel.style.display = 'block';
+                                panel.scrollIntoView({behavior: 'smooth', block: 'nearest'});
                             });
                         });
                         // Tombol "Edit" per baris -- buka modal terisi data rule tsb.
@@ -3410,8 +3431,14 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 if (btn.dataset.interface && !opts.includes(btn.dataset.interface)) opts.push(btn.dataset.interface);
                                 sel.innerHTML = opts.map(n => '<option value="'+n+'">'+n+'</option>').join('');
                                 sel.value = btn.dataset.interface;
-                                document.getElementById('fhacl-modal').classList.add('open');
+                                const panel = document.getElementById('fhacl-inline-panel');
+                                panel.style.display = 'block';
+                                panel.scrollIntoView({behavior: 'smooth', block: 'nearest'});
                             });
+                        });
+                        // Tombol "Batal" panel inline Add/Edit Rule.
+                        document.getElementById('fhacl-inline-cancel')?.addEventListener('click', () => {
+                            document.getElementById('fhacl-inline-panel').style.display = 'none';
                         });
                         // Tombol "Delete" per baris -- hapus instance Rule dari device via TR-069.
                         cliOutputBox.querySelectorAll('.fhacl-delete').forEach(btn => {
@@ -3651,55 +3678,6 @@ $tr069_profiles = tr069_get_profiles($pdo);
                 <button type="submit" class="btn btn-primary">Simpan</button>
             </div>
         </form>
-    </div>
-</div>
-
-<!-- Modal ACL Rule (Add/Edit) — card Security FiberHome -->
-<div class="modal" id="fhacl-modal">
-    <div class="modal-content" style="max-width:480px; width:90%;">
-        <div class="modal-header" style="padding:15px 24px; display:flex; justify-content:space-between; align-items:center;">
-            <h3 style="margin:0; font-size:1.3rem; font-weight:700;" id="fhacl-modal-title">Add Rule</h3>
-            <button type="button" onclick="document.getElementById('fhacl-modal').classList.remove('open')" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-muted);">&times;</button>
-        </div>
-        <div class="modal-body" style="padding:24px;">
-            <input type="hidden" id="fhacl-modal-rule-id" value="">
-            <table style="width:100%;border-collapse:collapse;">
-                <tr style="height:46px;">
-                    <td style="width:150px;font-weight:600;color:var(--text-main);">Active</td>
-                    <td>
-                        <label style="margin-right:16px;cursor:pointer;"><input type="radio" name="fhacl-modal-active" value="1" checked> YES</label>
-                        <label style="cursor:pointer;"><input type="radio" name="fhacl-modal-active" value="0"> NO</label>
-                    </td>
-                </tr>
-                <tr style="height:46px;">
-                    <td style="font-weight:600;color:var(--text-main);">Source IP Start</td>
-                    <td><input type="text" id="fhacl-modal-srcstart" placeholder="kosong = semua IP" style="width:100%;padding:8px 12px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);color:var(--text-main);"></td>
-                </tr>
-                <tr style="height:46px;">
-                    <td style="font-weight:600;color:var(--text-main);">Source IP End</td>
-                    <td><input type="text" id="fhacl-modal-srcend" placeholder="kosong = semua IP" style="width:100%;padding:8px 12px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);color:var(--text-main);"></td>
-                </tr>
-                <tr style="height:46px;">
-                    <td style="font-weight:600;color:var(--text-main);">Protocol</td>
-                    <td>
-                        <select id="fhacl-modal-protocol" style="width:100%;padding:8px 12px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);color:var(--text-main);">
-                            <option value="ALL">ALL</option>
-                            <option value="TCP">TCP</option>
-                            <option value="UDP">UDP</option>
-                            <option value="ICMP">ICMP</option>
-                        </select>
-                    </td>
-                </tr>
-                <tr style="height:46px;">
-                    <td style="font-weight:600;color:var(--text-main);">Interface</td>
-                    <td><select id="fhacl-modal-interface" style="width:100%;padding:8px 12px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);color:var(--text-main);"></select></td>
-                </tr>
-            </table>
-        </div>
-        <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:8px;padding:16px 24px;">
-            <button type="button" class="btn btn-secondary" onclick="document.getElementById('fhacl-modal').classList.remove('open')">Batal</button>
-            <button type="button" class="btn btn-primary" id="fhacl-modal-save">Simpan</button>
-        </div>
     </div>
 </div>
 
