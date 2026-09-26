@@ -2483,7 +2483,15 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             const txPower = pv(sec, 'TransmitPower');
                             const maxDev = pv(sec, 'X_HW_AssociateNum') || pv(sec, 'MaxAssociatedDevices');
                             const totalAssoc = pv(sec, 'TotalAssociations');
-                            const password = pv(sec, 'KeyPassphrase') || '';
+                            const password = pv(sec, 'KeyPassphrase') || (() => {
+                                // KeyPassphrase ada di child object PreSharedKey.1 (section terpisah
+                                // hasil walk()), bukan langsung di WLANConfiguration.N -- cari section
+                                // anak yang tr069Path-nya diawali path WLAN ini + '.PreSharedKey.'.
+                                const child = sections.find(s => s.tr069Path && sec.tr069Path
+                                    && s.tr069Path.startsWith(sec.tr069Path + '.PreSharedKey.')
+                                    && 'KeyPassphrase' in s.params);
+                                return child ? pv(child, 'KeyPassphrase') : '';
+                            })();
                             const ht20 = pv(sec, 'X_HW_HT20');
                             const wirelessMode = pv(sec, 'X_HW_Standard') || pv(sec, 'Standard') || '';
                             const macFilter = pv(sec, 'MACAddressControlEnabled');
