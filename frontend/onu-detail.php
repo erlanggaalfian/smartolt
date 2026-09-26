@@ -1889,14 +1889,12 @@ $tr069_profiles = tr069_get_profiles($pdo);
                 body: JSON.stringify({serial, refresh: true})
             }).finally(() => loadTr069Status({silent: true}));
         }
-        // Simpan Rule ACL (card Security FiberHome, modal fhacl-modal) -- kalau rule ID
-        // kosong (Add Rule), addObject dulu untuk dapat ID baru, baru isi field. Field
-        // dikirim SATU-PER-SATU (bukan batch) -- device FiberHome menolak batch multi-field
-        // pada object Rule baru (fault 9007). EndIp SENGAJA tidak dikirim kalau kosong --
-        // field ini konsisten ditolak device apapun nilainya; StartIp kosong = 0.0.0.0
-        // (wildcard) sudah cukup untuk "semua sumber IP".
-        document.getElementById('fhacl-modal-save')?.addEventListener('click', async () => {
-            const btn = document.getElementById('fhacl-modal-save');
+        // Simpan Rule ACL (card Security FiberHome, panel inline) -- pakai event delegation
+        // karena fhacl-modal-save dirender DINAMIS oleh loadTr069Status(), belum ada saat
+        // halaman pertama kali load.
+        document.addEventListener('click', async (ev) => {
+            if (!ev.target.matches || !ev.target.matches('#fhacl-modal-save')) return;
+            const btn = ev.target;
             let rid = document.getElementById('fhacl-modal-rule-id').value;
             const radioVal = name => document.querySelector('input[name="'+name+'"]:checked')?.value ?? '';
             const val = id => document.getElementById(id)?.value ?? '';
