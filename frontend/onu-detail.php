@@ -1903,6 +1903,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
             btn.disabled = true; btn.textContent = 'Menyimpan...';
             try {
                 if (!rid) {
+                    const existingIds = Object.keys(window.fhAclExistingRules || {});
                     const addResp = await fetch('action/genieacs-proxy.php', {
                         method: 'POST', headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify({serial, add_object: true, object_name: 'InternetGatewayDevice.X_FH_ACL.Rule'})
@@ -1929,6 +1930,13 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             });
                         }
                     }
+                    // Cari ID rule BARU (key yang belum ada di snapshot sebelum addObject).
+                    const refreshResp = await fetch('action/genieacs-proxy.php?serial=' + encodeURIComponent(serial));
+                    const refreshData = await refreshResp.json();
+                    const acl = refreshData?.InternetGatewayDevice?.X_FH_ACL;
+                    const currentIds = Object.keys(acl?.Rule || {}).filter(k => /^\d+$/.test(k));
+                    const newId = currentIds.find(k => !existingIds.includes(k));
+                    if (newId) rid = newId;
                 }
                 const B = 'InternetGatewayDevice.X_FH_ACL.Rule.' + (rid || '') + '.';
                 const items = [
