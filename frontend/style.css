@@ -510,3 +510,48 @@ body.light-mode .topnav-user-name { color: #fff; }
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: 0.01ms !important; animation-delay: 0ms !important; transition-duration: 0.01ms !important; }
 }
+
+/* === MOTION SYSTEM — Stage 2: Interaction Feedback === */
+/* Button focus ring */
+.btn:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 4px var(--text-accent); transition: box-shadow var(--duration-micro) var(--ease-out); }
+/* Form control focus glow */
+.form-control:focus { border-color: var(--text-accent); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15); transition: border-color var(--duration-short) var(--ease-out), box-shadow var(--duration-short) var(--ease-out); }
+/* Badge pulse on update */
+.badge { transition: transform var(--duration-micro) var(--ease-out); }
+.badge.badge-pulse { animation: badge-pop 0.3s var(--ease-out); }
+@keyframes badge-pop { 0% { transform: scale(1); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
+/* Card hover lift */
+.stat-card { transition: transform var(--duration-short) var(--ease-out), box-shadow var(--duration-short) var(--ease-out); }
+.stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+/* Table detail button hover */
+.data-table .btn-detail { transition: var(--transition-fast), transform var(--duration-micro) var(--ease-out); }
+.data-table .btn-detail:hover { transform: translateY(-1px); }
+/* Link underline animation */
+a { transition: color var(--duration-short) var(--ease-out); }
+/* Tab indicator slide */
+.tab-active-indicator { transition: left var(--duration-medium) var(--ease-out), width var(--duration-medium) var(--ease-out); }
+
+/* === MOTION SYSTEM — Stage 3: Overlay & Navigation === */
+/* Dropdown menu slide */
+.dropdown-menu { overflow: hidden; max-height: 0; opacity: 0; transition: max-height var(--duration-medium) var(--ease-out), opacity var(--duration-short) var(--ease-out), padding var(--duration-short) var(--ease-out); padding: 0; }
+.sidebar-dropdown.open .dropdown-menu { max-height: 500px; opacity: 1; padding: 4px 0; display: flex; }
+/* Chevron rotation */
+.chevron-icon { transition: transform var(--duration-short) var(--ease-out); }
+.sidebar-dropdown.open .chevron-icon { transform: rotate(180deg); }
+/* Topnav dropdown */
+.topnav-dropdown-menu { opacity: 0; transform: translateY(-8px) scale(0.97); pointer-events: none; transition: opacity var(--duration-short) var(--ease-out), transform var(--duration-short) var(--ease-out); position: absolute; }
+.topnav-dropdown.open .topnav-dropdown-menu { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+/* Page content fade-in */
+.content-area, .main-content { animation: fade-in var(--duration-medium) var(--ease-out) both; }
+/* Sidebar nav item hover slide */
+.sidebar-nav a, .sidebar-nav button { transition: background-color var(--duration-short) var(--ease-out), color var(--duration-short) var(--ease-out), padding-left var(--duration-short) var(--ease-out); }
+.sidebar-nav a:hover, .sidebar-nav button:hover { padding-left: 4px; }
+/* Tooltip fade */
+[title] { position: relative; }
+/* Notification badge bounce */
+.notification-badge { animation: badge-pop 0.3s var(--ease-out); }
+/* Accordion / collapse */
+.collapse-content { overflow: hidden; transition: max-height var(--duration-medium) var(--ease-out), opacity var(--duration-short) var(--ease-out); }
+/* Scroll reveal (for long pages) */
+.scroll-reveal { opacity: 0; transform: translateY(16px); transition: opacity var(--duration-medium) var(--ease-out), transform var(--duration-medium) var(--ease-out); }
+.scroll-reveal.visible { opacity: 1; transform: translateY(0); }

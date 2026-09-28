@@ -57,8 +57,8 @@ h2 { font-family: 'Poppins', sans-serif; font-weight: 700; }
 </head>
 <body>
     <div class="login-container">
-        <div class="login-card">
-            <div class="login-logo">
+        <div class="login-card motion-scale-in">
+            <div class="login-logo motion-fade-up">
                 <i data-lucide="shield-check" style="width: 48px; height: 48px; color: #06b6d4;"></i>
                 <h2>SmartOLT Panel</h2>
                 <p>Silakan masuk untuk mengelola OLT & pelanggan</p>
@@ -74,11 +74,11 @@ h2 { font-family: 'Poppins', sans-serif; font-weight: 700; }
 
             <form action="action/login.php" method="POST">
                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? ''); ?>">
-                <div class="form-group">
+                <div class="form-group motion-fade-up">
                     <label for="username">Username</label>
                     <input type="text" id="username" name="username" placeholder="Masukkan username" required autofocus>
                 </div>
-                <div class="form-group">
+                <div class="form-group motion-fade-up">
                     <label for="password">Password</label>
                     <input type="password" id="password" name="password" placeholder="Masukkan password" required>
                 </div>
