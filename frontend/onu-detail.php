@@ -2717,6 +2717,64 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             h += '</div></div>';
                             return h;
                         }
+                        // Card "Port Overview" - ringkasan status port Ethernet + WiFi
+                        (() => {
+                            const lanDevs = root?.LANDevice || {};
+                            let ethRows = [], wifiRows = [];
+                            for (const [ldk, ldv] of Object.entries(lanDevs)) {
+                                if (!Array.isArray(ldv?.LANEthernetInterfaceConfig)) continue;
+                                for (const [ek, ev] of Object.entries(ldv.LANEthernetInterfaceConfig)) {
+                                    if (!ev || typeof ev !== 'object' || !ev.Name) continue;
+                                    const name = ev.Name?._value || ek;
+                                    const status = ev.Status?._value || 'N/A';
+                                    const up = status === 'Up';
+                                    ethRows.push('<tr>'
+                                        + '<td style="padding:6px 8px;font-weight:600;">' + name + '</td>'
+                                        + '<td style="padding:6px 8px;">LAN</td>'
+                                        + '<td style="padding:6px 8px;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + (up ? '#28a745' : '#6c757d') + ';margin-right:6px;"></span>' + status + '</td>'
+                                        + '</tr>');
+                                }
+                                if (!Array.isArray(ldv?.WLANConfiguration)) continue;
+                                for (const [wk, wv] of Object.entries(ldv.WLANConfiguration)) {
+                                    if (!wv || typeof wv !== 'object' || !wv.SSID) continue;
+                                    if (typeof wk === 'string' && wk.startsWith('_')) continue;
+                                    const ssid = wv.SSID?._value || '';
+                                    if (!ssid) continue;
+                                    const en = wv.Enable?._value;
+                                    const enabled = en === 1 || en === '1' || en === true;
+                                    const possible = String(wv.PossibleChannels?._value || '');
+                                    const firstNum = parseInt(possible.split(/[,-]/)[0], 10);
+                                    const band = !isNaN(firstNum) && firstNum > 14 ? '5 GHz' : '2.4 GHz';
+                                    wifiRows.push('<tr>'
+                                        + '<td style="padding:6px 8px;font-weight:600;">' + ssid + '</td>'
+                                        + '<td style="padding:6px 8px;">' + band + '</td>'
+                                        + '<td style="padding:6px 8px;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + (enabled ? '#28a745' : '#6c757d') + ';margin-right:6px;"></span>' + (enabled ? 'Active' : 'Disabled') + '</td>'
+                                        + '</tr>');
+                                }
+                            }
+                            if (ethRows.length || wifiRows.length) {
+                                const idx = 'port-overview';
+                                html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
+                                html += '<div class="tr069-toggle" data-idx="' + idx + '" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
+                                html += '<span>Port Overview</span></div>';
+                                html += '<div class="tr069-panel" style="display:block;padding:8px 12px;background:var(--bg-main);font-size:0.85rem;">';
+                                if (ethRows.length) {
+                                    html += '<div style="font-weight:600;margin-bottom:6px;color:var(--text-muted);">Ethernet</div>';
+                                    html += '<table style="width:100%;border-collapse:collapse;margin-bottom:12px;">';
+                                    html += '<tr style="background:var(--bg-secondary);"><th style="text-align:left;padding:6px 8px;font-size:0.8rem;color:var(--text-muted);">Port</th><th style="text-align:left;padding:6px 8px;font-size:0.8rem;color:var(--text-muted);">Mode</th><th style="text-align:left;padding:6px 8px;font-size:0.8rem;color:var(--text-muted);">Status</th></tr>';
+                                    html += ethRows.join('');
+                                    html += '</table>';
+                                }
+                                if (wifiRows.length) {
+                                    html += '<div style="font-weight:600;margin-bottom:6px;color:var(--text-muted);">WiFi</div>';
+                                    html += '<table style="width:100%;border-collapse:collapse;">';
+                                    html += '<tr style="background:var(--bg-secondary);"><th style="text-align:left;padding:6px 8px;font-size:0.8rem;color:var(--text-muted);">SSID</th><th style="text-align:left;padding:6px 8px;font-size:0.8rem;color:var(--text-muted);">Band</th><th style="text-align:left;padding:6px 8px;font-size:0.8rem;color:var(--text-muted);">Status</th></tr>';
+                                    html += wifiRows.join('');
+                                    html += '</table>';
+                                }
+                                html += '</div></div>';
+                            }
+                        })();
                         sections.forEach((sec, i) => {
                             if (sec._merged) return;
                             const count = Object.keys(sec.params).length;
