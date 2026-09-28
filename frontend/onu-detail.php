@@ -3634,6 +3634,11 @@ $tr069_profiles = tr069_get_profiles($pdo);
                     .finally(() => { btnTr069.disabled = false; });
             }
             btnTr069.addEventListener('click', loadTr069Status);
+            // Auto-load TR-069 data untuk update header sections (Port Ethernet/WiFi/VoIP)
+            // saat device config_method=TR069. Silent: tidak buka panel, hanya update header.
+            if (configMethodPage === 'TR069') {
+                loadTr069Status({silent: true});
+            }
         }
 
         // Global Escape Key to close all modals
