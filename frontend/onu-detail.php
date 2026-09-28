@@ -2717,6 +2717,91 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             h += '</div></div>';
                             return h;
                         }
+                        // Card "Port Overview" - persis seperti GUI vendor ONU
+                        (() => {
+                            const lanDevs = root?.LANDevice || {};
+                            let ethRows = [], wifi24 = [], wifi5 = [];
+                            let dhcpEnabled = false;
+                            for (const [ldk, ldv] of Object.entries(lanDevs)) {
+                                const dhcp = ldv?.LANHostConfigManagement;
+                                if (dhcp?.DHCPServerEnable?._value === 1 || dhcp?.DHCPServerEnable?._value === true) dhcpEnabled = true;
+                            }
+                            const dhcpLabel = dhcpEnabled ? 'From ONU' : 'No control';
+                            for (const [ldk, ldv] of Object.entries(lanDevs)) {
+                                if (Array.isArray(ldv?.LANEthernetInterfaceConfig)) {
+                                    for (const [ek, ev] of Object.entries(ldv.LANEthernetInterfaceConfig)) {
+                                        if (!ev || typeof ev !== 'object' || !ev.Name) continue;
+                                        const portNum = parseInt(ek, 10);
+                                        const portLabel = 'eth_0/' + (portNum || ek);
+                                        const en = ev.Enable?._value;
+                                        const enabled = en === 1 || en === '1' || en === true;
+                                        ethRows.push('<tr style="border-bottom:1px solid var(--border-color);">'
+                                            + '<td style="padding:6px 8px;font-weight:600;">' + portLabel + '</td>'
+                                            + '<td style="padding:6px 8px;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + (enabled ? '#28a745' : '#6c757d') + ';margin-right:6px;"></span>' + (enabled ? 'Enabled' : 'Disabled') + '</td>'
+                                            + '<td style="padding:6px 8px;">LAN</td>'
+                                            + '<td style="padding:6px 8px;">' + dhcpLabel + '</td>'
+                                            + '</tr>');
+                                    }
+                                }
+                                if (Array.isArray(ldv?.WLANConfiguration)) {
+                                    for (const [wk, wv] of Object.entries(ldv.WLANConfiguration)) {
+                                        if (!wv || typeof wv !== 'object' || !wv.SSID) continue;
+                                        if (typeof wk === 'string' && wk.startsWith('_')) continue;
+                                        const ssid = wv.SSID?._value || '';
+                                        if (!ssid) continue;
+                                        const en = wv.Enable?._value;
+                                        const enabled = en === 1 || en === '1' || en === true;
+                                        const possible = String(wv.PossibleChannels?._value || '');
+                                        const firstNum = parseInt(possible.split(/[,-]/)[0], 10);
+                                        const is5g = !isNaN(firstNum) && firstNum > 14;
+                                        const portLabel = 'wifi_0/' + wk;
+                                        const row = '<tr style="border-bottom:1px solid var(--border-color);">'
+                                            + '<td style="padding:6px 8px;font-weight:600;color:var(--accent);">' + portLabel + '</td>'
+                                            + '<td style="padding:6px 8px;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + (enabled ? '#28a745' : '#6c757d') + ';margin-right:6px;"></span>' + (enabled ? 'Enabled' : 'Disabled') + '</td>'
+                                            + '<td style="padding:6px 8px;">LAN</td>'
+                                            + '<td style="padding:6px 8px;">' + ssid + '</td>'
+                                            + '<td style="padding:6px 8px;">No control</td>'
+                                            + '</tr>';
+                                        if (is5g) wifi5.push(row); else wifi24.push(row);
+                                    }
+                                }
+                            }
+                            // VoIP + CATV status
+                            let voipText = 'Nonaktif', catvText = 'Tidak didukung';
+                            for (const vs of Object.values(root?.Services?.VoiceService || {})) {
+                                const profiles = vs?.VoiceProfile || {};
+                                for (const vp of Object.values(profiles)) {
+                                    if (vp?.Line && Object.keys(vp.Line).filter(k => !k.startsWith('_')).length > 0) {
+                                        voipText = Object.keys(vp.Line).filter(k => !k.startsWith('_')).length + ' port';
+                                    }
+                                }
+                            }
+                            if (ethRows.length || wifi24.length || wifi5.length) {
+                                html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
+                                html += '<div style="padding:8px 12px;background:var(--bg-secondary);color:var(--text-main);font-weight:600;">Port Overview</div>';
+                                html += '<div style="padding:8px 12px;background:var(--bg-main);font-size:0.85rem;">';
+                                // Ethernet
+                                if (ethRows.length) {
+                                    html += '<div style="font-weight:600;margin:8px 0 6px;color:var(--text-muted);">Ethernet ports</div>';
+                                    html += '<table style="width:100%;border-collapse:collapse;">';
+                                    html += '<tr style="background:var(--bg-secondary);"><th style="text-align:left;padding:6px 8px;font-size:0.8rem;color:var(--text-muted);">Port</th><th style="text-align:left;padding:6px 8px;font-size:0.8rem;color:var(--text-muted);">Admin state</th><th style="text-align:left;padding:6px 8px;font-size:0.8rem;color:var(--text-muted);">Mode</th><th style="text-align:left;padding:6px 8px;font-size:0.8rem;color:var(--text-muted);">DHCP</th></tr>';
+                                    html += ethRows.join('') + '</table>';
+                                }
+                                // WiFi
+                                if (wifi24.length || wifi5.length) {
+                                    html += '<div style="font-weight:600;margin:12px 0 6px;color:var(--text-muted);">WiFi</div>';
+                                    html += '<table style="width:100%;border-collapse:collapse;">';
+                                    html += '<tr style="background:var(--bg-secondary);"><th style="text-align:left;padding:6px 8px;font-size:0.8rem;color:var(--text-muted);">Port</th><th style="text-align:left;padding:6px 8px;font-size:0.8rem;color:var(--text-muted);">Admin state</th><th style="text-align:left;padding:6px 8px;font-size:0.8rem;color:var(--text-muted);">Mode</th><th style="text-align:left;padding:6px 8px;font-size:0.8rem;color:var(--text-muted);">SSID</th><th style="text-align:left;padding:6px 8px;font-size:0.8rem;color:var(--text-muted);">DHCP</th></tr>';
+                                    html += wifi24.join('') + wifi5.join('') + '</table>';
+                                }
+                                // VoIP + CATV
+                                html += '<div style="display:flex;gap:24px;margin-top:12px;padding-top:10px;border-top:1px solid var(--border-color);font-size:0.82rem;">';
+                                html += '<div><span style="color:var(--text-muted);">VoIP:</span> <span style="font-weight:600;">' + voipText + '</span></div>';
+                                html += '<div><span style="color:var(--text-muted);">CATV:</span> <span style="font-weight:600;">' + catvText + '</span></div>';
+                                html += '</div>';
+                                html += '</div></div>';
+                            }
+                        })();
                         sections.forEach((sec, i) => {
                             if (sec._merged) return;
                             const count = Object.keys(sec.params).length;
