@@ -74,9 +74,21 @@ function genieacs_get_tr069_ip(string $deviceId): ?string {
 function genieacs_get_ppp_wan_ip(string $deviceId): ?string {
     $device = genieacs_get_device($deviceId);
     if (!$device) return null;
-    $ip = $device['InternetGatewayDevice']['WANDevice']['1']['WANConnectionDevice']['1']['WANPPPConnection']['1']['ExternalIPAddress']['_value'] ?? null;
-    if (!$ip || $ip === '0.0.0.0') return null;
-    return $ip;
+    $wd = $device['InternetGatewayDevice']['WANDevice']['1']['WANConnectionDevice'] ?? [];
+    if (!is_array($wd)) return null;
+    foreach ($wd as $wcdk => $wcdv) {
+        if (!is_array($wcdv) || (is_string($wcdk) && $wcdk[0] === '_')) continue;
+        $ppp = $wcdv['WANPPPConnection'] ?? [];
+        if (!is_array($ppp)) continue;
+        foreach ($ppp as $pppk => $pppv) {
+            if (!is_array($pppv) || (is_string($pppk) && $pppk[0] === '_')) continue;
+            $status = $pppv['ConnectionStatus']['_value'] ?? '';
+            if ($status !== 'Connected') continue;
+            $ip = $pppv['ExternalIPAddress']['_value'] ?? '';
+            if ($ip && $ip !== '0.0.0.0') return $ip;
+        }
+    }
+    return null;
 }
 
 /**
