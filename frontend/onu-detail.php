@@ -631,9 +631,19 @@ if (!empty($onu['onu_type'])) {
                     <span style="font-weight:600;"><?php echo $eth_count; ?> port</span>
                     <span style="color:var(--text-muted);">(<?php echo htmlspecialchars($onu['onu_type']); ?>)</span>
                     <table style="width:100%;margin-top:6px;border-collapse:collapse;font-size:0.8rem;">
-                        <tr style="background:var(--bg-secondary);"><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Port</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Status</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Mode</th></tr>
+                        <tr style="background:var(--bg-secondary);">
+                            <th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Port</th>
+                            <th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Admin state</th>
+                            <th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Mode</th>
+                            <th style="text-align:left;padding:4px 8px;color:var(--text-muted);">DHCP</th>
+                        </tr>
                         <?php for ($i = 1; $i <= $eth_count; $i++): ?>
-                        <tr><td style="padding:4px 8px;font-weight:600;">eth_0/<?php echo $i; ?></td><td style="padding:4px 8px;color:var(--text-muted);">—</td><td style="padding:4px 8px;">LAN</td></tr>
+                        <tr>
+                            <td style="padding:4px 8px;font-weight:600;">eth_0/<?php echo $i; ?></td>
+                            <td style="padding:4px 8px;color:var(--text-muted);">—</td>
+                            <td style="padding:4px 8px;">LAN</td>
+                            <td style="padding:4px 8px;color:var(--text-muted);">—</td>
+                        </tr>
                         <?php endfor; ?>
                     </table>
                 </div>
@@ -653,9 +663,21 @@ if (!empty($onu['onu_type'])) {
                     <span style="font-weight:600;"><?php echo $wifi_count; ?> SSIDs</span>
                     <span style="color:var(--text-muted);">(<?php echo htmlspecialchars($onu['onu_type']); ?>)</span>
                     <table style="width:100%;margin-top:6px;border-collapse:collapse;font-size:0.8rem;">
-                        <tr style="background:var(--bg-secondary);"><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Port</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Status</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">SSID</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Band</th></tr>
+                        <tr style="background:var(--bg-secondary);">
+                            <th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Port</th>
+                            <th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Admin state</th>
+                            <th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Mode</th>
+                            <th style="text-align:left;padding:4px 8px;color:var(--text-muted);">SSID</th>
+                            <th style="text-align:left;padding:4px 8px;color:var(--text-muted);">DHCP</th>
+                        </tr>
                         <?php for ($i = 1; $i <= $wifi_count; $i++): ?>
-                        <tr><td style="padding:4px 8px;font-weight:600;">wifi_0/<?php echo $i; ?></td><td style="padding:4px 8px;color:var(--text-muted);">—</td><td style="padding:4px 8px;color:var(--text-muted);">—</td><td style="padding:4px 8px;color:var(--text-muted);">—</td></tr>
+                        <tr>
+                            <td style="padding:4px 8px;font-weight:600;">wifi_0/<?php echo $i; ?></td>
+                            <td style="padding:4px 8px;color:var(--text-muted);">—</td>
+                            <td style="padding:4px 8px;">LAN</td>
+                            <td style="padding:4px 8px;color:var(--text-muted);">—</td>
+                            <td style="padding:4px 8px;color:var(--text-muted);">—</td>
+                        </tr>
                         <?php endfor; ?>
                     </table>
                 </div>
@@ -3582,15 +3604,19 @@ $tr069_profiles = tr069_get_profiles($pdo);
                     const root = d.InternetGatewayDevice || d.Device || {};
                     const lanDevs = root.LANDevice || {};
                     let ethPorts = [], wifiList = [];
+                    let dhcpEnabled = false;
                     for (const [ldk, ldv] of Object.entries(lanDevs)) {
+                        const dhcp = ldv?.LANHostConfigManagement;
+                        if (dhcp?.DHCPServerEnable?._value === 1 || dhcp?.DHCPServerEnable?._value === true) dhcpEnabled = true;
                         if (Array.isArray(ldv?.LANEthernetInterfaceConfig)) {
                             for (const [ek, ev] of Object.entries(ldv.LANEthernetInterfaceConfig)) {
                                 if (!ev || typeof ev !== 'object' || !ev.Name) continue;
                                 const portNum = parseInt(ek, 10);
                                 const name = 'eth_0/' + (portNum || ek);
                                 const en = ev.Enable?._value;
+                                const enabled = en === 1 || en === '1' || en === true;
                                 const status = ev.Status?._value || '';
-                                ethPorts.push({name, status});
+                                ethPorts.push({name, enabled, status});
                             }
                         }
                         if (Array.isArray(ldv?.WLANConfiguration)) {
@@ -3608,18 +3634,20 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             }
                         }
                     }
+                    const ethDhcpLabel = dhcpEnabled ? 'From ONU' : 'No control';
                     const ethEl = document.getElementById('port-eth-content');
                     if (ethEl && ethPorts.length) {
                         let h = '<div style="font-size:0.85rem;">';
                         h += '<span style="font-weight:600;">' + ethPorts.length + ' port</span>';
                         h += ' <span style="color:var(--text-muted);">(ALL-ONT)</span>';
                         h += '<table style="width:100%;margin-top:6px;border-collapse:collapse;font-size:0.8rem;">';
-                        h += '<tr style="background:var(--bg-secondary);"><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Port</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Status</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Mode</th></tr>';
+                        h += '<tr style="background:var(--bg-secondary);"><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Port</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Admin state</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Mode</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">DHCP</th></tr>';
                         for (const p of ethPorts) {
-                            const color = p.status === 'Up' ? '#28a745' : '#6c757d';
+                            const color = p.enabled ? '#28a745' : '#6c757d';
                             h += '<tr><td style="padding:4px 8px;font-weight:600;">' + p.name + '</td>';
-                            h += '<td style="padding:4px 8px;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:' + color + ';margin-right:4px;"></span>' + p.status + '</td>';
-                            h += '<td style="padding:4px 8px;">LAN</td></tr>';
+                            h += '<td style="padding:4px 8px;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:' + color + ';margin-right:4px;"></span>' + (p.enabled ? 'Enabled' : 'Disabled') + '</td>';
+                            h += '<td style="padding:4px 8px;">LAN</td>';
+                            h += '<td style="padding:4px 8px;">' + ethDhcpLabel + '</td></tr>';
                         }
                         h += '</table></div>';
                         ethEl.innerHTML = h;
@@ -3630,13 +3658,14 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         h += '<span style="font-weight:600;">' + wifiList.length + ' SSIDs</span>';
                         h += ' <span style="color:var(--text-muted);">(ALL-ONT)</span>';
                         h += '<table style="width:100%;margin-top:6px;border-collapse:collapse;font-size:0.8rem;">';
-                        h += '<tr style="background:var(--bg-secondary);"><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Port</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Status</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">SSID</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Band</th></tr>';
+                        h += '<tr style="background:var(--bg-secondary);"><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Port</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Admin state</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Mode</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">SSID</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">DHCP</th></tr>';
                         for (const w of wifiList) {
                             const color = w.enabled ? '#28a745' : '#6c757d';
                             h += '<tr><td style="padding:4px 8px;font-weight:600;">' + w.port + '</td>';
                             h += '<td style="padding:4px 8px;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:' + color + ';margin-right:4px;"></span>' + (w.enabled ? 'Enabled' : 'Disabled') + '</td>';
+                            h += '<td style="padding:4px 8px;">LAN</td>';
                             h += '<td style="padding:4px 8px;">' + w.ssid + '</td>';
-                            h += '<td style="padding:4px 8px;">' + w.band + '</td></tr>';
+                            h += '<td style="padding:4px 8px;">No control</td></tr>';
                         }
                         h += '</table></div>';
                         wifiEl.innerHTML = h;
