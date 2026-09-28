@@ -203,7 +203,11 @@ $board_port_display = count($pon_parts) === 3 ? "Shelf {$pon_parts[0]} / Slot {$
                 </div>
             </div>
             <div class="loading-spinner hidden" id="auth-onu-loading">
-                <div class="spinner"></div>
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                    <div class="skeleton" style="height:14px;width:70%;"></div>
+                    <div class="skeleton" style="height:14px;width:50%;"></div>
+                    <div class="skeleton" style="height:14px;width:60%;"></div>
+                </div>
                 <p id="auth-progress-text">Mengirim konfigurasi ke OLT...</p>
             </div>
             <div class="modal-footer" style="padding:16px 0 0; border-top:1px solid var(--border-color, #e2e8f0); margin-top:16px; display:flex; gap:16px; align-items:center;">

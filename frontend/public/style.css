@@ -110,6 +110,12 @@
   --font-family: var(--font-body);
   --transition-fast: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-normal: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Motion tokens */
+  --ease-out: cubic-bezier(0.0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-micro: 100ms;
+  --duration-short: 200ms;
+  --duration-medium: 350ms;
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
@@ -215,7 +221,7 @@ body.light-mode .header-btn:hover {
 @media (max-width: 992px) {
   .content-row { flex-direction: column; }
   .col-8, .col-6, .col-4 { width: 100%; }
-  .sidebar { transform: translateX(-100%); z-index: 1000; box-shadow: var(--shadow-md); }
+  .sidebar { transform: translateX(-100%); z-index: 1000; box-shadow: var(--shadow-md); transition: transform var(--duration-medium) var(--ease-out); }
   .sidebar.open { transform: translateX(0); }
   .main-content { margin-left: 0; padding: 16px; }
   #mobile-menu-toggle { display: flex !important; }
@@ -292,10 +298,10 @@ body.light-mode .header-btn:hover {
 .action-buttons-group { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
 .chart-container { position: relative; height: 250px; width: 100%; }
 /* MODALS */
-.modal { display: flex; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--overlay-backdrop); z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.2s ease-in-out; }
+.modal { display: flex; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--overlay-backdrop); z-index: 100; opacity: 0; pointer-events: none; transition: opacity var(--duration-medium) var(--ease-out); }
 .modal.open { opacity: 1; pointer-events: auto; }
-.modal-content { background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-lg); width: 90%; max-width: 600px; transform: scale(0.9); transition: transform 0.2s ease-in-out; }
-.modal.open .modal-content { transform: scale(1); }
+.modal-content { background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-lg); width: 90%; max-width: 600px; transform: scale(0.92) translateY(8px); transition: transform var(--duration-medium) var(--ease-out); }
+.modal.open .modal-content { transform: scale(1) translateY(0); }
 .modal-header { padding: 16px 24px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; }
 .modal-header h2 { font-size: 18px; font-weight: 700; }
 .modal-close { background: none; border: none; color: var(--text-muted); font-size: 24px; cursor: pointer; }
@@ -457,3 +463,70 @@ body.light-mode .topnav-user-name { color: #fff; }
 .stat-value { font-size: 1.5rem; font-weight: 700; color: var(--text-accent); }
 .stat-label { font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px; }
 .btn-sm { padding: 4px 10px; font-size: 0.8rem; }
+
+/* === MOTION SYSTEM — Stage 1: Entrance Animations === */
+@keyframes fade-in-up {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+@keyframes slide-in-left {
+    from { opacity: 0; transform: translateX(-16px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+@keyframes scale-in {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+@keyframes skeleton-shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+/* Stagger utility: add .motion-stagger to parent, children auto-delay */
+.motion-stagger > *:nth-child(1) { animation-delay: 0ms; }
+.motion-stagger > *:nth-child(2) { animation-delay: 50ms; }
+.motion-stagger > *:nth-child(3) { animation-delay: 100ms; }
+.motion-stagger > *:nth-child(4) { animation-delay: 150ms; }
+.motion-stagger > *:nth-child(5) { animation-delay: 200ms; }
+.motion-stagger > *:nth-child(6) { animation-delay: 250ms; }
+.motion-stagger > *:nth-child(7) { animation-delay: 300ms; }
+.motion-stagger > *:nth-child(8) { animation-delay: 350ms; }
+/* Entrance classes */
+.motion-fade-up { animation: fade-in-up var(--duration-medium) var(--ease-out) both; }
+.motion-fade-in { animation: fade-in var(--duration-medium) var(--ease-out) both; }
+.motion-slide-left { animation: slide-in-left var(--duration-medium) var(--ease-out) both; }
+.motion-scale-in { animation: scale-in var(--duration-medium) var(--ease-out) both; }
+/* Button press feedback */
+.btn:active { transform: scale(0.97); transition: transform 0.08s ease-in; }
+/* Table row hover enhance */
+.data-table tbody tr { transition: background-color 0.15s, transform 0.15s var(--ease-out); }
+.data-table tbody tr:hover { transform: translateX(2px); }
+/* Skeleton loading */
+.skeleton { background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--bg-secondary) 50%, var(--bg-tertiary) 75%); background-size: 200% 100%; animation: skeleton-shimmer 1.5s infinite; border-radius: var(--radius-sm); }
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; animation-delay: 0ms !important; transition-duration: 0.01ms !important; }
+}
+
+/* === MOTION SYSTEM — Stage 2: Interaction Feedback === */
+/* Button focus ring */
+.btn:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 4px var(--text-accent); transition: box-shadow var(--duration-micro) var(--ease-out); }
+/* Form control focus glow */
+.form-control:focus { border-color: var(--text-accent); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15); transition: border-color var(--duration-short) var(--ease-out), box-shadow var(--duration-short) var(--ease-out); }
+/* Badge pulse on update */
+.badge { transition: transform var(--duration-micro) var(--ease-out); }
+.badge.badge-pulse { animation: badge-pop 0.3s var(--ease-out); }
+@keyframes badge-pop { 0% { transform: scale(1); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
+/* Card hover lift */
+.stat-card { transition: transform var(--duration-short) var(--ease-out), box-shadow var(--duration-short) var(--ease-out); }
+.stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+/* Table detail button hover */
+.data-table .btn-detail { transition: var(--transition-fast), transform var(--duration-micro) var(--ease-out); }
+.data-table .btn-detail:hover { transform: translateY(-1px); }
+/* Link underline animation */
+a { transition: color var(--duration-short) var(--ease-out); }
+/* Tab indicator slide */
+.tab-active-indicator { transition: left var(--duration-medium) var(--ease-out), width var(--duration-medium) var(--ease-out); }

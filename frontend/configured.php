@@ -524,10 +524,12 @@ $onus = $stmt_data->fetchAll();
             style.id = 'toast-animation-style';
             style.innerHTML = `
                 @keyframes slideIn {
-                    from { transform: translateX(120%); opacity: 0; }
-                    to { transform: translateX(0); opacity: 1; }
+                    from { transform: translateY(-20px) scale(0.95); opacity: 0; }
+                    to { transform: translateY(0) scale(1); opacity: 1; }
                 }
                 @keyframes fadeOut {
+                    from { transform: translateY(0) scale(1); opacity: 1; }
+                    to { transform: translateY(-10px) scale(0.95); opacity: 0; }
                     from { opacity: 1; }
                     to { opacity: 0; }
                 }

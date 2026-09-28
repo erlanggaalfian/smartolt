@@ -45,7 +45,7 @@ $onu_stats = $onu_count->fetch();
 .olt-tab.active { color: var(--text-accent); background: var(--bg-card); border-color: var(--border-color); box-shadow: 0 -4px 12px var(--shadow-a05); }
 /* Garis aksen tipis di atas tab aktif */
 .olt-tab.active::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--text-accent); border-radius: 3px 3px 0 0; }
-.olt-tab-panel { display: none; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 0 0 var(--radius-lg) var(--radius-lg); box-shadow: var(--shadow-md); padding: 28px; animation: fadeIn 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+.olt-tab-panel { display: none; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 0 0 var(--radius-lg) var(--radius-lg); box-shadow: var(--shadow-md); padding: 28px; animation: fade-in-up var(--duration-medium) var(--ease-out) both; }
 .olt-tab-panel.active { display: block; }
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(4px); }

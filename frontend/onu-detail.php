@@ -2028,7 +2028,12 @@ $tr069_profiles = tr069_get_profiles($pdo);
                     cliOutputBox.style.background = 'none';
                     cliOutputBox.style.border = 'none';
                     cliOutputBox.style.borderRadius = '0';
-                    cliOutputBox.innerHTML = '<em>Memuat data GenieACS...</em>';
+                    cliOutputBox.innerHTML = '<div style="display:flex;flex-direction:column;gap:10px;padding:12px 0;">' +
+                        '<div class="skeleton" style="height:16px;width:60%;"></div>' +
+                        '<div class="skeleton" style="height:16px;width:80%;"></div>' +
+                        '<div class="skeleton" style="height:16px;width:45%;"></div>' +
+                        '<div class="skeleton" style="height:16px;width:70%;"></div>' +
+                        '</div>';
                 }
                 btnTr069.disabled = true;
                 fetch(`action/genieacs-proxy.php?serial=${encodeURIComponent(serial)}`)
