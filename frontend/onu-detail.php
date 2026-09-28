@@ -625,9 +625,18 @@ if (!empty($onu['onu_type'])) {
     <div class="smartolt-row">
         <div class="smartolt-label">Port Ethernet</div>
         <div class="smartolt-content" id="port-eth-content">
-            <?php if ($onu_type_specs['ethernet_ports'] > 0): ?>
-                <span style="font-weight:600; color:var(--text-main);"><?php echo (int)$onu_type_specs['ethernet_ports']; ?> port</span>
-                <span style="color:var(--text-muted); font-size:0.85rem;">(<?php echo htmlspecialchars($onu['onu_type']); ?>)</span>
+            <?php $eth_count = (int)$onu_type_specs['ethernet_ports']; ?>
+            <?php if ($eth_count > 0): ?>
+                <div style="font-size:0.85rem;">
+                    <span style="font-weight:600;"><?php echo $eth_count; ?> port</span>
+                    <span style="color:var(--text-muted);">(<?php echo htmlspecialchars($onu['onu_type']); ?>)</span>
+                    <table style="width:100%;margin-top:6px;border-collapse:collapse;font-size:0.8rem;">
+                        <tr style="background:var(--bg-secondary);"><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Port</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Status</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Mode</th></tr>
+                        <?php for ($i = 1; $i <= $eth_count; $i++): ?>
+                        <tr><td style="padding:4px 8px;font-weight:600;">eth_0/<?php echo $i; ?></td><td style="padding:4px 8px;color:var(--text-muted);">—</td><td style="padding:4px 8px;">LAN</td></tr>
+                        <?php endfor; ?>
+                    </table>
+                </div>
             <?php else: ?>
                 <span style="color:var(--text-muted);">—</span>
             <?php endif; ?>
@@ -638,9 +647,18 @@ if (!empty($onu['onu_type'])) {
     <div class="smartolt-row">
         <div class="smartolt-label">WiFi</div>
         <div class="smartolt-content" id="port-wifi-content">
-            <?php if ($onu_type_specs['wifi_ssids'] > 0): ?>
-                <span style="font-weight:600; color:var(--text-main);"><?php echo (int)$onu_type_specs['wifi_ssids']; ?> SSIDs</span>
-                <span style="color:var(--text-muted); font-size:0.85rem;">(<?php echo htmlspecialchars($onu['onu_type']); ?>)</span>
+            <?php $wifi_count = (int)$onu_type_specs['wifi_ssids']; ?>
+            <?php if ($wifi_count > 0): ?>
+                <div style="font-size:0.85rem;">
+                    <span style="font-weight:600;"><?php echo $wifi_count; ?> SSIDs</span>
+                    <span style="color:var(--text-muted);">(<?php echo htmlspecialchars($onu['onu_type']); ?>)</span>
+                    <table style="width:100%;margin-top:6px;border-collapse:collapse;font-size:0.8rem;">
+                        <tr style="background:var(--bg-secondary);"><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Port</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Status</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">SSID</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Band</th></tr>
+                        <?php for ($i = 1; $i <= $wifi_count; $i++): ?>
+                        <tr><td style="padding:4px 8px;font-weight:600;">wifi_0/<?php echo $i; ?></td><td style="padding:4px 8px;color:var(--text-muted);">—</td><td style="padding:4px 8px;color:var(--text-muted);">—</td><td style="padding:4px 8px;color:var(--text-muted);">—</td></tr>
+                        <?php endfor; ?>
+                    </table>
+                </div>
             <?php else: ?>
                 <span style="color:var(--text-muted);">—</span>
             <?php endif; ?>
