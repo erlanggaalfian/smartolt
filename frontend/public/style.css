@@ -530,3 +530,28 @@ body.light-mode .topnav-user-name { color: #fff; }
 a { transition: color var(--duration-short) var(--ease-out); }
 /* Tab indicator slide */
 .tab-active-indicator { transition: left var(--duration-medium) var(--ease-out), width var(--duration-medium) var(--ease-out); }
+
+/* === MOTION SYSTEM — Stage 3: Overlay & Navigation === */
+/* Dropdown menu slide */
+.dropdown-menu { overflow: hidden; max-height: 0; opacity: 0; transition: max-height var(--duration-medium) var(--ease-out), opacity var(--duration-short) var(--ease-out), padding var(--duration-short) var(--ease-out); padding: 0; }
+.sidebar-dropdown.open .dropdown-menu { max-height: 500px; opacity: 1; padding: 4px 0; display: flex; }
+/* Chevron rotation */
+.chevron-icon { transition: transform var(--duration-short) var(--ease-out); }
+.sidebar-dropdown.open .chevron-icon { transform: rotate(180deg); }
+/* Topnav dropdown */
+.topnav-dropdown-menu { opacity: 0; transform: translateY(-8px) scale(0.97); pointer-events: none; transition: opacity var(--duration-short) var(--ease-out), transform var(--duration-short) var(--ease-out); position: absolute; }
+.topnav-dropdown-menu.show, .topnav-dropdown-menu.active { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+/* Page content fade-in */
+.content-area, .main-content { animation: fade-in var(--duration-medium) var(--ease-out) both; }
+/* Sidebar nav item hover slide */
+.sidebar-nav a, .sidebar-nav button { transition: background-color var(--duration-short) var(--ease-out), color var(--duration-short) var(--ease-out), padding-left var(--duration-short) var(--ease-out); }
+.sidebar-nav a:hover, .sidebar-nav button:hover { padding-left: 4px; }
+/* Tooltip fade */
+[title] { position: relative; }
+/* Notification badge bounce */
+.notification-badge { animation: badge-pop 0.3s var(--ease-out); }
+/* Accordion / collapse */
+.collapse-content { overflow: hidden; transition: max-height var(--duration-medium) var(--ease-out), opacity var(--duration-short) var(--ease-out); }
+/* Scroll reveal (for long pages) */
+.scroll-reveal { opacity: 0; transform: translateY(16px); transition: opacity var(--duration-medium) var(--ease-out), transform var(--duration-medium) var(--ease-out); }
+.scroll-reveal.visible { opacity: 1; transform: translateY(0); }

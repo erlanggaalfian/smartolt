@@ -69,7 +69,7 @@ $logs = $pdo->query("SELECT l.*, o.name as olt_name FROM logs l LEFT JOIN olts o
     <i data-lucide="radio" style="width:16px;height:16px;color:var(--text-muted);"></i>
     <span style="font-weight:600;font-size:0.85rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">Signal Quality</span>
 </div>
-<div class="stats-grid motion-stagger">
+<div class="stats-grid motion-stagger scroll-reveal">
     <a href="configured.php?signal=critical" class="stat-card motion-fade-up" style="text-decoration:none;color:inherit;">
         <div class="stat-icon" style="background:rgba(239,68,68,0.15);color:#ef4444;"><i data-lucide="alert-triangle"></i></div>
         <div class="stat-info">
@@ -184,3 +184,13 @@ $logs = $pdo->query("SELECT l.*, o.name as olt_name FROM logs l LEFT JOIN olts o
 </div>
 
 <?php require_once __DIR__ . '/footer.php'; ?>
+
+<script>
+// Scroll reveal observer
+(function() {
+    const obs = new IntersectionObserver((entries) => {
+        entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.scroll-reveal').forEach(el => obs.observe(el));
+})();
+</script>
