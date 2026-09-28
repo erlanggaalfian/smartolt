@@ -3745,7 +3745,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                 }
             }
             
-            document.getElementById('port-configure-modal').style.display = 'flex';
+            document.getElementById('port-configure-modal').classList.add('open');
         });
 
         // Handler: simpan configure port
@@ -3781,7 +3781,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                 saveBtn.textContent = 'Save';
                 saveBtn.disabled = false;
                 if (d.success || d.status === 'ok' || !d.error) {
-                    document.getElementById('port-configure-modal').style.display = 'none';
+                    document.getElementById('port-configure-modal').classList.remove('open');
                     // Reload header data
                     if (typeof loadTr069Status === 'function') loadTr069Status({silent: true});
                     else location.reload();
@@ -4025,61 +4025,11 @@ updateTr609Info();
 <?php require_once __DIR__ . '/onu-detail-css.php'; ?>
 
 <!-- Modal Configure Port -->
-<div class="modal" id="port-configure-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;justify-content:center;align-items:center;">
-    <div style="background:var(--bg-primary);border-radius:10px;width:480px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.3);">
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border-color);">
-            <span style="font-weight:600;font-size:1rem;" id="port-cfg-title">Configure ethernet port eth_0/1</span>
-            <button type="button" onclick="document.getElementById('port-configure-modal').style.display='none'" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-muted);">&times;</button>
-        </div>
-        <div style="padding:20px;">
-            <input type="hidden" id="port-cfg-serial" value="">
-            <input type="hidden" id="port-cfg-port" value="">
-            <input type="hidden" id="port-cfg-type" value="">
-
-            <div style="margin-bottom:16px;">
-                <label style="display:block;font-weight:600;margin-bottom:6px;font-size:0.9rem;">Status</label>
-                <label style="margin-right:16px;cursor:pointer;font-size:0.9rem;"><input type="radio" name="port-cfg-status" value="Enabled" checked> Enabled</label>
-                <label style="cursor:pointer;font-size:0.9rem;"><input type="radio" name="port-cfg-status" value="Disabled"> Port shutdown</label>
-            </div>
-
-            <div style="margin-bottom:16px;">
-                <label style="display:block;font-weight:600;margin-bottom:6px;font-size:0.9rem;">Mode</label>
-                <label style="margin-right:12px;cursor:pointer;font-size:0.9rem;"><input type="radio" name="port-cfg-mode" value="LAN" checked> LAN</label>
-                <label style="margin-right:12px;cursor:pointer;font-size:0.9rem;"><input type="radio" name="port-cfg-mode" value="Access"> Access</label>
-                <label style="margin-right:12px;cursor:pointer;font-size:0.9rem;"><input type="radio" name="port-cfg-mode" value="Hybrid"> Hybrid</label>
-                <label style="margin-right:12px;cursor:pointer;font-size:0.9rem;"><input type="radio" name="port-cfg-mode" value="Trunk"> Trunk</label>
-                <label style="cursor:pointer;font-size:0.9rem;"><input type="radio" name="port-cfg-mode" value="Transparent"> Transparent</label>
-            </div>
-
-            <div style="margin-bottom:16px;">
-                <label style="display:block;font-weight:600;margin-bottom:6px;font-size:0.9rem;">VLAN-ID</label>
-                <select id="port-cfg-vlan" style="width:100%;padding:8px 10px;border:1px solid var(--border-color);border-radius:6px;font-size:0.9rem;background:var(--bg-secondary);color:var(--text-primary);">
-                    <option value="">—</option>
-                </select>
-            </div>
-
-            <div style="margin-bottom:16px;">
-                <label style="display:block;font-weight:600;margin-bottom:6px;font-size:0.9rem;">DHCP</label>
-                <select id="port-cfg-dhcp" style="width:100%;padding:8px 10px;border:1px solid var(--border-color);border-radius:6px;font-size:0.9rem;background:var(--bg-secondary);color:var(--text-primary);">
-                    <option value="No control">No control</option>
-                    <option value="From ISP">From ISP</option>
-                    <option value="From ONU">From ONU</option>
-                    <option value="Forbidden">Forbidden</option>
-                </select>
-            </div>
-        </div>
-        <div style="display:flex;justify-content:flex-end;gap:10px;padding:12px 20px;border-top:1px solid var(--border-color);">
-            <button type="button" onclick="document.getElementById('port-configure-modal').style.display='none'" style="background:none;border:none;color:var(--text-accent);font-weight:500;cursor:pointer;font-size:0.95rem;padding:8px 12px;">Close</button>
-            <button type="button" id="port-cfg-save" style="background:var(--accent-green,#22c55e);color:#fff;border:none;border-radius:6px;padding:8px 20px;font-weight:600;cursor:pointer;font-size:0.95rem;">Save</button>
-        </div>
-    </div>
-</div>
-<!-- Modal Configure Port -->
-<div class="modal" id="port-configure-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;justify-content:center;align-items:center;">
+<div class="modal" id="port-configure-modal">
     <div style="background:var(--bg-primary,#1a1a2e);border-radius:10px;width:480px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.4);">
         <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border-color);">
             <span id="port-cfg-title" style="font-weight:600;font-size:1rem;">Configure ethernet port</span>
-            <button type="button" onclick="document.getElementById('port-configure-modal').style.display='none'" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-muted);line-height:1;">&times;</button>
+            <button type="button" onclick="document.getElementById('port-configure-modal').classList.remove('open')" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-muted);line-height:1;">&times;</button>
         </div>
         <div style="padding:20px;">
             <input type="hidden" id="port-cfg-serial">
@@ -4115,7 +4065,7 @@ updateTr609Info();
             </div>
         </div>
         <div style="display:flex;justify-content:flex-end;gap:10px;padding:12px 20px;border-top:1px solid var(--border-color);">
-            <button type="button" onclick="document.getElementById('port-configure-modal').style.display='none'" style="background:none;border:none;color:var(--text-accent,#60a5fa);font-weight:500;cursor:pointer;font-size:0.95rem;padding:8px 12px;">Close</button>
+            <button type="button" onclick="document.getElementById('port-configure-modal').classList.remove('open')" style="background:none;border:none;color:var(--text-accent,#60a5fa);font-weight:500;cursor:pointer;font-size:0.95rem;padding:8px 12px;">Close</button>
             <button type="button" id="port-cfg-save" style="background:var(--accent-green,#22c55e);color:#fff;border:none;border-radius:6px;padding:8px 20px;font-weight:600;cursor:pointer;font-size:0.95rem;">Save</button>
         </div>
     </div>
