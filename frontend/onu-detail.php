@@ -644,7 +644,7 @@ if (!empty($onu['onu_type'])) {
                             <td style="padding:4px 8px;color:var(--text-muted);">—</td>
                             <td style="padding:4px 8px;">LAN</td>
                             <td style="padding:4px 8px;color:var(--text-muted);">—</td>
-                            <td style="padding:4px 8px;"><button type="button" class="btn-port-configure" data-port="eth_0/<?php echo $i; ?>" data-type="ethernet" title="Configure" style="background:none;border:none;cursor:pointer;padding:2px;"><i data-lucide="settings" style="width:14px;height:14px;color:var(--text-muted);"></i></button></td>
+                            <td style="padding:4px 8px;"><a href="javascript:void(0)" class="btn-port-configure" data-port="eth_0/<?php echo $i; ?>" data-type="ethernet" style="color:var(--text-accent,#60a5fa);cursor:pointer;font-size:0.82rem;">Configure</a></td>
                         </tr>
                         <?php endfor; ?>
                     </table>
@@ -3652,7 +3652,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             h += '<td style="padding:4px 8px;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:' + color + ';margin-right:4px;"></span>' + (p.enabled ? 'Enabled' : 'Disabled') + '</td>';
                             h += '<td style="padding:4px 8px;">LAN</td>';
                             h += '<td style="padding:4px 8px;">' + ethDhcpLabel + '</td>';
-                            h += '<td style="padding:4px 8px;"><button type="button" class="btn-port-configure" data-port="' + p.name + '" data-type="ethernet" title="Configure" style="background:none;border:none;cursor:pointer;padding:2px;"><i data-lucide="settings" style="width:14px;height:14px;"></i></button></td></tr>';
+                            h += '<td style="padding:4px 8px;"><a href="javascript:void(0)" class="btn-port-configure" data-port="' + p.name + '" data-type="ethernet" style="color:var(--text-accent,#60a5fa);cursor:pointer;font-size:0.82rem;">Configure</a></td></tr>';
                         }
                         h += '</table></div>';
                         ethEl.innerHTML = h;
