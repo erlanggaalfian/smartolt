@@ -530,7 +530,7 @@ if (!empty($onu['onu_type'])) {
     </div>
 
     <!-- Section 2: Status row (Buttons) -->
-    <div class="smartolt-row">
+    <div class="smartolt-row motion-fade-up">
         <div class="smartolt-label">Status</div>
         <div class="smartolt-content" style="display:flex; flex-direction:column; gap:10px;">
             <div style="display:flex; gap:10px; flex-wrap:wrap;">
@@ -549,7 +549,7 @@ if (!empty($onu['onu_type'])) {
     </div>
 
     <!-- Section 3: Traffic/Signal charts -->
-    <div class="smartolt-row">
+    <div class="smartolt-row motion-fade-up">
         <div class="smartolt-label">Trafik/Sinyal</div>
         <div class="smartolt-content flex-row-gap">
             <div class="chart-wrapper">
@@ -595,7 +595,7 @@ if (!empty($onu['onu_type'])) {
     </div>
 
     <!-- Section 4: Speed profiles table -->
-    <div class="smartolt-row">
+    <div class="smartolt-row motion-fade-up">
         <div class="smartolt-label">Profil Kecepatan</div>
         <div class="smartolt-content">
             <table class="smartolt-data-table">
@@ -622,7 +622,7 @@ if (!empty($onu['onu_type'])) {
     </div>
 
     <!-- Section 5: Ethernet ports -->
-    <div class="smartolt-row">
+    <div class="smartolt-row motion-fade-up">
         <div class="smartolt-label">Port Ethernet</div>
         <div class="smartolt-content" id="port-eth-content">
             <?php $eth_count = (int)$onu_type_specs['ethernet_ports']; ?>
@@ -656,7 +656,7 @@ if (!empty($onu['onu_type'])) {
     </div>
 
     <!-- Section 6: WiFi -->
-    <div class="smartolt-row">
+    <div class="smartolt-row motion-fade-up">
         <div class="smartolt-label">WiFi</div>
         <div class="smartolt-content" id="port-wifi-content">
             <?php $wifi_count = (int)$onu_type_specs['wifi_ssids']; ?>
@@ -690,7 +690,7 @@ if (!empty($onu['onu_type'])) {
     </div>
 
     <!-- Section 7: VoIP, IPTV, CATV status -->
-    <div class="smartolt-row" style="margin-bottom: 12px; padding-bottom: 12px; border-bottom:none;">
+    <div class="smartolt-row motion-fade-up" style="margin-bottom: 12px; padding-bottom: 12px; border-bottom:none;">
         <div class="smartolt-label">Layanan VoIP</div>
         <div class="smartolt-content" id="port-voip-content">
             <?php if ($onu_type_specs['voip_ports'] > 0): ?>
@@ -700,7 +700,7 @@ if (!empty($onu['onu_type'])) {
             <?php endif; ?>
         </div>
     </div>
-    <div class="smartolt-row" style="margin-bottom: 12px; padding-bottom: 12px; border-bottom:none;">
+    <div class="smartolt-row motion-fade-up" style="margin-bottom: 12px; padding-bottom: 12px; border-bottom:none;">
         <div class="smartolt-label">CATV</div>
         <div class="smartolt-content" id="port-catv-content">
             <?php if ($onu_type_specs['catv']): ?>
@@ -712,7 +712,7 @@ if (!empty($onu['onu_type'])) {
     </div>
 
     <!-- Section 8: Action buttons (Reboot, Resync, Restore, Disable, Delete) -->
-    <div class="smartolt-row" style="border-top:1px solid var(--border-color); padding-top:24px;">
+    <div class="smartolt-row motion-fade-up" style="border-top:1px solid var(--border-color); padding-top:24px;">
         <div class="smartolt-label"></div>
         <div class="smartolt-content" style="display:flex; gap:10px; flex-wrap:wrap;">
             <form action="action/reboot-onu.php" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin me-reboot ONT ini?');" style="margin:0;">

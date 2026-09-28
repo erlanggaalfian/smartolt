@@ -664,7 +664,7 @@ $onus = $stmt_data->fetchAll();
                         <th>Tipe ONU</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="motion-fade-in">
                     <?php if (empty($onus)): ?>
                         <tr>
                             <td colspan="10" style="text-align:center;color:var(--text-muted);padding:16px;">Tidak ada ONU terdaftar yang sesuai dengan kriteria filter.</td>

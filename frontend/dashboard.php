@@ -33,29 +33,29 @@ $olts = get_allowed_olts();
 $logs = $pdo->query("SELECT l.*, o.name as olt_name FROM logs l LEFT JOIN olts o ON l.olt_id = o.id WHERE l.olt_id IS NULL OR l.olt_id IN ($allowed_ids_str) ORDER BY l.timestamp DESC LIMIT 5")->fetchAll();
 ?>
 
-<div class="stats-grid">
-    <div class="stat-card">
+<div class="stats-grid motion-stagger">
+    <div class="stat-card motion-fade-up">
         <div class="stat-icon bg-blue"><i data-lucide="server"></i></div>
         <div class="stat-info">
             <h3>Total OLT</h3>
             <p><?php echo htmlspecialchars($olt_count); ?></p>
         </div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card motion-fade-up">
         <div class="stat-icon bg-green"><i data-lucide="smile"></i></div>
         <div class="stat-info">
             <h3>ONU Online</h3>
             <p><?php echo htmlspecialchars($onu_online); ?></p>
         </div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card motion-fade-up">
         <div class="stat-icon bg-red"><i data-lucide="frown"></i></div>
         <div class="stat-info">
             <h3>ONU Offline</h3>
             <p><?php echo htmlspecialchars($onu_offline); ?></p>
         </div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card motion-fade-up">
         <div class="stat-icon bg-orange"><i data-lucide="scan-eye"></i></div>
         <div class="stat-info">
             <h3>Unconfigured</h3>
@@ -69,29 +69,29 @@ $logs = $pdo->query("SELECT l.*, o.name as olt_name FROM logs l LEFT JOIN olts o
     <i data-lucide="radio" style="width:16px;height:16px;color:var(--text-muted);"></i>
     <span style="font-weight:600;font-size:0.85rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">Signal Quality</span>
 </div>
-<div class="stats-grid">
-    <a href="configured.php?signal=critical" class="stat-card" style="text-decoration:none;color:inherit;">
+<div class="stats-grid motion-stagger">
+    <a href="configured.php?signal=critical" class="stat-card motion-fade-up" style="text-decoration:none;color:inherit;">
         <div class="stat-icon" style="background:rgba(239,68,68,0.15);color:#ef4444;"><i data-lucide="alert-triangle"></i></div>
         <div class="stat-info">
             <h3>Critical</h3>
             <p style="color:#ef4444;font-weight:700;"><?php echo (int)$signal['critical']; ?></p>
         </div>
     </a>
-    <a href="configured.php?signal=weak" class="stat-card" style="text-decoration:none;color:inherit;">
+    <a href="configured.php?signal=weak" class="stat-card motion-fade-up" style="text-decoration:none;color:inherit;">
         <div class="stat-icon" style="background:rgba(245,158,11,0.15);color:#f59e0b;"><i data-lucide="signal-medium"></i></div>
         <div class="stat-info">
             <h3>Weak</h3>
             <p style="color:#f59e0b;font-weight:700;"><?php echo (int)$signal['weak']; ?></p>
         </div>
     </a>
-    <a href="configured.php?signal=fair" class="stat-card" style="text-decoration:none;color:inherit;">
+    <a href="configured.php?signal=fair" class="stat-card motion-fade-up" style="text-decoration:none;color:inherit;">
         <div class="stat-icon" style="background:rgba(48,129,209,0.15);color:#3081d1;"><i data-lucide="signal"></i></div>
         <div class="stat-info">
             <h3>Fair</h3>
             <p style="font-weight:700;"><?php echo (int)$signal['fair']; ?></p>
         </div>
     </a>
-    <a href="configured.php?signal=good" class="stat-card" style="text-decoration:none;color:inherit;">
+    <a href="configured.php?signal=good" class="stat-card motion-fade-up" style="text-decoration:none;color:inherit;">
         <div class="stat-icon bg-green"><i data-lucide="signal-high"></i></div>
         <div class="stat-info">
             <h3>Good</h3>
