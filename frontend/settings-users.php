@@ -33,7 +33,7 @@ $all_olts = $pdo->query("SELECT id, name, ip FROM olts ORDER BY name ASC")->fetc
                         <th style="width: 120px; text-align: center;">Aksi</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="motion-fade-in">
                     <?php foreach ($users as $user): ?>
                         <tr>
                             <td><?php echo (int)$user['id']; ?></td>

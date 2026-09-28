@@ -108,7 +108,7 @@ unset($_SESSION['success']);
                         <th>Keterangan Aktivitas</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="motion-fade-in">
                     <?php if (empty($logs)): ?>
                         <tr>
                             <td colspan="4" style="text-align:center;color:var(--text-muted);padding:16px;">Log aktivitas kosong.</td>

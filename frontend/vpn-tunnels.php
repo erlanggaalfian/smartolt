@@ -219,11 +219,11 @@ $disconnected = $total - $connected;
 include __DIR__ . '/header.php';
 ?>
 
-<div class="stats-grid">
-    <div class="stat-card"><div class="stat-icon bg-blue"><i data-lucide="network"></i></div><div class="stat-info"><h3>Total Tunnels</h3><p><?= $total ?></p></div></div>
-    <div class="stat-card"><div class="stat-icon bg-green"><i data-lucide="wifi"></i></div><div class="stat-info"><h3>Connected</h3><p><?= $connected ?></p></div></div>
-    <div class="stat-card"><div class="stat-icon bg-red"><i data-lucide="wifi-off"></i></div><div class="stat-info"><h3>Disconnected</h3><p><?= $disconnected ?></p></div></div>
-    <div class="stat-card"><div class="stat-icon bg-purple"><i data-lucide="route"></i></div><div class="stat-info"><h3>Subnet</h3><p>10.198.198.0/24</p></div></div>
+<div class="stats-grid motion-stagger">
+    <div class="stat-card motion-fade-up"><div class="stat-icon bg-blue"><i data-lucide="network"></i></div><div class="stat-info"><h3>Total Tunnels</h3><p><?= $total ?></p></div></div>
+    <div class="stat-card motion-fade-up"><div class="stat-icon bg-green"><i data-lucide="wifi"></i></div><div class="stat-info"><h3>Connected</h3><p><?= $connected ?></p></div></div>
+    <div class="stat-card motion-fade-up"><div class="stat-icon bg-red"><i data-lucide="wifi-off"></i></div><div class="stat-info"><h3>Disconnected</h3><p><?= $disconnected ?></p></div></div>
+    <div class="stat-card motion-fade-up"><div class="stat-icon bg-purple"><i data-lucide="route"></i></div><div class="stat-info"><h3>Subnet</h3><p>10.198.198.0/24</p></div></div>
 </div>
 
 <div class="content-card">
@@ -255,7 +255,7 @@ include __DIR__ . '/header.php';
                     <th>Aksi</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody class="motion-fade-in">
             <?php foreach ($tunnels as $t):
                 $routes = $t['routes_json'] ? json_decode($t['routes_json'], true) : [];
                 $routes_count = is_array($routes) ? count($routes) : 0;

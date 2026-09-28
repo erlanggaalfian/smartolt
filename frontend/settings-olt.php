@@ -34,7 +34,7 @@ $olt_types = get_supported_olt_types();
                         <th>Aksi</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="motion-fade-in">
                     <?php if (empty($olts)): ?>
                         <tr>
                             <td colspan="4" style="text-align:center;color:var(--text-muted);">Belum ada OLT terdaftar. Silakan klik tombol di atas untuk menambahkan.</td>
