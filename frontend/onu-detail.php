@@ -624,7 +624,7 @@ if (!empty($onu['onu_type'])) {
     <!-- Section 5: Ethernet ports -->
     <div class="smartolt-row">
         <div class="smartolt-label">Port Ethernet</div>
-        <div class="smartolt-content">
+        <div class="smartolt-content" id="port-eth-content">
             <?php if ($onu_type_specs['ethernet_ports'] > 0): ?>
                 <span style="font-weight:600; color:var(--text-main);"><?php echo (int)$onu_type_specs['ethernet_ports']; ?> port</span>
                 <span style="color:var(--text-muted); font-size:0.85rem;">(<?php echo htmlspecialchars($onu['onu_type']); ?>)</span>
@@ -637,7 +637,7 @@ if (!empty($onu['onu_type'])) {
     <!-- Section 6: WiFi -->
     <div class="smartolt-row">
         <div class="smartolt-label">WiFi</div>
-        <div class="smartolt-content">
+        <div class="smartolt-content" id="port-wifi-content">
             <?php if ($onu_type_specs['wifi_ssids'] > 0): ?>
                 <span style="font-weight:600; color:var(--text-main);"><?php echo (int)$onu_type_specs['wifi_ssids']; ?> SSIDs</span>
                 <span style="color:var(--text-muted); font-size:0.85rem;">(<?php echo htmlspecialchars($onu['onu_type']); ?>)</span>
@@ -650,7 +650,7 @@ if (!empty($onu['onu_type'])) {
     <!-- Section 7: VoIP, IPTV, CATV status -->
     <div class="smartolt-row" style="margin-bottom: 12px; padding-bottom: 12px; border-bottom:none;">
         <div class="smartolt-label">Layanan VoIP</div>
-        <div class="smartolt-content">
+        <div class="smartolt-content" id="port-voip-content">
             <?php if ($onu_type_specs['voip_ports'] > 0): ?>
                 <span style="font-weight:600; color:var(--text-main);"><?php echo (int)$onu_type_specs['voip_ports']; ?> port</span>
             <?php else: ?>
@@ -660,7 +660,7 @@ if (!empty($onu['onu_type'])) {
     </div>
     <div class="smartolt-row" style="margin-bottom: 12px; padding-bottom: 12px; border-bottom:none;">
         <div class="smartolt-label">CATV</div>
-        <div class="smartolt-content">
+        <div class="smartolt-content" id="port-catv-content">
             <?php if ($onu_type_specs['catv']): ?>
                 <span style="font-weight:600; color:var(--color-green);">Didukung</span>
             <?php else: ?>
@@ -2717,30 +2717,23 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             h += '</div></div>';
                             return h;
                         }
-                        // Card "Port Overview" - persis seperti GUI vendor ONU
+                        // Update header sections (Port Ethernet, WiFi, VoIP, CATV) dari data TR-069 aktual
                         (() => {
                             const lanDevs = root?.LANDevice || {};
-                            let ethRows = [], wifi24 = [], wifi5 = [];
+                            let ethPorts = [], wifiList = [];
                             let dhcpEnabled = false;
                             for (const [ldk, ldv] of Object.entries(lanDevs)) {
                                 const dhcp = ldv?.LANHostConfigManagement;
                                 if (dhcp?.DHCPServerEnable?._value === 1 || dhcp?.DHCPServerEnable?._value === true) dhcpEnabled = true;
-                            }
-                            const dhcpLabel = dhcpEnabled ? 'From ONU' : 'No control';
-                            for (const [ldk, ldv] of Object.entries(lanDevs)) {
                                 if (Array.isArray(ldv?.LANEthernetInterfaceConfig)) {
                                     for (const [ek, ev] of Object.entries(ldv.LANEthernetInterfaceConfig)) {
                                         if (!ev || typeof ev !== 'object' || !ev.Name) continue;
                                         const portNum = parseInt(ek, 10);
-                                        const portLabel = 'eth_0/' + (portNum || ek);
+                                        const name = 'eth_0/' + (portNum || ek);
                                         const en = ev.Enable?._value;
                                         const enabled = en === 1 || en === '1' || en === true;
-                                        ethRows.push('<tr style="border-bottom:1px solid var(--border-color);">'
-                                            + '<td style="padding:6px 8px;font-weight:600;">' + portLabel + '</td>'
-                                            + '<td style="padding:6px 8px;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + (enabled ? '#28a745' : '#6c757d') + ';margin-right:6px;"></span>' + (enabled ? 'Enabled' : 'Disabled') + '</td>'
-                                            + '<td style="padding:6px 8px;">LAN</td>'
-                                            + '<td style="padding:6px 8px;">' + dhcpLabel + '</td>'
-                                            + '</tr>');
+                                        const status = ev.Status?._value || '';
+                                        ethPorts.push({name, enabled, status});
                                     }
                                 }
                                 if (Array.isArray(ldv?.WLANConfiguration)) {
@@ -2753,55 +2746,60 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                         const enabled = en === 1 || en === '1' || en === true;
                                         const possible = String(wv.PossibleChannels?._value || '');
                                         const firstNum = parseInt(possible.split(/[,-]/)[0], 10);
-                                        const is5g = !isNaN(firstNum) && firstNum > 14;
-                                        const portLabel = 'wifi_0/' + wk;
-                                        const row = '<tr style="border-bottom:1px solid var(--border-color);">'
-                                            + '<td style="padding:6px 8px;font-weight:600;color:var(--accent);">' + portLabel + '</td>'
-                                            + '<td style="padding:6px 8px;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + (enabled ? '#28a745' : '#6c757d') + ';margin-right:6px;"></span>' + (enabled ? 'Enabled' : 'Disabled') + '</td>'
-                                            + '<td style="padding:6px 8px;">LAN</td>'
-                                            + '<td style="padding:6px 8px;">' + ssid + '</td>'
-                                            + '<td style="padding:6px 8px;">No control</td>'
-                                            + '</tr>';
-                                        if (is5g) wifi5.push(row); else wifi24.push(row);
+                                        const band = (!isNaN(firstNum) && firstNum > 14) ? '5GHz' : '2.4GHz';
+                                        wifiList.push({ssid, enabled, band, port: 'wifi_0/' + wk});
                                     }
                                 }
                             }
-                            // VoIP + CATV status
-                            let voipText = 'Nonaktif', catvText = 'Tidak didukung';
-                            for (const vs of Object.values(root?.Services?.VoiceService || {})) {
-                                const profiles = vs?.VoiceProfile || {};
-                                for (const vp of Object.values(profiles)) {
-                                    if (vp?.Line && Object.keys(vp.Line).filter(k => !k.startsWith('_')).length > 0) {
-                                        voipText = Object.keys(vp.Line).filter(k => !k.startsWith('_')).length + ' port';
+                            // Update Port Ethernet section
+                            const ethEl = document.getElementById('port-eth-content');
+                            if (ethEl && ethPorts.length) {
+                                let h = '<div style="font-size:0.85rem;">';
+                                h += '<span style="font-weight:600;">' + ethPorts.length + ' port</span>';
+                                h += ' <span style="color:var(--text-muted);">(ALL-ONT)</span>';
+                                h += '<table style="width:100%;margin-top:6px;border-collapse:collapse;font-size:0.8rem;">';
+                                h += '<tr style="background:var(--bg-secondary);"><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Port</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Status</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Mode</th></tr>';
+                                for (const p of ethPorts) {
+                                    const color = p.status === 'Up' ? '#28a745' : '#6c757d';
+                                    h += '<tr><td style="padding:4px 8px;font-weight:600;">' + p.name + '</td>';
+                                    h += '<td style="padding:4px 8px;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:' + color + ';margin-right:4px;"></span>' + p.status + '</td>';
+                                    h += '<td style="padding:4px 8px;">LAN</td></tr>';
+                                }
+                                h += '</table></div>';
+                                ethEl.innerHTML = h;
+                            }
+                            // Update WiFi section
+                            const wifiEl = document.getElementById('port-wifi-content');
+                            if (wifiEl && wifiList.length) {
+                                let h = '<div style="font-size:0.85rem;">';
+                                h += '<span style="font-weight:600;">' + wifiList.length + ' SSIDs</span>';
+                                h += ' <span style="color:var(--text-muted);">(ALL-ONT)</span>';
+                                h += '<table style="width:100%;margin-top:6px;border-collapse:collapse;font-size:0.8rem;">';
+                                h += '<tr style="background:var(--bg-secondary);"><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Port</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Status</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">SSID</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Band</th></tr>';
+                                for (const w of wifiList) {
+                                    const color = w.enabled ? '#28a745' : '#6c757d';
+                                    h += '<tr><td style="padding:4px 8px;font-weight:600;">' + w.port + '</td>';
+                                    h += '<td style="padding:4px 8px;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:' + color + ';margin-right:4px;"></span>' + (w.enabled ? 'Enabled' : 'Disabled') + '</td>';
+                                    h += '<td style="padding:4px 8px;">' + w.ssid + '</td>';
+                                    h += '<td style="padding:4px 8px;">' + w.band + '</td></tr>';
+                                }
+                                h += '</table></div>';
+                                wifiEl.innerHTML = h;
+                            }
+                            // Update VoIP
+                            const voipEl = document.getElementById('port-voip-content');
+                            if (voipEl) {
+                                let voipText = 'Nonaktif';
+                                for (const vs of Object.values(root?.Services?.VoiceService || {})) {
+                                    for (const vp of Object.values(vs?.VoiceProfile || {})) {
+                                        const lineCount = Object.keys(vp?.Line || {}).filter(k => !k.startsWith('_')).length;
+                                        if (lineCount > 0) voipText = lineCount + ' port';
                                     }
                                 }
-                            }
-                            if (ethRows.length || wifi24.length || wifi5.length) {
-                                html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
-                                html += '<div style="padding:8px 12px;background:var(--bg-secondary);color:var(--text-main);font-weight:600;">Port Overview</div>';
-                                html += '<div style="padding:8px 12px;background:var(--bg-main);font-size:0.85rem;">';
-                                // Ethernet
-                                if (ethRows.length) {
-                                    html += '<div style="font-weight:600;margin:8px 0 6px;color:var(--text-muted);">Ethernet ports</div>';
-                                    html += '<table style="width:100%;border-collapse:collapse;">';
-                                    html += '<tr style="background:var(--bg-secondary);"><th style="text-align:left;padding:6px 8px;font-size:0.8rem;color:var(--text-muted);">Port</th><th style="text-align:left;padding:6px 8px;font-size:0.8rem;color:var(--text-muted);">Admin state</th><th style="text-align:left;padding:6px 8px;font-size:0.8rem;color:var(--text-muted);">Mode</th><th style="text-align:left;padding:6px 8px;font-size:0.8rem;color:var(--text-muted);">DHCP</th></tr>';
-                                    html += ethRows.join('') + '</table>';
-                                }
-                                // WiFi
-                                if (wifi24.length || wifi5.length) {
-                                    html += '<div style="font-weight:600;margin:12px 0 6px;color:var(--text-muted);">WiFi</div>';
-                                    html += '<table style="width:100%;border-collapse:collapse;">';
-                                    html += '<tr style="background:var(--bg-secondary);"><th style="text-align:left;padding:6px 8px;font-size:0.8rem;color:var(--text-muted);">Port</th><th style="text-align:left;padding:6px 8px;font-size:0.8rem;color:var(--text-muted);">Admin state</th><th style="text-align:left;padding:6px 8px;font-size:0.8rem;color:var(--text-muted);">Mode</th><th style="text-align:left;padding:6px 8px;font-size:0.8rem;color:var(--text-muted);">SSID</th><th style="text-align:left;padding:6px 8px;font-size:0.8rem;color:var(--text-muted);">DHCP</th></tr>';
-                                    html += wifi24.join('') + wifi5.join('') + '</table>';
-                                }
-                                // VoIP + CATV
-                                html += '<div style="display:flex;gap:24px;margin-top:12px;padding-top:10px;border-top:1px solid var(--border-color);font-size:0.82rem;">';
-                                html += '<div><span style="color:var(--text-muted);">VoIP:</span> <span style="font-weight:600;">' + voipText + '</span></div>';
-                                html += '<div><span style="color:var(--text-muted);">CATV:</span> <span style="font-weight:600;">' + catvText + '</span></div>';
-                                html += '</div>';
-                                html += '</div></div>';
+                                voipEl.innerHTML = '<span style="font-weight:600;color:var(--text-main);">' + voipText + '</span>';
                             }
                         })();
+
                         sections.forEach((sec, i) => {
                             if (sec._merged) return;
                             const count = Object.keys(sec.params).length;
