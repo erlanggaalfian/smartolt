@@ -636,6 +636,7 @@ if (!empty($onu['onu_type'])) {
                             <th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Admin state</th>
                             <th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Mode</th>
                             <th style="text-align:left;padding:4px 8px;color:var(--text-muted);">DHCP</th>
+                            <th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Action</th>
                         </tr>
                         <?php for ($i = 1; $i <= $eth_count; $i++): ?>
                         <tr>
@@ -643,6 +644,7 @@ if (!empty($onu['onu_type'])) {
                             <td style="padding:4px 8px;color:var(--text-muted);">—</td>
                             <td style="padding:4px 8px;">LAN</td>
                             <td style="padding:4px 8px;color:var(--text-muted);">—</td>
+                            <td style="padding:4px 8px;"><button type="button" class="btn-port-configure" data-port="eth_0/<?php echo $i; ?>" data-type="ethernet" title="Configure" style="background:none;border:none;cursor:pointer;padding:2px;"><i data-lucide="settings" style="width:14px;height:14px;color:var(--text-muted);"></i></button></td>
                         </tr>
                         <?php endfor; ?>
                     </table>
@@ -2034,6 +2036,8 @@ $tr069_profiles = tr069_get_profiles($pdo);
                     .then(d => {
                         if (d.error) { cliOutputBox.innerHTML = '<div style="padding:12px 0;color:var(--text-muted);">⚠️ Tidak terkoneksi ke ACS (device belum pernah lapor TR-069 atau serial tidak ditemukan).</div>'; return; }
                         const root = d.InternetGatewayDevice || d.Device || {};
+                    window._portDeviceRoot = root;
+                    window._portDeviceSerial = serial;
                         // Flatten tree into sections
                         const sections = [];
                         function walk(obj, path, tr069Path) {
@@ -3641,13 +3645,14 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         h += '<span style="font-weight:600;">' + ethPorts.length + ' port</span>';
                         h += ' <span style="color:var(--text-muted);">(ALL-ONT)</span>';
                         h += '<table style="width:100%;margin-top:6px;border-collapse:collapse;font-size:0.8rem;">';
-                        h += '<tr style="background:var(--bg-secondary);"><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Port</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Admin state</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Mode</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">DHCP</th></tr>';
+                        h += '<tr style="background:var(--bg-secondary);"><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Port</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Admin state</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Mode</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">DHCP</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Action</th></tr>';
                         for (const p of ethPorts) {
                             const color = p.enabled ? '#28a745' : '#6c757d';
                             h += '<tr><td style="padding:4px 8px;font-weight:600;">' + p.name + '</td>';
                             h += '<td style="padding:4px 8px;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:' + color + ';margin-right:4px;"></span>' + (p.enabled ? 'Enabled' : 'Disabled') + '</td>';
                             h += '<td style="padding:4px 8px;">LAN</td>';
-                            h += '<td style="padding:4px 8px;">' + ethDhcpLabel + '</td></tr>';
+                            h += '<td style="padding:4px 8px;">' + ethDhcpLabel + '</td>';
+                            h += '<td style="padding:4px 8px;"><button type="button" class="btn-port-configure" data-port="' + p.name + '" data-type="ethernet" title="Configure" style="background:none;border:none;cursor:pointer;padding:2px;"><i data-lucide="settings" style="width:14px;height:14px;"></i></button></td></tr>';
                         }
                         h += '</table></div>';
                         ethEl.innerHTML = h;
@@ -3683,6 +3688,113 @@ $tr069_profiles = tr069_get_profiles($pdo);
                     }
                 }).catch(() => {});
         }
+
+        // Handler: buka modal configure port
+        document.addEventListener('click', (ev) => {
+            const btn = ev.target.closest('.btn-port-configure');
+            if (!btn) return;
+            const port = btn.dataset.port;
+            const type = btn.dataset.type; // ethernet
+            const root = window._portDeviceRoot || {};
+            const serial = window._portDeviceSerial || '';
+            
+            document.getElementById('port-cfg-title').textContent = 'Configure ' + (type === 'ethernet' ? 'ethernet' : 'WiFi') + ' port ' + port;
+            document.getElementById('port-cfg-serial').value = serial;
+            document.getElementById('port-cfg-port').value = port;
+            document.getElementById('port-cfg-type').value = type;
+            
+            // Populate VLAN dropdown dari WANConnectionDevice
+            const vlanSelect = document.getElementById('port-cfg-vlan');
+            vlanSelect.innerHTML = '<option value="">—</option>';
+            const wanDevs = root.WANDevice?.['1']?.WANConnectionDevice || {};
+            const seenVlans = new Set();
+            for (const [wk, wv] of Object.entries(wanDevs)) {
+                for (const connType of ['WANPPPConnection', 'WANIPConnection']) {
+                    for (const [ck, cv] of Object.entries(wv?.[connType] || {})) {
+                        if (!cv || typeof cv !== 'object') continue;
+                        const vlan = cv['X_CT-COM_VLANID']?._value ?? cv.VLANID?._value;
+                        const name = cv.Name?._value || '';
+                        if (vlan != null && !seenVlans.has(vlan)) {
+                            seenVlans.add(vlan);
+                            const opt = document.createElement('option');
+                            opt.value = vlan;
+                            opt.textContent = vlan + (name ? ' - ' + name.replace(/_\d+$/, '').replace(/R_VID_/, '') : '');
+                            vlanSelect.appendChild(opt);
+                        }
+                    }
+                }
+            }
+            
+            // Pre-fill dari data device jika ada
+            const lanDevs = root.LANDevice || {};
+            for (const [ldk, ldv] of Object.entries(lanDevs)) {
+                const eths = ldv?.LANEthernetInterfaceConfig || {};
+                for (const [ek, ev] of Object.entries(eths)) {
+                    const name = 'eth_0/' + ek;
+                    if (name !== port || !ev?.Name) continue;
+                    const en = ev.Enable?._value;
+                    const enabled = en === 1 || en === '1' || en === true;
+                    document.querySelector('[name=port-cfg-status][value="' + (enabled ? 'Enabled' : 'Disabled') + '"]').checked = true;
+                    const mode = ev['X_CT-COM_Mode']?._value || ev.Mode?._value || 'LAN';
+                    const modeRadio = document.querySelector('[name=port-cfg-mode][value="' + mode + '"]');
+                    if (modeRadio) modeRadio.checked = true;
+                    else document.querySelector('[name=port-cfg-mode][value="LAN"]').checked = true;
+                    const dhcp = ev['X_CT-COM_DHCP']?._value || '';
+                    vlanSelect.value = ev['X_CT-COM_VLANID']?._value || '';
+                    document.getElementById('port-cfg-dhcp').value = dhcp || 'No control';
+                }
+            }
+            
+            document.getElementById('port-configure-modal').style.display = 'flex';
+        });
+
+        // Handler: simpan configure port
+        document.getElementById('port-cfg-save')?.addEventListener('click', () => {
+            const serial = document.getElementById('port-cfg-serial').value;
+            const port = document.getElementById('port-cfg-port').value;
+            if (!serial || !port) return;
+            
+            const status = document.querySelector('[name=port-cfg-status]:checked')?.value || 'Enabled';
+            const mode = document.querySelector('[name=port-cfg-mode]:checked')?.value || 'LAN';
+            const vlan = document.getElementById('port-cfg-vlan').value;
+            const dhcp = document.getElementById('port-cfg-dhcp').value;
+            
+            const saveBtn = document.getElementById('port-cfg-save');
+            saveBtn.textContent = 'Saving...';
+            saveBtn.disabled = true;
+            
+            // Kirim ke backend via genieacs-proxy
+            const params = {};
+            const portParts = port.split('/');
+            const portIdx = portParts[1] || '1';
+            const basePath = 'InternetGatewayDevice.LANDevice.1.LANEthernetInterfaceConfig.' + portIdx + '.';
+            params[basePath + 'Enable'] = status === 'Enabled' ? 1 : 0;
+            params[basePath + 'X_CT-COM_Mode'] = mode;
+            if (vlan) params[basePath + 'X_CT-COM_VLANID'] = parseInt(vlan, 10);
+            params[basePath + 'X_CT-COM_DHCP'] = dhcp;
+            
+            fetch('action/genieacs-proxy.php', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({serial: serial, edit_generic: true, items: Object.entries(params).map(([key, value]) => ({key, value}))})
+            }).then(r => r.json()).then(d => {
+                saveBtn.textContent = 'Save';
+                saveBtn.disabled = false;
+                if (d.success || d.status === 'ok' || !d.error) {
+                    document.getElementById('port-configure-modal').style.display = 'none';
+                    // Reload header data
+                    if (typeof loadTr069Status === 'function') loadTr069Status({silent: true});
+                    else location.reload();
+                } else {
+                    alert(d.message || d.error || 'Gagal simpan');
+                }
+            }).catch(() => {
+                saveBtn.textContent = 'Save';
+                saveBtn.disabled = false;
+                alert('Error koneksi');
+            });
+        });
+
 
         // Global Escape Key to close all modals
         document.addEventListener('keydown', (e) => {
@@ -3911,4 +4023,101 @@ updateTr609Info();
 </script>
 
 <?php require_once __DIR__ . '/onu-detail-css.php'; ?>
+
+<!-- Modal Configure Port -->
+<div class="modal" id="port-configure-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;justify-content:center;align-items:center;">
+    <div style="background:var(--bg-primary);border-radius:10px;width:480px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.3);">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border-color);">
+            <span style="font-weight:600;font-size:1rem;" id="port-cfg-title">Configure ethernet port eth_0/1</span>
+            <button type="button" onclick="document.getElementById('port-configure-modal').style.display='none'" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-muted);">&times;</button>
+        </div>
+        <div style="padding:20px;">
+            <input type="hidden" id="port-cfg-serial" value="">
+            <input type="hidden" id="port-cfg-port" value="">
+            <input type="hidden" id="port-cfg-type" value="">
+
+            <div style="margin-bottom:16px;">
+                <label style="display:block;font-weight:600;margin-bottom:6px;font-size:0.9rem;">Status</label>
+                <label style="margin-right:16px;cursor:pointer;font-size:0.9rem;"><input type="radio" name="port-cfg-status" value="Enabled" checked> Enabled</label>
+                <label style="cursor:pointer;font-size:0.9rem;"><input type="radio" name="port-cfg-status" value="Disabled"> Port shutdown</label>
+            </div>
+
+            <div style="margin-bottom:16px;">
+                <label style="display:block;font-weight:600;margin-bottom:6px;font-size:0.9rem;">Mode</label>
+                <label style="margin-right:12px;cursor:pointer;font-size:0.9rem;"><input type="radio" name="port-cfg-mode" value="LAN" checked> LAN</label>
+                <label style="margin-right:12px;cursor:pointer;font-size:0.9rem;"><input type="radio" name="port-cfg-mode" value="Access"> Access</label>
+                <label style="margin-right:12px;cursor:pointer;font-size:0.9rem;"><input type="radio" name="port-cfg-mode" value="Hybrid"> Hybrid</label>
+                <label style="margin-right:12px;cursor:pointer;font-size:0.9rem;"><input type="radio" name="port-cfg-mode" value="Trunk"> Trunk</label>
+                <label style="cursor:pointer;font-size:0.9rem;"><input type="radio" name="port-cfg-mode" value="Transparent"> Transparent</label>
+            </div>
+
+            <div style="margin-bottom:16px;">
+                <label style="display:block;font-weight:600;margin-bottom:6px;font-size:0.9rem;">VLAN-ID</label>
+                <select id="port-cfg-vlan" style="width:100%;padding:8px 10px;border:1px solid var(--border-color);border-radius:6px;font-size:0.9rem;background:var(--bg-secondary);color:var(--text-primary);">
+                    <option value="">—</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom:16px;">
+                <label style="display:block;font-weight:600;margin-bottom:6px;font-size:0.9rem;">DHCP</label>
+                <select id="port-cfg-dhcp" style="width:100%;padding:8px 10px;border:1px solid var(--border-color);border-radius:6px;font-size:0.9rem;background:var(--bg-secondary);color:var(--text-primary);">
+                    <option value="No control">No control</option>
+                    <option value="From ISP">From ISP</option>
+                    <option value="From ONU">From ONU</option>
+                    <option value="Forbidden">Forbidden</option>
+                </select>
+            </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;padding:12px 20px;border-top:1px solid var(--border-color);">
+            <button type="button" onclick="document.getElementById('port-configure-modal').style.display='none'" style="background:none;border:none;color:var(--text-accent);font-weight:500;cursor:pointer;font-size:0.95rem;padding:8px 12px;">Close</button>
+            <button type="button" id="port-cfg-save" style="background:var(--accent-green,#22c55e);color:#fff;border:none;border-radius:6px;padding:8px 20px;font-weight:600;cursor:pointer;font-size:0.95rem;">Save</button>
+        </div>
+    </div>
+</div>
+<!-- Modal Configure Port -->
+<div class="modal" id="port-configure-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;justify-content:center;align-items:center;">
+    <div style="background:var(--bg-primary,#1a1a2e);border-radius:10px;width:480px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.4);">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border-color);">
+            <span id="port-cfg-title" style="font-weight:600;font-size:1rem;">Configure ethernet port</span>
+            <button type="button" onclick="document.getElementById('port-configure-modal').style.display='none'" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-muted);line-height:1;">&times;</button>
+        </div>
+        <div style="padding:20px;">
+            <input type="hidden" id="port-cfg-serial">
+            <input type="hidden" id="port-cfg-port">
+            <input type="hidden" id="port-cfg-type">
+            <div style="margin-bottom:16px;">
+                <label style="display:block;font-weight:600;margin-bottom:6px;font-size:0.9rem;">Status</label>
+                <label style="margin-right:16px;cursor:pointer;font-size:0.9rem;"><input type="radio" name="port-cfg-status" value="Enabled" checked> Enabled</label>
+                <label style="cursor:pointer;font-size:0.9rem;"><input type="radio" name="port-cfg-status" value="Disabled"> Port shutdown</label>
+            </div>
+            <div style="margin-bottom:16px;">
+                <label style="display:block;font-weight:600;margin-bottom:6px;font-size:0.9rem;">Mode</label>
+                <label style="margin-right:14px;cursor:pointer;font-size:0.9rem;"><input type="radio" name="port-cfg-mode" value="LAN" checked> LAN</label>
+                <label style="margin-right:14px;cursor:pointer;font-size:0.9rem;"><input type="radio" name="port-cfg-mode" value="Access"> Access</label>
+                <label style="margin-right:14px;cursor:pointer;font-size:0.9rem;"><input type="radio" name="port-cfg-mode" value="Hybrid"> Hybrid</label>
+                <label style="margin-right:14px;cursor:pointer;font-size:0.9rem;"><input type="radio" name="port-cfg-mode" value="Trunk"> Trunk</label>
+                <label style="cursor:pointer;font-size:0.9rem;"><input type="radio" name="port-cfg-mode" value="Transparent"> Transparent</label>
+            </div>
+            <div style="margin-bottom:16px;">
+                <label style="display:block;font-weight:600;margin-bottom:6px;font-size:0.9rem;">VLAN-ID</label>
+                <select id="port-cfg-vlan" style="width:100%;padding:8px;border:1px solid var(--border-color);border-radius:6px;font-size:0.9rem;background:var(--bg-secondary,#16213e);color:var(--text-primary);">
+                    <option value="">—</option>
+                </select>
+            </div>
+            <div style="margin-bottom:8px;">
+                <label style="display:block;font-weight:600;margin-bottom:6px;font-size:0.9rem;">DHCP</label>
+                <select id="port-cfg-dhcp" style="width:100%;padding:8px;border:1px solid var(--border-color);border-radius:6px;font-size:0.9rem;background:var(--bg-secondary,#16213e);color:var(--text-primary);">
+                    <option value="No control">No control</option>
+                    <option value="From ISP">From ISP</option>
+                    <option value="From ONU">From ONU</option>
+                    <option value="Forbidden">Forbidden</option>
+                </select>
+            </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;padding:12px 20px;border-top:1px solid var(--border-color);">
+            <button type="button" onclick="document.getElementById('port-configure-modal').style.display='none'" style="background:none;border:none;color:var(--text-accent,#60a5fa);font-weight:500;cursor:pointer;font-size:0.95rem;padding:8px 12px;">Close</button>
+            <button type="button" id="port-cfg-save" style="background:var(--accent-green,#22c55e);color:#fff;border:none;border-radius:6px;padding:8px 20px;font-weight:600;cursor:pointer;font-size:0.95rem;">Save</button>
+        </div>
+    </div>
+</div>
 <?php require_once __DIR__ . '/footer.php'; ?>
