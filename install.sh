@@ -581,6 +581,53 @@ SVCEOF
   sleep 3
   echo -e "      ${GREEN}[OK] GenieACS berjalan — CWMP:7547, NBI:7559, FS:7567${NC}"
 
+  # --- Provision / preset / virtual parameter bawaan ---
+  # Dimuat via NBI (bukan file di disk) karena GenieACS menyimpan semuanya di
+  # MongoDB; file di deploy/genieacs/ hanya sumber kebenaran untuk git.
+  echo -e "      Memuat provision & preset GenieACS..."
+  GACS_SRC="${TARGET_DIR}/deploy/genieacs"
+  for i in 1 2 3 4 5 6 7 8 9 10; do
+    curl -sf -o /dev/null "http://127.0.0.1:7559/devices/?projection=_id" && break
+    sleep 2
+  done
+
+  if [ -d "${GACS_SRC}/virtual_parameters" ]; then
+    for f in "${GACS_SRC}"/virtual_parameters/*.js; do
+      [ -e "$f" ] || continue
+      n=$(basename "$f" .js)
+      curl -sf -X PUT "http://127.0.0.1:7559/virtual_parameters/${n}" \
+        -H 'Content-Type: application/javascript' --data-binary "@${f}" -o /dev/null \
+        && echo -e "        ${GREEN}[OK]${NC} virtual parameter: ${n}" \
+        || echo -e "        ${YELLOW}[SKIP]${NC} virtual parameter: ${n}"
+    done
+  fi
+
+  if [ -d "${GACS_SRC}/provisions" ]; then
+    for f in "${GACS_SRC}"/provisions/*.js; do
+      [ -e "$f" ] || continue
+      n=$(basename "$f" .js)
+      curl -sf -X PUT "http://127.0.0.1:7559/provisions/${n}" \
+        -H 'Content-Type: application/javascript' --data-binary "@${f}" -o /dev/null \
+        && echo -e "        ${GREEN}[OK]${NC} provision: ${n}" \
+        || echo -e "        ${YELLOW}[SKIP]${NC} provision: ${n}"
+    done
+  fi
+
+  # Preset dimuat PALING AKHIR — preset merujuk nama provision, jadi provision
+  # harus sudah ada lebih dulu supaya tidak menunjuk ke nama yang belum terdaftar.
+  if [ -d "${GACS_SRC}/presets" ]; then
+    for f in "${GACS_SRC}"/presets/*.json; do
+      [ -e "$f" ] || continue
+      n=$(basename "$f" .json)
+      body=$(python3 -c "import json,sys; d=json.load(open(sys.argv[1])); d.pop('_id',None); print(json.dumps(d))" "$f" 2>/dev/null)
+      [ -z "$body" ] && { echo -e "        ${YELLOW}[SKIP]${NC} preset: ${n}"; continue; }
+      curl -sf -X PUT "http://127.0.0.1:7559/presets/${n}" \
+        -H 'Content-Type: application/json' -d "$body" -o /dev/null \
+        && echo -e "        ${GREEN}[OK]${NC} preset: ${n}" \
+        || echo -e "        ${YELLOW}[SKIP]${NC} preset: ${n}"
+    done
+  fi
+
   # --- OpenVPN (server <-> MikroTik tunnel untuk GenieACS TR-069) ---
   if [ "$INSTALL_OVPN" = true ]; then
     echo -e "      Menginstal OpenVPN..."

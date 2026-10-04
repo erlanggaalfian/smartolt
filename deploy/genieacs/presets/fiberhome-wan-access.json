@@ -1,0 +1,11 @@
+{
+  "_id": "fiberhome-wan-access",
+  "weight": 10,
+  "precondition": "DeviceID.Manufacturer = \"FiberHome\"",
+  "configurations": [
+    {
+      "type": "provision",
+      "name": "fiberhome-wan-access"
+    }
+  ]
+}

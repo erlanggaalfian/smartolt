@@ -3111,6 +3111,18 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             html += '</div>';
 
                             html += '<div style="border-top:1px solid var(--border-color);margin:12px 0 10px;"></div>';
+                            // Remote Access (X_FH_WebUserInfo.RemoteAccess) — gerbang akses GUI web dari
+                            // sisi WAN. TERPISAH dari X_FH_ACL: ACL boleh mengizinkan HTTP:80 penuh, tapi
+                            // kalau RemoteAccess=0 device tetap menolak koneksi web dari WAN (port 80/443
+                            // tampak closed walau 7547 terbuka). Nilai absent = default device (aktif).
+                            const fhWebInfo = (root.UserInterface || {}).X_FH_WebUserInfo || {};
+                            const raRaw = fhWebInfo.RemoteAccess?._value;
+                            const raVal = (raRaw === true || raRaw === 'true' || raRaw === 1 || raRaw === '1') ? '1'
+                                : (raRaw === false || raRaw === 'false' || raRaw === 0 || raRaw === '0') ? '0'
+                                : null;
+                            html += rowRadio('Remote Access (GUI web dari WAN)', 'fhsec-remote-access', raVal, enDis);
+                            html += '<button type="button" class="btn-solt btn-solt-green fhsec-ra-save" data-idx="'+idx+'" style="padding:6px 16px;font-size:0.82rem;margin:0 0 10px;">Simpan Akses WAN</button>';
+                            html += '<div style="border-top:1px solid var(--border-color);margin:4px 0 10px;"></div>';
                             html += rowText('Web Login Username', 'fhsec-web-user', lcs.ConfigUsername?._value ?? '', '');
                             html += rowText('Web Login Password', 'fhsec-web-pass', '', 'kosong = tidak diubah');
                             html += '<button type="button" class="btn-solt btn-solt-green fhsec-save" data-idx="'+idx+'" style="padding:6px 16px;font-size:0.82rem;margin-top:4px;">Simpan Login</button>';
@@ -3509,6 +3521,30 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         // NOTE: Simpan Rule ACL dipindah ke handler global tombol modal #fhacl-modal-save
                         // (di luar cliOutputBox, lihat script dekat modal fhacl-modal) -- modal dirender
                         // sekali di HTML statis, bukan di-generate ulang tiap refresh panel seperti tombol lain.
+                        // Simpan Akses WAN — ACL Enable (X_FH_ACL.Enable) + Remote Access
+                        // (X_FH_WebUserInfo.RemoteAccess) dikirim BERSAMA dalam 1 task setParameterValues.
+                        // Keduanya adalah gerbang berlapis untuk akses GUI web dari WAN: ACL mengatur
+                        // protokol/sumber IP mana yang boleh masuk, RemoteAccess adalah switch web-server
+                        // sisi WAN. Kalau salah satu mati, GUI tetap tidak bisa diakses — makanya satu tombol.
+                        cliOutputBox.querySelectorAll('.fhsec-ra-save').forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                const aclSel = document.querySelector('input[name="fhsec-acl-enable"]:checked');
+                                const raSel = document.querySelector('input[name="fhsec-remote-access"]:checked');
+                                const items = [];
+                                if (aclSel) items.push({ id: 'fhsec-acl-enable', path: 'InternetGatewayDevice.X_FH_ACL.Enable', type: 'xsd:string', value: aclSel.value });
+                                if (raSel) items.push({ id: 'fhsec-remote-access', path: 'InternetGatewayDevice.UserInterface.X_FH_WebUserInfo.RemoteAccess', type: 'xsd:string', value: raSel.value });
+                                if (items.length === 0) { alert('Pilih ACL Enable dan/atau Remote Access dulu.'); return; }
+                                btn.disabled = true; btn.textContent = 'Menyimpan...';
+                                fetch('action/genieacs-proxy.php', {
+                                    method: 'POST',
+                                    headers: {'Content-Type': 'application/json'},
+                                    body: JSON.stringify({serial, edit_generic: true, items})
+                                }).then(r => r.json()).then(d => {
+                                    if (d.success) { alert(d.message || 'Berhasil dikirim.'); reloadAfterSave(); }
+                                    else { alert('Error: ' + (d.message || 'Gagal')); btn.disabled = false; btn.textContent = 'Simpan Akses WAN'; }
+                                }).catch(() => { alert('Gagal mengirim perubahan.'); btn.disabled = false; btn.textContent = 'Simpan Akses WAN'; });
+                            });
+                        });
                         // Simpan Login (card Security FiberHome) — LANConfigSecurity via TR-069.
                         cliOutputBox.querySelectorAll('.fhsec-save').forEach(btn => {
                             btn.addEventListener('click', () => {
