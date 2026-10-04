@@ -661,9 +661,65 @@ tar czf ~/smartolt_backup/openvpn-ca_$(date +%Y%m%d).tar.gz /opt/openvpn-ca/
 
 ## 📄 Lisensi & Kontribusi
 
-**Internal use** — hubungi pemilik repo untuk detail lisensi.
+### Lisensi
 
-Kontribusi: buat branch dari `main`, sertakan catatan perubahan di `CHANGELOG.md` (berkas yang disentuh, commit, cakupan desktop + mobile, risiko ke OLT), lalu ajukan pull request.
+**Internal use / proprietary.** Seluruh kode dalam repositori ini adalah hak milik penulis dan tidak dirilis di bawah lisensi open source.
+
+| Penggunaan | Status |
+|---|:---:|
+| Dipakai sendiri / internal perusahaan | ✅ Diizinkan |
+| Dimodifikasi untuk kebutuhan sendiri | ✅ Diizinkan |
+| Dijual, disublisensikan, atau direbranding | ❌ Dilarang |
+| Didistribusikan ulang ke publik | ❌ Dilarang |
+| Dipakai sebagai basis produk komersial | ❌ Perlu izin tertulis |
+
+Untuk lisensi komersial, kemitraan, atau izin distribusi — hubungi pemilik repositori.
+
+> ⚠️ Aplikasi ini mengakses perangkat jaringan produksi lewat SSH dan SNMP. Tidak ada jaminan (*no warranty*): risiko gangguan layanan akibat salah konfigurasi ditanggung pengguna. Uji di OLT lab sebelum dipakai di jaringan pelanggan.
+
+### Kontribusi
+
+1. Fork repo, lalu buat branch dari `main` — jangan commit langsung ke `main`.
+2. Beri nama branch sesuai jenis perubahan: `feat/nama-fitur`, `fix/nama-bug`, atau `docs/topik`.
+3. Tulis kode mengikuti pola yang sudah ada — driver vendor baru wajib mengikuti interface `backend/python_engine/drivers/base_driver.py`.
+4. Uji di OLT lab, **bukan** di OLT produksi.
+5. Catat perubahan di `CHANGELOG.md` memakai format yang berlaku (lihat di bawah).
+6. Ajukan pull request dengan penjelasan masalah yang diselesaikan.
+
+**Format commit:**
+
+```
+<tipe>(<cakupan>): <ringkasan singkat>
+```
+
+Tipe yang dipakai: `feat`, `fix`, `docs`, `refactor`, `perf`, `style`.
+
+**Format entri `CHANGELOG.md`** (wajib, mengikuti entri yang sudah ada):
+
+```markdown
+## YYYY-MM-DD — <ringkasan perubahan>
+**Files:** `path/ke/berkas.php`
+**Commit:** <hash pendek>
+**Perubahan:**
+- Penjelasan tiap perubahan beserta alasannya.
+**Coverage:** Desktop + mobile
+**Risiko OLT:** Nol / Rendah / Tinggi — beserta alasan.
+```
+
+Dua baris terakhir tidak boleh dilewat. **Coverage** memastikan perubahan UI diuji di desktop dan mobile. **Risiko OLT** memaksa penulis menilai apakah perubahan bisa mengganggu perangkat produksi.
+
+**Yang akan ditolak:**
+
+| Kondisi | Alasan |
+|---|---|
+| Kredensial ter-commit | `.env`, private key, password OLT — wajib bersih |
+| Query tanpa prepared statement | Celah SQL injection |
+| Perubahan UI tanpa catatan Coverage | Tidak terbukti aman di mobile |
+| Driver vendor yang tak ikut `base_driver.py` | Memecah arsitektur plug-in |
+| Objek GenieACS hanya di MongoDB | Wajib diekspor ke `deploy/genieacs/`, jika tidak akan hilang saat reinstall |
+| Operasi lambat di jalur request | Proses berat harus lewat worker background agar UI tetap responsif |
+
+**Lapor bug:** buka GitHub Issue, sertakan merk/model OLT, versi firmware, langkah mereproduksi, dan cuplikan `/var/log/apache2/error.log` bila relevan. Sensor IP dan data pelanggan sebelum ditempel.
 
 <div align="center">
 
