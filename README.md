@@ -663,8 +663,6 @@ tar czf ~/smartolt_backup/openvpn-ca_$(date +%Y%m%d).tar.gz /opt/openvpn-ca/
 
 **[MIT License](./LICENSE)** — bebas digunakan, dimodifikasi, dan didistribusikan dengan atribusi asli.
 
-> ⚠️ Tanpa jaminan (*no warranty*). Aplikasi ini mengakses perangkat jaringan produksi lewat SSH dan SNMP — uji di OLT lab sebelum dipakai di jaringan pelanggan.
-
 ### Kontribusi
 
 Cukup laporkan bug atau saran perbaikan lewat **[GitHub Issue](https://github.com/erlanggaalfian/smartolt/issues)**. Sertakan:
