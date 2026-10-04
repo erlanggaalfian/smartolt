@@ -10,7 +10,7 @@
 ![Apache](https://img.shields.io/badge/Apache-2-D22128?logo=apache&logoColor=white)
 ![GenieACS](https://img.shields.io/badge/GenieACS-1.2.13-00A98F)
 ![SNMP](https://img.shields.io/badge/SNMP-Integrated-informational)
-![License](https://img.shields.io/badge/license-Internal-lightgrey)
+![License](https://img.shields.io/badge/license-MIT-green)
 
 **Versi:** 1.0
 **Author:** Erlangga Alfian
@@ -661,40 +661,34 @@ tar czf ~/smartolt_backup/openvpn-ca_$(date +%Y%m%d).tar.gz /opt/openvpn-ca/
 
 ## 📄 Lisensi & Kontribusi
 
-### Lisensi
+**[MIT License](./LICENSE)** — bebas digunakan, dimodifikasi, dan didistribusikan dengan atribusi asli.
 
-**Internal use / proprietary.** Seluruh kode dalam repositori ini adalah hak milik penulis dan tidak dirilis di bawah lisensi open source.
+> ⚠️ Tanpa jaminan (*no warranty*). Aplikasi ini mengakses perangkat jaringan produksi lewat SSH dan SNMP — uji di OLT lab sebelum dipakai di jaringan pelanggan.
 
-| Penggunaan | Status |
-|---|:---:|
-| Dipakai sendiri / internal perusahaan | ✅ Diizinkan |
-| Dimodifikasi untuk kebutuhan sendiri | ✅ Diizinkan |
-| Dijual, disublisensikan, atau direbranding | ❌ Dilarang |
-| Didistribusikan ulang ke publik | ❌ Dilarang |
-| Dipakai sebagai basis produk komersial | ❌ Perlu izin tertulis |
+### Author
 
-Untuk lisensi komersial, kemitraan, atau izin distribusi — hubungi pemilik repositori.
+**Erlangga Alfian**  
+📧 erlanggaalfian82@gmail.com  
+🌐 https://github.com/erlanggaalfian/smartolt.git
 
-> ⚠️ Aplikasi ini mengakses perangkat jaringan produksi lewat SSH dan SNMP. Tidak ada jaminan (*no warranty*): risiko gangguan layanan akibat salah konfigurasi ditanggung pengguna. Uji di OLT lab sebelum dipakai di jaringan pelanggan.
+Jika project ini membantu:
 
-### Kontribusi
+- Berikan ⭐ pada repository
+- Fork & improve
+- Submit issue atau pull request
+
+### Panduan Kontribusi
 
 1. Fork repo, lalu buat branch dari `main` — jangan commit langsung ke `main`.
 2. Beri nama branch sesuai jenis perubahan: `feat/nama-fitur`, `fix/nama-bug`, atau `docs/topik`.
-3. Tulis kode mengikuti pola yang sudah ada — driver vendor baru wajib mengikuti interface `backend/python_engine/drivers/base_driver.py`.
+3. Driver vendor baru wajib mengikuti interface `backend/python_engine/drivers/base_driver.py`.
 4. Uji di OLT lab, **bukan** di OLT produksi.
-5. Catat perubahan di `CHANGELOG.md` memakai format yang berlaku (lihat di bawah).
+5. Catat perubahan di `CHANGELOG.md` memakai format di bawah.
 6. Ajukan pull request dengan penjelasan masalah yang diselesaikan.
 
-**Format commit:**
+**Format commit:** `<tipe>(<cakupan>): <ringkasan singkat>` — tipe: `feat`, `fix`, `docs`, `refactor`, `perf`, `style`.
 
-```
-<tipe>(<cakupan>): <ringkasan singkat>
-```
-
-Tipe yang dipakai: `feat`, `fix`, `docs`, `refactor`, `perf`, `style`.
-
-**Format entri `CHANGELOG.md`** (wajib, mengikuti entri yang sudah ada):
+**Format entri `CHANGELOG.md`:**
 
 ```markdown
 ## YYYY-MM-DD — <ringkasan perubahan>
@@ -706,7 +700,7 @@ Tipe yang dipakai: `feat`, `fix`, `docs`, `refactor`, `perf`, `style`.
 **Risiko OLT:** Nol / Rendah / Tinggi — beserta alasan.
 ```
 
-Dua baris terakhir tidak boleh dilewat. **Coverage** memastikan perubahan UI diuji di desktop dan mobile. **Risiko OLT** memaksa penulis menilai apakah perubahan bisa mengganggu perangkat produksi.
+Baris **Coverage** dan **Risiko OLT** wajib diisi — memastikan perubahan UI diuji di kedua mode, dan penulis menilai dampaknya ke perangkat produksi.
 
 **Yang akan ditolak:**
 
@@ -720,10 +714,3 @@ Dua baris terakhir tidak boleh dilewat. **Coverage** memastikan perubahan UI diu
 | Operasi lambat di jalur request | Proses berat harus lewat worker background agar UI tetap responsif |
 
 **Lapor bug:** buka GitHub Issue, sertakan merk/model OLT, versi firmware, langkah mereproduksi, dan cuplikan `/var/log/apache2/error.log` bila relevan. Sensor IP dan data pelanggan sebelum ditempel.
-
-<div align="center">
-
-**Author:** Erlangga Alfian
-https://github.com/erlanggaalfian/smartolt
-
-</div>
