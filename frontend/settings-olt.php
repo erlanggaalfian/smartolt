@@ -1,6 +1,6 @@
 <?php
 // ==============================================================================
-# SmartOLT Settings & OLT Management Page
+// SmartOLT Settings & OLT Management Page
 // ==============================================================================
 require_once __DIR__ . '/header.php';
 require_once __DIR__ . '/../backend/driver.php';
@@ -33,7 +33,7 @@ $olt_types = get_supported_olt_types();
 
 <div class="content-card">
     <div class="card-header border-accent">
-        <h2>Daftar Management OLT</h2>
+        <h1 id="page-title">Daftar Management OLT</h1>
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -94,7 +94,7 @@ $olt_types = get_supported_olt_types();
 </div>
 
 <!-- MODAL: TAMBAH OLT -->
-<div class="modal" id="modal-add-olt">
+<div class="modal" id="modal-add-olt" role="dialog" aria-modal="true">
     <div class="modal-content">
         <form action="action/add-olt.php" method="POST" id="form-add-olt">
             <div class="modal-header">
@@ -166,7 +166,7 @@ $olt_types = get_supported_olt_types();
 </div>
 
 <!-- MODAL: EDIT OLT -->
-<div class="modal" id="modal-edit-olt">
+<div class="modal" id="modal-edit-olt" role="dialog" aria-modal="true">
     <div class="modal-content">
         <form action="action/edit-olt.php" method="POST" id="form-edit-olt">
             <input type="hidden" name="id" id="edit-olt-id">

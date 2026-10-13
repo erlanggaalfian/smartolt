@@ -1,6 +1,6 @@
 <?php
 // ==============================================================================
-# SmartOLT Frontend Index Router
+// SmartOLT Frontend Index Router
 // ==============================================================================
 header('Location: dashboard.php');
 exit;
