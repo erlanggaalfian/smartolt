@@ -26,4 +26,11 @@ function superadminOnly(req, res, next) {
   next();
 }
 
-module.exports = { mintToken, authMiddleware, superadminOnly };
+function settingsAccess(req, res, next) {
+  if (req.user?.role !== 'superadmin' && req.user?.role !== 'admin') {
+    return res.status(403).json({ success: false, message: 'Akses ditolak.' });
+  }
+  next();
+}
+
+module.exports = { mintToken, authMiddleware, superadminOnly, settingsAccess };

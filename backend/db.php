@@ -281,6 +281,32 @@ try {
             }
             try { $pdo->exec("INSERT IGNORE INTO schema_migrations (version) VALUES (3)"); } catch (Exception $e) {}
         }
+
+        if ($mig_version < 4) {
+            // Migrasi: RBAC 3-role. 'biasa' (lama) -> 'admin' (akses setara, cuma
+            // ganti nama) supaya operator existing tidak mendadak terkunci dari
+            // Settings. 'user' adalah role baru, dipilih manual lewat Settings->Users.
+            // Urutan wajib: perluas ENUM dulu (biasa masih ada) -> migrasi data -> ciutkan ENUM.
+            try {
+                $pdo->exec("ALTER TABLE users MODIFY COLUMN role ENUM('superadmin','biasa','admin','user') NOT NULL DEFAULT 'admin'");
+                $pdo->exec("UPDATE users SET role = 'admin' WHERE role = 'biasa'");
+                $pdo->exec("ALTER TABLE users MODIFY COLUMN role ENUM('superadmin','admin','user') NOT NULL DEFAULT 'admin'");
+            } catch (Exception $e) {
+                // Abaikan
+            }
+            try { $pdo->exec("INSERT IGNORE INTO schema_migrations (version) VALUES (4)"); } catch (Exception $e) {}
+        }
+
+        if ($mig_version < 5) {
+            // Migrasi: TR609 Profile bisa pilih VLAN management (terpisah) atau
+            // ikut VLAN internet/PPPoE (tanpa infra management sendiri).
+            try {
+                $pdo->exec("ALTER TABLE onus ADD COLUMN tr069_vlan_mode ENUM('management','internet') NOT NULL DEFAULT 'management' AFTER tr069_profile");
+            } catch (Exception $e) {
+                // Abaikan kalau kolom sudah ada (server lama yang sudah dipatch manual)
+            }
+            try { $pdo->exec("INSERT IGNORE INTO schema_migrations (version) VALUES (5)"); } catch (Exception $e) {}
+        }
     }
 
 } catch (PDOException $e) {

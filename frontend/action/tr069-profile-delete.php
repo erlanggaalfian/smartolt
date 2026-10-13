@@ -1,7 +1,7 @@
 <?php
 header('Content-Type: application/json');
 require_once __DIR__ . '/../../backend/db.php';
-if ($_SESSION['smartolt_role'] !== 'superadmin') { echo json_encode(['success'=>false,'message'=>'Akses ditolak']); exit; }
+if (!can_access_settings()) { echo json_encode(['success'=>false,'message'=>'Akses ditolak']); exit; }
 
 $body = json_decode(file_get_contents('php://input'), true);
 if (!$body || empty($body['id'])) { echo json_encode(['success'=>false,'message'=>'ID wajib']); exit; }

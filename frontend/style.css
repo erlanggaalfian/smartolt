@@ -360,6 +360,8 @@ body.light-mode .header-btn:hover {
 .detail-status-dot.online { background: var(--color-success); }
 .detail-status-dot.offline { background: var(--color-danger); }
 .detail-status-dot.disabled { background: var(--text-muted); }
+.detail-status-dot.checking { background: var(--text-muted); animation: pulse-checking 1s ease-in-out infinite; }
+@keyframes pulse-checking { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
 
 /* ============================================
    ONU DETAIL: 2-Column Card Layout (unused after
@@ -425,6 +427,8 @@ body.light-mode .topnav-item.active::after { background: #fff; }
 .topnav-dropdown { position: relative; }
 .topnav-dropdown-menu { display: none; position: absolute; top: calc(100% + 4px); left: 0; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: var(--shadow-md); min-width: 180px; padding: 4px; z-index: 100; flex-direction: column; gap: 1px; }
 .topnav-dropdown.open .topnav-dropdown-menu { display: flex; }
+.topnav-dropdown:hover .topnav-dropdown-menu { display: flex; }
+.topnav-dropdown-menu:hover { display: flex; }
 .topnav-dropdown-item { display: flex; align-items: center; gap: 8px; padding: 6px 10px; color: var(--text-muted); text-decoration: none; border-radius: 6px; font-size: 13px; font-weight: 500; transition: var(--transition-fast); }
 .topnav-dropdown-item:hover { color: var(--text-main); background: var(--bg-tertiary); }
 .topnav-dropdown-item.active { color: var(--text-accent); background: var(--text-accent-glow); }
@@ -446,6 +450,7 @@ body.light-mode .topnav-user-name { color: #fff; }
   .topnav-user-name { display: none; }
   .status-badge-container span:not(.dot-indicator) { display: none; }
   .header-right { gap: 4px; }
+  .topnav-dropdown-menu { position: fixed; top: 56px; left: 8px; right: 8px; min-width: unset; }
 }
 
 /* Form components */

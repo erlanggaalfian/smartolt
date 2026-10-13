@@ -71,7 +71,7 @@ def verify_token(token: str):
         return None
 
     role = data.get('role')
-    if role not in ('superadmin', 'biasa'):
+    if role not in ('superadmin', 'admin', 'user'):
         return None
 
     return {'uid': int(data.get('uid', 0)), 'role': role}

@@ -267,10 +267,13 @@ $onu = $stmt->fetch();
 // (cuma cache dari Inform terakhir) — jangan tampilkan IP basi itu sbg aktif.
 $tr069_ip = null;
 $tr069_dev_id = null;
-if (($onu['config_method'] ?? null) === 'TR069' && ($status ?? '') !== 'offline') {
+// Fallback TR-069 juga berlaku utk config_method OMCI yg punya tr069_profile aktif
+// (OLT CLI kadang tak pernah lapor IP management meski device sudah connect ke ACS).
+$has_tr069 = ($onu['config_method'] ?? null) === 'TR069' || !empty($onu['tr069_profile']);
+if ($has_tr069 && ($status ?? '') !== 'offline') {
     $tr069_dev_id = genieacs_find_device_id($onu['serial_number'] ?? '');
     $tr069_ip = $tr069_dev_id ? genieacs_get_tr069_ip($tr069_dev_id) : null;
-} elseif (($onu['config_method'] ?? null) === 'TR069') {
+} elseif ($has_tr069) {
     $tr069_dev_id = genieacs_find_device_id($onu['serial_number'] ?? '');
 }
 

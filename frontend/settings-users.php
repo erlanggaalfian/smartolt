@@ -5,10 +5,10 @@
 // ==============================================================================
 require_once __DIR__ . '/header.php';
 
-// Ambil daftar user
-$users = $pdo->query("SELECT id, username, role, created_at FROM users ORDER BY created_at DESC")->fetchAll();
-// Ambil semua OLT untuk pendelegasian akses
-$all_olts = $pdo->query("SELECT id, name, ip FROM olts ORDER BY name ASC")->fetchAll();
+// Ambil daftar user yang boleh dilihat/dikelola (superadmin: semua; admin: grupnya saja)
+$users = get_manageable_users();
+// Ambil OLT untuk pendelegasian akses (superadmin: semua; admin: OLT miliknya saja)
+$all_olts = get_allowed_olts();
 ?>
 
 <div class="section-actions">
@@ -46,18 +46,29 @@ $all_olts = $pdo->query("SELECT id, name, ip FROM olts ORDER BY name ASC")->fetc
                             <td>
                                 <?php if ($user['role'] === 'superadmin'): ?>
                                     <span class="badge badge-online">Superadmin</span>
+                                <?php elseif ($user['role'] === 'admin'): ?>
+                                    <span class="badge badge-warning">Admin</span>
                                 <?php else: ?>
-                                    <span class="badge badge-offline">User Biasa</span>
+                                    <span class="badge badge-offline">User</span>
                                 <?php endif; ?>
                             </td>
                             <td><?php echo date('d-m-Y H:i', strtotime($user['created_at'])); ?> WIB</td>
                             <td style="text-align: center;">
                                 <?php if ($user['id'] == $_SESSION['smartolt_user_id']): ?>
                                     <span class="text-muted" style="font-size:0.85rem; font-style:italic;">Akun Aktif</span>
+                                <?php elseif (!can_manage_target_user((int)$user['id'], $user['role'])): ?>
+                                    <span class="text-muted" style="font-size:0.85rem; font-style:italic;">Di luar grup Anda</span>
                                 <?php else: ?>
-                                    <?php if ($user['role'] === 'biasa'): ?>
+                                    <?php if ($user['role'] !== 'superadmin'): ?>
+                                        <button type="button" class="btn-action btn-edit-user" data-user-id="<?php echo (int)$user['id']; ?>" data-username="<?php echo htmlspecialchars($user['username']); ?>" title="Edit User" style="display:inline-flex; align-items:center; justify-content:center; padding:6px; background:#fef9c3; border:none; border-radius:4px; color:#a16207; margin-right:4px; cursor:pointer;">
+                                            <i data-lucide="pencil" style="width:16px; height:16px;"></i>
+                                        </button>
                                         <button type="button" class="btn-action btn-manage-access" data-user-id="<?php echo (int)$user['id']; ?>" data-username="<?php echo htmlspecialchars($user['username']); ?>" title="Kelola Akses OLT" style="display:inline-flex; align-items:center; justify-content:center; padding:6px; background:#e0f2fe; border:none; border-radius:4px; color:#0369a1; margin-right:4px; cursor:pointer;">
                                             <i data-lucide="key-round" style="width:16px; height:16px;"></i>
+                                        </button>
+                                    <?php else: ?>
+                                        <button type="button" class="btn-action btn-edit-user" data-user-id="<?php echo (int)$user['id']; ?>" data-username="<?php echo htmlspecialchars($user['username']); ?>" title="Edit User" style="display:inline-flex; align-items:center; justify-content:center; padding:6px; background:#fef9c3; border:none; border-radius:4px; color:#a16207; margin-right:4px; cursor:pointer;">
+                                            <i data-lucide="pencil" style="width:16px; height:16px;"></i>
                                         </button>
                                     <?php endif; ?>
                                     <form action="action/user.php" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus user ini?');" style="display:inline;">
@@ -98,12 +109,15 @@ $all_olts = $pdo->query("SELECT id, name, ip FROM olts ORDER BY name ASC")->fetc
                 <div class="form-group">
                     <label for="role">Hak Akses / Peran</label>
                     <select id="role" name="role" required class="form-control">
-                        <option value="biasa">User Biasa (Hanya Monitoring & Kelola ONU)</option>
-                        <option value="superadmin">Superadmin (Akses Penuh & Set Config OLT)</option>
+                        <option value="user">User (Kelola ONU di grupnya, tanpa Settings)</option>
+                        <option value="admin">Admin (Kelola penuh di grupnya, termasuk Settings)</option>
+                        <?php if ($_SESSION['smartolt_role'] === 'superadmin'): ?>
+                            <option value="superadmin">Superadmin (Akses Penuh Tanpa Batas)</option>
+                        <?php endif; ?>
                     </select>
                 </div>
-                <div class="form-group" id="group-add-user-olts" style="display:none; margin-top: 15px;">
-                    <label style="font-weight: 500; margin-bottom: 5px; display: block;">Akses OLT (Hanya untuk User Biasa)</label>
+                <div class="form-group" id="group-add-user-olts" style="margin-top: 15px;">
+                    <label style="font-weight: 500; margin-bottom: 5px; display: block;">Akses OLT (Grup)</label>
                     <div style="max-height: 150px; overflow-y: auto; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; background: #f8fafc; display: flex; flex-direction: column; gap: 8px;">
                         <?php foreach ($all_olts as $olt): ?>
                             <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.9rem;">
@@ -159,6 +173,44 @@ $all_olts = $pdo->query("SELECT id, name, ip FROM olts ORDER BY name ASC")->fetc
     </div>
 </div>
 
+<!-- MODAL EDIT USER -->
+<div id="edit-user-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2><i data-lucide="pencil"></i> Edit User</h2>
+            <button class="modal-close" id="btn-close-edit-user-modal">&times;</button>
+        </div>
+        <form id="form-edit-user">
+            <input type="hidden" name="action" value="edit">
+            <input type="hidden" name="id" id="edit-user-id">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="edit-username">Username</label>
+                    <input type="text" id="edit-username" name="username" required class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="edit-password">Password Baru <span style="font-weight:400;font-size:0.8rem;color:var(--text-muted);">(kosongkan jika tidak diganti)</span></label>
+                    <input type="password" id="edit-password" name="password" placeholder="Biarkan kosong jika tidak diganti" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="edit-role">Hak Akses / Peran</label>
+                    <select id="edit-role" name="role" required class="form-control">
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                        <?php if ($_SESSION['smartolt_role'] === 'superadmin'): ?>
+                            <option value="superadmin">Superadmin</option>
+                        <?php endif; ?>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="btn-cancel-edit-user-modal">Batal</button>
+                <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
     // Modal toggle logic
     const modal = document.getElementById('add-user-modal');
@@ -174,17 +226,17 @@ $all_olts = $pdo->query("SELECT id, name, ip FROM olts ORDER BY name ASC")->fetc
     });
 
     selectRole.addEventListener('change', () => {
-        if (selectRole.value === 'biasa') {
-            groupOlts.style.display = 'block';
-        } else {
+        if (selectRole.value === 'superadmin') {
             groupOlts.style.display = 'none';
+        } else {
+            groupOlts.style.display = 'block';
         }
     });
 
     const closeModal = () => {
         modal.classList.remove('open');
         form.reset();
-        groupOlts.style.display = 'none';
+        groupOlts.style.display = 'block';
     };
 
     btnClose.addEventListener('click', closeModal);
@@ -248,6 +300,60 @@ $all_olts = $pdo->query("SELECT id, name, ip FROM olts ORDER BY name ASC")->fetc
         if (e.key === 'Escape') {
             if (modal.classList.contains('open')) closeModal();
             if (accessModal.classList.contains('open')) closeAccessModal();
+            if (editModal.classList.contains('open')) closeEditModal();
+        }
+    });
+
+    // Edit User modal logic
+    const editModal = document.getElementById('edit-user-modal');
+    const editUserId = document.getElementById('edit-user-id');
+    const editUsername = document.getElementById('edit-username');
+    const editPassword = document.getElementById('edit-password');
+    const editRole = document.getElementById('edit-role');
+    const formEdit = document.getElementById('form-edit-user');
+
+    document.querySelectorAll('.btn-edit-user').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const userId = btn.getAttribute('data-user-id');
+            editUserId.value = userId;
+            editPassword.value = '';
+            try {
+                const res = await fetch(`action/user.php?action=get_user&user_id=${userId}`);
+                const data = await res.json();
+                if (data.success) {
+                    editUsername.value = data.user.username;
+                    editRole.value = data.user.role;
+                    editModal.classList.add('open');
+                } else {
+                    alert(data.message || 'Gagal memuat data user.');
+                }
+            } catch (e) {
+                alert('Gagal memuat data user.');
+            }
+        });
+    });
+
+    const closeEditModal = () => {
+        editModal.classList.remove('open');
+        formEdit.reset();
+    };
+    document.getElementById('btn-close-edit-user-modal').addEventListener('click', closeEditModal);
+    document.getElementById('btn-cancel-edit-user-modal').addEventListener('click', closeEditModal);
+
+    formEdit.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fd = new FormData(formEdit);
+        try {
+            const res = await fetch('action/user.php', { method: 'POST', body: fd });
+            const data = await res.json();
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert(data.message || 'Gagal update.');
+            }
+        } catch (e) {
+            alert('Terjadi kesalahan koneksi.');
         }
     });
 </script>

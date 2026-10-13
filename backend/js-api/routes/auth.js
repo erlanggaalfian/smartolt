@@ -23,14 +23,29 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// POST /api/auth/register (first user = superadmin, after that superadmin-only)
+// POST /api/auth/register (first user = superadmin, after that requires settingsAccess)
 router.post('/register', async (req, res) => {
   const { username, password, role } = req.body;
   if (!username || !password) return res.json({ success: false, message: 'Username dan password wajib diisi!' });
   try {
     const [countRows] = await pool.execute('SELECT COUNT(*) as c FROM users');
     const isFirst = countRows[0].c === 0;
-    const finalRole = isFirst ? 'superadmin' : (role || 'biasa');
+
+    if (!isFirst) {
+      // Setelah user pertama ada, wajib login dan punya akses settings.
+      const token = req.headers.authorization?.replace('Bearer ', '') || req.query.token;
+      let caller;
+      try {
+        caller = token ? require('jsonwebtoken').verify(token, process.env.APP_KEY || 'smartolt-default-secret-change-me') : null;
+      } catch { caller = null; }
+      if (!caller || (caller.role !== 'superadmin' && caller.role !== 'admin')) {
+        return res.status(403).json({ success: false, message: 'Akses ditolak.' });
+      }
+      if (role === 'superadmin' && caller.role !== 'superadmin') {
+        return res.status(403).json({ success: false, message: 'Hanya superadmin yang dapat membuat akun superadmin.' });
+      }
+    }
+    const finalRole = isFirst ? 'superadmin' : (role || 'user');
 
     const hash = await bcrypt.hash(password, 10);
     const [result] = await pool.execute('INSERT INTO users (username, password, role) VALUES (?, ?, ?)', [username.trim(), hash, finalRole]);

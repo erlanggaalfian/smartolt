@@ -1,7 +1,7 @@
 // Logs routes
 const router = require('express').Router();
 const pool = require('../db');
-const { superadminOnly } = require('../auth');
+const { settingsAccess } = require('../auth');
 
 // GET /api/logs — list logs
 router.get('/', async (req, res) => {
@@ -25,7 +25,7 @@ router.get('/', async (req, res) => {
 });
 
 // DELETE /api/logs — clear all logs
-router.delete('/', superadminOnly, async (req, res) => {
+router.delete('/', settingsAccess, async (req, res) => {
   await pool.execute('TRUNCATE TABLE logs');
   res.json({ success: true });
 });

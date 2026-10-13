@@ -5,7 +5,7 @@
 require_once __DIR__ . '/../../backend/db.php';
 require_once __DIR__ . '/../../backend/driver.php';
 
-if (!isset($_SESSION['smartolt_role']) || $_SESSION['smartolt_role'] !== 'superadmin') {
+if (!can_access_settings()) {
     $_SESSION['error'] = 'Akses ditolak! Anda tidak memiliki izin untuk mengonfigurasi OLT.';
     header('Location: ../dashboard.php');
     exit;
@@ -19,6 +19,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
     $id = (int)$_POST['id'];
+    // Admin hanya boleh edit OLT miliknya
+    if ($_SESSION['smartolt_role'] !== 'superadmin' && !in_array($id, get_allowed_olt_ids())) {
+        $_SESSION['error'] = 'Anda tidak memiliki akses ke OLT ini.';
+        header('Location: ../settings-olt.php');
+        exit;
+    }
     $name = trim($_POST['name']);
     $type = trim($_POST['type']);
     $ip = trim($_POST['ip']);

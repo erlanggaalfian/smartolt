@@ -12,7 +12,7 @@ header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/../../backend/db.php';
 require_once __DIR__ . '/../../backend/driver.php';
 
-if (!isset($_SESSION['smartolt_role']) || $_SESSION['smartolt_role'] !== 'superadmin') {
+if (!can_access_settings()) {
     http_response_code(403);
     echo json_encode(['success' => false, 'message' => 'Akses ditolak! Anda tidak memiliki izin.']);
     exit;

@@ -2,29 +2,32 @@
 const router = require('express').Router();
 const pool = require('../db');
 const bcrypt = require('bcryptjs');
-const { superadminOnly } = require('../auth');
+const { settingsAccess } = require('../auth');
 const { writeAuditLog } = require('../helpers');
 
 // GET /api/user — list users
-router.get('/', superadminOnly, async (req, res) => {
+router.get('/', settingsAccess, async (req, res) => {
   const [users] = await pool.execute('SELECT id, username, role, created_at FROM users ORDER BY created_at DESC');
   res.json({ success: true, users });
 });
 
 // GET /api/user/:id/access — get OLT access for user
-router.get('/:id/access', superadminOnly, async (req, res) => {
+router.get('/:id/access', settingsAccess, async (req, res) => {
   const [rows] = await pool.execute('SELECT olt_id FROM user_olts WHERE user_id=?', [+req.params.id]);
   res.json({ success: true, olt_ids: rows.map(r => r.olt_id) });
 });
 
 // POST /api/user — add user
-router.post('/', superadminOnly, async (req, res) => {
+router.post('/', settingsAccess, async (req, res) => {
   const { username, password, role, olt_ids } = req.body;
   if (!username || !password || !role) return res.json({ success: false, message: 'Field wajib tidak lengkap!' });
+  if (role === 'superadmin' && req.user?.role !== 'superadmin') {
+    return res.status(403).json({ success: false, message: 'Hanya superadmin yang dapat membuat akun superadmin.' });
+  }
   try {
     const hash = await bcrypt.hash(password, 10);
     const [result] = await pool.execute('INSERT INTO users (username, password, role) VALUES (?,?,?)', [username.trim(), hash, role]);
-    if (role === 'biasa' && olt_ids?.length) {
+    if (role !== 'superadmin' && olt_ids?.length) {
       for (const oid of olt_ids) await pool.execute('INSERT INTO user_olts (user_id, olt_id) VALUES (?, ?)', [result.insertId, oid]);
     }
     await writeAuditLog(pool, null, 'USER_CREATE', `User ${username} (${role}) dibuat.`);
@@ -36,7 +39,7 @@ router.post('/', superadminOnly, async (req, res) => {
 });
 
 // PUT /api/user/:id/access — update OLT access
-router.put('/:id/access', superadminOnly, async (req, res) => {
+router.put('/:id/access', settingsAccess, async (req, res) => {
   const { olt_ids } = req.body;
   const uid = +req.params.id;
   await pool.execute('DELETE FROM user_olts WHERE user_id=?', [uid]);
@@ -47,7 +50,7 @@ router.put('/:id/access', superadminOnly, async (req, res) => {
 });
 
 // DELETE /api/user/:id
-router.delete('/:id', superadminOnly, async (req, res) => {
+router.delete('/:id', settingsAccess, async (req, res) => {
   const uid = +req.params.id;
   const [user] = await pool.execute('SELECT username FROM users WHERE id=?', [uid]);
   if (!user[0]) return res.json({ success: false, message: 'User tidak ditemukan.' });

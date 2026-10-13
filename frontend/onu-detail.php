@@ -147,7 +147,9 @@ if (empty($parsed_desc['clean_name']) || preg_match('/^onu_\d+$/i', $parsed_desc
 
 // Parse PPPoE username/password dari running config jika kosong
 if (!empty($onu['last_running_config'])) {
-    if (preg_match('/pppoe\s+\d+\s+.*?user\s+(\S+)\s+password\s+(\S+)/i', $onu['last_running_config'], $pppoe_m)) {
+    // Format lama (GPON standar): "pppoe <id> user <u> password <p>"
+    // Format CDATA FD1602SB1: "ont ipconfig <port> <onu> ip-index <n> pppoe username <u> password <p> vlan <v> priority <p>"
+    if (preg_match('/pppoe\s+(?:username\s+|\d+\s+.*?user\s+)(\S+)\s+password\s+(\S+)/i', $onu['last_running_config'], $pppoe_m)) {
         if (empty($onu['pppoe_username'])) {
             $onu['pppoe_username'] = $pppoe_m[1];
             $onu['pppoe_password'] = $pppoe_m[2];
@@ -373,8 +375,8 @@ if (!empty($onu['onu_type'])) {
             <div class="detail-plain-row">
                 <span class="detail-plain-label">Status</span>
                 <span class="detail-plain-value">
-                    <span class="detail-status-dot <?php echo htmlspecialchars($onu['status']); ?>" id="detail-status-dot"></span>
-                    <span id="detail-status"><?php echo htmlspecialchars(ucfirst($onu['status'])); ?></span>
+                    <span class="detail-status-dot checking" id="detail-status-dot"></span>
+                    <span id="detail-status">Memeriksa...</span>
                     <span style="font-size:0.75rem; color:var(--text-muted); margin-left:6px;">auto-refresh <span id="auto-refresh-countdown" style="font-weight:600; color:var(--text-accent);">15</span>s</span>
                 </span>
             </div>
@@ -418,7 +420,11 @@ if (!empty($onu['onu_type'])) {
                     // IP yang dipakai untuk chip: Static/DHCP dari OLT, atau fallback TR-069
                     // (satu jalur VLAN management, sering DHCP-nya belum dilaporkan OLT).
                     $mgmt_ip_display = $onu['mgmt_ip'] ?: null;
-                    if (!$mgmt_ip_display && ($onu['config_method'] ?? null) === 'TR069' && ($onu['status'] ?? '') !== 'offline') {
+                    // Fallback TR-069 juga jalan utk config_method OMCI yg punya tr069_profile aktif —
+                    // bukan hanya config_method==='TR069' — karena OLT kadang tak pernah lapor IP
+                    // management via CLI meski device sudah connect & lapor ke ACS (lihat ConnectionRequestURL).
+                    $has_tr069 = ($onu['config_method'] ?? null) === 'TR069' || !empty($onu['tr069_profile']);
+                    if (!$mgmt_ip_display && $has_tr069 && ($onu['status'] ?? '') !== 'offline') {
                         $tr069_dev_id = genieacs_find_device_id($onu['serial_number'] ?? '');
                         $mgmt_ip_display = $tr069_dev_id ? genieacs_get_tr069_ip($tr069_dev_id) : null;
                     }
@@ -3012,6 +3018,9 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         // pakai struktur native-nya sendiri (X_FH_ACL + LANConfigSecurity).
                         // Tampilan beda, tapi tujuan (kontrol akses WAN/LAN + kredensial) sama.
                         const isFiberHomeSecurity = !root.X_HW_Security && !!(root.X_FH_ACL || root.LANConfigSecurity);
+                        // Device ZTE TIDAK punya X_HW_Security/X_FH_ACL sama sekali -- pakai struktur
+                        // native-nya sendiri (Firewall + X_ZTE-COM_* + DeviceInfo.X_ZTE-COM_AdminAccount).
+                        const isZTESecurity = !isFiberHomeSecurity && !root.X_HW_Security && !!root.Firewall;
                         if (isFiberHomeSecurity) (() => {
                             const acl = root.X_FH_ACL || {};
                             const lcs = root.LANConfigSecurity || {};
@@ -3126,6 +3135,66 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             html += rowText('Web Login Username', 'fhsec-web-user', lcs.ConfigUsername?._value ?? '', '');
                             html += rowText('Web Login Password', 'fhsec-web-pass', '', 'kosong = tidak diubah');
                             html += '<button type="button" class="btn-solt btn-solt-green fhsec-save" data-idx="'+idx+'" style="padding:6px 16px;font-size:0.82rem;margin-top:4px;">Simpan Login</button>';
+                            html += '</div></div>';
+                        })();
+                        else if (isZTESecurity) (() => {
+                            const fw = root.Firewall || {};
+                            const sc = fw['X_ZTE-COM_ServiceControl'] || {};
+                            const rspc = sc.IPV4RemoteServicePortControl || {};
+                            // Port per-service (WAN remote access) -- device TR069 cuma expose Port per
+                            // nama service tetap (HTTP/FTP/TELNET/HTTPS), Enable-nya via IPV4ServiceControl
+                            // rule WAN_ALL (rule management OMCI sudah ada, kita reuse kalau ketemu,
+                            // kalau tak ada device tetap terima write path individual Port-nya).
+                            const findRspc = (name) => {
+                                for (const k of Object.keys(rspc)) { if (/^\d+$/.test(k) && rspc[k].Name?._value === name) return { idx: k, obj: rspc[k] }; }
+                                return { idx: '', obj: {} };
+                            };
+                            const httpR = findRspc('HTTP'), ftpR = findRspc('FTP'), telnetR = findRspc('TELNET'), httpsR = findRspc('HTTPS');
+                            const dos = (fw['X_ZTE-COM_DoS'] || {})['Anti-PortScan'] || {};
+                            const mac = fw['X_ZTE-COM_MacFilterService'] || {};
+                            const admin = (root.DeviceInfo || {})['X_ZTE-COM_AdminAccount'] || {};
+                            // Login web admin ZTE pakai object standard TR-098 User.{i} (bukan
+                            // X_ZTE-COM_AdminAccount, itu cuma toggle Enable terpisah) --
+                            // User.1 = akun 'admin', User.2 = akun 'user' (level terbatas).
+                            const users = root.User || {};
+                            const adminUser = users['1'] || {};
+                            const userUser = users['2'] || {};
+                            const idx = sections.length + 2;
+                            html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
+                            html += '<div class="tr069-toggle" data-idx="'+idx+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
+                            html += '<span>Security</span><span class="tr069-refresh" data-idx="'+idx+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:none;">&#8635;</span></div>';
+                            html += '<div class="tr069-panel" style="display:none;padding:10px 12px;background:var(--bg-main);font-size:0.85rem;">';
+                            const enDis = [['true','Enabled'],['false','Disabled']];
+                            const rowRadio = (label, id, val, opts) => '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><label style="width:230px;color:var(--text-muted);">'+label+'</label><div style="flex:1;display:flex;gap:18px;">'
+                                + opts.map(o => '<label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-weight:400;"><input type="radio" name="'+id+'" value="'+o[0]+'" id="'+id+'-'+o[0]+'"'+(String(val)===o[0]?' checked':'')+'> '+o[1]+'</label>').join('')
+                                + '</div></div>';
+                            const rowText = (label, id, val, type) => '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><label style="width:230px;color:var(--text-muted);">'+label+'</label><input type="'+(type||'text')+'" id="'+id+'" value="'+esc(val)+'" style="flex:1;padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);"></div>';
+                            const rowSelect = (label, id, val, opts) => '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><label style="width:230px;color:var(--text-muted);">'+label+'</label><select id="'+id+'" style="flex:1;padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">'
+                                + opts.map(o => '<option value="'+o[0]+'"'+(String(val)===o[0]?' selected':'')+'>'+o[1]+'</option>').join('') + '</select></div>';
+                            html += '<input type="hidden" id="ztesec-rspc-http-idx" value="'+esc(httpR.idx)+'">';
+                            html += '<input type="hidden" id="ztesec-rspc-ftp-idx" value="'+esc(ftpR.idx)+'">';
+                            html += '<input type="hidden" id="ztesec-rspc-telnet-idx" value="'+esc(telnetR.idx)+'">';
+                            html += '<input type="hidden" id="ztesec-rspc-https-idx" value="'+esc(httpsR.idx)+'">';
+                            html += rowRadio('Firewall', 'ztesec-fw-enable', fw.Enable?._value, enDis);
+                            html += rowSelect('Firewall Level', 'ztesec-fw-level', fw.Config?._value, [['Low','Low'],['Middle','Middle'],['High','High']]);
+                            html += '<div style="border-top:1px solid var(--border-color);margin:0 0 10px;"></div>';
+                            html += rowText('HTTP (Web UI) Port', 'ztesec-http-port', httpR.obj.Port?._value ?? 80, 'number');
+                            html += rowText('HTTPS Port', 'ztesec-https-port', httpsR.obj.Port?._value ?? 443, 'number');
+                            html += rowText('FTP Port', 'ztesec-ftp-port', ftpR.obj.Port?._value ?? 21, 'number');
+                            html += rowText('Telnet Port', 'ztesec-telnet-port', telnetR.obj.Port?._value ?? 23, 'number');
+                            html += '<div style="border-top:1px solid var(--border-color);margin:0 0 10px;"></div>';
+                            html += rowRadio('Anti Port-Scan (DoS)', 'ztesec-dos', dos.Enable?._value, enDis);
+                            html += rowText('Port-Scan Threshold', 'ztesec-dos-threshold', dos.Threshold?._value ?? 100, 'number');
+                            html += rowRadio('MAC Filter', 'ztesec-mac-filter', mac.Enable?._value, enDis);
+                            html += rowSelect('MAC Filter Mode', 'ztesec-mac-mode', mac.Mode?._value, [['Black List','Black List'],['White List','White List']]);
+                            html += '<div style="border-top:1px solid var(--border-color);margin:10px 0;"></div>';
+                            html += rowRadio('Admin Account', 'ztesec-admin-enable', admin.Enable?._value, enDis);
+                            html += rowText('Login Admin — Username', 'ztesec-admin-user', adminUser.Username?._value ?? 'admin', 'text');
+                            html += rowText('Login Admin — Password', 'ztesec-admin-pass', '', 'text');
+                            html += rowText('Login User — Username', 'ztesec-user-user', userUser.Username?._value ?? 'user', 'text');
+                            html += rowText('Login User — Password', 'ztesec-user-pass', '', 'text');
+                            html += '<div style="color:var(--text-muted);font-size:0.78rem;margin:-4px 0 10px;">Kosongkan password = tidak diubah.</div>';
+                            html += '<button type="button" class="btn-solt btn-solt-green ztesec-save" data-idx="'+idx+'" style="padding:6px 16px;font-size:0.82rem;margin-top:4px;">Simpan Perubahan</button>';
                             html += '</div></div>';
                         })();
                         else (() => {
@@ -3411,7 +3480,50 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 }).catch(() => { alert('Gagal mengirim perubahan.'); btn.disabled = false; btn.textContent = 'Simpan Perubahan'; });
                             });
                         });
-                        // Simpan Perubahan (card Security) — akses WAN/LAN + kredensial CLI/Web via TR-069.
+                        // Simpan Perubahan (card Security, ZTE) — path native ZTE: Firewall + X_ZTE-COM_*.
+                        cliOutputBox.querySelectorAll('.ztesec-save').forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                const B = 'InternetGatewayDevice.';
+                                const rspcPath = (idxId) => {
+                                    const idx = document.getElementById(idxId)?.value;
+                                    return idx ? B+'Firewall.X_ZTE-COM_ServiceControl.IPV4RemoteServicePortControl.'+idx+'.Port' : null;
+                                };
+                                const map = [
+                                    ['ztesec-fw-enable', B+'Firewall.Enable', 'xsd:boolean'],
+                                    ['ztesec-fw-level', B+'Firewall.Config', 'xsd:string'],
+                                    ['ztesec-http-port', rspcPath('ztesec-rspc-http-idx'), 'xsd:int'],
+                                    ['ztesec-https-port', rspcPath('ztesec-rspc-https-idx'), 'xsd:int'],
+                                    ['ztesec-ftp-port', rspcPath('ztesec-rspc-ftp-idx'), 'xsd:int'],
+                                    ['ztesec-telnet-port', rspcPath('ztesec-rspc-telnet-idx'), 'xsd:int'],
+                                    ['ztesec-dos', B+"Firewall.X_ZTE-COM_DoS.Anti-PortScan.Enable", 'xsd:boolean'],
+                                    ['ztesec-dos-threshold', B+"Firewall.X_ZTE-COM_DoS.Anti-PortScan.Threshold", 'xsd:unsignedInt'],
+                                    ['ztesec-mac-filter', B+'Firewall.X_ZTE-COM_MacFilterService.Enable', 'xsd:boolean'],
+                                    ['ztesec-mac-mode', B+'Firewall.X_ZTE-COM_MacFilterService.Mode', 'xsd:string'],
+                                    ['ztesec-admin-enable', B+'DeviceInfo.X_ZTE-COM_AdminAccount.Enable', 'xsd:boolean'],
+                                    ['ztesec-admin-user', B+'User.1.Username', 'xsd:string'],
+                                    ['ztesec-admin-pass', B+'User.1.Password', 'xsd:string'],
+                                    ['ztesec-user-user', B+'User.2.Username', 'xsd:string'],
+                                    ['ztesec-user-pass', B+'User.2.Password', 'xsd:string'],
+                                ];
+                                const isPassField = id => id.endsWith('-pass');
+                                const items = map.filter(([id, path]) => !!path).map(([id, path, type]) => {
+                                    const radio = document.querySelector('input[name="'+id+'"]:checked');
+                                    const el = radio || document.getElementById(id);
+                                    return { id, path, type, value: el ? el.value : '' };
+                                }).filter(f => !(isPassField(f.id) && f.value === ''));
+                                if (!items.length) return;
+                                btn.disabled = true; btn.textContent = 'Menyimpan...';
+                                fetch('action/genieacs-proxy.php', {
+                                    method: 'POST',
+                                    headers: {'Content-Type': 'application/json'},
+                                    body: JSON.stringify({serial, edit_generic: true, items})
+                                }).then(r => r.json()).then(d => {
+                                    if (d.success) { alert(d.message || 'Berhasil dikirim.'); reloadAfterSave(); }
+                                    else { alert('Error: ' + (d.message || 'Gagal')); btn.disabled = false; btn.textContent = 'Simpan Perubahan'; }
+                                }).catch(() => { alert('Gagal mengirim perubahan.'); btn.disabled = false; btn.textContent = 'Simpan Perubahan'; });
+                            });
+                        });
+                        // Simpan Perubahan (card Security, Huawei) — akses WAN/LAN + kredensial CLI/Web via TR-069.
                         cliOutputBox.querySelectorAll('.sec-save').forEach(btn => {
                             btn.addEventListener('click', () => {
                                 const B = 'InternetGatewayDevice.';
@@ -3985,6 +4097,14 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                     <option value="<?php echo htmlspecialchars($tp['name']); ?>" <?php echo ($onu['tr069_profile'] ?? '') === $tp['name'] ? 'selected' : ''; ?>><?php echo htmlspecialchars($tp['name']); ?></option>
                                 <?php endforeach; ?>
                             </select>
+                        </td>
+                    </tr>
+                    <tr style="height:50px;">
+                        <td style="width:120px;font-weight:600;color:var(--text-main);vertical-align:middle;">VLAN</td>
+                        <td>
+                            <?php $tr609_vlan_mode = $onu['tr069_vlan_mode'] ?? 'management'; ?>
+                            <label style="margin-right:16px;cursor:pointer;font-size:0.9rem;"><input type="radio" name="vlan_mode" value="management" <?php echo $tr609_vlan_mode === 'management' ? 'checked' : ''; ?>> Management</label>
+                            <label style="cursor:pointer;font-size:0.9rem;"><input type="radio" name="vlan_mode" value="internet" <?php echo $tr609_vlan_mode === 'internet' ? 'checked' : ''; ?>> Ikut Internet (PPPoE)</label>
                         </td>
                     </tr>
                 </table>

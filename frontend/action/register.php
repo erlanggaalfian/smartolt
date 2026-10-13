@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = trim($_POST['password']);
     $role = trim($_POST['role']);
 
-    $allowed_roles = ['superadmin', 'biasa'];
+    $allowed_roles = ['superadmin', 'admin', 'user'];
     $role = in_array(trim($_POST['role'] ?? ''), $allowed_roles, true) ? trim($_POST['role']) : '';
 
     if (empty($username) || empty($password) || empty($role)) {
@@ -35,9 +35,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Jika bukan setup awal, pastikan user harus login & harus superadmin untuk membuat user baru
     if (!$is_initial_setup) {
-        if (!isset($_SESSION['smartolt_user_id']) || $_SESSION['smartolt_role'] !== 'superadmin') {
-            $_SESSION['error'] = 'Akses ditolak! Hanya Superadmin yang dapat mendaftarkan user baru.';
+        if (!isset($_SESSION['smartolt_user_id']) || !can_access_settings()) {
+            $_SESSION['error'] = 'Akses ditolak! Anda tidak memiliki izin untuk mendaftarkan user baru.';
             header('Location: ../login.php');
+            exit;
+        }
+        if ($role === 'superadmin' && $_SESSION['smartolt_role'] !== 'superadmin') {
+            $_SESSION['error'] = 'Hanya Superadmin yang dapat membuat akun Superadmin baru.';
+            header('Location: ../register.php');
             exit;
         }
     } else {
@@ -71,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $_SESSION['success'] = "User baru '{$username}' ({$role}) berhasil didaftarkan!";
             // Catat audit log oleh superadmin yang sedang aktif
-            write_audit_log(null, 'USER_CREATE', "Superadmin '{$_SESSION['smartolt_username']}' mendaftarkan user baru '{$username}' dengan peran '{$role}'.");
+            write_audit_log(null, 'USER_CREATE', "'{$_SESSION['smartolt_username']}' mendaftarkan user baru '{$username}' dengan peran '{$role}'.");
             header('Location: ../register.php');
             exit;
         }

@@ -5,7 +5,7 @@
 require_once __DIR__ . '/../backend/db.php';
 require_once __DIR__ . '/../backend/genieacs.php';
 
-if ($_SESSION['smartolt_role'] !== 'superadmin') {
+if (!can_access_settings()) {
     $_SESSION['error'] = 'Akses ditolak!';
     header('Location: dashboard.php');
     exit;
@@ -20,6 +20,7 @@ $faults = genieacs_get_faults(20);
 $default = null;
 $custom = [];
 foreach ($profiles as $p) {
+    unset($p['acs_password']); // never embed credential in HTML/JS; edit form leaves password blank to keep existing
     if ($p['is_default']) $default = $p; else $custom[] = $p;
 }
 ?>
@@ -251,7 +252,7 @@ foreach ($profiles as $p) {
                     </div>
                     <div class="form-group">
                         <label>Password</label>
-                        <input type="text" id="profile-password" placeholder="ACS password">
+                        <input type="password" id="profile-password" placeholder="Kosongkan untuk tetap pakai password lama" autocomplete="new-password">
                     </div>
                 </div>
                 <div class="form-group">

@@ -224,7 +224,7 @@ function engine_token(?int $user_id = null, ?string $role = null, int $ttl = 360
     $uid  = $user_id ?? (int)($_SESSION['smartolt_user_id'] ?? 0);
     $role = $role ?? (string)($_SESSION['smartolt_role'] ?? '');
 
-    if ($role !== 'superadmin' && $role !== 'biasa') {
+    if (!in_array($role, ['superadmin', 'admin', 'user'], true)) {
         return '';
     }
 
@@ -322,6 +322,72 @@ function has_olt_access(int $olt_id): bool {
     }
     $allowed = get_allowed_olt_ids();
     return in_array($olt_id, $allowed);
+}
+
+/**
+ * Mengecek apakah role boleh membuka halaman/aksi Settings
+ * (OLT CRUD, TR-069, VPN, log, Settings->Users). superadmin & admin boleh, user tidak.
+ */
+function can_access_settings(): bool {
+    $role = $_SESSION['smartolt_role'] ?? null;
+    return $role === 'superadmin' || $role === 'admin';
+}
+
+/**
+ * Mengecek apakah user yang login boleh mengelola (edit akses/hapus) user target.
+ * - superadmin: boleh kelola siapa saja.
+ * - admin: boleh kelola target HANYA jika target bukan superadmin DAN OLT target
+ *   beririsan dengan OLT milik admin (satu "grup" yang sama). Admin tanpa OLT sama
+ *   sekali / target tanpa OLT sama sekali dianggap tidak beririsan -> ditolak.
+ * - user: tidak pernah boleh (halaman ini sudah digerbangi can_access_settings()).
+ */
+function can_manage_target_user(int $target_user_id, string $target_role): bool {
+    global $pdo;
+    $role = $_SESSION['smartolt_role'] ?? null;
+    if ($role === 'superadmin') {
+        return true;
+    }
+    if ($role !== 'admin' || $target_role === 'superadmin') {
+        return false;
+    }
+    $my_olts = get_allowed_olt_ids();
+    if (empty($my_olts)) {
+        return false;
+    }
+    $stmt = $pdo->prepare("SELECT olt_id FROM user_olts WHERE user_id = ?");
+    $stmt->execute([$target_user_id]);
+    $target_olts = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    return count(array_intersect($my_olts, $target_olts)) > 0;
+}
+
+/**
+ * Daftar user yang boleh DILIHAT/dikelola di Settings->Users oleh user yang login.
+ * - superadmin: semua user.
+ * - admin: dirinya sendiri + user lain (non-superadmin) yang OLT-nya beririsan
+ *   dengan OLT miliknya (satu grup).
+ */
+function get_manageable_users(): array {
+    global $pdo;
+    $role = $_SESSION['smartolt_role'] ?? null;
+    if ($role === 'superadmin') {
+        return $pdo->query("SELECT id, username, role, created_at FROM users ORDER BY created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
+    }
+    $my_olts = get_allowed_olt_ids();
+    if (empty($my_olts)) {
+        $stmt = $pdo->prepare("SELECT id, username, role, created_at FROM users WHERE id = ? ORDER BY created_at DESC");
+        $stmt->execute([$_SESSION['smartolt_user_id']]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    $placeholders = implode(',', array_fill(0, count($my_olts), '?'));
+    $stmt = $pdo->prepare("
+        SELECT DISTINCT u.id, u.username, u.role, u.created_at
+        FROM users u
+        LEFT JOIN user_olts uo ON uo.user_id = u.id
+        WHERE u.id = ? OR (u.role != 'superadmin' AND uo.olt_id IN ($placeholders))
+        ORDER BY u.created_at DESC
+    ");
+    $stmt->execute(array_merge([$_SESSION['smartolt_user_id']], $my_olts));
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 /**

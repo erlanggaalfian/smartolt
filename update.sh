@@ -150,13 +150,8 @@ if [ -f "${TARGET_DIR}/.env" ]; then
   echo -e "      .env dicadangkan."
 fi
 
-# Cadangkan venv (berat, jangan download ulang)
-VENV_BACKUP=""
-if [ -d "${TARGET_DIR}/backend/python_engine/venv" ]; then
-  VENV_BACKUP="/tmp/smartolt_venv_backup_$$"
-  mv "${TARGET_DIR}/backend/python_engine/venv" "$VENV_BACKUP"
-  echo -e "      venv dicadangkan."
-fi
+# venv TIDAK dipindah/dihapus sama sekali (lihat exclude di find -delete & rsync di bawah)
+# — mv+restore lama rawan venv hilang kalau proses diinterupsi di tengah jalan.
 
 # Cadangkan backup database yang baru dibuat (jika ada)
 DB_BACKUPS=()
@@ -169,14 +164,17 @@ if [ ${#DB_BACKUPS[@]} -gt 0 ]; then
   echo -e "      ${#DB_BACKUPS[@]} file backup database dicadangkan."
 fi
 
-# Hapus SELURUH isi target
+# Hapus SELURUH isi target KECUALI venv (biarkan ia di tempat, tidak pernah disentuh)
 echo -e "      Menghapus isi lama..."
-find "${TARGET_DIR}" -mindepth 1 -delete 2>/dev/null
+find "${TARGET_DIR}" -mindepth 1 \
+  -path "${TARGET_DIR}/backend/python_engine/venv" -prune -o \
+  -mindepth 1 -delete 2>/dev/null
 
-# Salin SELURUH isi source ke target (kecuali .git, .vscode, __pycache__)
+# Salin SELURUH isi source ke target (kecuali .git, .vscode, __pycache__, venv)
 echo -e "      Menyalin berkas baru..."
 rsync -a --delete \
   --exclude='.git' \
+  --exclude='backend/python_engine/venv' \
   --exclude='.vscode' \
   --exclude='__pycache__' \
   --exclude='*.pyc' \
@@ -324,12 +322,7 @@ ENVEOF
   fi
 fi
 
-# Kembalikan venv
-if [ -n "$VENV_BACKUP" ] && [ -d "$VENV_BACKUP" ]; then
-  mkdir -p "${TARGET_DIR}/backend/python_engine"
-  mv "$VENV_BACKUP" "${TARGET_DIR}/backend/python_engine/venv"
-  echo -e "      venv dikembalikan."
-fi
+# venv tidak pernah dipindah, jadi tidak perlu dikembalikan — sudah di tempat sejak awal.
 
 # Kembalikan backup database
 if [ -d /tmp/smartolt_db_backups_$$ ]; then

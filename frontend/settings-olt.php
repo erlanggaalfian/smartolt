@@ -5,8 +5,20 @@
 require_once __DIR__ . '/header.php';
 require_once __DIR__ . '/../backend/driver.php';
 
-// Ambil daftar OLT
-$olts = $pdo->query("SELECT * FROM olts ORDER BY created_at DESC")->fetchAll();
+// Ambil daftar OLT — filter untuk admin/user: hanya OLT miliknya (kecuali superadmin)
+if ($_SESSION['smartolt_role'] === 'superadmin') {
+    $olts = $pdo->query("SELECT * FROM olts ORDER BY created_at DESC")->fetchAll();
+} else {
+    $allowed = get_allowed_olt_ids();
+    if (empty($allowed)) {
+        $olts = [];
+    } else {
+        $in = implode(',', array_fill(0, count($allowed), '?'));
+        $stmt = $pdo->prepare("SELECT * FROM olts WHERE id IN ($in) ORDER BY created_at DESC");
+        $stmt->execute($allowed);
+        $olts = $stmt->fetchAll();
+    }
+}
 
 // Tipe OLT yang tersedia diambil dari registry driver — menambah vendor baru
 // cukup mendaftarkannya di olt_driver_registry() pada backend/driver.php.

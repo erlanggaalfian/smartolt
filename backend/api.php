@@ -18,7 +18,7 @@ function get_api_token(): string {
     $header = base64url_encode(json_encode(['alg' => 'HS256', 'typ' => 'JWT']));
     $payload = base64url_encode(json_encode([
         'uid' => (int)($_SESSION['smartolt_user_id'] ?? 0),
-        'role' => $_SESSION['smartolt_role'] ?? 'biasa',
+        'role' => $_SESSION['smartolt_role'] ?? 'user',
         'exp' => time() + 3600,
     ]));
     $sig = base64url_encode(hash_hmac('sha256', "$header.$payload", $key, true));

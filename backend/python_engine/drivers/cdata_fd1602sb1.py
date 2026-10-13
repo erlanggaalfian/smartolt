@@ -141,7 +141,6 @@ class OltCdataFd1602sb1Driver(BaseDriver):
         }
 
     def get_onu_signal(self, olt: dict, onu: dict, include_ip: bool = True) -> dict:
-        # Existing implementation retained for backward compatibility
         if is_demo_olt(olt):
             return {
                 'success': True,
@@ -724,6 +723,64 @@ class OltCdataFd1602sb1Driver(BaseDriver):
         return {
             'success': ok,
             'message': f'IP Manajemen berhasil diubah ke {mode}.' if ok else f'OLT menolak: {log}',
+            'log': log
+        }
+
+    def set_tr069_profile(self, olt: dict, pon_port: str, onu_id: int, acs_url: str, username: str = '', password: str = '', mgmt_vlan: int = 0, mgmt_priority: int = 2, vlan_mode: str = 'management', internet_vlan: int = 0) -> dict:
+        """Push TR069 config ke ONU via OLT CLI CDATA (FD16xx/FD17xx).
+        Syntax per-ONU: ont tr069 <port> <ont_id> acs-url/inform/tr069-management/...
+        vlan_mode: 'management' = VLAN management terpisah, 'internet' = ikut VLAN internet."""
+        if is_demo_olt(olt):
+            return {'success': True, 'message': f'TR069 set to {acs_url} (Mode Demo).'}
+
+        parts = pon_port.split('/')
+        port = int(parts[-1]) if len(parts) >= 3 else 1
+        interface_path = "/".join(parts[:-1]) if len(parts) >= 3 else pon_port
+
+        if not acs_url:
+            # Nonaktifkan TR069
+            commands = [
+                'config',
+                f'interface gpon {interface_path}',
+                f'ont tr069 {port} {onu_id} tr069-management disable',
+                'exit', 'save',
+            ]
+            log = execute_ssh_commands(olt, commands)
+            return {'success': True, 'message': 'TR069 dinonaktifkan.', 'log': log}
+
+        user_c = self._sanitize_cli_token(username or '', 64)
+        pass_c = self._sanitize_cli_token(password or '', 32)
+
+        # Per-ONU TR-069 config langsung
+        # Syntax: ont tr069 <port> <ont_id> acs-url <url> acs-username <user> acs-password <pass>
+        commands = [
+            'config',
+            f'interface gpon {interface_path}',
+            f'ont tr069 {port} {onu_id} tr069-management enable',
+        ]
+        acs_cmd = f'ont tr069 {port} {onu_id} acs-url {acs_url}'
+        if user_c and pass_c:
+            acs_cmd += f' acs-username {user_c} acs-password {pass_c}'
+        commands.append(acs_cmd)
+        commands.append(f'ont tr069 {port} {onu_id} inform enable')
+        # ip-index: WAN interface yang dipakai TR-069
+        # 0 = WAN internet (Management Ikut Internet/PPPoE)
+        # 1 = WAN management terpisah (VLAN management)
+        if vlan_mode == 'internet':
+            commands.append(f'ont tr069 {port} {onu_id} ip-index 0')
+        else:
+            # Setup management WAN (ip-index 1) DHCP dengan VLAN management
+            mgmt_vlan_id = mgmt_vlan if mgmt_vlan else 100
+            commands.append(f'no ont ipconfig {port} {onu_id} ip-index 1')
+            commands.append(f'ont ipconfig {port} {onu_id} ip-index 1 dhcp vlan {mgmt_vlan_id} priority {mgmt_priority}')
+            commands.append(f'ont tr069 {port} {onu_id} ip-index 1')
+        commands.extend(['exit', 'save'])
+
+        log = execute_ssh_commands(olt, commands)
+        ok = not any(x in log.lower() for x in ['invalid input', 'unknown command', 'error', 'failed', 'not support', 'rejected', 'incomplete'])
+        return {
+            'success': ok,
+            'message': 'TR069 berhasil dikonfigurasi.' if ok else f'OLT menolak: {log}',
             'log': log
         }
 

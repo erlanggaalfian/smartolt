@@ -1,7 +1,7 @@
 // OLT routes: CRUD, test, sync, autofind, panels, health, interfaces
 const router = require('express').Router();
 const pool = require('../db');
-const { superadminOnly } = require('../auth');
+const { settingsAccess } = require('../auth');
 const { callEngine, checkSnmpPing, decryptPassword, writeAuditLog, cliSafe } = require('../helpers');
 
 // Helper: get OLT by ID with access check
@@ -42,7 +42,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // POST /api/olt — add OLT
-router.post('/', superadminOnly, async (req, res) => {
+router.post('/', settingsAccess, async (req, res) => {
   const { name, type, ip, protocol, ssh_port, username, password, snmp_port } = req.body;
   if (!name || !ip || !username || !password) return res.json({ success: false, message: 'Field wajib tidak lengkap!' });
   const registry = require('../registry');
@@ -73,7 +73,7 @@ router.post('/', superadminOnly, async (req, res) => {
 });
 
 // PUT /api/olt/:id — edit OLT
-router.put('/:id', superadminOnly, async (req, res) => {
+router.put('/:id', settingsAccess, async (req, res) => {
   const id = +req.params.id;
   const { name, type, ip, protocol, ssh_port, username, password, snmp_port, snmp_community, snmp_community_rw } = req.body;
   const registry = require('../registry');
@@ -100,7 +100,7 @@ router.put('/:id', superadminOnly, async (req, res) => {
 });
 
 // DELETE /api/olt/:id
-router.delete('/:id', superadminOnly, async (req, res) => {
+router.delete('/:id', settingsAccess, async (req, res) => {
   try {
     const [old] = await pool.execute('SELECT * FROM olts WHERE id = ?', [+req.params.id]);
     if (!old[0]) return res.json({ success: false, message: 'OLT tidak ditemukan.' });
@@ -111,7 +111,7 @@ router.delete('/:id', superadminOnly, async (req, res) => {
 });
 
 // GET /api/olt/:id/test — test connection
-router.get('/:id/test', superadminOnly, async (req, res) => {
+router.get('/:id/test', settingsAccess, async (req, res) => {
   const olt = await getOlt(+req.params.id, req.user.uid, req.user.role);
   if (!olt) return res.status(404).json({ success: false, message: 'OLT tidak ditemukan.' });
   const r = await callEngine('checkConnection', olt);
@@ -123,7 +123,7 @@ router.get('/:id/test', superadminOnly, async (req, res) => {
 });
 
 // GET /api/olt/:id/health — health status
-router.get('/:id/health', superadminOnly, async (req, res) => {
+router.get('/:id/health', settingsAccess, async (req, res) => {
   const olt = await getOlt(+req.params.id, req.user.uid, req.user.role);
   if (!olt) return res.status(404).json({ success: false, message: 'OLT tidak ditemukan.' });
   const r = await callEngine('checkConnection', olt);
@@ -180,7 +180,7 @@ router.post('/:id/sync', async (req, res) => {
 });
 
 // POST /api/olt/:id/verify-ssh — verify SSH connection only
-router.post('/:id/verify-ssh', superadminOnly, async (req, res) => {
+router.post('/:id/verify-ssh', settingsAccess, async (req, res) => {
   const { ip, type, protocol, ssh_port, username, password } = req.body;
   if (!ip || !username || !password) return res.json({ success: false, message: 'IP, Username, Password wajib diisi!' });
   const olt = { ip, type, protocol: protocol || 'SSH', ssh_port: parseInt(ssh_port) || 22, username, password };

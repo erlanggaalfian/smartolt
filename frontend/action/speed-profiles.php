@@ -22,7 +22,7 @@ set_time_limit(0); // sync reads full running-config (90-150s on large OLTs)
 
 $action = $_POST['action'] ?? $_GET['action'] ?? 'list';
 
-if ($action !== 'list' && $_SESSION['smartolt_role'] !== 'superadmin') {
+if ($action !== 'list' && !can_access_settings()) {
     http_response_code(403);
     echo json_encode(['success' => false, 'message' => 'Akses ditolak! Hanya superadmin yang dapat melakukan aksi ini.']);
     exit;

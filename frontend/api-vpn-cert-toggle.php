@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../backend/db.php';
 
-if (!isset($_SESSION["smartolt_role"]) || $_SESSION["smartolt_role"] !== "superadmin") {
+if (!can_access_settings()) {
     http_response_code(403);
     die('Access denied');
 }

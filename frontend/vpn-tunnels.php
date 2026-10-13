@@ -40,27 +40,21 @@ function sync_vpn_status($pdo) {
     $status = @file_get_contents("/var/log/openvpn/openvpn-status.log");
     if (!$status) return;
     $connected = [];
-    $tunnel_ips = [];
     foreach (explode("\n", $status) as $line) {
         if (strpos($line, "CLIENT_LIST,") === 0) {
             $parts = explode(",", $line);
-            if (count($parts) >= 4 && $parts[1] !== 'Common Name') {
-                $connected[] = ['cn' => $parts[1], 'ip' => explode(":", $parts[2])[0]];
-            }
-        }
-        if (strpos($line, "ROUTING_TABLE,") === 0) {
-            $parts = explode(",", $line);
-            if (count($parts) >= 3 && $parts[1] !== 'Virtual Address') {
-                $tunnel_ips[$parts[2]] = $parts[1];
+            if (count($parts) >= 5 && $parts[1] !== 'Common Name') {
+                $connected[] = ['cn' => $parts[1], 'ip' => explode(":", $parts[2])[0], 'tunnel_ip' => $parts[3]];
             }
         }
     }
-    $tunnels = $pdo->query("SELECT id, status FROM vpn_tunnels ORDER BY id")->fetchAll(PDO::FETCH_ASSOC);
-    $used = 0;
+    $tunnels = $pdo->query("SELECT id, cert_cn, status FROM vpn_tunnels ORDER BY id")->fetchAll(PDO::FETCH_ASSOC);
+    $connected_by_cn = [];
+    foreach ($connected as $c) { $connected_by_cn[$c['cn']] = $c; }
     foreach ($tunnels as $t) {
-        if ($used < count($connected)) {
-            $c = $connected[$used];
-            $tip = $tunnel_ips[$c['cn']] ?? null;
+        $c = $connected_by_cn[$t['cert_cn']] ?? null;
+        if ($c) {
+            $tip = $c['tunnel_ip'] ?? null;
             $pdo->prepare("UPDATE vpn_tunnels SET status='connected', client_ip=?, tunnel_ip=? WHERE id=?")
                  ->execute([$c['ip'], $tip, $t['id']]);
             // Apply routes from DB to server routing table + CCD iroute
@@ -69,11 +63,10 @@ function sync_vpn_status($pdo) {
                 $routes = $row['routes_json'] ? json_decode($row['routes_json'], true) : [];
                 foreach ((array)$routes as $rt) {
                     $rt = trim($rt);
-                    if ($rt) exec("sudo ip route replace $rt via $tip dev tun0 2>/dev/null");
+                    if ($rt) exec("sudo ip route replace " . escapeshellarg($rt) . " via " . escapeshellarg($tip) . " dev tun0 2>/dev/null");
                 }
                 write_ccd_iroute($c['cn'], (array)$routes);
             }
-            $used++;
         } else {
             $pdo->prepare("UPDATE vpn_tunnels SET status='disconnected', client_ip=NULL, tunnel_ip=NULL WHERE id=? AND status != 'disconnected'")
                  ->execute([$t['id']]);
@@ -81,7 +74,7 @@ function sync_vpn_status($pdo) {
     }
 }
 
-if (!isset($_SESSION["smartolt_role"]) || $_SESSION["smartolt_role"] !== "superadmin") {
+if (!can_access_settings()) {
     $_SESSION["error"] = "Akses ditolak!";
     header("Location: ../dashboard.php");
     exit;
@@ -111,11 +104,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $routes = [];
         foreach ((array)$routes_raw as $r) {
             $r = trim($r);
-            if ($r !== '') $routes[] = $r;
+            if ($r !== '' && preg_match('/^\d{1,3}(\.\d{1,3}){3}\/\d{1,2}$/', $r)) $routes[] = $r;
         }
-        if ($u && $p) {
-            $stmt = $pdo->prepare("INSERT INTO vpn_tunnels (username, password, routes_json) VALUES (?,?,?)");
-            $stmt->execute([$u, $p, $routes ? json_encode($routes) : null]);
+        if ($u && $p && preg_match('/^[A-Za-z0-9_-]+$/', $u)) {
+            $stmt = $pdo->prepare("INSERT INTO vpn_tunnels (username, password, cert_cn, routes_json) VALUES (?,?,?,?)");
+            $stmt->execute([$u, $p, $u, $routes ? json_encode($routes) : null]);
             generate_tunnel_cert($u);
             sync_chap_secrets($pdo);
         }
@@ -125,7 +118,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $routes = [];
         foreach ((array)$routes_raw as $r) {
             $r = trim($r);
-            if ($r !== '') $routes[] = $r;
+            if ($r !== '' && preg_match('/^\d{1,3}(\.\d{1,3}){3}\/\d{1,2}$/', $r)) $routes[] = $r;
         }
         if ($p) {
             // Get old routes to remove from server routing table
@@ -136,21 +129,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($old_tip) {
                 foreach ((array)$old_routes as $rt) {
                     $rt = trim($rt);
-                    if ($rt) exec("sudo ip route del $rt via $old_tip dev tun0 2>/dev/null");
+                    if ($rt) exec("sudo ip route del " . escapeshellarg($rt) . " via " . escapeshellarg($old_tip) . " dev tun0 2>/dev/null");
                 }
             }
             $stmt = $pdo->prepare("UPDATE vpn_tunnels SET password=?, routes_json=? WHERE id=?");
             $stmt->execute([$p, $routes ? json_encode($routes) : null, $id]);
-            // Apply new routes to server
+            // Apply new routes to server (if connected)
             if ($old_tip) {
                 foreach ($routes as $rt) {
                     $rt = trim($rt);
                     if ($rt) exec("sudo ip route replace $rt via $old_tip dev tun0 2>/dev/null");
                 }
             }
+            // Always update CCD (takes effect on next connect)
+            $cn_row = $pdo->query("SELECT cert_cn FROM vpn_tunnels WHERE id=$id")->fetch();
+            if ($cn_row && $cn_row['cert_cn']) write_ccd_iroute($cn_row['cert_cn'], $routes);
             sync_chap_secrets($pdo);
         }
     } elseif ($act === 'delete' && ($id = (int)($_POST['id'] ?? 0))) {
+        $row = $pdo->query("SELECT cert_cn, tunnel_ip, routes_json FROM vpn_tunnels WHERE id=$id")->fetch();
+        if ($row) {
+            // Remove routes from server routing table
+            $routes = $row['routes_json'] ? json_decode($row['routes_json'], true) : [];
+            if ($row['tunnel_ip']) {
+                foreach ((array)$routes as $rt) {
+                    $rt = trim($rt);
+                    if ($rt) exec("sudo ip route del $rt via {$row['tunnel_ip']} dev tun0 2>/dev/null");
+                }
+            }
+            // Remove CCD file
+            if ($row['cert_cn']) @unlink("/etc/openvpn/ccd/{$row['cert_cn']}");
+        }
         $pdo->prepare("DELETE FROM vpn_tunnels WHERE id=?")->execute([$id]);
         sync_chap_secrets($pdo);
     }
@@ -353,7 +362,7 @@ include __DIR__ . '/header.php';
             <div class="modal-body">
                 <div class="form-group"><label>Username</label><input type="text" class="form-control" value="<?= htmlspecialchars($edit_tunnel['username']) ?>" disabled></div>
                 <div class="form-grid">
-                    <div class="form-group"><label>Password</label><input type="text" name="password" class="form-control" required value="<?= htmlspecialchars($edit_tunnel['password']) ?>"></div>
+                    <div class="form-group"><label>Password</label><input type="password" name="password" class="form-control" required value="<?= htmlspecialchars($edit_tunnel['password']) ?>" autocomplete="new-password"></div>
                     <!-- Tunnel IP auto-assigned by OpenVPN server -->
                 </div>
                 <div class="form-group">

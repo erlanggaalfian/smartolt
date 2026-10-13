@@ -1308,10 +1308,11 @@ class OltZteC300Driver(BaseDriver):
             'log': log
         }
 
-    def set_tr069_profile(self, olt: dict, pon_port: str, onu_id: int, acs_url: str, username: str = '', password: str = '', mgmt_vlan: int = 0, mgmt_priority: int = 2) -> dict:
+    def set_tr069_profile(self, olt: dict, pon_port: str, onu_id: int, acs_url: str, username: str = '', password: str = '', mgmt_vlan: int = 0, mgmt_priority: int = 2, vlan_mode: str = 'management', internet_vlan: int = 0) -> dict:
         """Push TR069 config ke ONU via OLT CLI.
-        Setup full infra VLAN management + tr069-mgmt dalam satu sesi.
-        mgmt_vlan wajib diisi (>0) supaya traffic TR069 punya tag VLAN yang di-route ke ACS.
+        vlan_mode: 'management' (default) = infra VLAN management terpisah
+        (iphost 2). 'internet' = TR069 ikut VLAN internet/PPPoE (iphost 1),
+        tanpa infra management baru.
         """
         if is_demo_olt(olt):
             return {'success': True, 'message': f'TR069 set to {acs_url} (Mode Demo).'}
@@ -1341,7 +1342,11 @@ class OltZteC300Driver(BaseDriver):
             'tr069-mgmt 1 state unlock',
             f'tr069-mgmt 1 acs {acs_url} {validate_cmd}',
         ])
-        if mgmt_vlan:
+        if vlan_mode == 'internet':
+            if internet_vlan:
+                commands.append(f'tr069-mgmt 1 tag pri {mgmt_priority} vlan {internet_vlan}')
+            commands.append('veip 1 port udp 1232 host 1')
+        elif mgmt_vlan:
             commands.append(f'tr069-mgmt 1 tag pri {mgmt_priority} vlan {mgmt_vlan}')
             # veip bind traffic TR069 (UDP 1232, konvensi ZTE) ke iphost 2 (VLAN management) —
             # tanpa ini ONU tidak tahu host mana dipakai TR069 client, meski tag VLAN sudah benar.

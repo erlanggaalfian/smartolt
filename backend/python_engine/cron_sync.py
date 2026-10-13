@@ -259,7 +259,7 @@ def main():
                     rx_onu = float(sig['rx_onu']) if sig['rx_onu'] != 'N/A' else None
                     rx_olt = float(sig['rx_olt']) if sig['rx_olt'] != 'N/A' else None
                     status = sig['status']
-                    update_params.append((status, rx_onu, rx_olt, status, onu['id']))
+                    update_params.append((status, rx_onu, rx_olt, status, status, onu['id']))
                     onu['_fetched_signal'] = {'rx_onu': rx_onu, 'rx_olt': rx_olt, 'status': status}
                 else:
                     onu['_fetched_signal'] = None

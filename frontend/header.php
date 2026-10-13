@@ -36,7 +36,7 @@ if (!isset($_SESSION['smartolt_user_id'])) {
 }
 
 // 3. Batasi akses ke settings pages hanya untuk superadmin
-if (in_array($current_page, ['settings-olt.php', 'settings-users.php', 'onu-types.php', 'splitters.php', 'settings-speed-profiles.php', 'tr069-management.php']) && $_SESSION['smartolt_role'] !== 'superadmin') {
+if (in_array($current_page, ['settings-olt.php', 'settings-users.php', 'onu-types.php', 'splitters.php', 'settings-speed-profiles.php', 'tr069-management.php', 'vpn-tunnels.php']) && !can_access_settings()) {
     $_SESSION['error'] = 'Akses ditolak! Anda tidak memiliki izin untuk mengakses halaman tersebut.';
     header('Location: dashboard.php');
     exit;
@@ -61,7 +61,7 @@ session_write_close();
     <script src="https://unpkg.com/lucide@1.46.0/dist/umd/lucide.min.js" integrity="sha384-1avDoIZZ5mKtAlvTbQ2jge+TZA4z+qwhMFHdCpATww/SLVM8wKs7sROOEKMOizyV" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous"></script>
     <!-- Premium Stylesheet -->
-    <link rel="stylesheet" href="public/style.css">
+    <link rel="stylesheet" href="public/style.css?v=<?= filemtime(__DIR__ . '/public/style.css') ?>">
     <!-- Anti-FOUC: Terapkan tema SEBELUM render agar tidak ada kedipan mode gelap -->
     <script>
         (function() {
@@ -134,9 +134,9 @@ session_write_close();
                         <a href="configured.php" class="topnav-item <?php echo $current_page === 'configured.php' ? 'active' : ''; ?>">
                             <i data-lucide="users" style="width:14px; height:14px;"></i> Configured
                         </a>
-                        <?php if (isset($_SESSION['smartolt_role']) && $_SESSION['smartolt_role'] === 'superadmin'): ?>
+                        <?php if (can_access_settings()): ?>
                             <div class="topnav-dropdown">
-                                <button class="topnav-item topnav-dropdown-toggle <?php echo ($current_page === 'settings-olt.php' || $current_page === 'settings-users.php') ? 'active' : ''; ?>">
+                                <button class="topnav-item topnav-dropdown-toggle <?php echo ($current_page === 'settings-olt.php' || $current_page === 'settings-users.php') ? 'active' : ''; ?>" onclick="event.stopImmediatePropagation(); this.parentElement.classList.toggle('open');">
                                     <i data-lucide="settings" style="width:14px; height:14px;"></i> Settings <i data-lucide="chevron-down" style="width:12px; height:12px;"></i>
                                 </button>
                                 <div class="topnav-dropdown-menu">

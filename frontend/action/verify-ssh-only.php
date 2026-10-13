@@ -7,7 +7,7 @@ header('Content-Type: application/json');
 require_once __DIR__ . '/../../backend/db.php';
 require_once __DIR__ . '/../../backend/driver.php';
 
-if (!isset($_SESSION['smartolt_role']) || $_SESSION['smartolt_role'] !== 'superadmin') {
+if (!can_access_settings()) {
     echo json_encode(['success' => false, 'message' => 'Akses ditolak!']);
     exit;
 }

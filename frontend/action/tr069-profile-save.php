@@ -1,7 +1,7 @@
 <?php
 header('Content-Type: application/json');
 require_once __DIR__ . '/../../backend/db.php';
-if ($_SESSION['smartolt_role'] !== 'superadmin') { echo json_encode(['success'=>false,'message'=>'Akses ditolak']); exit; }
+if (!can_access_settings()) { echo json_encode(['success'=>false,'message'=>'Akses ditolak']); exit; }
 
 $body = json_decode(file_get_contents('php://input'), true);
 if (!$body || empty($body['name']) || empty($body['acs_url'])) {
@@ -23,11 +23,21 @@ if (!empty($body['id'])) {
 
     if ($row['is_default']) {
         // Default: hanya izinkan update username/password
-        $stmt = $pdo->prepare("UPDATE tr069_profiles SET acs_username=?, acs_password=?, updated_at=NOW() WHERE id=?");
-        $stmt->execute([$username, $password, $body['id']]);
+        if ($password !== '') {
+            $stmt = $pdo->prepare("UPDATE tr069_profiles SET acs_username=?, acs_password=?, updated_at=NOW() WHERE id=?");
+            $stmt->execute([$username, $password, $body['id']]);
+        } else {
+            $stmt = $pdo->prepare("UPDATE tr069_profiles SET acs_username=?, updated_at=NOW() WHERE id=?");
+            $stmt->execute([$username, $body['id']]);
+        }
     } else {
-        $stmt = $pdo->prepare("UPDATE tr069_profiles SET name=?, acs_url=?, description=?, acs_username=?, acs_password=?, updated_at=NOW() WHERE id=?");
-        $stmt->execute([$body['name'], $acs_url, $body['description'] ?? '', $username, $password, $body['id']]);
+        if ($password !== '') {
+            $stmt = $pdo->prepare("UPDATE tr069_profiles SET name=?, acs_url=?, description=?, acs_username=?, acs_password=?, updated_at=NOW() WHERE id=?");
+            $stmt->execute([$body['name'], $acs_url, $body['description'] ?? '', $username, $password, $body['id']]);
+        } else {
+            $stmt = $pdo->prepare("UPDATE tr069_profiles SET name=?, acs_url=?, description=?, acs_username=?, updated_at=NOW() WHERE id=?");
+            $stmt->execute([$body['name'], $acs_url, $body['description'] ?? '', $username, $body['id']]);
+        }
     }
 } else {
     // Add

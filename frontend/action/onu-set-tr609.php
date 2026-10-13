@@ -6,6 +6,7 @@ if (!isset($_SESSION['smartolt_role'])) { echo json_encode(['success'=>false,'me
 
 $onu_id = (int)($_POST['onu_id'] ?? 0);
 $profile_name = trim($_POST['tr609_profile'] ?? 'ACS-Smartolt');
+$vlan_mode = ($_POST['vlan_mode'] ?? 'management') === 'internet' ? 'internet' : 'management';
 
 if (!$onu_id) { echo json_encode(['success'=>false,'message'=>'ONU ID tidak valid']); exit; }
 
@@ -43,6 +44,9 @@ if ($profile_name === 'Nonaktif') {
     // Prioritas: mgmt_vlan ONU sendiri, lalu mgmt_vlan profil, fallback 100 (VLAN mgmt standar).
     $mgmt_vlan = (int)($row['mgmt_vlan'] ?: $profile['mgmt_vlan'] ?: 100);
     $mgmt_priority = (int)($profile['mgmt_priority'] ?: 2);
+    // VLAN internet/PPPoE ONU — dipakai kalau vlan_mode='internet' (TR069 numpang
+    // jalur internet pelanggan, tanpa infra management terpisah).
+    $internet_vlan = (int)($row['vlan'] ?: 0);
 
     $result = call_driver($olt, 'set_tr069_profile', [
         $row['pon_port'], (int)$row['onu_id'],
@@ -51,11 +55,13 @@ if ($profile_name === 'Nonaktif') {
         $profile['acs_password'] ?? '',
         $mgmt_vlan,
         $mgmt_priority,
+        $vlan_mode,
+        $internet_vlan,
     ]);
 }
 
 // Simpan ke DB
-$pdo->prepare("UPDATE onus SET tr069_profile=? WHERE id=?")->execute([$profile_name, $onu_id]);
+$pdo->prepare("UPDATE onus SET tr069_profile=?, tr069_vlan_mode=? WHERE id=?")->execute([$profile_name, $vlan_mode, $onu_id]);
 
 echo json_encode([
     'success' => $result['success'] ?? false,

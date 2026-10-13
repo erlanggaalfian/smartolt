@@ -268,11 +268,13 @@ function genieacs_delete_device(string $serial): array {
 
 /**
  * Resolve GenieACS device _id dari serial ONU. Coba: ID langsung, query SerialNumber,
- * lalu Huawei GPON→TR-069 hex convert (HWTCxxxx → 48575443xxxx), lalu suffix-match fallback.
+ * lalu Huawei GPON→TR-069 hex convert (HWTCxxxx → 48575443xxxx), lalu suffix-match fallback,
+ * lalu (kalau $mgmt_ip dikasih) match by ConnectionRequestURL host — perlu utk OLT seperti
+ * CDATA yg device TR-069-nya lapor serial CPE internal (beda dari serial GPON OLT).
  */
-function genieacs_find_device_id(string $serial): ?string {
+function genieacs_find_device_id(string $serial, ?string $mgmt_ip = null): ?string {
     $serial = preg_replace('/[^a-zA-Z0-9_-]/', '', $serial);
-    if (!$serial) return null;
+    if (!$serial && !$mgmt_ip) return null;
 
     $alt_serial = '';
     if (preg_match('/^HWTC([A-F0-9]+)$/i', $serial, $m)) {
@@ -290,6 +292,23 @@ function genieacs_find_device_id(string $serial): ?string {
             if (is_array($arr) && !empty($arr[0]['_id'])) return $arr[0]['_id'];
         }
     }
+
+    // Fallback by management IP (ConnectionRequestURL host) — untuk device yang serial
+    // TR-069-nya beda dari serial GPON (mis. CDATA ONT: CPE TR-069 lapor serial internal
+    // sendiri, bukan serial sn-auth OLT).
+    if ($mgmt_ip) {
+        $q = urlencode(json_encode([]));
+        $proj = '_id,InternetGatewayDevice.ManagementServer.ConnectionRequestURL';
+        $all = genieacs_request('GET', "/devices/?query={$q}&projection={$proj}");
+        if (is_array($all)) {
+            foreach ($all as $dev) {
+                $url = $dev['InternetGatewayDevice']['ManagementServer']['ConnectionRequestURL']['_value'] ?? '';
+                if ($url && parse_url($url, PHP_URL_HOST) === $mgmt_ip) return $dev['_id'];
+            }
+        }
+    }
+
+    if (!$serial) return null;
 
     // Last resort: suffix match against all device IDs
     $suffix = substr($serial, -8);
@@ -705,6 +724,18 @@ function genieacs_push_wan(string $serial, string $wan_mode, array $wan): array 
         return ['success' => false, 'message' => 'Device tidak ditemukan di GenieACS.'];
     }
 
+    // Deteksi vendor dari Manufacturer/ProductClass device -- dipakai kirim
+    // param vendor-extension yang BENAR (X_HW_* Huawei, X_FH_* FiberHome,
+    // X_CT-COM_* ZTE/standar China Telecom OEM). ponytail: X_CT-COM_ServiceList
+    // sudah terkonfirmasi dari dump XML device ZTE asli (riset web 2026-10-08),
+    // tapi belum pernah diverifikasi live karena belum ada ONU ZTE yang
+    // konek ke ACS ini -- cek log GenieACS begitu ONU ZTE pertama push WAN,
+    // perbaiki path kalau device balas fault (lihat komentar di bawah).
+    $device = genieacs_get_device($deviceId);
+    $manufacturer = $device['InternetGatewayDevice']['DeviceInfo']['Manufacturer']['_value'] ?? '';
+    $productClass = $device['InternetGatewayDevice']['DeviceInfo']['ProductClass']['_value'] ?? '';
+    $vendor = genieacs_detect_vendor($manufacturer, $productClass);
+
     $params = [];
 
     // Mode ONU = Bridging: ONU jadi transparan (bridge), bukan router ber-NAT.
@@ -762,6 +793,11 @@ function genieacs_push_wan(string $serial, string $wan_mode, array $wan): array 
         // pakai X_FH_ServiceList kosong dan web UI ONU salah tampil "TR069" bukan "Internet".
         $params["{$pppPath}.{$pppIndex}.X_HW_SERVICELIST"] = ['INTERNET', 'xsd:string'];
         $params["{$pppPath}.{$pppIndex}.X_FH_ServiceList"] = ['INTERNET', 'xsd:string'];
+        // ZTE (F670L/F660/F609 dkk, data model TR-098 standar China Telecom):
+        // X_CT-COM_ServiceList, format sama (nama business service, bukan boolean).
+        if ($vendor === 'zte') {
+            $params["{$pppPath}.{$pppIndex}.X_CT-COM_ServiceList"] = ['INTERNET', 'xsd:string'];
+        }
         // VLAN wajib match VLAN service ONU di OLT -- kalau device masih default/beda VLAN,
         // PPP tetap bisa "Connected" ke BRAS tapi trafik salah VLAN, pelanggan gagal browsing.
         // Kirim KEDUA param: X_HW_VLAN (vendor Huawei) dan VLANID (param TR-069 standar,
@@ -801,6 +837,9 @@ function genieacs_push_wan(string $serial, string $wan_mode, array $wan): array 
         $params["{$ipPath}.{$ipIndex}.Enable"] = [true, 'xsd:boolean'];
         $params["{$ipPath}.{$ipIndex}.X_HW_SERVICELIST"] = ['INTERNET', 'xsd:string'];
         $params["{$ipPath}.{$ipIndex}.X_FH_ServiceList"] = ['INTERNET', 'xsd:string'];
+        if ($vendor === 'zte') {
+            $params["{$ipPath}.{$ipIndex}.X_CT-COM_ServiceList"] = ['INTERNET', 'xsd:string'];
+        }
         // Sama seperti PPPoE: NAT wajib aktif, kalau tidak trafik LAN tidak ditranslate.
         $params["{$ipPath}.{$ipIndex}.NATEnabled"] = [true, 'xsd:boolean'];
         // Sama seperti PPPoE: VLAN wajib match VLAN service ONU di OLT.

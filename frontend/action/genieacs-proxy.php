@@ -362,11 +362,61 @@ if ($resp) {
     if (is_array($all)) {
         foreach ($all as $dev) {
             if (stripos($dev['_id'] ?? '', $suffix) !== false) {
-                $ch2 = curl_init($nbi . '/devices/' . urlencode($dev['_id']));
-                curl_setopt_array($ch2, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 10]);
+                $q2 = json_encode(['_id' => $dev['_id']]);
+                $ch2 = curl_init($nbi . '/devices/?query=' . urlencode($q2));
+                curl_setopt_array($ch2, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 10, CURLOPT_HTTPHEADER => ['Accept: application/json']]);
                 $full = curl_exec($ch2);
                 curl_close($ch2);
-                if ($full && ($fullData = json_decode($full, true))) { emit_device($fullData, $db_pppoe_password, $db_wlan_passwords); }
+                $fullArr = $full ? json_decode($full, true) : null;
+                if (is_array($fullArr) && !empty($fullArr[0]['_id'])) { emit_device($fullArr[0], $db_pppoe_password, $db_wlan_passwords); }
+            }
+        }
+    }
+}
+
+// Fallback by management IP (ConnectionRequestURL host) — untuk ONT (mis. CDATA)
+// yang serial TR-069 CPE internal-nya beda dari serial GPON OLT, jadi semua lookup
+// by serial di atas gagal walau device sudah lapor ke ACS. IP diambil LIVE dari OLT
+// (DB last_status_cli terlalu stale/basi untuk WAN management yang baru di-assign) --
+// jalan lambat (CLI call), tapi ini last-resort, cuma kepanggil kalau serial match gagal.
+$stmt_onu = $pdo->prepare("SELECT onus.pon_port, onus.onu_id, olts.ip as olt_ip, olts.username as olt_username, olts.password as olt_password, olts.ssh_port, olts.type, olts.protocol, olts.snmp_port, olts.snmp_community, olts.snmp_community_rw FROM onus JOIN olts ON onus.olt_id = olts.id WHERE onus.serial_number = ? LIMIT 1");
+$stmt_onu->execute([$serial]);
+$row_onu = $stmt_onu->fetch();
+$mgmt_ip = null;
+if ($row_onu && strtoupper($row_onu['type'] ?? '') === 'CDATA FD1602SB1(GPON)') {
+    require_once __DIR__ . '/../../backend/driver.php';
+    $olt_row = [
+        'ip' => $row_onu['olt_ip'], 'username' => $row_onu['olt_username'], 'password' => $row_onu['olt_password'],
+        'ssh_port' => $row_onu['ssh_port'], 'type' => $row_onu['type'], 'protocol' => $row_onu['protocol'] ?? 'ssh',
+        'snmp_port' => $row_onu['snmp_port'], 'snmp_community' => $row_onu['snmp_community'],
+        'snmp_community_rw' => $row_onu['snmp_community_rw'] ?? '',
+    ];
+    $sig = call_driver($olt_row, 'get_onu_signal', [['pon_port' => $row_onu['pon_port'], 'onu_id' => $row_onu['onu_id']], true]);
+    $raw = $sig['log'] ?? '';
+    // Format real: "ONT IP host index : 1" ... "ONT IP : x.x.x.x" (WAN index 1 = management)
+    if (preg_match('/ONT IP host index\s*:\s*1\b(?:[^\n]*\n){1,6}?\s*ONT IP\s*:\s*([0-9.]+)/i', $raw, $mm)) {
+        $mgmt_ip = $mm[1];
+    }
+}
+if ($mgmt_ip) {
+    $ch3 = curl_init($nbi . '/devices/?projection=' . urlencode('_id,InternetGatewayDevice.ManagementServer.ConnectionRequestURL'));
+    curl_setopt_array($ch3, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 10, CURLOPT_HTTPHEADER => ['Accept: application/json']]);
+    $resp3 = curl_exec($ch3);
+    curl_close($ch3);
+    if ($resp3) {
+        $all3 = json_decode($resp3, true);
+        if (is_array($all3)) {
+            foreach ($all3 as $dev) {
+                $url = $dev['InternetGatewayDevice']['ManagementServer']['ConnectionRequestURL']['_value'] ?? '';
+                if ($url && parse_url($url, PHP_URL_HOST) === $mgmt_ip) {
+                    $q4 = json_encode(['_id' => $dev['_id']]);
+                    $ch4 = curl_init($nbi . '/devices/?query=' . urlencode($q4));
+                    curl_setopt_array($ch4, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 10, CURLOPT_HTTPHEADER => ['Accept: application/json']]);
+                    $full4 = curl_exec($ch4);
+                    curl_close($ch4);
+                    $fullArr4 = $full4 ? json_decode($full4, true) : null;
+                    if (is_array($fullArr4) && !empty($fullArr4[0]['_id'])) { emit_device($fullArr4[0], $db_pppoe_password, $db_wlan_passwords); }
+                }
             }
         }
     }

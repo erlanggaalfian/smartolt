@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../backend/db.php';
 
 $token = trim(file_get_contents('/opt/genieacs/certs/.api-token') ?: '');
-$hasSession = isset($_SESSION["smartolt_role"]) && $_SESSION["smartolt_role"] === "superadmin";
+$hasSession = can_access_settings();
 $hasToken = ($_GET['token'] ?? '') === $token;
 
 if (!$hasSession && !$hasToken) {
