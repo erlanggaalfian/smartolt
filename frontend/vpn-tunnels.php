@@ -92,7 +92,7 @@ sync_vpn_status($pdo);
 // --- POST handlers ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $tok = $_POST['csrf_token'] ?? '';
-    if (!$tok || $tok !== ($_SESSION['csrf_token'] ?? '')) {
+    if (!$tok || !hash_equals($_SESSION['csrf_token'] ?? '', $tok)) {
         header('Location: vpn-tunnels.php'); exit;
     }
     $act = $_POST['action'] ?? '';
@@ -229,15 +229,15 @@ include __DIR__ . '/header.php';
 ?>
 
 <div class="stats-grid motion-stagger">
-    <div class="stat-card motion-fade-up"><div class="stat-icon bg-blue"><i data-lucide="network"></i></div><div class="stat-info"><h3>Total Tunnels</h3><p><?= $total ?></p></div></div>
-    <div class="stat-card motion-fade-up"><div class="stat-icon bg-green"><i data-lucide="wifi"></i></div><div class="stat-info"><h3>Connected</h3><p><?= $connected ?></p></div></div>
-    <div class="stat-card motion-fade-up"><div class="stat-icon bg-red"><i data-lucide="wifi-off"></i></div><div class="stat-info"><h3>Disconnected</h3><p><?= $disconnected ?></p></div></div>
-    <div class="stat-card motion-fade-up"><div class="stat-icon bg-purple"><i data-lucide="route"></i></div><div class="stat-info"><h3>Subnet</h3><p>10.198.198.0/24</p></div></div>
+    <div class="stat-card motion-fade-up"><div class="stat-icon bg-blue"><i data-lucide="network"></i></div><div class="stat-info"><div class="stat-title">Total Tunnels</div><p><?= $total ?></p></div></div>
+    <div class="stat-card motion-fade-up"><div class="stat-icon bg-green"><i data-lucide="wifi"></i></div><div class="stat-info"><div class="stat-title">Connected</div><p><?= $connected ?></p></div></div>
+    <div class="stat-card motion-fade-up"><div class="stat-icon bg-red"><i data-lucide="wifi-off"></i></div><div class="stat-info"><div class="stat-title">Disconnected</div><p><?= $disconnected ?></p></div></div>
+    <div class="stat-card motion-fade-up"><div class="stat-icon bg-purple"><i data-lucide="route"></i></div><div class="stat-info"><div class="stat-title">Subnet</div><p>10.198.198.0/24</p></div></div>
 </div>
 
 <div class="content-card">
     <div class="card-header">
-        <h2><i data-lucide="shield" style="width:18px;height:18px;"></i> VPN Tunnels</h2>
+        <h1 id="page-title"><i data-lucide="shield" style="width:18px;height:18px;"></i> VPN Tunnels</h1>
         <div style="display:flex;gap:8px;align-items:center;">
             <button class="btn btn-primary btn-sm" onclick="document.getElementById('add-modal').classList.add('open')">
                 <i data-lucide="plus" style="width:14px;height:14px;"></i> Add VPN
@@ -315,7 +315,7 @@ include __DIR__ . '/header.php';
 </div>
 
 <!-- ADD MODAL -->
-<div class="modal" id="add-modal">
+<div class="modal" id="add-modal" role="dialog" aria-modal="true">
     <div class="modal-content" style="max-width:520px;">
         <div class="modal-header"><h3>Add VPN Tunnel</h3></div>
         <form method="post">
@@ -326,13 +326,12 @@ include __DIR__ . '/header.php';
                     <div class="form-group"><label>Username</label><input type="text" name="username" class="form-control" required placeholder="mikrotik-01"></div>
                     <div class="form-group"><label>Password</label><input type="text" name="password" class="form-control" required></div>
                 </div>
-                <!-- Tunnel IP auto-assigned by OpenVPN server -->
                 <div class="form-group">
                     <label>Tunnel Routes <small style="color:var(--text-muted)">(subnet per baris, contoh: 192.168.1.0/24)</small></label>
                     <div id="add-routes-container">
                         <div style="display:flex;gap:4px;margin-bottom:4px;align-items:center;">
                             <input type="text" name="routes[]" class="form-control" placeholder="192.168.1.0/24" style="flex:1;">
-                            <button type="button" class="btn btn-xs btn-outline" style="color:var(--red);min-width:28px;" onclick="this.parentElement.remove()">×</button>
+                            <button type="button" class="btn btn-xs btn-outline" style="color:var(--color-danger);min-width:28px;" onclick="this.parentElement.remove()">×</button>
                         </div>
                     </div>
                     <button type="button" class="btn btn-xs btn-outline" onclick="addRouteRow('add-routes-container')">+ Tambah Route</button>
@@ -352,7 +351,7 @@ include __DIR__ . '/header.php';
     if (!is_array($edit_routes)) $edit_routes = [];
     if (empty($edit_routes)) $edit_routes = [''];
 ?>
-<div class="modal open">
+<div class="modal open" role="dialog" aria-modal="true">
     <div class="modal-content" style="max-width:520px;">
         <div class="modal-header"><h3>Edit VPN Tunnel — <?= htmlspecialchars($edit_tunnel['username']) ?></h3></div>
         <form method="post">
@@ -363,7 +362,6 @@ include __DIR__ . '/header.php';
                 <div class="form-group"><label>Username</label><input type="text" class="form-control" value="<?= htmlspecialchars($edit_tunnel['username']) ?>" disabled></div>
                 <div class="form-grid">
                     <div class="form-group"><label>Password</label><input type="password" name="password" class="form-control" required value="<?= htmlspecialchars($edit_tunnel['password']) ?>" autocomplete="new-password"></div>
-                    <!-- Tunnel IP auto-assigned by OpenVPN server -->
                 </div>
                 <div class="form-group">
                     <label>Tunnel Routes</label>
@@ -371,7 +369,7 @@ include __DIR__ . '/header.php';
                         <?php foreach ($edit_routes as $r): ?>
                             <div style="display:flex;gap:4px;margin-bottom:4px;align-items:center;">
                                 <input type="text" name="routes[]" class="form-control" value="<?= htmlspecialchars($r) ?>" placeholder="192.168.1.0/24" style="flex:1;">
-                                <button type="button" class="btn btn-xs btn-outline" style="color:var(--red);min-width:28px;" onclick="this.parentElement.remove()">×</button>
+                                <button type="button" class="btn btn-xs btn-outline" style="color:var(--color-danger);min-width:28px;" onclick="this.parentElement.remove()">×</button>
                             </div>
                         <?php endforeach; ?>
                     </div>
@@ -388,7 +386,7 @@ include __DIR__ . '/header.php';
 <?php endif; ?>
 
 <!-- SETUP MIKROTIK MODAL -->
-<div class="modal" id="mt-modal">
+<div class="modal" id="mt-modal" role="dialog" aria-modal="true">
     <div class="modal-content" style="max-width:620px;">
         <div class="modal-header"><h3>Setup MikroTik — <span id="mt-username"></span></h3></div>
         <div class="modal-body">
@@ -426,7 +424,7 @@ function addRouteRow(containerId) {
     input.placeholder = '192.168.1.0/24'; input.style.flex = '1';
     const btn = document.createElement('button');
     btn.type = 'button'; btn.className = 'btn btn-xs btn-outline';
-    btn.style.cssText = 'color:var(--red);min-width:28px;';
+    btn.style.cssText = 'color:var(--color-danger);min-width:28px;';
     btn.textContent = '\u00d7';
     btn.onclick = function() { div.remove(); };
     div.appendChild(input);

@@ -3,7 +3,7 @@
  * snmp-sync.php — Bulk sync ONU data via SNMP (fast, no CLI).
  * POST: olt_id=<id> or olt_id=all
  */
-require_once __DIR__ . '/../backend/db.php';
+require_once __DIR__ . '/../../backend/db.php';
 
 if (!isset($_SESSION['smartolt_role'])) {
     http_response_code(403);
@@ -27,8 +27,8 @@ if ($olt_id !== 'all') {
     }
 }
 
-$python_bin = dirname(__DIR__) . '/backend/python_engine/venv/bin/python3';
-$script = dirname(__DIR__) . '/backend/python_engine/sync_snmp_onus.py';
+$python_bin = dirname(dirname(__DIR__)) . '/backend/python_engine/venv/bin/python3';
+$script = dirname(dirname(__DIR__)) . '/backend/python_engine/sync_snmp_onus.py';
 $cmd = escapeshellarg($python_bin) . ' ' . escapeshellarg($script) . ' ' . escapeshellarg($olt_id) . ' 2>&1';
 $output = shell_exec($cmd);
 

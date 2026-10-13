@@ -10,6 +10,11 @@ header('Content-Type: application/json');
 $lockFile = '/opt/genieacs/certs/.cert-access';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!verify_csrf_token()) {
+        http_response_code(403);
+        echo json_encode(['error' => 'CSRF token tidak valid']);
+        exit;
+    }
     $action = $_POST['action'] ?? '';
     if ($action === 'enable') {
         file_put_contents($lockFile, time() + 300); // 5 menit
