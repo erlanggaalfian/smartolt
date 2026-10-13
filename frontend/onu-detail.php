@@ -205,29 +205,7 @@ if (!empty($onu['onu_type'])) {
         ?>
 
 <style>
-.sync-banner {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: rgba(59, 130, 246, 0.1);
-    border: 1px solid rgba(59, 130, 246, 0.2);
-    border-radius: 8px;
-    padding: 12px 16px;
-    margin-bottom: 20px;
-    color: #93c5fd;
-    font-size: 0.875rem;
-    font-weight: 500;
-    transition: opacity 0.3s ease, margin 0.3s ease, padding 0.3s ease, height 0.3s ease;
-}
-.sync-banner.fade-out {
-    opacity: 0;
-    padding-top: 0;
-    padding-bottom: 0;
-    margin-bottom: 0;
-    height: 0;
-    overflow: hidden;
-    border: none;
-}
+
 .spinner-small {
     width: 14px;
     height: 14px;
@@ -872,12 +850,7 @@ if (!empty($onu['onu_type'])) {
             fetch(url)
                 .then(res => res.json())
                 .then(data => {
-                    const banner = document.getElementById('sync-loading-banner');
                     if (data.success) {
-                        if (banner) {
-                            banner.classList.add('fade-out');
-                        }
-
                         const statusBadge = document.getElementById('detail-status');
                         const statusDot = document.getElementById('detail-status-dot');
                         const rxOnuText = document.getElementById('detail-rx-onu');
@@ -1132,24 +1105,11 @@ if (!empty($onu['onu_type'])) {
                         if (typeof lucide !== 'undefined') lucide.createIcons();
                     } else {
                         needFullSync = true; // retry full sync on next poll so VLAN/PPPoE/distance aren't stuck
-                        if (banner) {
-                            banner.style.background = 'rgba(239, 68, 68, 0.1)';
-                            banner.style.borderColor = 'rgba(239, 68, 68, 0.2)';
-                            banner.style.color = '#fca5a5';
-                            banner.innerHTML = `<span>⚠️ Gagal sinkronisasi data dari OLT: ${esc(data.message || 'Error tidak diketahui')}</span>`;
-                        }
                     }
                 })
                 .catch(err => {
                     console.error('Error fetching realtime signal:', err);
                     needFullSync = true; // retry full sync on next poll so VLAN/PPPoE/distance aren't stuck
-                    const banner = document.getElementById('sync-loading-banner');
-                    if (banner) {
-                        banner.style.background = 'rgba(239, 68, 68, 0.1)';
-                        banner.style.borderColor = 'rgba(239, 68, 68, 0.2)';
-                        banner.style.color = '#fca5a5';
-                        banner.innerHTML = '<span>⚠️ Terjadi kesalahan jaringan saat sinkronisasi data dari OLT.</span>';
-                    }
                 });
         }
 

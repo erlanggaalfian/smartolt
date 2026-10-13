@@ -525,46 +525,7 @@ $olt_types = get_supported_olt_types();
             cancelEditBtn.classList.add('hidden');
         });
 
-        // Verifikasi Status Koneksi OLT secara Asinkron
-        const oltRows = document.querySelectorAll('.btn-test-conn');
-        
-        function verifyConnection(oltId) {
-            const statusCell = document.getElementById(`status-olt-${oltId}`);
-            statusCell.innerHTML = '<span class="badge bg-orange">Menguji...</span>';
-            
-            fetch(`action/test-olt.php?id=${oltId}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        statusCell.innerHTML = `<span class="badge bg-green" title="${esc(data.message)}">Online</span>`;
-                    } else {
-                        statusCell.innerHTML = `<span class="badge bg-red" title="${esc(data.message)}">Offline</span>`;
-                    }
-                })
-                .catch(err => {
-                    statusCell.innerHTML = '<span class="badge bg-red" title="Gagal Fetching">Error</span>';
-                });
-        }
 
-        // Setup tombol manual test dan klik status badge
-        oltRows.forEach(btn => {
-            const id = btn.getAttribute('data-id');
-
-            // Tambahkan event click untuk manual test
-            btn.addEventListener('click', () => {
-                verifyConnection(id);
-            });
-        });
-
-        // Tambahkan event click untuk badge status
-        const statusBadges = document.querySelectorAll('.btn-status-test');
-        statusBadges.forEach(badge => {
-            badge.addEventListener('click', () => {
-                const id = badge.getAttribute('data-id');
-                verifyConnection(id);
-            });
-        });
-    });
 </script>
 
 <?php require_once __DIR__ . '/footer.php'; ?>
