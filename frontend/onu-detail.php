@@ -236,6 +236,7 @@ if (!empty($onu['onu_type'])) {
 </style>
 
 <div class="smartolt-layout">
+    <h1 id="page-title" style="margin-bottom:16px;">Detail ONU — <?php echo htmlspecialchars($parsed_desc['clean_name'] ?: $onu['serial_number']); ?></h1>
     <!-- Sync Loading Banner (Bypassed in foreground) -->
 
     <!-- Section 1: Identity & Status (clean text layout, no card/table) -->
@@ -582,7 +583,7 @@ if (!empty($onu['onu_type'])) {
     <div class="smartolt-row motion-fade-up">
         <div class="smartolt-label">Profil Kecepatan</div>
         <div class="smartolt-content">
-            <table class="smartolt-data-table">
+            <div class="table-responsive"><table class="smartolt-data-table">
                 <thead>
                     <tr>
                         <th style="width: 45%;">Download</th>
@@ -601,7 +602,7 @@ if (!empty($onu['onu_type'])) {
                         </td>
                     </tr>
                 </tbody>
-            </table>
+            </table></div>
         </div>
     </div>
 
@@ -614,7 +615,7 @@ if (!empty($onu['onu_type'])) {
                 <div style="font-size:0.85rem;">
                     <span style="font-weight:600;"><?php echo $eth_count; ?> port</span>
                     <span style="color:var(--text-muted);">(<?php echo htmlspecialchars($onu['onu_type']); ?>)</span>
-                    <table style="width:100%;margin-top:6px;border-collapse:collapse;font-size:0.8rem;">
+                    <div class="table-responsive"><table style="width:100%;margin-top:6px;border-collapse:collapse;font-size:0.8rem;">
                         <tr style="background:var(--bg-secondary);">
                             <th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Port</th>
                             <th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Admin state</th>
@@ -631,7 +632,7 @@ if (!empty($onu['onu_type'])) {
                             <td style="padding:4px 8px;"><a href="javascript:void(0)" class="btn-port-configure" data-port="eth_0/<?php echo $i; ?>" data-type="ethernet" style="color:var(--text-accent,#60a5fa);cursor:pointer;font-size:0.82rem;">Configure</a></td>
                         </tr>
                         <?php endfor; ?>
-                    </table>
+                    </table></div>
                 </div>
             <?php else: ?>
                 <span style="color:var(--text-muted);">—</span>
@@ -648,7 +649,7 @@ if (!empty($onu['onu_type'])) {
                 <div style="font-size:0.85rem;">
                     <span style="font-weight:600;"><?php echo $wifi_count; ?> SSIDs</span>
                     <span style="color:var(--text-muted);">(<?php echo htmlspecialchars($onu['onu_type']); ?>)</span>
-                    <table style="width:100%;margin-top:6px;border-collapse:collapse;font-size:0.8rem;">
+                    <div class="table-responsive"><table style="width:100%;margin-top:6px;border-collapse:collapse;font-size:0.8rem;">
                         <tr style="background:var(--bg-secondary);">
                             <th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Port</th>
                             <th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Admin state</th>
@@ -665,7 +666,7 @@ if (!empty($onu['onu_type'])) {
                             <td style="padding:4px 8px;color:var(--text-muted);">—</td>
                         </tr>
                         <?php endfor; ?>
-                    </table>
+                    </table></div>
                 </div>
             <?php else: ?>
                 <span style="color:var(--text-muted);">—</span>
@@ -1258,7 +1259,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
 ?>
 
 <!-- Modal Update ONU Mode (WAN / PPPoE Config) -->
-<div class="modal" id="update-onu-mode-modal">
+<div class="modal" id="update-onu-mode-modal" role="dialog" aria-modal="true">
     <div class="modal-content" style="max-width: 650px; width: 90%; border-radius: 6px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
         <div class="modal-header" style="padding: 15px 24px; display: flex; justify-content: space-between; align-items: center;">
             <h3 style="margin:0; font-size:1.4rem; font-weight:700; color:var(--text-main);">Update Mode ONU</h3>
@@ -1269,7 +1270,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
             <input type="hidden" name="change_scope" value="wan_config">
             <div class="modal-body" style="padding: 24px; font-size:0.95rem; color:var(--text-main);">
                 
-                <table style="width:100%; border-collapse:collapse;">
+                <div class="table-responsive"><table style="width:100%; border-collapse:collapse;">
                     <!-- WAN VLAN-ID -->
                     <tr style="height: 55px;">
                         <td style="width: 160px; font-weight: 600; color:var(--text-main); vertical-align: middle; padding: 8px 0;">WAN VLAN-ID</td>
@@ -1436,7 +1437,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             </select>
                         </td>
                     </tr>
-                </table>
+                </table></div>
 
             </div>
             <div class="modal-footer" style="padding: 15px 24px; display:flex; justify-content:flex-end; align-items:center; gap:12px;">
@@ -1448,7 +1449,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
 </div>
 
 <!-- Modal Edit ONU Type -->
-<div class="modal" id="edit-onu-type-modal">
+<div class="modal" id="edit-onu-type-modal" role="dialog" aria-modal="true">
     <div class="modal-content" style="max-width: 450px; width: 90%; border-radius: 6px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
         <div class="modal-header" style="padding: 15px 24px; display: flex; justify-content: space-between; align-items: center;">
             <h3 style="margin:0; font-size:1.2rem; font-weight:700; color:var(--text-main);">Edit Tipe ONU</h3>
@@ -1480,7 +1481,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
 </div>
 
 <!-- Modal Edit Config Preset -->
-<div class="modal" id="edit-config-preset-modal">
+<div class="modal" id="edit-config-preset-modal" role="dialog" aria-modal="true">
     <div class="modal-content" style="max-width: 450px; width: 90%; border-radius: 6px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
         <div class="modal-header" style="padding: 15px 24px; display: flex; justify-content: space-between; align-items: center;">
             <h3 style="margin:0; font-size:1.2rem; font-weight:700; color:var(--text-main);">Edit Preset Konfigurasi</h3>
@@ -1513,7 +1514,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
 </div>
 
 <!-- Modal Terpadu: Edit Identitas & Lokasi ONU -->
-<div class="modal" id="edit-identity-modal">
+<div class="modal" id="edit-identity-modal" role="dialog" aria-modal="true">
     <div class="modal-content" style="max-width: 560px; width: 95%;">
         <div class="modal-header">
             <div style="display:flex; align-items:center; gap:10px;">
@@ -2408,7 +2409,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         }
 
                         // Render accordion
-                        let html = '<div style="font-size:0.85rem;background:var(--bg-main);">';
+                        let html = '<div style="font-size:0.85rem;background:var(--bg-primary);">';
                         html += '<div style="font-weight:700;margin-bottom:12px;font-size:0.95rem;display:flex;align-items:center;gap:8px;"><span style="width:10px;height:10px;border-radius:50%;background:#28a745;display:inline-block;"></span> ' + (d._id || serial) + '</div>';
                         // Render one PPP Interface card matching the ONU-webpage layout (readonly + editable rows).
                         function pv(sec, key) {
@@ -2455,7 +2456,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             let h = '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
                             h += '<div class="tr069-toggle" data-idx="'+i+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
                             h += '<span>' + sec.title + '</span><span class="tr069-refresh" data-idx="'+i+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:' + (i === 0 ? 'inline' : 'none') + ';">&#8635;</span></div>';
-                            h += '<div class="tr069-panel" style="display:' + (i === 0 ? 'block' : 'none') + ';padding:4px 12px;background:var(--bg-main);">';
+                            h += '<div class="tr069-panel" style="display:' + (i === 0 ? 'block' : 'none') + ';padding:4px 12px;background:var(--bg-primary);">';
                             h += pppRow('Connection name', connName);
                             h += pppRow('Connection status', '<span style="color:'+statusColor+';font-weight:600;">'+status+'</span>');
                             h += pppRow('Uptime', uptime || 'N/A');
@@ -2520,7 +2521,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             let h = '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
                             h += '<div class="tr069-toggle" data-idx="'+i+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
                             h += '<span>' + sec.title + '</span><span class="tr069-refresh" data-idx="'+i+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:' + (i === 0 ? 'inline' : 'none') + ';">&#8635;</span></div>';
-                            h += '<div class="tr069-panel" style="display:' + (i === 0 ? 'block' : 'none') + ';padding:4px 12px;background:var(--bg-main);">';
+                            h += '<div class="tr069-panel" style="display:' + (i === 0 ? 'block' : 'none') + ';padding:4px 12px;background:var(--bg-primary);">';
                             h += pppRow('Name', name || 'N/A');
                             h += pppRow('Enabled', enabled ? '1' : '0');
                             h += pppRow('Addressing type', addrType);
@@ -2599,7 +2600,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             let h = '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
                             h += '<div class="tr069-toggle" data-idx="'+i+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
                             h += '<span>' + sec.title + '</span><span class="tr069-refresh" data-idx="'+i+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:' + (i === 0 ? 'inline' : 'none') + ';">&#8635;</span></div>';
-                            h += '<div class="tr069-panel" style="display:' + (i === 0 ? 'block' : 'none') + ';padding:8px 12px;background:var(--bg-main);font-size:0.85rem;">';
+                            h += '<div class="tr069-panel" style="display:' + (i === 0 ? 'block' : 'none') + ';padding:8px 12px;background:var(--bg-primary);font-size:0.85rem;">';
                             h += pppRow('SSID', wlanInput('ssid', i, ssid, {narrow:false}));
                             h += pppRow('Password', wlanInput('password', i, password, {narrow:false}));
                             h += pppRow('Connection status', '<span style="color:'+statusColor+';font-weight:600;">'+status+'</span>');
@@ -2717,7 +2718,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             let h = '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
                             h += '<div class="tr069-toggle" data-idx="'+i+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
                             h += '<span>' + sec.title + '</span><span class="tr069-refresh" data-idx="'+i+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:' + (i === 0 ? 'inline' : 'none') + ';">&#8635;</span></div>';
-                            h += '<div class="tr069-panel" style="display:' + (i === 0 ? 'block' : 'none') + ';padding:4px 12px;background:var(--bg-main);">';
+                            h += '<div class="tr069-panel" style="display:' + (i === 0 ? 'block' : 'none') + ';padding:4px 12px;background:var(--bg-primary);">';
                             h += pppRow('Router IP', textInput('ip', ip, ipBase + 'IPInterfaceIPAddress'));
                             h += pppRow('Netmask', textInput('mask', mask, ipBase + 'IPInterfaceSubnetMask'));
                             h += pppRow('DHCP Server', boolSelect('dhcp_enable', dhcpEnable, base + 'DHCPServerEnable'));
@@ -2793,7 +2794,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
                             html += '<div class="tr069-toggle" data-idx="'+i+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
                             html += '<span>' + sec.title + '</span>' + rightHtml + '</div>';
-                            html += '<div class="tr069-panel" style="display:' + (i === 0 ? 'block' : 'none') + ';padding:8px 12px;background:var(--bg-main);">';
+                            html += '<div class="tr069-panel" style="display:' + (i === 0 ? 'block' : 'none') + ';padding:8px 12px;background:var(--bg-primary);">';
                             const genFields = [];
                             for (const [k, v] of Object.entries(sec.params)) {
                                 let val;
@@ -2835,11 +2836,11 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
                             html += '<div class="tr069-toggle" data-idx="'+idx+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
                             html += '<span>LAN Ports</span><span class="tr069-refresh" data-idx="'+idx+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:none;">&#8635;</span></div>';
-                            html += '<div class="tr069-panel" style="display:none;padding:8px 12px;background:var(--bg-main);font-size:0.85rem;">';
+                            html += '<div class="tr069-panel" style="display:none;padding:8px 12px;background:var(--bg-primary);font-size:0.85rem;">';
                             if (!lanPortList.length) {
                                 html += '<div style="color:var(--text-muted);padding:8px 0;">Tidak ada port LAN.</div>';
                             } else {
-                                html += '<table style="width:100%;border-collapse:collapse;">';
+                                html += '<div class="table-responsive"><table style="width:100%;border-collapse:collapse;">';
                                 html += '<tr style="text-align:left;color:var(--text-muted);font-size:0.78rem;"><th style="padding:5px 8px 5px 0;">Port</th><th style="padding:5px 8px;">Enable</th><th style="padding:5px 8px;">Status</th><th style="padding:5px 8px;">Speed</th><th style="padding:5px 8px;">Duplex</th><th style="padding:5px 8px;">L3 Enable</th><th style="padding:5px 8px;">Speed mode</th><th style="padding:5px 8px;">Duplex mode</th><th style="padding:5px 8px;">Flow control</th><th style="padding:5px 0 5px 8px;"></th></tr>';
                                 lanPortList.forEach((p, pi) => {
                                     const B = 'InternetGatewayDevice.' + p.path + '.';
@@ -2866,7 +2867,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                         + '<td style="padding:6px 0 6px 8px;"><button type="button" class="btn-solt btn-solt-green gen-save" data-idx="lanport'+pi+'" data-fields=\''+JSON.stringify(fieldsMeta).replace(/'/g,'&#39;')+'\' style="padding:4px 10px;font-size:0.78rem;white-space:nowrap;">Simpan</button></td>'
                                         + '</tr>';
                                 });
-                                html += '</table>';
+                                html += '</table></div>';
                             }
                             html += '</div></div>';
                         })();
@@ -2876,18 +2877,18 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
                             html += '<div class="tr069-toggle" data-idx="'+idx+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
                             html += '<span>LAN Counters</span><span class="tr069-refresh" data-idx="'+idx+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:none;">&#8635;</span></div>';
-                            html += '<div class="tr069-panel" style="display:none;padding:8px 12px;background:var(--bg-main);font-size:0.8rem;overflow-x:auto;">';
+                            html += '<div class="tr069-panel" style="display:none;padding:8px 12px;background:var(--bg-primary);font-size:0.8rem;overflow-x:auto;">';
                             if (!lanPortList.length) {
                                 html += '<div style="color:var(--text-muted);padding:8px 0;">Tidak ada data counter.</div>';
                             } else {
-                                html += '<table style="width:100%;border-collapse:collapse;white-space:nowrap;">';
+                                html += '<div class="table-responsive"><table style="width:100%;border-collapse:collapse;">';
                                 const cols = ['#','Bytes In','Bytes Out','Pkts In','Pkts Out','Uni In','Uni Out','Multi In','Multi Out','Bro In','Bro Out','Err In','Err Out','Disc In','Disc Out'];
                                 html += '<tr style="text-align:left;color:var(--text-muted);font-size:0.75rem;">' + cols.map(c => '<th style="padding:5px 8px;">'+c+'</th>').join('') + '</tr>';
                                 lanPortList.forEach((p, pi) => {
                                     const vals = [pi+1, p.bytesIn, p.bytesOut, p.pktsIn, p.pktsOut, p.uniIn, p.uniOut, p.multiIn, p.multiOut, p.broIn, p.broOut, p.errIn, p.errOut, p.discIn, p.discOut];
                                     html += '<tr style="border-top:1px solid var(--border-color);">' + vals.map(v => '<td style="padding:6px 8px;">'+v+'</td>').join('') + '</tr>';
                                 });
-                                html += '</table>';
+                                html += '</table></div>';
                             }
                             html += '</div></div>';
                         })();
@@ -2897,11 +2898,11 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
                             html += '<div class="tr069-toggle" data-idx="'+idx+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
                             html += '<span>Connected Hosts</span><span class="tr069-refresh" data-idx="'+idx+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:none;">&#8635;</span></div>';
-                            html += '<div class="tr069-panel" style="display:none;padding:8px 12px;background:var(--bg-main);font-size:0.85rem;">';
+                            html += '<div class="tr069-panel" style="display:none;padding:8px 12px;background:var(--bg-primary);font-size:0.85rem;">';
                             if (!hostList.length) {
                                 html += '<div style="color:var(--text-muted);padding:8px 0;">Tidak ada host terkoneksi.</div>';
                             } else {
-                                html += '<table style="width:100%;border-collapse:collapse;">';
+                                html += '<div class="table-responsive"><table style="width:100%;border-collapse:collapse;">';
                                 html += '<tr style="text-align:left;color:var(--text-muted);font-size:0.78rem;"><th style="padding:5px 8px 5px 0;">#</th><th style="padding:5px 8px;">MAC Address</th><th style="padding:5px 8px;">IP Address</th><th style="padding:5px 8px;">Address source</th><th style="padding:5px 8px;">Hostname</th><th style="padding:5px 8px;">Port</th><th style="padding:5px 0 5px 8px;">Active</th></tr>';
                                 hostList.forEach((h, hi) => {
                                     const activeText = h.active === true || h.active === '1' || h.active === 1 ? 'Yes' : 'No';
@@ -2916,7 +2917,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                         + '<td style="padding:6px 0 6px 8px;">' + activeText + '</td>'
                                         + '</tr>';
                                 });
-                                html += '</table>';
+                                html += '</table></div>';
                             }
                             html += '</div></div>';
                         })();
@@ -2926,11 +2927,11 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
                             html += '<div class="tr069-toggle" data-idx="'+idx+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
                             html += '<span>Routing</span><span class="tr069-refresh" data-idx="'+idx+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:none;">&#8635;</span></div>';
-                            html += '<div class="tr069-panel" style="display:none;padding:8px 12px;background:var(--bg-main);font-size:0.85rem;">';
+                            html += '<div class="tr069-panel" style="display:none;padding:8px 12px;background:var(--bg-primary);font-size:0.85rem;">';
                             if (!routeList.length) {
                                 html += '<div style="color:var(--text-muted);padding:8px 0;">Tidak ada route.</div>';
                             } else {
-                                html += '<table style="width:100%;border-collapse:collapse;">';
+                                html += '<div class="table-responsive"><table style="width:100%;border-collapse:collapse;">';
                                 html += '<tr style="text-align:left;color:var(--text-muted);font-size:0.78rem;"><th style="padding:5px 8px 5px 0;">Destination</th><th style="padding:5px 8px;">Subnet Mask</th><th style="padding:5px 8px;">Gateway</th><th style="padding:5px 8px;">Interface</th><th style="padding:5px 0 5px 8px;">Origin</th></tr>';
                                 routeList.forEach(r => {
                                     html += '<tr style="border-top:1px solid var(--border-color);">'
@@ -2941,7 +2942,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                         + '<td style="padding:6px 0 6px 8px;">' + esc(r.origin) + '</td>'
                                         + '</tr>';
                                 });
-                                html += '</table>';
+                                html += '</table></div>';
                             }
                             html += '</div></div>';
                         })();
@@ -2951,7 +2952,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
                             html += '<div class="tr069-toggle" data-idx="'+idx+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
                             html += '<span>Voice lines</span><span class="tr069-refresh" data-idx="'+idx+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:none;">&#8635;</span></div>';
-                            html += '<div class="tr069-panel" style="display:none;padding:10px 12px;background:var(--bg-main);font-size:0.85rem;">';
+                            html += '<div class="tr069-panel" style="display:none;padding:10px 12px;background:var(--bg-primary);font-size:0.85rem;">';
                             if (!voiceLines.length) {
                                 html += '<div style="color:var(--text-muted);padding:8px 0;">Tidak ada voice line.</div>';
                             } else {
@@ -3008,7 +3009,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
                             html += '<div class="tr069-toggle" data-idx="'+idx+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
                             html += '<span>Security</span><span class="tr069-refresh" data-idx="'+idx+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:none;">&#8635;</span></div>';
-                            html += '<div class="tr069-panel" style="display:none;padding:10px 12px;background:var(--bg-main);font-size:0.85rem;">';
+                            html += '<div class="tr069-panel" style="display:none;padding:10px 12px;background:var(--bg-primary);font-size:0.85rem;">';
                             const rowRadio = (label, id, val, opts) => {
                                 return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><label style="width:230px;color:var(--text-muted);">'+label+'</label><div style="flex:1;display:flex;gap:18px;">'
                                     + opts.map(o => '<label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-weight:400;"><input type="radio" name="'+id+'" value="'+o[0]+'" id="'+id+'-'+o[0]+'"'+(String(val)===o[0]?' checked':'')+'> '+o[1]+'</label>').join('')
@@ -3034,7 +3035,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             html += '</div>';
                             const ruleTbl = acl.Rule || {};
                             const ruleIds = Object.keys(ruleTbl).filter(k => /^\d+$/.test(k)).sort((a,b) => a - b);
-                            html += '<table style="width:100%;border-collapse:collapse;font-size:0.8rem;margin-bottom:8px;">';
+                            html += '<div class="table-responsive"><table style="width:100%;border-collapse:collapse;font-size:0.8rem;margin-bottom:8px;">';
                             html += '<tr style="background:var(--bg-secondary);"><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);">ID</th><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);">Active</th><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);">Source IP</th><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);">Protocol</th><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);">Interface</th><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);"></th></tr>';
                             if (ruleIds.length === 0) {
                                 html += '<tr><td colspan="6" style="padding:6px;border:1px solid var(--border-color);color:var(--text-muted);">Belum ada rule.</td></tr>';
@@ -3058,14 +3059,14 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                     + '<td style="padding:5px 6px;border:1px solid var(--border-color);"><button type="button" class="btn-solt btn-solt-blue fhacl-edit" data-rule="'+rid+'" data-active="'+(active==='YES'?'1':'0')+'" data-srcstart="'+esc(startShown)+'" data-srcend="'+esc(endShown)+'" data-protocol="'+esc(r.Protocol?._value||'')+'" data-interface="'+esc(r.Interface?._value||'')+'" style="padding:3px 10px;font-size:0.76rem;">Edit</button> <button type="button" class="btn-solt btn-solt-red fhacl-delete" data-rule="'+rid+'" style="padding:3px 10px;font-size:0.76rem;">Delete</button></td>'
                                     + '</tr>';
                             });
-                            html += '</table>';
+                            html += '</table></div>';
 
                             // Panel Add/Edit Rule -- INLINE di bawah tabel (bukan popup modal),
                             // hidden by default, dibuka oleh tombol Add/Edit.
                             html += '<div id="fhacl-inline-panel" style="display:none;border:1px solid var(--border-color);border-radius:6px;padding:14px;margin-bottom:10px;background:var(--bg-secondary);">';
                             html += '<div style="font-weight:600;margin-bottom:10px;" id="fhacl-modal-title">Add Rule</div>';
                             html += '<input type="hidden" id="fhacl-modal-rule-id" value="">';
-                            html += '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">';
+                            html += '<div class="table-responsive"><table style="width:100%;border-collapse:collapse;font-size:0.82rem;">';
                             html += '<tr style="height:38px;"><td style="width:140px;font-weight:600;">Active</td><td>'
                                 + '<label style="margin-right:16px;cursor:pointer;"><input type="radio" name="fhacl-modal-active" value="1" checked> YES</label>'
                                 + '<label style="cursor:pointer;"><input type="radio" name="fhacl-modal-active" value="0"> NO</label></td></tr>';
@@ -3073,7 +3074,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             html += '<tr style="height:38px;"><td style="font-weight:600;">Source IP End</td><td><input type="text" id="fhacl-modal-srcend" placeholder="kosong = semua IP" style="width:100%;padding:6px 10px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);color:var(--text-main);"></td></tr>';
                             html += '<tr style="height:38px;"><td style="font-weight:600;">Protocol</td><td><select id="fhacl-modal-protocol" style="width:100%;padding:6px 10px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);color:var(--text-main);"><option value="ALL">ALL</option><option value="TCP">TCP</option><option value="UDP">UDP</option><option value="ICMP">ICMP</option></select></td></tr>';
                             html += '<tr style="height:38px;"><td style="font-weight:600;">Interface</td><td><select id="fhacl-modal-interface" style="width:100%;padding:6px 10px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);color:var(--text-main);"></select></td></tr>';
-                            html += '</table>';
+                            html += '</table></div>';
                             html += '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px;">'
                                 + '<button type="button" class="btn btn-secondary" id="fhacl-inline-cancel" style="padding:6px 16px;font-size:0.82rem;">Batal</button>'
                                 + '<button type="button" class="btn btn-primary" id="fhacl-modal-save" style="padding:6px 16px;font-size:0.82rem;">Simpan</button></div>';
@@ -3123,7 +3124,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
                             html += '<div class="tr069-toggle" data-idx="'+idx+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
                             html += '<span>Security</span><span class="tr069-refresh" data-idx="'+idx+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:none;">&#8635;</span></div>';
-                            html += '<div class="tr069-panel" style="display:none;padding:10px 12px;background:var(--bg-main);font-size:0.85rem;">';
+                            html += '<div class="tr069-panel" style="display:none;padding:10px 12px;background:var(--bg-primary);font-size:0.85rem;">';
                             const enDis = [['true','Enabled'],['false','Disabled']];
                             const rowRadio = (label, id, val, opts) => '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><label style="width:230px;color:var(--text-muted);">'+label+'</label><div style="flex:1;display:flex;gap:18px;">'
                                 + opts.map(o => '<label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-weight:400;"><input type="radio" name="'+id+'" value="'+o[0]+'" id="'+id+'-'+o[0]+'"'+(String(val)===o[0]?' checked':'')+'> '+o[1]+'</label>').join('')
@@ -3187,7 +3188,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
                             html += '<div class="tr069-toggle" data-idx="'+idx+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
                             html += '<span>Security</span><span class="tr069-refresh" data-idx="'+idx+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:none;">&#8635;</span></div>';
-                            html += '<div class="tr069-panel" style="display:none;padding:10px 12px;background:var(--bg-main);font-size:0.85rem;">';
+                            html += '<div class="tr069-panel" style="display:none;padding:10px 12px;background:var(--bg-primary);font-size:0.85rem;">';
                             // Radio group persis tampilan router asli (bukan dropdown), 2 opsi per baris.
                             const rowRadio = (label, id, val, opts) => {
                                 const name = id;
@@ -3757,7 +3758,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         let h = '<div style="font-size:0.85rem;">';
                         h += '<span style="font-weight:600;">' + ethPorts.length + ' port</span>';
                         h += ' <span style="color:var(--text-muted);">(ALL-ONT)</span>';
-                        h += '<table style="width:100%;margin-top:6px;border-collapse:collapse;font-size:0.8rem;">';
+                        h += '<div class="table-responsive"><table style="width:100%;margin-top:6px;border-collapse:collapse;font-size:0.8rem;">';
                         h += '<tr style="background:var(--bg-secondary);"><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Port</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Admin state</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Mode</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">DHCP</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Action</th></tr>';
                         for (const p of ethPorts) {
                             const color = p.enabled ? '#28a745' : '#6c757d';
@@ -3767,7 +3768,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             h += '<td style="padding:4px 8px;">' + ethDhcpLabel + '</td>';
                             h += '<td style="padding:4px 8px;"><a href="javascript:void(0)" class="btn-port-configure" data-port="' + p.name + '" data-type="ethernet" style="color:var(--text-accent,#60a5fa);cursor:pointer;font-size:0.82rem;">Configure</a></td></tr>';
                         }
-                        h += '</table></div>';
+                        h += '</table></div></div>';
                         ethEl.innerHTML = h;
                     }
                     const wifiEl = document.getElementById('port-wifi-content');
@@ -3775,7 +3776,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         let h = '<div style="font-size:0.85rem;">';
                         h += '<span style="font-weight:600;">' + wifiList.length + ' SSIDs</span>';
                         h += ' <span style="color:var(--text-muted);">(ALL-ONT)</span>';
-                        h += '<table style="width:100%;margin-top:6px;border-collapse:collapse;font-size:0.8rem;">';
+                        h += '<div class="table-responsive"><table style="width:100%;margin-top:6px;border-collapse:collapse;font-size:0.8rem;">';
                         h += '<tr style="background:var(--bg-secondary);"><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Port</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Admin state</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Mode</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">SSID</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">DHCP</th></tr>';
                         for (const w of wifiList) {
                             const color = w.enabled ? '#28a745' : '#6c757d';
@@ -3785,7 +3786,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             h += '<td style="padding:4px 8px;">' + w.ssid + '</td>';
                             h += '<td style="padding:4px 8px;">No control</td></tr>';
                         }
-                        h += '</table></div>';
+                        h += '</table></div></div>';
                         wifiEl.innerHTML = h;
                     }
                     const voipEl = document.getElementById('port-voip-content');
@@ -3931,7 +3932,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
 </script>
 
 <!-- Modal Replace ONU (Ganti Serial Number) -->
-<div class="modal" id="replace-onu-modal">
+<div class="modal" id="replace-onu-modal" role="dialog" aria-modal="true">
     <div class="modal-content" style="max-width: 500px; width: 90%; border-radius: 6px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
         <div class="modal-header" style="padding: 15px 24px; display: flex; justify-content: space-between; align-items: center;">
             <div style="display:flex; align-items:center; gap:10px;">
@@ -3977,7 +3978,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
 </script>
 
 <!-- Modal IP Manajemen -->
-<div class="modal" id="mgmt-ip-modal">
+<div class="modal" id="mgmt-ip-modal" role="dialog" aria-modal="true">
     <div class="modal-content" style="max-width:520px; width:90%;">
         <div class="modal-header" style="padding:15px 24px; display:flex; justify-content:space-between; align-items:center;">
             <h3 style="margin:0; font-size:1.3rem; font-weight:700;">IP Manajemen</h3>
@@ -3986,7 +3987,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
         <form id="mgmt-ip-form" onsubmit="return saveMgmtIp(event)">
             <input type="hidden" name="onu_id" value="<?php echo (int)$onu['id']; ?>">
             <div class="modal-body" style="padding:24px;">
-                <table style="width:100%;border-collapse:collapse;">
+                <div class="table-responsive"><table style="width:100%;border-collapse:collapse;">
                     <tr style="height:50px;">
                         <td style="width:140px;font-weight:600;color:var(--text-main);vertical-align:middle;">Mode</td>
                         <td>
@@ -4024,7 +4025,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             </select>
                         </td>
                     </tr>
-                </table>
+                </table></div>
                 <small style="display:block;margin-top:12px;color:var(--text-muted);line-height:1.4;">IP Manajemen digunakan untuk remote akses ONU via web. VLAN harus ditandai sebagai management di halaman OLT VLAN. Akses Remote WAN membuka akses ONU dari internet luar.</small>
             </div>
             <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:8px;padding:16px 24px;">
@@ -4036,7 +4037,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
 </div>
 
 <!-- Modal TR609 Profile -->
-<div class="modal" id="tr609-profile-modal">
+<div class="modal" id="tr609-profile-modal" role="dialog" aria-modal="true">
     <div class="modal-content" style="max-width:480px; width:90%;">
         <div class="modal-header" style="padding:15px 24px; display:flex; justify-content:space-between; align-items:center;">
             <h3 style="margin:0; font-size:1.3rem; font-weight:700;">TR609 Profile</h3>
@@ -4045,7 +4046,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
         <form id="tr609-form" onsubmit="return saveTr609(event)">
             <input type="hidden" name="onu_id" value="<?php echo (int)$onu['id']; ?>">
             <div class="modal-body" style="padding:24px;">
-                <table style="width:100%;border-collapse:collapse;">
+                <div class="table-responsive"><table style="width:100%;border-collapse:collapse;">
                     <tr style="height:50px;">
                         <td style="width:120px;font-weight:600;color:var(--text-main);vertical-align:middle;">Profil</td>
                         <td>
@@ -4067,7 +4068,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             <label style="cursor:pointer;font-size:0.9rem;"><input type="radio" name="vlan_mode" value="internet" <?php echo $tr609_vlan_mode === 'internet' ? 'checked' : ''; ?>> Ikut Internet (PPPoE)</label>
                         </td>
                     </tr>
-                </table>
+                </table></div>
                 <div id="tr609-profile-info" style="margin-top:16px;padding:14px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius-sm);font-size:0.85rem;line-height:1.8;">
                     <div><strong>ACS URL:</strong> <span id="tr609-info-url">-</span></div>
                     <div><strong>Username:</strong> <span id="tr609-info-user">-</span></div>
@@ -4141,12 +4142,21 @@ function updateTr609Info() {
 }
 document.querySelector('[name="tr609_profile"]').addEventListener('change', updateTr609Info);
 updateTr609Info();
+
+// Keyboard access for clickable detail rows (Enter/Space activate like click)
+document.querySelectorAll('.detail-plain-row[data-clickable]').forEach(el => {
+    el.setAttribute('role', 'button');
+    el.setAttribute('tabindex', '0');
+    el.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.click(); }
+    });
+});
 </script>
 
 <?php require_once __DIR__ . '/onu-detail-css.php'; ?>
 
 <!-- Modal Configure Port -->
-<div class="modal" id="port-configure-modal">
+<div class="modal" id="port-configure-modal" role="dialog" aria-modal="true">
     <div style="background:var(--bg-primary,#1a1a2e);border-radius:10px;width:480px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.4);">
         <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border-color);">
             <span id="port-cfg-title" style="font-weight:600;font-size:1rem;">Configure ethernet port</span>
@@ -4171,13 +4181,13 @@ updateTr609Info();
             </div>
             <div style="margin-bottom:16px;">
                 <label style="display:block;font-weight:600;margin-bottom:6px;font-size:0.9rem;">VLAN-ID</label>
-                <select id="port-cfg-vlan" style="width:100%;padding:8px;border:1px solid var(--border-color);border-radius:6px;font-size:0.9rem;background:var(--bg-secondary,#16213e);color:var(--text-primary);">
+                <select id="port-cfg-vlan" style="width:100%;padding:8px;border:1px solid var(--border-color);border-radius:6px;font-size:0.9rem;background:var(--bg-secondary,#16213e);color:var(--text-main);">
                     <option value="">—</option>
                 </select>
             </div>
             <div style="margin-bottom:8px;">
                 <label style="display:block;font-weight:600;margin-bottom:6px;font-size:0.9rem;">DHCP</label>
-                <select id="port-cfg-dhcp" style="width:100%;padding:8px;border:1px solid var(--border-color);border-radius:6px;font-size:0.9rem;background:var(--bg-secondary,#16213e);color:var(--text-primary);">
+                <select id="port-cfg-dhcp" style="width:100%;padding:8px;border:1px solid var(--border-color);border-radius:6px;font-size:0.9rem;background:var(--bg-secondary,#16213e);color:var(--text-main);">
                     <option value="No control">No control</option>
                     <option value="From ISP">From ISP</option>
                     <option value="From ONU">From ONU</option>

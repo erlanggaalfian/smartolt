@@ -94,7 +94,7 @@ foreach ($profiles as $p) {
 
     <div class="content-card">
         <div class="card-header">
-            <h2><i data-lucide="list" style="width:18px;height:18px;"></i> Custom Profiles</h2>
+            <h1 id="page-title"><i data-lucide="list" style="width:18px;height:18px;"></i> Custom Profiles</h1>
             <button class="btn btn-primary btn-sm" onclick="openProfileModal()"><i data-lucide="plus" style="width:14px;height:14px;"></i> Add Profile</button>
         </div>
         <div class="table-responsive">
@@ -228,7 +228,7 @@ foreach ($profiles as $p) {
 </div>
 
 <!-- ADD/EDIT PROFILE MODAL -->
-<div class="modal" id="profile-modal">
+<div class="modal" id="profile-modal" role="dialog" aria-modal="true" aria-labelledby="profile-modal-title">
     <div class="modal-content" style="max-width:500px;">
         <div class="modal-header">
             <h3 id="profile-modal-title">Add TR-069 Profile</h3>

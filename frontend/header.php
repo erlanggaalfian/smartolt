@@ -200,13 +200,13 @@ session_write_close();
             <div class="view-panel">
                 <?php if (isset($_SESSION['debug_log'])): ?>
                     <!-- Terminal Modal -->
-                    <div class="modal open" id="debug-log-modal" style="z-index: 9999; display: flex; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);">
+                    <div class="modal open" id="debug-log-modal" role="dialog" aria-modal="true" aria-labelledby="debug-log-modal-title" style="z-index: 9999; display: flex; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);">
                         <div class="modal-content" style="max-width: 800px; width: 90%; border-radius: 6px; box-shadow: 0 4px 20px rgba(0,0,0,0.25); border: none; background: #1e1e1e; color: #f8f8f2; font-family: 'Courier New', Courier, monospace; display: flex; flex-direction: column;">
                             <div class="modal-header" style="border-bottom: 1px solid #333; padding: 15px 24px; display: flex; justify-content: space-between; align-items: center; background: #2d2d2d; border-top-left-radius: 6px; border-top-right-radius: 6px;">
-                                <h3 style="margin:0; font-size:1.1rem; font-weight:500; color:#fff; display: flex; align-items: center; gap: 8px;">
+                                <h3 id="debug-log-modal-title" style="margin:0; font-size:1.1rem; font-weight:500; color:#fff; display: flex; align-items: center; gap: 8px;">
                                     <i data-lucide="terminal" style="width:18px; height:18px; color: #a6e22e;"></i> OLT CLI Debug Log Tracing
                                 </h3>
-                                <button type="button" class="close-btn" onclick="document.getElementById('debug-log-modal').style.display='none'" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:#94a3b8; line-height: 1;">&times;</button>
+                                <button type="button" class="close-btn" aria-label="Tutup" onclick="document.getElementById('debug-log-modal').style.display='none'" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:#94a3b8; line-height: 1;">&times;</button>
                             </div>
                             <div class="modal-body" style="padding: 24px; max-height: 450px; overflow-y: auto;">
                                 <div style="font-weight: bold; color: #66d9ef; margin-bottom: 10px;">[Sent Commands & OLT CLI Trace Output]</div>

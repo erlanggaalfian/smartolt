@@ -169,10 +169,10 @@ $onus = $stmt_data->fetchAll();
     <form method="GET" id="form-filter" action="configured.php" class="filter-row" style="margin:0;">
         <input type="hidden" name="limit" id="filter-limit" value="<?php echo $limit; ?>">
         <div class="filter-item search-item">
-            <input type="text" name="search" class="form-control" placeholder="Cari nama, SN, alamat, PPPoE, OLT, VLAN, splitter, zone..." value="<?php echo htmlspecialchars($search); ?>">
+            <input type="text" name="search" class="form-control" aria-label="Cari pelanggan" placeholder="Cari nama, SN, alamat, PPPoE, OLT, VLAN, splitter, zone..." value="<?php echo htmlspecialchars($search); ?>">
         </div>
         <div class="filter-item">
-            <select name="olt_id" class="form-control" onchange="this.closest('form').querySelectorAll('[name=zone],[name=odb],[name=pon_port]').forEach(i=>i.value='');this.closest('form').submit();">
+            <select name="olt_id" class="form-control" aria-label="Filter OLT" onchange="this.closest('form').querySelectorAll('[name=zone],[name=odb],[name=pon_port]').forEach(i=>i.value='');this.closest('form').submit();">
                 <option value="" <?php echo $selected_olt_id === '' ? 'selected' : ''; ?>>Semua OLT</option>
                 <?php foreach ($olts as $olt): ?>
                     <option value="<?php echo (int)$olt['id']; ?>" <?php echo ($selected_olt_id !== '' && $selected_olt_id == $olt['id']) ? 'selected' : ''; ?>>
@@ -182,7 +182,7 @@ $onus = $stmt_data->fetchAll();
             </select>
         </div>
         <div class="filter-item">
-            <select name="status" class="form-control" onchange="this.form.submit()">
+            <select name="status" class="form-control" aria-label="Filter Status" onchange="this.form.submit()">
                 <option value="">Semua Status</option>
                 <option value="online" <?php echo $status === 'online' ? 'selected' : ''; ?>>Online</option>
                 <option value="offline_power" <?php echo $status === 'offline_power' ? 'selected' : ''; ?>>Offline - Power Down</option>
@@ -193,7 +193,7 @@ $onus = $stmt_data->fetchAll();
             </select>
         </div>
         <div class="filter-item">
-            <select name="zone" class="form-control" onchange="this.form.submit()">
+            <select name="zone" class="form-control" aria-label="Filter Zone" onchange="this.form.submit()">
                 <option value="">Semua Zone</option>
                 <option value="None" <?php echo $filter_zone === 'None' ? 'selected' : ''; ?>>None (belum diisi)</option>
                 <?php foreach ($available_zones as $z): ?>
@@ -202,7 +202,7 @@ $onus = $stmt_data->fetchAll();
             </select>
         </div>
         <div class="filter-item">
-            <select name="odb" class="form-control" onchange="this.form.submit()">
+            <select name="odb" class="form-control" aria-label="Filter ODB" onchange="this.form.submit()">
                 <option value="">Semua ODB</option>
                 <option value="None" <?php echo $filter_odb === 'None' ? 'selected' : ''; ?>>None (belum diisi)</option>
                 <?php foreach ($available_odbs as $o): ?>
@@ -211,7 +211,7 @@ $onus = $stmt_data->fetchAll();
             </select>
         </div>
         <div class="filter-item">
-            <select name="pon_port" class="form-control" onchange="this.form.submit()">
+            <select name="pon_port" class="form-control" aria-label="Filter PON" onchange="this.form.submit()">
                 <option value="">Semua PON</option>
                 <?php foreach ($available_pons as $p): ?>
                     <option value="<?php echo htmlspecialchars($p); ?>" <?php echo $filter_pon === $p ? 'selected' : ''; ?>><?php echo htmlspecialchars($p); ?></option>
@@ -220,7 +220,7 @@ $onus = $stmt_data->fetchAll();
         </div>
 
         <div class="filter-item">
-            <select name="signal" class="form-control" onchange="this.form.submit()">
+            <select name="signal" class="form-control" aria-label="Filter Sinyal" onchange="this.form.submit()">
                 <option value="">Semua Sinyal</option>
                 <option value="critical" <?php echo $filter_signal === 'critical' ? 'selected' : ''; ?>>Sinyal Kritis (&lt; -30 dBm)</option>
                 <option value="weak" <?php echo $filter_signal === 'weak' ? 'selected' : ''; ?>>Sinyal Lemah (-30 s/d -28)</option>
@@ -229,7 +229,7 @@ $onus = $stmt_data->fetchAll();
             </select>
         </div>
         <div class="filter-item">
-            <select name="onu_type" class="form-control" onchange="this.form.submit()">
+            <select name="onu_type" class="form-control" aria-label="Filter Tipe ONU" onchange="this.form.submit()">
                 <option value="">Semua Tipe</option>
                 <?php foreach ($available_types as $t): ?>
                     <option value="<?php echo htmlspecialchars($t); ?>" <?php echo $filter_type === $t ? 'selected' : ''; ?>><?php echo htmlspecialchars($t); ?></option>
@@ -499,6 +499,8 @@ $onus = $stmt_data->fetchAll();
         if (!container) {
             const c = document.createElement('div');
             c.id = 'toast-container';
+            c.setAttribute('role', 'status');
+            c.setAttribute('aria-live', 'polite');
             c.style.cssText = 'position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;';
             document.body.appendChild(c);
         }
@@ -638,10 +640,10 @@ $onus = $stmt_data->fetchAll();
 
 <div class="content-card">
     <div class="card-header border-accent" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; padding: 12px 20px;">
-        <h2>Daftar Pelanggan Terdaftar (Configured)</h2>
+        <h1 id="page-title">Daftar Pelanggan Terdaftar (Configured)</h1>
         <div style="display:flex; align-items:center; gap:8px;">
             <label for="header-limit-select" style="margin:0;font-weight:600;font-size:0.85rem;color:var(--text-muted);">Tampilkan:</label>
-            <select id="header-limit-select" class="form-control" style="width:105px; padding:4px 8px; font-size:0.85rem; height:32px; border-radius:4px; background-color:var(--bg-tertiary); border:1px solid var(--border-color); color:var(--text-main); font-weight:600; cursor:pointer;">
+            <select id="header-limit-select" class="form-control" aria-label="Jumlah baris" style="width:105px; padding:4px 8px; font-size:0.85rem; height:32px; border-radius:4px; background-color:var(--bg-tertiary); border:1px solid var(--border-color); color:var(--text-main); font-weight:600; cursor:pointer;">
                 <option value="20" <?php echo $limit === 20 ? 'selected' : ''; ?>>20 / hal</option>
                 <option value="50" <?php echo $limit === 50 ? 'selected' : ''; ?>>50 / hal</option>
                 <option value="100" <?php echo $limit === 100 ? 'selected' : ''; ?>>100 / hal</option>

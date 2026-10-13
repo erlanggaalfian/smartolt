@@ -94,14 +94,14 @@ if ($edit_splitter) {
 ?>
 <div class="content-card" style="margin-bottom:20px">
     <div class="card-header">
-        <h2>Edit Splitter — <?= htmlspecialchars($edit_splitter['name']) ?></h2>
+        <h1 id="page-title">Edit Splitter — <?= htmlspecialchars($edit_splitter['name']) ?></h1>
         <a href="splitters.php" class="btn btn-secondary">&larr; Kembali</a>
     </div>
     <div class="card-body">
         <div class="stats-grid" style="margin-bottom:20px">
-            <div class="stat-card"><div class="stat-icon bg-blue"><i data-lucide="hash"></i></div><div class="stat-info"><h3>ID</h3><p><?= $edit_splitter['id'] ?></p></div></div>
-            <div class="stat-card"><div class="stat-icon bg-green"><i data-lucide="network"></i></div><div class="stat-info"><h3>ONU Terpasang</h3><p><?= count($edit_onus) ?></p></div></div>
-            <div class="stat-card"><div class="stat-icon bg-orange"><i data-lucide="map-pin"></i></div><div class="stat-info"><h3>Zone</h3><p><?= htmlspecialchars($edit_splitter['zone'] ?? '—') ?></p></div></div>
+            <div class="stat-card"><div class="stat-icon bg-blue"><i data-lucide="hash"></i></div><div class="stat-info"><div class="stat-title">ID</div><p><?= $edit_splitter['id'] ?></p></div></div>
+            <div class="stat-card"><div class="stat-icon bg-green"><i data-lucide="network"></i></div><div class="stat-info"><div class="stat-title">ONU Terpasang</div><p><?= count($edit_onus) ?></p></div></div>
+            <div class="stat-card"><div class="stat-icon bg-orange"><i data-lucide="map-pin"></i></div><div class="stat-info"><div class="stat-title">Zone</div><p><?= htmlspecialchars($edit_splitter['zone'] ?? '—') ?></p></div></div>
         </div>
         <form method="post" style="max-width:700px">
             <input type="hidden" name="action" value="update">
@@ -137,15 +137,15 @@ if ($edit_splitter) {
 // LIST MODE
 ?>
 <div class="stats-grid">
-    <div class="stat-card"><div class="stat-icon bg-blue"><i data-lucide="git-branch"></i></div><div class="stat-info"><h3>Total Splitters</h3><p><?= $total_splitters ?></p></div></div>
-    <div class="stat-card"><div class="stat-icon bg-purple"><i data-lucide="plug"></i></div><div class="stat-info"><h3>Total Ports</h3><p><?= $total_ports ?></p></div></div>
-    <div class="stat-card"><div class="stat-icon bg-green"><i data-lucide="check-circle"></i></div><div class="stat-info"><h3>Used Ports</h3><p><?= $total_used ?></p></div></div>
-    <div class="stat-card"><div class="stat-icon bg-orange"><i data-lucide="circle"></i></div><div class="stat-info"><h3>Free Ports</h3><p><?= $free_ports ?></p></div></div>
+    <div class="stat-card"><div class="stat-icon bg-blue"><i data-lucide="git-branch"></i></div><div class="stat-info"><div class="stat-title">Total Splitters</div><p><?= $total_splitters ?></p></div></div>
+    <div class="stat-card"><div class="stat-icon bg-purple"><i data-lucide="plug"></i></div><div class="stat-info"><div class="stat-title">Total Ports</div><p><?= $total_ports ?></p></div></div>
+    <div class="stat-card"><div class="stat-icon bg-green"><i data-lucide="check-circle"></i></div><div class="stat-info"><div class="stat-title">Used Ports</div><p><?= $total_used ?></p></div></div>
+    <div class="stat-card"><div class="stat-icon bg-orange"><i data-lucide="circle"></i></div><div class="stat-info"><div class="stat-title">Free Ports</div><p><?= $free_ports ?></p></div></div>
 </div>
 
 <div class="content-card">
     <div class="card-header">
-        <h2>Daftar Splitter</h2>
+        <h1 id="page-title">Daftar Splitter</h1>
         <div style="display:flex;gap:8px;align-items:center">
             <form method="GET" style="display:flex;gap:8px;align-items:center">
                 <?php if ($fzone !== ''): ?><input type="hidden" name="zone" value="<?= htmlspecialchars($fzone) ?>"><?php endif; ?>
@@ -212,7 +212,7 @@ if ($edit_splitter) {
     <?php endif; ?>
 </div>
 
-<div class="modal" id="add-modal">
+<div class="modal" id="add-modal" role="dialog" aria-modal="true">
     <div class="modal-content" style="max-width:600px">
         <div class="modal-header"><h2>Tambah Splitter</h2><button class="close-btn" onclick="document.getElementById('add-modal').classList.remove('open')">&times;</button></div>
         <form method="post">

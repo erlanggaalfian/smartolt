@@ -131,7 +131,7 @@ $onu_stats = $onu_count->fetch();
                 <i data-lucide="server" style="width:22px; height:22px; color:var(--text-accent);"></i>
             </div>
             <div class="olt-header-meta">
-                <h2><?php echo htmlspecialchars($olt['name']); ?></h2>
+                <h1 id="page-title" style="font-size:20px;"><?php echo htmlspecialchars($olt['name']); ?></h1>
                 <p><?php echo htmlspecialchars($olt['ip']); ?> · <?php echo htmlspecialchars($olt['protocol'] ?? 'SSH'); ?>:<?php echo htmlspecialchars($olt['ssh_port']); ?> · <?php echo htmlspecialchars($olt['type']); ?></p>
             </div>
         </div>
@@ -224,7 +224,7 @@ $onu_stats = $onu_count->fetch();
 
     <!-- Info Table -->
     <div class="pr-table-wrap">
-    <table class="smartolt-data-table" style="width:100%;">
+    <div class="table-responsive"><table class="smartolt-data-table" style="width:100%;">
         <tbody>
             <tr><td style="width:30%; font-weight:600; color:var(--text-muted);">Tipe Hardware</td><td><?php echo htmlspecialchars($olt['type']); ?></td></tr>
             <tr><td style="font-weight:600; color:var(--text-muted);">Alamat IP &amp; Protokol</td><td style="font-family:monospace;"><?php echo htmlspecialchars($olt['ip']); ?> (<?php echo htmlspecialchars($olt['protocol'] ?? 'SSH'); ?>:<?php echo htmlspecialchars($olt['ssh_port']); ?>)</td></tr>
@@ -234,7 +234,7 @@ $onu_stats = $onu_count->fetch();
             <tr><td style="font-weight:600; color:var(--text-muted);">Lokasi (sysLocation)</td><td id="health-syslocation">-</td></tr>
             <tr><td style="font-weight:600; color:var(--text-muted);">Terakhir Diperiksa</td><td id="health-last-check" style="color:var(--text-muted); font-size:0.85rem;"><?php echo $olt['last_health_check'] ? date('d/m/Y H:i:s', strtotime($olt['last_health_check'])) : '-'; ?></td></tr>
         </tbody>
-    </table>
+    </table></div>
     </div>
 
 </div>
@@ -371,7 +371,7 @@ $onu_stats = $onu_count->fetch();
     </div>
 
     <div class="pr-table-wrap">
-        <table class="smartolt-data-table" style="width:100%;">
+        <div class="table-responsive"><table class="smartolt-data-table" style="width:100%;">
             <thead>
                 <tr>
                     <th>VLAN ID</th>
@@ -386,7 +386,7 @@ $onu_stats = $onu_count->fetch();
             <tbody id="vlan-tbody">
                 <tr><td colspan="7" class="vlan-row-empty">Klik <strong>Refresh</strong> untuk membaca VLAN dari perangkat.</td></tr>
             </tbody>
-        </table>
+        </table></div>
     </div>
 </div>
 
@@ -411,7 +411,7 @@ $onu_stats = $onu_count->fetch();
     $onus = $onu_list->fetchAll();
     ?>
     <div class="pr-table-wrap">
-    <table class="smartolt-data-table" style="width:100%;">
+    <div class="table-responsive"><table class="smartolt-data-table" style="width:100%;">
         <thead>
             <tr>
                 <th>Nama</th>
@@ -449,7 +449,7 @@ $onu_stats = $onu_count->fetch();
                 <?php endforeach; ?>
             <?php endif; ?>
         </tbody>
-    </table>
+    </table></div>
     </div>
 </div>
 
@@ -712,7 +712,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }).join('');
         if (!rows) return '';
         return `<div class="pr-section">${secTitle(sec)}
-            <div class="pr-table-wrap"><table class="pr-table"><thead><tr>${cols}</tr></thead><tbody>${rows}</tbody></table></div>
+            <div class="pr-table-wrap"><div class="table-responsive"><table class="pr-table"><thead><tr>${cols}</tr></thead><tbody>${rows}</tbody></table></div></div>
         </div>`;
     }
 
@@ -1312,7 +1312,7 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 <!-- MODAL ADD/EDIT VLAN -->
-<div id="vlan-modal" class="modal">
+<div id="vlan-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="vlan-modal-title">
     <div class="modal-content" style="max-width: 650px;">
         <div class="modal-header">
             <h2 id="vlan-modal-title"><i data-lucide="layers"></i> Tambah VLAN</h2>
@@ -1342,7 +1342,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     Konfigurasi Port Uplink
                 </h3>
                 <div class="pr-table-wrap">
-                    <table class="data-table" style="width: 100%;">
+                    <div class="table-responsive"><table class="data-table" style="width: 100%;">
                         <thead>
                             <tr>
                                 <th>Port</th>
@@ -1354,7 +1354,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <tbody id="vlan-modal-ports-tbody">
                             <!-- Populated dynamically via JS -->
                         </tbody>
-                    </table>
+                    </table></div>
                 </div>
             </div>
             
@@ -1371,7 +1371,7 @@ document.addEventListener('DOMContentLoaded', () => {
 </div>
 
 <!-- MODAL EDIT PORT NEGOTIATION -->
-<div id="port-config-modal" class="modal">
+<div id="port-config-modal" class="modal" role="dialog" aria-modal="true">
     <div class="modal-content" style="max-width: 450px;">
         <div class="modal-header">
             <h2><i data-lucide="settings"></i> Edit Port <span id="pc-port-label"></span></h2>

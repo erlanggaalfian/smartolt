@@ -75,8 +75,8 @@ include __DIR__ . '/header.php';
     <!-- EDIT MODE -->
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
         <div>
-            <h2 style="margin:0;">Edit ONU type</h2>
-            <p style="color:#64748b; margin:4px 0 0;">Update ONU type properties and port counts.</p>
+            <h1 id="page-title" style="margin:0;">Edit ONU type</h1>
+            <p style="color:var(--text-muted); margin:4px 0 0;">Update ONU type properties and port counts.</p>
         </div>
         <a href="onu-types.php" class="btn btn-secondary">Back to list</a>
     </div>
@@ -168,11 +168,11 @@ include __DIR__ . '/header.php';
 <?php else: ?>
     <!-- LIST MODE -->
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
-        <h2 style="margin:0;">ONU Types</h2>
+        <h1 id="page-title" style="margin:0;">ONU Types</h1>
         <button class="btn btn-primary" onclick="document.getElementById('add-modal').classList.toggle('open')">+ Add ONU type</button>
     </div>
 
-    <table class="data-table">
+    <div class="table-responsive"><table class="data-table">
         <thead>
             <tr>
                 <th>PON type</th>
@@ -208,7 +208,7 @@ include __DIR__ . '/header.php';
             </tr>
             <?php endforeach; ?>
         </tbody>
-    </table>
+    </table></div>
 
     <!-- ADD MODAL -->
     <div class="modal" id="add-modal">

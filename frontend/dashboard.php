@@ -36,29 +36,25 @@ $logs = $pdo->query("SELECT l.*, o.name as olt_name FROM logs l LEFT JOIN olts o
 <div class="stats-grid motion-stagger">
     <div class="stat-card motion-fade-up">
         <div class="stat-icon bg-blue"><i data-lucide="server"></i></div>
-        <div class="stat-info">
-            <h3>Total OLT</h3>
+        <div class="stat-info"><div class="stat-title">Total OLT</div>
             <p><?php echo htmlspecialchars($olt_count); ?></p>
         </div>
     </div>
     <div class="stat-card motion-fade-up">
         <div class="stat-icon bg-green"><i data-lucide="smile"></i></div>
-        <div class="stat-info">
-            <h3>ONU Online</h3>
+        <div class="stat-info"><div class="stat-title">ONU Online</div>
             <p><?php echo htmlspecialchars($onu_online); ?></p>
         </div>
     </div>
     <div class="stat-card motion-fade-up">
         <div class="stat-icon bg-red"><i data-lucide="frown"></i></div>
-        <div class="stat-info">
-            <h3>ONU Offline</h3>
+        <div class="stat-info"><div class="stat-title">ONU Offline</div>
             <p><?php echo htmlspecialchars($onu_offline); ?></p>
         </div>
     </div>
     <div class="stat-card motion-fade-up">
         <div class="stat-icon bg-orange"><i data-lucide="scan-eye"></i></div>
-        <div class="stat-info">
-            <h3>Unconfigured</h3>
+        <div class="stat-info"><div class="stat-title">Unconfigured</div>
             <p><a href="unconfigured.php" style="color:inherit;text-decoration:none;">Scan Baru</a></p>
         </div>
     </div>
@@ -72,29 +68,25 @@ $logs = $pdo->query("SELECT l.*, o.name as olt_name FROM logs l LEFT JOIN olts o
 <div class="stats-grid motion-stagger scroll-reveal">
     <a href="configured.php?signal=critical" class="stat-card motion-fade-up" style="text-decoration:none;color:inherit;">
         <div class="stat-icon" style="background:rgba(239,68,68,0.15);color:#ef4444;"><i data-lucide="alert-triangle"></i></div>
-        <div class="stat-info">
-            <h3>Critical</h3>
+        <div class="stat-info"><div class="stat-title">Critical</div>
             <p style="color:#ef4444;font-weight:700;"><?php echo (int)$signal['critical']; ?></p>
         </div>
     </a>
     <a href="configured.php?signal=weak" class="stat-card motion-fade-up" style="text-decoration:none;color:inherit;">
         <div class="stat-icon" style="background:rgba(245,158,11,0.15);color:#f59e0b;"><i data-lucide="signal-medium"></i></div>
-        <div class="stat-info">
-            <h3>Weak</h3>
+        <div class="stat-info"><div class="stat-title">Weak</div>
             <p style="color:#f59e0b;font-weight:700;"><?php echo (int)$signal['weak']; ?></p>
         </div>
     </a>
     <a href="configured.php?signal=fair" class="stat-card motion-fade-up" style="text-decoration:none;color:inherit;">
         <div class="stat-icon" style="background:rgba(48,129,209,0.15);color:#3081d1;"><i data-lucide="signal"></i></div>
-        <div class="stat-info">
-            <h3>Fair</h3>
+        <div class="stat-info"><div class="stat-title">Fair</div>
             <p style="font-weight:700;"><?php echo (int)$signal['fair']; ?></p>
         </div>
     </a>
     <a href="configured.php?signal=good" class="stat-card motion-fade-up" style="text-decoration:none;color:inherit;">
         <div class="stat-icon bg-green"><i data-lucide="signal-high"></i></div>
-        <div class="stat-info">
-            <h3>Good</h3>
+        <div class="stat-info"><div class="stat-title">Good</div>
             <p style="color:#22c55e;font-weight:700;"><?php echo (int)$signal['good']; ?></p>
         </div>
     </a>
@@ -104,7 +96,7 @@ $logs = $pdo->query("SELECT l.*, o.name as olt_name FROM logs l LEFT JOIN olts o
     <!-- Tabel Ringkasan OLT -->
     <div class="content-card col-8">
         <div class="card-header border-accent">
-            <h2>Ringkasan OLT Terdaftar</h2>
+            <h1 id="page-title">Ringkasan OLT Terdaftar</h1>
         </div>
         <div class="card-body">
             <div class="table-responsive">

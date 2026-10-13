@@ -72,10 +72,10 @@ unset($_SESSION['success']);
         </button>
     </form>
 
-    <form method="GET" action="logs.php" style="display:flex; gap:8px; align-items:center; margin:0;">
+    <form method="GET" action="logs.php" style="display:flex; gap:8px; align-items:center; margin:0; flex-wrap:wrap;">
         <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>"
-               placeholder="Cari log..." class="form-input" style="width:200px;">
-        <select name="action_type" class="form-input" style="width:160px;">
+               placeholder="Cari log..." aria-label="Cari log" class="form-control" style="width:200px;">
+        <select name="action_type" aria-label="Jenis aksi" class="form-control" style="width:160px;">
             <option value="">Semua Aksi</option>
             <?php foreach ($action_types as $at): ?>
                 <option value="<?php echo htmlspecialchars($at); ?>" <?php echo $action_filter === $at ? 'selected' : ''; ?>>
@@ -83,18 +83,18 @@ unset($_SESSION['success']);
                 </option>
             <?php endforeach; ?>
         </select>
-        <select name="limit" class="form-input" style="width:80px;" onchange="this.form.submit()">
+        <select name="limit" aria-label="Jumlah baris" class="form-control" style="width:80px;" onchange="this.form.submit()">
             <?php foreach ([20, 50, 100, 200] as $l): ?>
                 <option value="<?php echo $l; ?>" <?php echo $limit === $l ? 'selected' : ''; ?>><?php echo $l; ?></option>
             <?php endforeach; ?>
         </select>
-        <button type="submit" class="btn btn-primary btn-sm"><i data-lucide="search"></i></button>
+        <button type="submit" class="btn btn-primary btn-sm" title="Cari" aria-label="Cari"><i data-lucide="search"></i></button>
     </form>
 </div>
 
 <div class="content-card">
     <div class="card-header border-accent" style="display:flex; justify-content:space-between; align-items:center;">
-        <h2>Audit Logs Aktivitas Sistem</h2>
+        <h1 id="page-title">Audit Logs Aktivitas Sistem</h1>
         <span style="color:var(--text-muted); font-size:13px;"><?php echo number_format($total_items); ?> total</span>
     </div>
     <div class="card-body">
