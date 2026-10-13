@@ -19,7 +19,7 @@ $all_olts = get_allowed_olts();
 
 <div class="content-card">
     <div class="card-header border-accent">
-        <h2>Manajemen User & Hak Akses</h2>
+        <h1 id="page-title">Manajemen User &amp; Hak Akses</h1>
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -40,7 +40,7 @@ $all_olts = get_allowed_olts();
                             <td>
                                 <div style="display:flex; align-items:center; gap:8px;">
                                     <i data-lucide="user" style="width:16px; height:16px; color:var(--text-muted);"></i>
-                                    <strong style="color:var(--text-color);"><?php echo htmlspecialchars($user['username']); ?></strong>
+                                    <strong style="color:var(--text-muted);"><?php echo htmlspecialchars($user['username']); ?></strong>
                                 </div>
                             </td>
                             <td>
@@ -118,7 +118,7 @@ $all_olts = get_allowed_olts();
                 </div>
                 <div class="form-group" id="group-add-user-olts" style="margin-top: 15px;">
                     <label style="font-weight: 500; margin-bottom: 5px; display: block;">Akses OLT (Grup)</label>
-                    <div style="max-height: 150px; overflow-y: auto; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; background: #f8fafc; display: flex; flex-direction: column; gap: 8px;">
+                    <div style="max-height: 150px; overflow-y: auto; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-primary); display: flex; flex-direction: column; gap: 8px;">
                         <?php foreach ($all_olts as $olt): ?>
                             <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.9rem;">
                                 <input type="checkbox" name="olt_ids[]" value="<?php echo (int)$olt['id']; ?>">
@@ -148,8 +148,8 @@ $all_olts = get_allowed_olts();
             <input type="hidden" name="action" value="update_access">
             <input type="hidden" name="user_id" id="access-user-id">
             <div class="modal-body">
-                <p style="margin-bottom: 15px;">Pilih OLT yang boleh diakses oleh user: <strong id="access-username" style="color:var(--primary-color);"></strong></p>
-                <div style="max-height: 250px; overflow-y: auto; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; background: #f8fafc; display: flex; flex-direction: column; gap: 10px;">
+                <p style="margin-bottom: 15px;">Pilih OLT yang boleh diakses oleh user: <strong id="access-username" style="color:var(--text-accent);"></strong></p>
+                <div style="max-height: 250px; overflow-y: auto; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-primary); display: flex; flex-direction: column; gap: 10px;">
                     <?php if (count($all_olts) === 0): ?>
                         <p style="font-style: italic; color: var(--text-muted);">Belum ada OLT terdaftar.</p>
                     <?php else: ?>
@@ -157,7 +157,7 @@ $all_olts = get_allowed_olts();
                             <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
                                 <input type="checkbox" name="olt_ids[]" value="<?php echo (int)$olt['id']; ?>" class="olt-access-checkbox">
                                 <div>
-                                    <strong style="display: block; font-size: 0.9rem; color: var(--text-color);"><?php echo htmlspecialchars($olt['name']); ?></strong>
+                                    <strong style="display: block; font-size: 0.9rem; color: var(--text-muted);"><?php echo htmlspecialchars($olt['name']); ?></strong>
                                     <span style="font-size: 0.8rem; color: var(--text-muted);"><?php echo htmlspecialchars($olt['ip']); ?></span>
                                 </div>
                             </label>

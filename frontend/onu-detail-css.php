@@ -172,12 +172,12 @@
 
 .btn-solt-green {
     background: var(--color-success, #28a745);
-    color: #ffffff !important;
+    color: var(--color-black) !important;
 }
 
 .btn-solt-orange {
     background: var(--color-warning, #fd7e14);
-    color: #ffffff !important;
+    color: var(--color-black) !important;
 }
 
 .btn-solt-yellow {
