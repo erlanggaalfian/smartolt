@@ -40,35 +40,34 @@ $onu_stats = $onu_count->fetch();
 /* scrollbar disembunyikan: Firefox via scrollbar-width, Chrome/Safari via ::-webkit-scrollbar */
 .olt-tab-bar { display: flex; align-items: center; gap: 6px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-bottom: none; border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 10px 14px 0 14px; overflow-x: auto; scrollbar-width: none; }
 .olt-tab-bar::-webkit-scrollbar { display: none; }
-.olt-tab { display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; border-radius: var(--radius-sm) var(--radius-sm) 0 0; font-family: var(--font-family); font-size: 0.85rem; font-weight: 600; color: var(--text-muted); cursor: pointer; border: 1px solid transparent; border-bottom: none; background: transparent; white-space: nowrap; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); text-decoration: none; position: relative; bottom: -1px; }
+.olt-tab { display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; border-radius: var(--radius-sm) var(--radius-sm) 0 0; font-family: var(--font-family); font-size: var(--fs-sm); font-weight: 600; color: var(--text-muted); cursor: pointer; border: 1px solid transparent; border-bottom: none; background: transparent; white-space: nowrap; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); text-decoration: none; position: relative; bottom: -1px; }
 .olt-tab:hover { color: var(--text-main); background: var(--surface-2); }
 .olt-tab.active { color: var(--text-accent); background: var(--bg-card); border-color: var(--border-color); box-shadow: 0 -4px 12px var(--shadow-a05); }
 /* Garis aksen tipis di atas tab aktif */
 .olt-tab.active::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--text-accent); border-radius: 3px 3px 0 0; }
-.olt-tab-panel { display: none; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 0 0 var(--radius-lg) var(--radius-lg); box-shadow: var(--shadow-md); padding: 28px; animation: fade-in-up var(--duration-medium) var(--ease-out) both; }
+/* Panel memakai .content-card kanon; di sini hanya perilaku tab + sudut menyatu dengan tab bar */
+.olt-tab-panel { display: none; padding: var(--space-7); border-top: none; border-radius: 0 0 var(--radius-lg) var(--radius-lg); animation: fade-in-up var(--duration-medium) var(--ease-out) both; }
 .olt-tab-panel.active { display: block; }
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+/* .card-header di dalam panel: tanpa strip background, menyatu dengan isi panel */
+.olt-tab-panel > .card-header { background: transparent; padding: 0 0 var(--space-4); margin-bottom: var(--space-6); align-items: flex-start; gap: var(--space-4); flex-wrap: wrap; }
+.olt-tab-panel > .card-header h2 { font-size: var(--fs-lg); font-weight: 600; display: inline-flex; align-items: center; gap: var(--space-2); }
+.olt-tab-panel > .card-header p { margin-top: var(--space-1); font-size: var(--fs-sm); color: var(--text-muted); }
 @media (max-width: 640px) {
-  .olt-tab { padding: 10px 14px; font-size: 0.8rem; }
-  .olt-tab-panel { padding: 20px; }
+  .olt-tab { padding: 10px 14px; font-size: var(--fs-xs); }
+  .olt-tab-panel { padding: var(--space-5); }
 }
 /* ---- OLT Header Card ---- */
 .olt-header-card { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; background: var(--bg-card); border: 1px solid var(--border-color); border-left: 4px solid var(--text-accent); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); padding: 24px 30px; margin-bottom: 24px; transition: var(--transition-normal); }
 .olt-header-info { display: flex; align-items: center; gap: 18px; }
 .olt-icon-box { width: 56px; height: 56px; background: var(--text-accent-glow); border: 1px solid var(--text-accent); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.olt-header-meta h2 { margin: 0; font-size: 1.3rem; font-weight: 700; letter-spacing: -0.01em; }
-.olt-header-meta p { margin: 6px 0 0; font-size: 0.82rem; color: var(--text-muted); font-family: monospace; }
+.olt-header-meta h1 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
+.olt-header-meta p { margin: 6px 0 0; font-size: var(--fs-sm); color: var(--text-muted); font-family: 'Courier New', monospace; }
 .olt-stat-pill { display: flex; flex-direction: column; align-items: center; padding: 12px 22px; border-radius: var(--radius-md); background: var(--surface-1); border: 1px solid var(--border-color); min-width: 96px; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
 .olt-stat-pill:hover { transform: translateY(-3px); border-color: var(--text-accent); box-shadow: 0 4px 15px var(--shadow-a10); }
+.olt-stat-pill.pill-ok { border-color: var(--border-success); }
+.olt-stat-pill.pill-bad { border-color: var(--border-danger); }
 .olt-stat-pill .val { font-size: 1.55rem; font-weight: 700; color: var(--text-main); line-height: 1.2; }
 .olt-stat-pill .lbl { font-size: 0.68rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 3px; }
-/* ---- Section header di dalam panel ---- */
-.olt-section-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color); }
-.olt-section-head h2 { margin: 0; font-size: 1.05rem; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; }
-.olt-section-head p { margin: 6px 0 0; font-size: 0.82rem; color: var(--text-muted); }
 .olt-section-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 /* ---- Health metric cards ---- */
 .health-card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 26px; }
@@ -76,24 +75,15 @@ $onu_stats = $onu_count->fetch();
 .health-metric:hover { border-color: var(--text-accent); transform: translateY(-2px); background: var(--surface-3); box-shadow: var(--shadow-sm); }
 .health-metric .lbl { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 10px; }
 .health-metric .val { font-size: 1.75rem; font-weight: 700; color: var(--text-main); }
-/* ---- Panel inline form (tambah VLAN / edit port) ---- */
-.olt-inline-form { background: var(--surface-1); border: 1px solid var(--border-color); border-left: 3px solid var(--text-accent); border-radius: var(--radius-md); padding: 22px; margin-bottom: 24px; }
-.olt-inline-form h4 { margin: 0 0 6px; font-size: 0.9rem; font-weight: 700; color: var(--text-accent); display: inline-flex; align-items: center; gap: 8px; }
-.olt-inline-form .hint { margin: 0 0 18px; font-size: 0.8rem; color: var(--text-muted); }
-.olt-form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px; align-items: end; }
+.health-metric .val.val-sm { font-size: var(--fs-xl); }
 /* ---- Notifikasi inline panel ---- */
-.olt-inline-msg { display: none; margin-bottom: 18px; padding: 12px 16px; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 500; }
+.olt-inline-msg { display: none; margin-bottom: 18px; padding: 12px 16px; border-radius: var(--radius-sm); font-size: var(--fs-base); font-weight: 500; }
 .olt-inline-msg.ok { display: block; background: var(--tint-success-soft); color: var(--color-success); border: 1px solid var(--border-success); }
 .olt-inline-msg.err { display: block; background: var(--tint-danger-soft); color: var(--color-danger); border: 1px solid var(--border-danger); }
-.olt-inline-msg.hidden { display: none; }
-/* ---- Data Table (dipakai smartolt-data-table) ---- */
-.smartolt-data-table, .pr-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.85rem; }
-.smartolt-data-table th, .pr-table th { padding: 12px 16px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); border-bottom: 1px solid var(--border-color); text-align: left; background: var(--surface-1); }
-.smartolt-data-table td, .pr-table td { padding: 12px 16px; color: var(--text-main); border-bottom: 1px solid var(--border-color); vertical-align: middle; transition: background-color 0.15s ease; }
-.smartolt-data-table tbody tr:last-child td, .pr-table tbody tr:last-child td { border-bottom: none; }
-.smartolt-data-table tbody tr:hover td, .pr-table tbody tr:hover td { background: var(--surface-2); }
-/* ---- VLAN table ---- */
-.vlan-row-empty { text-align:center; padding:36px; color:var(--text-muted); font-style:italic; }
+/* ---- Table tweaks (.data-table kanon dari style.css) ---- */
+.data-table td { vertical-align: middle; }
+.cell-label { font-weight: 600; color: var(--text-muted); }
+.vlan-row-empty { text-align: center; padding: 36px; color: var(--text-muted); font-style: italic; }
 /* ---- Panel render ---- */
 .panel-render { min-height: 120px; }
 .pr-section { margin-bottom: 28px; }
@@ -101,51 +91,100 @@ $onu_stats = $onu_count->fetch();
 .pr-title { margin: 0 0 14px; font-size: 0.92rem; font-weight: 700; color: var(--text-accent); letter-spacing: 0.01em; }
 .pr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 16px; }
 .pr-lbl { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 8px; }
-.pr-table-wrap { overflow-x: auto; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-card); box-shadow: var(--shadow-sm); }
-.pr-loading, .pr-empty { padding: 32px; text-align: center; color: var(--text-muted); font-size: 0.88rem; font-style: italic; }
-.pr-error { padding: 14px 18px; border-radius: var(--radius-sm); font-size: 0.86rem; background: var(--tint-danger-soft); color: var(--color-danger); border: 1px solid var(--border-danger-strong); word-break: break-word; }
-.pr-note { padding: 12px 16px; margin-bottom: 18px; border-radius: var(--radius-sm); font-size: 0.84rem; background: var(--tint-warning-soft); color: var(--color-warning-deep); border: 1px solid var(--border-warning); }
-.pr-stamp { margin-top: 20px; font-size: 0.75rem; color: var(--text-muted); text-align: right; }
+.pr-scroll { overflow-x: auto; border-radius: var(--radius-md); background: var(--bg-card); box-shadow: var(--shadow-sm); }
+.pr-loading, .pr-empty { padding: 32px; text-align: center; color: var(--text-muted); font-size: var(--fs-base); font-style: italic; }
+.pr-error { padding: 14px 18px; border-radius: var(--radius-sm); font-size: var(--fs-base); background: var(--tint-danger-soft); color: var(--color-danger); border: 1px solid var(--border-danger-strong); word-break: break-word; }
+.pr-note { padding: 12px 16px; margin-bottom: 18px; border-radius: var(--radius-sm); font-size: var(--fs-base); background: var(--tint-warning-soft); color: var(--color-warning-deep); border: 1px solid var(--border-warning); }
+.pr-stamp { margin-top: 20px; font-size: var(--fs-xs); color: var(--text-muted); text-align: right; }
+.metric-val { font-weight: 700; line-height: 1.3; word-break: break-word; font-size: 1.6rem; }
+.metric-val.sz-sm { font-size: 0.95rem; }
+.metric-val.sz-md { font-size: var(--fs-lg); }
+.metric-title { text-align: left; }
+.metric-unit { font-size: 0.9rem; font-weight: 600; margin-left: 2px; }
+.metric-sub { font-size: var(--fs-xs); color: var(--text-muted); margin-top: var(--space-2); }
+.chip-xs { font-size: 0.72rem; }
 @media (max-width: 640px) {
   .pr-grid { grid-template-columns: 1fr; }
 }
-/* spinner */
-.spinner-small { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--spinner-track); border-radius: 50%; border-top-color: var(--text-accent); animation: spin-sm 0.8s linear infinite; vertical-align: middle; margin-right: 6px; }
-@keyframes spin-sm {
-  to { transform: rotate(360deg); }
-}
-.hidden { display: none !important; }
+/* ---- PON port mini cards ---- */
+.port-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: var(--space-3); margin-bottom: var(--space-5); }
+.port-card { cursor: default; padding: 14px 16px; }
+.port-card .cap { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
+.port-card .num { font-size: 1.5rem; font-weight: 700; }
+.port-card .sub { font-size: 0.7rem; color: var(--text-muted); }
+.vdivider { width: 1px; height: 36px; background: var(--border-color); }
+/* ---- Debug CLI modal (konsol gelap, sengaja lepas dari tema) ---- */
+.debug-modal { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: var(--overlay-backdrop); z-index: 9999; }
+.debug-modal .modal-content { max-width: var(--modal-lg); width: 90%; background: #1e1e1e; color: #f8f8f2; border: none; font-family: 'Courier New', Courier, monospace; display: flex; flex-direction: column; }
+.debug-modal .modal-header, .debug-modal .modal-footer { background: #2d2d2d; border-color: #333; }
+.debug-modal .modal-header h2 { color: #fff; display: flex; align-items: center; gap: var(--space-2); }
+.debug-modal .modal-body { max-height: 450px; overflow-y: auto; }
+.debug-modal .debug-caption { font-weight: 700; color: #66d9ef; margin-bottom: var(--space-2); }
+.debug-modal pre { white-space: pre-wrap; font-size: 0.9rem; margin: 0; line-height: 1.4; color: #a6e22e; font-family: 'Courier New', Courier, monospace; }
+.debug-modal .icon-md { color: #a6e22e; }
+/* ---- Utilities (token-based) ---- */
+.w-30 { width: 30%; }
+.w-120 { width: 120px; }
+.text-center { text-align: center; }
+.text-accent { color: var(--text-accent); }
+.text-success { color: var(--color-success); }
+.text-danger { color: var(--color-danger); }
+.text-warning { color: var(--color-warning); }
+.fs-xs { font-size: var(--fs-xs); }
+.fs-sm { font-size: var(--fs-sm); }
+.fw-600 { font-weight: 600; }
+.mb-2 { margin-bottom: var(--space-2); }
+.mb-4 { margin-bottom: var(--space-4); }
+.mb-5 { margin-bottom: var(--space-5); }
+.mt-4 { margin-top: var(--space-4); }
+.mt-5 { margin-top: var(--space-5); }
+.mt-6 { margin-top: var(--space-6); }
+.mr-2 { margin-right: var(--space-2); }
+.flex-row { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+.flex-between { display: flex; align-items: center; justify-content: space-between; }
+.flex-end { display: flex; justify-content: flex-end; }
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-5); }
+.form-grid-2 { display: grid; grid-template-columns: 1fr 2fr; gap: var(--space-4); }
+.grid-full { grid-column: 1 / -1; }
+.icon-xs { width: 12px; height: 12px; display: inline-block; vertical-align: middle; }
+.icon-inline { width: 10px; height: 10px; display: inline-block; vertical-align: middle; margin-right: 2px; }
+.icon-title { width: 18px; height: 18px; display: inline-block; vertical-align: middle; margin-right: 4px; }
+.cell-mid { vertical-align: middle; }
+.check-label { display: flex; align-items: center; gap: var(--space-2); cursor: pointer; font-size: var(--fs-base); }
+.subhead { font-size: 0.9rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: var(--space-3); border-bottom: 1px solid var(--border-color); padding-bottom: 6px; }
+.warn-note { margin: var(--space-4) 0 0; font-size: 0.78rem; color: var(--color-warning); }
+a.btn { text-decoration: none; }
 </style>
 
 <!-- OLT Header Info -->
-<div style="margin-bottom: 16px;">
-    <div class="section-actions" style="margin-bottom:16px;">
-        <a href="settings-olt.php" class="btn btn-back" style="text-decoration:none;">
-            <i data-lucide="arrow-left" style="width:16px; height:16px;"></i> Kembali ke Daftar OLT
+<div class="mb-4">
+    <div class="section-actions">
+        <a href="settings-olt.php" class="btn btn-back">
+            <i data-lucide="arrow-left" class="icon-sm"></i> Kembali ke Daftar OLT
         </a>
     </div>
 
     <div class="olt-header-card">
         <div class="olt-header-info">
             <div class="olt-icon-box">
-                <i data-lucide="server" style="width:22px; height:22px; color:var(--text-accent);"></i>
+                <i data-lucide="server" class="icon-lg text-accent"></i>
             </div>
             <div class="olt-header-meta">
-                <h1 id="page-title" style="font-size:20px;"><?php echo htmlspecialchars($olt['name']); ?></h1>
+                <h1 id="page-title"><?php echo htmlspecialchars($olt['name']); ?></h1>
                 <p><?php echo htmlspecialchars($olt['ip']); ?> · <?php echo htmlspecialchars($olt['protocol'] ?? 'SSH'); ?>:<?php echo htmlspecialchars($olt['ssh_port']); ?> · <?php echo htmlspecialchars($olt['type']); ?></p>
             </div>
         </div>
-        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        <div class="flex-row">
             <div class="olt-stat-pill">
                 <span class="val"><?php echo (int)$onu_stats['total']; ?></span>
                 <span class="lbl">Total ONU</span>
             </div>
-            <div class="olt-stat-pill" style="border-color:rgba(16,185,129,0.4);">
-                <span class="val" style="color:var(--color-success);"><?php echo (int)$onu_stats['online']; ?></span>
+            <div class="olt-stat-pill pill-ok">
+                <span class="val text-success"><?php echo (int)$onu_stats['online']; ?></span>
                 <span class="lbl">Online</span>
             </div>
-            <div class="olt-stat-pill" style="border-color:rgba(239,68,68,0.4);">
-                <span class="val" style="color:var(--color-danger);"><?php echo (int)$onu_stats['total'] - (int)$onu_stats['online']; ?></span>
+            <div class="olt-stat-pill pill-bad">
+                <span class="val text-danger"><?php echo (int)$onu_stats['total'] - (int)$onu_stats['online']; ?></span>
                 <span class="lbl">Offline</span>
             </div>
             <span id="olt-snmp-badge" class="badge <?php echo ($olt['last_snmp_status'] === 'Connected') ? 'bg-green' : 'bg-red'; ?>">
@@ -160,37 +199,37 @@ $onu_stats = $onu_count->fetch();
 <!-- TAB BAR -->
 <div class="olt-tab-bar" role="tablist">
     <button class="olt-tab active" data-tab="monitoring" role="tab">
-        <i data-lucide="activity" style="width:14px;height:14px;"></i> Monitoring
+        <i data-lucide="activity" class="icon-sm"></i> Monitoring
     </button>
 <?php foreach ($driver_panels as $pkey => $pmeta): ?>
     <button class="olt-tab" data-tab="<?php echo htmlspecialchars($pkey); ?>" role="tab">
-        <i data-lucide="<?php echo htmlspecialchars($pmeta['icon'] ?? 'square'); ?>" style="width:14px;height:14px;"></i> <?php echo htmlspecialchars($pmeta['label'] ?? $pkey); ?>
+        <i data-lucide="<?php echo htmlspecialchars($pmeta['icon'] ?? 'square'); ?>" class="icon-sm"></i> <?php echo htmlspecialchars($pmeta['label'] ?? $pkey); ?>
     </button>
 <?php endforeach; ?>
     <button class="olt-tab" data-tab="vlan" role="tab">
-        <i data-lucide="layers" style="width:14px;height:14px;"></i> VLANs
+        <i data-lucide="layers" class="icon-sm"></i> VLANs
     </button>
     <button class="olt-tab" data-tab="konfigurasi" role="tab">
-        <i data-lucide="settings" style="width:14px;height:14px;"></i> Konfigurasi
+        <i data-lucide="settings" class="icon-sm"></i> Konfigurasi
     </button>
     <button class="olt-tab" data-tab="onu-list" role="tab">
-        <i data-lucide="list" style="width:14px;height:14px;"></i> Daftar ONU
+        <i data-lucide="list" class="icon-sm"></i> Daftar ONU
     </button>
 </div>
 
 <!-- =====================================================================
      TAB 1: MONITORING
      ===================================================================== -->
-<div class="olt-tab-panel active" id="panel-monitoring">
+<div class="content-card olt-tab-panel active" id="panel-monitoring">
 
-    <div class="olt-section-head">
+    <div class="card-header">
         <div>
-            <h2><i data-lucide="activity" style="width:17px;height:17px;color:var(--text-accent);"></i> Status Perangkat</h2>
+            <h2><i data-lucide="activity" class="icon-md text-accent"></i> Status Perangkat</h2>
             <p>Ringkasan kesehatan OLT beserta informasi koneksi.</p>
         </div>
         <div class="olt-section-actions">
             <button id="btn-refresh-health" class="btn btn-primary">
-                <i data-lucide="refresh-cw" style="width:14px;height:14px;"></i> Refresh Status
+                <i data-lucide="refresh-cw" class="icon-sm"></i> Refresh Status
             </button>
         </div>
     </div>
@@ -209,30 +248,30 @@ $onu_stats = $onu_count->fetch();
         </div>
         <div class="health-metric">
             <div class="lbl">Suhu Board</div>
-            <div class="val" id="health-temp" style="color:<?php
+            <div class="val <?php
                 $t = (float)$olt['last_temp'];
-                echo $t > 55 ? 'var(--color-danger)' : ($t > 48 ? 'var(--color-warning)' : 'var(--text-main)');
-            ?>;"><?php echo htmlspecialchars($olt['last_temp'] ?: 'N/A'); ?></div>
+                echo $t > 55 ? 'text-danger' : ($t > 48 ? 'text-warning' : '');
+            ?>" id="health-temp"><?php echo htmlspecialchars($olt['last_temp'] ?: 'N/A'); ?></div>
         </div>
         <div class="health-metric">
             <div class="lbl">Status SNMP</div>
-            <div class="val" id="health-snmp" style="font-size:1.1rem; color:<?php echo $olt['last_snmp_status'] === 'Connected' ? 'var(--color-success)' : 'var(--color-danger)'; ?>;">
+            <div class="val val-sm <?php echo $olt['last_snmp_status'] === 'Connected' ? 'text-success' : 'text-danger'; ?>" id="health-snmp">
                 ● <?php echo htmlspecialchars($olt['last_snmp_status'] ?: 'Unknown'); ?>
             </div>
         </div>
     </div>
 
     <!-- Info Table -->
-    <div class="pr-table-wrap">
-    <div class="table-responsive"><table class="smartolt-data-table" style="width:100%;">
+    <div class="pr-scroll">
+    <div class="table-responsive"><table class="data-table">
         <tbody>
-            <tr><td style="width:30%; font-weight:600; color:var(--text-muted);">Tipe Hardware</td><td><?php echo htmlspecialchars($olt['type']); ?></td></tr>
-            <tr><td style="font-weight:600; color:var(--text-muted);">Alamat IP &amp; Protokol</td><td style="font-family:monospace;"><?php echo htmlspecialchars($olt['ip']); ?> (<?php echo htmlspecialchars($olt['protocol'] ?? 'SSH'); ?>:<?php echo htmlspecialchars($olt['ssh_port']); ?>)</td></tr>
-            <tr><td style="font-weight:600; color:var(--text-muted);">SNMP Community RO</td><td><code><?php echo htmlspecialchars($olt['snmp_community']); ?></code> (Port: <?php echo htmlspecialchars($olt['snmp_port']); ?>)</td></tr>
-            <tr><td style="font-weight:600; color:var(--text-muted);">Uptime OLT</td><td id="health-uptime"><?php echo htmlspecialchars($olt['last_uptime'] ?: 'N/A'); ?></td></tr>
-            <tr><td style="font-weight:600; color:var(--text-muted);">Nama Sistem (sysName)</td><td id="health-sysname">-</td></tr>
-            <tr><td style="font-weight:600; color:var(--text-muted);">Lokasi (sysLocation)</td><td id="health-syslocation">-</td></tr>
-            <tr><td style="font-weight:600; color:var(--text-muted);">Terakhir Diperiksa</td><td id="health-last-check" style="color:var(--text-muted); font-size:0.85rem;"><?php echo $olt['last_health_check'] ? date('d/m/Y H:i:s', strtotime($olt['last_health_check'])) : '-'; ?></td></tr>
+            <tr><td class="cell-label w-30">Tipe Hardware</td><td><?php echo htmlspecialchars($olt['type']); ?></td></tr>
+            <tr><td class="cell-label">Alamat IP &amp; Protokol</td><td class="mono"><?php echo htmlspecialchars($olt['ip']); ?> (<?php echo htmlspecialchars($olt['protocol'] ?? 'SSH'); ?>:<?php echo htmlspecialchars($olt['ssh_port']); ?>)</td></tr>
+            <tr><td class="cell-label">SNMP Community RO</td><td><code><?php echo htmlspecialchars($olt['snmp_community']); ?></code> (Port: <?php echo htmlspecialchars($olt['snmp_port']); ?>)</td></tr>
+            <tr><td class="cell-label">Uptime OLT</td><td id="health-uptime"><?php echo htmlspecialchars($olt['last_uptime'] ?: 'N/A'); ?></td></tr>
+            <tr><td class="cell-label">Nama Sistem (sysName)</td><td id="health-sysname">-</td></tr>
+            <tr><td class="cell-label">Lokasi (sysLocation)</td><td id="health-syslocation">-</td></tr>
+            <tr><td class="cell-label">Terakhir Diperiksa</td><td id="health-last-check" class="text-muted fs-sm"><?php echo $olt['last_health_check'] ? date('d/m/Y H:i:s', strtotime($olt['last_health_check'])) : '-'; ?></td></tr>
         </tbody>
     </table></div>
     </div>
@@ -242,10 +281,10 @@ $onu_stats = $onu_count->fetch();
 <!-- =====================================================================
      TAB 2: KONFIGURASI OLT
      ===================================================================== -->
-<div class="olt-tab-panel" id="panel-konfigurasi">
-    <div class="olt-section-head">
+<div class="content-card olt-tab-panel" id="panel-konfigurasi">
+    <div class="card-header">
         <div>
-            <h2><i data-lucide="settings" style="width:17px;height:17px;color:var(--text-accent);"></i> Konfigurasi OLT</h2>
+            <h2><i data-lucide="settings" class="icon-md text-accent"></i> Konfigurasi OLT</h2>
             <p>Ubah parameter koneksi CLI dan SNMP perangkat ini.</p>
         </div>
     </div>
@@ -254,16 +293,16 @@ $onu_stats = $onu_count->fetch();
         <input type="hidden" name="id"       value="<?php echo htmlspecialchars($olt['id']); ?>">
         <input type="hidden" name="redirect" value="../olt-detail.php?id=<?php echo htmlspecialchars($olt['id']); ?>#konfigurasi">
 
-        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:18px;">
+        <div class="form-grid">
 
-            <div style="grid-column:1/-1;">
-                <label class="modal-label">Nama OLT / Lokasi</label>
-                <input type="text" name="name" class="modal-input" value="<?php echo htmlspecialchars($olt['name']); ?>" required>
+            <div class="grid-full form-group">
+                <label>Nama OLT / Lokasi</label>
+                <input type="text" name="name" class="form-control" value="<?php echo htmlspecialchars($olt['name']); ?>" required>
             </div>
 
             <div>
-                <label class="modal-label">Tipe OLT</label>
-                <select name="type" class="modal-input">
+                <label>Tipe OLT</label>
+                <select name="type" class="form-control">
                     <?php
                     // Cocokkan tipe tersimpan (bisa berupa alias lama, mis. 'GPON')
                     // dengan entri registry agar pilihan yang tampil tetap benar.
@@ -277,53 +316,53 @@ $onu_stats = $onu_count->fetch();
             </div>
 
             <div>
-                <label class="modal-label">Alamat IP OLT</label>
-                <input type="text" name="ip" class="modal-input" value="<?php echo htmlspecialchars($olt['ip']); ?>" required>
+                <label>Alamat IP OLT</label>
+                <input type="text" name="ip" class="form-control" value="<?php echo htmlspecialchars($olt['ip']); ?>" required>
             </div>
 
             <div>
-                <label class="modal-label">Protokol CLI</label>
-                <select name="protocol" id="detail-olt-protocol" class="modal-input">
+                <label>Protokol CLI</label>
+                <select name="protocol" id="detail-olt-protocol" class="form-control">
                     <option value="SSH"    <?php echo ($olt['protocol'] ?? 'SSH') === 'SSH'    ? 'selected' : ''; ?>>SSH</option>
                     <option value="TELNET" <?php echo ($olt['protocol'] ?? 'SSH') === 'TELNET' ? 'selected' : ''; ?>>TELNET</option>
                 </select>
             </div>
 
             <div>
-                <label class="modal-label" id="detail-lbl-ssh-port">Port CLI</label>
-                <input type="number" name="ssh_port" id="detail-olt-ssh-port" class="modal-input" value="<?php echo htmlspecialchars($olt['ssh_port']); ?>" required>
+                <label id="detail-lbl-ssh-port">Port CLI</label>
+                <input type="number" name="ssh_port" id="detail-olt-ssh-port" class="form-control" value="<?php echo htmlspecialchars($olt['ssh_port']); ?>" required>
             </div>
 
             <div>
-                <label class="modal-label">Username CLI</label>
-                <input type="text" name="username" class="modal-input" value="<?php echo htmlspecialchars($olt['username']); ?>" required>
+                <label>Username CLI</label>
+                <input type="text" name="username" class="form-control" value="<?php echo htmlspecialchars($olt['username']); ?>" required>
             </div>
 
             <div>
-                <label class="modal-label">Password CLI</label>
-                <input type="password" name="password" class="modal-input" placeholder="Kosongkan jika tidak diubah">
+                <label>Password CLI</label>
+                <input type="password" name="password" class="form-control" placeholder="Kosongkan jika tidak diubah">
             </div>
 
             <div>
-                <label class="modal-label">Community SNMP RO</label>
-                <input type="text" name="snmp_community" class="modal-input" value="<?php echo htmlspecialchars($olt['snmp_community']); ?>" required>
+                <label>Community SNMP RO</label>
+                <input type="text" name="snmp_community" class="form-control" value="<?php echo htmlspecialchars($olt['snmp_community']); ?>" required>
             </div>
 
             <div>
-                <label class="modal-label">Community SNMP RW</label>
-                <input type="text" name="snmp_community_rw" class="modal-input" value="<?php echo htmlspecialchars($olt['snmp_community_rw']); ?>" required>
+                <label>Community SNMP RW</label>
+                <input type="text" name="snmp_community_rw" class="form-control" value="<?php echo htmlspecialchars($olt['snmp_community_rw']); ?>" required>
             </div>
 
             <div>
-                <label class="modal-label">Port SNMP</label>
-                <input type="number" name="snmp_port" class="modal-input" value="<?php echo htmlspecialchars($olt['snmp_port'] ?: 161); ?>" required>
+                <label>Port SNMP</label>
+                <input type="number" name="snmp_port" class="form-control" value="<?php echo htmlspecialchars($olt['snmp_port'] ?: 161); ?>" required>
             </div>
 
         </div>
 
-        <div style="display:flex; justify-content:flex-end; margin-top:24px;">
-            <button type="submit" class="btn btn-primary" style="display:inline-flex; align-items:center; gap:8px;">
-                <i data-lucide="save" style="width:16px; height:16px;"></i> Simpan &amp; Verifikasi Koneksi
+        <div class="flex-end mt-6">
+            <button type="submit" class="btn btn-primary">
+                <i data-lucide="save" class="icon-sm"></i> Simpan &amp; Verifikasi Koneksi
             </button>
         </div>
     </form>
@@ -333,15 +372,15 @@ $onu_stats = $onu_count->fetch();
      TAB: INTERFACES (data realtime dari driver, brand-agnostic)
      ===================================================================== -->
 <?php if (isset($driver_panels['interfaces'])): ?>
-<div class="olt-tab-panel" id="panel-interfaces">
-    <div class="olt-section-head">
+<div class="content-card olt-tab-panel" id="panel-interfaces">
+    <div class="card-header">
         <div>
-            <h2><i data-lucide="network" style="width:17px;height:17px;color:var(--text-accent);"></i> Management Interface</h2>
+            <h2><i data-lucide="network" class="icon-md text-accent"></i> Management Interface</h2>
             <p>Management interface OLT, dibaca langsung dari perangkat.</p>
         </div>
         <div class="olt-section-actions">
             <button class="btn btn-primary lazy-refresh" data-panel="interfaces">
-                <i data-lucide="refresh-cw" style="width:14px;height:14px;"></i> Refresh
+                <i data-lucide="refresh-cw" class="icon-sm"></i> Refresh
             </button>
         </div>
     </div>
@@ -353,25 +392,25 @@ $onu_stats = $onu_count->fetch();
 <!-- =====================================================================
      TAB 3: VLAN MANAGEMENT (baca/tulis langsung ke perangkat)
      ===================================================================== -->
-<div class="olt-tab-panel" id="panel-vlan">
+<div class="content-card olt-tab-panel" id="panel-vlan">
 
-    <div class="olt-section-head">
+    <div class="card-header">
         <div>
-            <h2><i data-lucide="layers" style="width:17px;height:17px;color:var(--text-accent);"></i> Manajemen VLAN OLT</h2>
+            <h2><i data-lucide="layers" class="icon-md text-accent"></i> Manajemen VLAN OLT</h2>
             <p>VLAN dibaca dan ditulis langsung ke perangkat — tabel di bawah adalah kondisi nyata OLT.</p>
         </div>
         <div class="olt-section-actions">
             <button class="btn btn-outline" id="btn-refresh-vlan">
-                <i data-lucide="refresh-cw" style="width:14px;height:14px;"></i> Refresh
+                <i data-lucide="refresh-cw" class="icon-sm"></i> Refresh
             </button>
             <button class="btn btn-primary" id="btn-add-vlan">
-                <i data-lucide="plus" style="width:14px;height:14px;"></i> Tambah VLAN
+                <i data-lucide="plus" class="icon-sm"></i> Tambah VLAN
             </button>
         </div>
     </div>
 
-    <div class="pr-table-wrap">
-        <div class="table-responsive"><table class="smartolt-data-table" style="width:100%;">
+    <div class="pr-scroll">
+        <div class="table-responsive"><table class="data-table">
             <thead>
                 <tr>
                     <th>VLAN ID</th>
@@ -393,15 +432,15 @@ $onu_stats = $onu_count->fetch();
 <!-- =====================================================================
      TAB 5: DAFTAR ONU
      ===================================================================== -->
-<div class="olt-tab-panel" id="panel-onu-list">
-    <div class="olt-section-head">
+<div class="content-card olt-tab-panel" id="panel-onu-list">
+    <div class="card-header">
         <div>
-            <h2><i data-lucide="list" style="width:17px;height:17px;color:var(--text-accent);"></i> Daftar ONU Terdaftar</h2>
+            <h2><i data-lucide="list" class="icon-md text-accent"></i> Daftar ONU Terdaftar</h2>
             <p>Total: <?php echo (int)$onu_stats['total']; ?> ONU · <?php echo (int)$onu_stats['online']; ?> Online</p>
         </div>
         <div class="olt-section-actions">
-            <a href="configured.php?olt_id=<?php echo (int)$id; ?>" class="btn btn-outline" style="text-decoration:none;">
-                <i data-lucide="external-link" style="width:14px;height:14px;"></i> Buka di Configured
+            <a href="configured.php?olt_id=<?php echo (int)$id; ?>" class="btn btn-outline">
+                <i data-lucide="external-link" class="icon-sm"></i> Buka di Configured
             </a>
         </div>
     </div>
@@ -410,8 +449,8 @@ $onu_stats = $onu_count->fetch();
     $onu_list->execute([$id]);
     $onus = $onu_list->fetchAll();
     ?>
-    <div class="pr-table-wrap">
-    <div class="table-responsive"><table class="smartolt-data-table" style="width:100%;">
+    <div class="pr-scroll">
+    <div class="table-responsive"><table class="data-table">
         <thead>
             <tr>
                 <th>Nama</th>
@@ -431,18 +470,18 @@ $onu_stats = $onu_count->fetch();
                 <?php foreach ($onus as $o): ?>
                 <tr>
                     <td><?php echo htmlspecialchars($o['name']); ?></td>
-                    <td><code style="font-size:0.8rem;"><?php echo htmlspecialchars($o['serial_number']); ?></code></td>
-                    <td style="font-family:monospace; font-size:0.82rem;"><?php echo htmlspecialchars($o['pon_port']); ?>:<?php echo htmlspecialchars($o['onu_id']); ?></td>
-                    <td><?php echo $o['zone'] ? '<span class="chip chip-purple">'.htmlspecialchars($o['zone']).'</span>' : '<span style="color:var(--text-muted);">-</span>'; ?></td>
-                    <td><?php echo $o['splitter'] ? '<span class="chip chip-indigo">'.htmlspecialchars($o['splitter']).'</span>' : '<span style="color:var(--text-muted);">-</span>'; ?></td>
-                    <td style="font-family:monospace; font-size:0.85rem; color:<?php
+                    <td><code class="fs-xs"><?php echo htmlspecialchars($o['serial_number']); ?></code></td>
+                    <td class="mono fs-sm"><?php echo htmlspecialchars($o['pon_port']); ?>:<?php echo htmlspecialchars($o['onu_id']); ?></td>
+                    <td><?php echo $o['zone'] ? '<span class="chip chip-purple">'.htmlspecialchars($o['zone']).'</span>' : '<span class="text-muted">-</span>'; ?></td>
+                    <td><?php echo $o['splitter'] ? '<span class="chip chip-indigo">'.htmlspecialchars($o['splitter']).'</span>' : '<span class="text-muted">-</span>'; ?></td>
+                    <td class="mono fs-sm <?php
                         $rx = (float)$o['last_rx_power'];
-                        echo $rx < -27 ? 'var(--color-danger)' : ($rx < -25 ? 'var(--color-warning)' : 'var(--color-success)');
-                    ?>;"><?php echo $o['last_rx_power'] ? htmlspecialchars($o['last_rx_power']).' dBm' : 'N/A'; ?></td>
+                        echo $rx < -27 ? 'text-danger' : ($rx < -25 ? 'text-warning' : 'text-success');
+                    ?>"><?php echo $o['last_rx_power'] ? htmlspecialchars($o['last_rx_power']).' dBm' : 'N/A'; ?></td>
                     <td><span class="chip <?php echo $o['status'] === 'online' ? 'chip-green' : ($o['status'] === 'disabled' ? 'chip-slate' : 'chip-red'); ?>">● <?php echo htmlspecialchars(ucfirst($o['status'])); ?></span></td>
                     <td>
-                        <a href="onu-detail.php?id=<?php echo (int)$o['id']; ?>" class="btn btn-xs btn-outline" style="text-decoration:none;">
-                            <i data-lucide="eye" style="width:12px;height:12px;"></i> Detail
+                        <a href="onu-detail.php?id=<?php echo (int)$o['id']; ?>" class="btn btn-xs btn-outline">
+                            <i data-lucide="eye" class="icon-xs"></i> Detail
                         </a>
                     </td>
                 </tr>
@@ -457,15 +496,15 @@ $onu_stats = $onu_count->fetch();
      TAB 6: OLT DETAILS
      ===================================================================== -->
 <?php if (isset($driver_panels['olt-details'])): ?>
-<div class="olt-tab-panel" id="panel-olt-details">
-    <div class="olt-section-head">
+<div class="content-card olt-tab-panel" id="panel-olt-details">
+    <div class="card-header">
         <div>
-            <h2><i data-lucide="cpu" style="width:17px;height:17px;color:var(--text-accent);"></i> OLT Details</h2>
+            <h2><i data-lucide="cpu" class="icon-md text-accent"></i> OLT Details</h2>
             <p>Informasi sistem, firmware, dan hardware lengkap dari OLT.</p>
         </div>
         <div class="olt-section-actions">
             <button class="btn btn-outline lazy-refresh" data-panel="olt-details">
-                <i data-lucide="refresh-cw" style="width:14px;height:14px;"></i> Refresh
+                <i data-lucide="refresh-cw" class="icon-sm"></i> Refresh
             </button>
         </div>
     </div>
@@ -477,15 +516,15 @@ $onu_stats = $onu_count->fetch();
      TAB 7: OLT CARDS
      ===================================================================== -->
 <?php if (isset($driver_panels['olt-cards'])): ?>
-<div class="olt-tab-panel" id="panel-olt-cards">
-    <div class="olt-section-head">
+<div class="content-card olt-tab-panel" id="panel-olt-cards">
+    <div class="card-header">
         <div>
-            <h2><i data-lucide="layout-grid" style="width:17px;height:17px;color:var(--text-accent);"></i> OLT Cards</h2>
+            <h2><i data-lucide="layout-grid" class="icon-md text-accent"></i> OLT Cards</h2>
             <p>Status board/card yang terpasang pada OLT.</p>
         </div>
         <div class="olt-section-actions">
             <button class="btn btn-outline lazy-refresh" data-panel="olt-cards">
-                <i data-lucide="refresh-cw" style="width:14px;height:14px;"></i> Refresh
+                <i data-lucide="refresh-cw" class="icon-sm"></i> Refresh
             </button>
         </div>
     </div>
@@ -497,20 +536,20 @@ $onu_stats = $onu_count->fetch();
      TAB 8: PON PORTS
      ===================================================================== -->
 <?php if (isset($driver_panels['pon-ports'])): ?>
-<div class="olt-tab-panel" id="panel-pon-ports">
-    <div class="olt-section-head">
+<div class="content-card olt-tab-panel" id="panel-pon-ports">
+    <div class="card-header">
         <div>
-            <h2><i data-lucide="plug-zap" style="width:17px;height:17px;color:var(--text-accent);"></i> PON Ports</h2>
+            <h2><i data-lucide="plug-zap" class="icon-md text-accent"></i> PON Ports</h2>
             <p>Status masing-masing port GPON/PON beserta jumlah ONU aktif.</p>
         </div>
         <div class="olt-section-actions">
             <button class="btn btn-outline lazy-refresh" data-panel="pon-ports">
-                <i data-lucide="refresh-cw" style="width:14px;height:14px;"></i> Refresh
+                <i data-lucide="refresh-cw" class="icon-sm"></i> Refresh
             </button>
         </div>
     </div>
     <!-- PON port cards populated by JS from DB -->
-    <div id="pon-port-grid" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px; margin-bottom:20px;">
+    <div id="pon-port-grid" class="port-grid">
         <?php
         // Per-port ONU count from DB
         $port_stats = $pdo->prepare(
@@ -521,27 +560,27 @@ $onu_stats = $onu_count->fetch();
         $ports = $port_stats->fetchAll();
         if (empty($ports)):
         ?>
-            <p style="color:var(--text-muted); grid-column:1/-1;">Belum ada data port dari database.</p>
+            <p class="text-muted grid-full">Belum ada data port dari database.</p>
         <?php else: ?>
             <?php foreach ($ports as $pt): ?>
-            <div class="health-metric" style="cursor:default; text-align:left; padding:14px 16px;">
-                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
-                    <span style="font-size:0.72rem; font-weight:700; text-transform:uppercase; color:var(--text-muted);">Port</span>
-                    <span class="chip chip-teal" style="font-size:0.7rem; padding:2px 8px;"><?php echo htmlspecialchars($pt['pon_port']); ?></span>
+            <div class="health-metric port-card">
+                <div class="flex-between mb-2">
+                    <span class="cap">Port</span>
+                    <span class="chip chip-teal chip-xs"><?php echo htmlspecialchars($pt['pon_port']); ?></span>
                 </div>
-                <div style="display:flex; gap:12px; align-items:center;">
+                <div class="flex-row">
                     <div>
-                        <div style="font-size:1.5rem; font-weight:700; color:var(--text-main);"><?php echo (int)$pt['total']; ?></div>
-                        <div style="font-size:0.7rem; color:var(--text-muted);">Total ONU</div>
+                        <div class="num"><?php echo (int)$pt['total']; ?></div>
+                        <div class="sub">Total ONU</div>
                     </div>
-                    <div style="width:1px; height:36px; background:var(--border-color);"></div>
+                    <div class="vdivider"></div>
                     <div>
-                        <div style="font-size:1.5rem; font-weight:700; color:var(--color-success);"><?php echo (int)$pt['online']; ?></div>
-                        <div style="font-size:0.7rem; color:var(--text-muted);">Online</div>
+                        <div class="num text-success"><?php echo (int)$pt['online']; ?></div>
+                        <div class="sub">Online</div>
                     </div>
                     <div>
-                        <div style="font-size:1.5rem; font-weight:700; color:var(--color-danger);"><?php echo (int)$pt['total'] - (int)$pt['online']; ?></div>
-                        <div style="font-size:0.7rem; color:var(--text-muted);">Offline</div>
+                        <div class="num text-danger"><?php echo (int)$pt['total'] - (int)$pt['online']; ?></div>
+                        <div class="sub">Offline</div>
                     </div>
                 </div>
             </div>
@@ -561,32 +600,22 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!modal) {
             modal = document.createElement('div');
             modal.id = 'debug-log-modal';
-            modal.className = 'modal open';
-            modal.style.zIndex = '9999';
-            modal.style.display = 'flex';
-            modal.style.alignItems = 'center';
-            modal.style.justifyContent = 'center';
-            modal.style.position = 'fixed';
-            modal.style.top = '0';
-            modal.style.left = '0';
-            modal.style.width = '100%';
-            modal.style.height = '100%';
-            modal.style.background = 'rgba(0,0,0,0.5)';
-            
+            modal.className = 'modal open debug-modal';
+
             modal.innerHTML = `
-                <div class="modal-content" style="max-width: 800px; width: 90%; border-radius: 6px; box-shadow: 0 4px 20px rgba(0,0,0,0.25); border: none; background: #1e1e1e; color: #f8f8f2; font-family: 'Courier New', Courier, monospace; display: flex; flex-direction: column;">
-                    <div class="modal-header" style="border-bottom: 1px solid #333; padding: 15px 24px; display: flex; justify-content: space-between; align-items: center; background: #2d2d2d; border-top-left-radius: 6px; border-top-right-radius: 6px;">
-                        <h3 style="margin:0; font-size:1.1rem; font-weight:500; color:#fff; display: flex; align-items: center; gap: 8px;">
-                            <i data-lucide="terminal" style="width:18px; height:18px; color: #a6e22e;"></i> OLT CLI Debug Log Tracing
-                        </h3>
-                        <button type="button" class="close-btn" onclick="document.getElementById('debug-log-modal').style.display='none'" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:#94a3b8; line-height: 1;">&times;</button>
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>
+                            <i data-lucide="terminal" class="icon-md"></i> OLT CLI Debug Log Tracing
+                        </h2>
+                        <button type="button" class="modal-close" onclick="document.getElementById('debug-log-modal').classList.add('hidden')">&times;</button>
                     </div>
-                    <div class="modal-body" style="padding: 24px; max-height: 450px; overflow-y: auto;">
-                        <div style="font-weight: bold; color: #66d9ef; margin-bottom: 10px;">[Sent Commands & OLT CLI Trace Output]</div>
-                        <pre id="debug-log-content" style="white-space: pre-wrap; font-size: 0.9rem; margin: 0; line-height: 1.4; color: #a6e22e; font-family: 'Courier New', Courier, monospace;"></pre>
+                    <div class="modal-body">
+                        <div class="debug-caption">[Sent Commands &amp; OLT CLI Trace Output]</div>
+                        <pre id="debug-log-content"></pre>
                     </div>
-                    <div class="modal-footer" style="padding: 15px 24px; border-top: 1px solid #333; display:flex; justify-content:flex-end; align-items:center; background: #2d2d2d; border-bottom-left-radius: 6px; border-bottom-right-radius: 6px;">
-                        <button type="button" onclick="document.getElementById('debug-log-modal').style.display='none'" style="padding:8px 24px; border-radius:4px; background:#a6e22e; color:#000; border:none; cursor:pointer; font-weight:600; font-size:0.95rem; font-family: 'Montserrat', sans-serif;">Close</button>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" onclick="document.getElementById('debug-log-modal').classList.add('hidden')">Close</button>
                     </div>
                 </div>
             `;
@@ -595,17 +624,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') {
-                    modal.style.display = 'none';
+                    modal.classList.add('hidden');
                 }
             });
             modal.addEventListener('click', function(e) {
                 if (e.target === modal) {
-                    modal.style.display = 'none';
+                    modal.classList.add('hidden');
                 }
             });
         }
         document.getElementById('debug-log-content').textContent = logText;
-        modal.style.display = 'flex';
+        modal.classList.remove('hidden');
     }
 
     // ===== TAB SWITCHING =====
@@ -652,11 +681,8 @@ document.addEventListener('DOMContentLoaded', () => {
             .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
     }
 
-    const STATE_COLOR = {
-        good:    'var(--color-success)',
-        warn:    'var(--color-warning)',
-        bad:     'var(--color-danger)',
-        neutral: 'var(--text-main)'
+    const STATE_CLASS = {
+        good: 'text-success', warn: 'text-warning', bad: 'text-danger', neutral: ''
     };
     const STATE_CHIP = {
         good: 'chip-green', warn: 'chip-amber', bad: 'chip-red', neutral: 'chip-slate'
@@ -664,13 +690,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderMetrics(sec) {
         const items = (sec.items || []).map(it => {
-            const color = STATE_COLOR[it.state] || STATE_COLOR.neutral;
-            const size  = it.small ? '0.95rem' : '1.6rem';
-            const unit  = it.unit ? `<span style="font-size:0.9rem;font-weight:600;margin-left:2px;">${esc(it.unit)}</span>` : '';
+            const cls  = STATE_CLASS[it.state] || STATE_CLASS.neutral;
+            const size  = it.small ? 'sz-sm' : '';
+            const unit  = it.unit ? `<span class="metric-unit">${esc(it.unit)}</span>` : '';
             return `
-            <div class="health-metric" style="text-align:left;">
+            <div class="health-metric metric-title">
                 <div class="pr-lbl">${esc(it.label)}</div>
-                <div style="font-weight:700;font-size:${size};color:${color};line-height:1.3;word-break:break-word;">${esc(it.value)}${unit}</div>
+                <div class="metric-val ${size} ${cls}">${esc(it.value)}${unit}</div>
             </div>`;
         }).join('');
         return `<div class="pr-section">${secTitle(sec)}<div class="pr-grid">${items}</div></div>`;
@@ -678,14 +704,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderCards(sec) {
         const items = (sec.items || []).map(it => {
-            const color = STATE_COLOR[it.state] || STATE_COLOR.neutral;
+            const cls   = STATE_CLASS[it.state] || STATE_CLASS.neutral;
             const chip  = STATE_CHIP[it.state] || 'chip-slate';
-            const badge = it.badge ? `<span class="chip ${chip}" style="font-size:0.72rem;">● ${esc(it.badge)}</span>` : '';
-            const sub   = it.subtitle ? `<div style="font-size:0.75rem;color:var(--text-muted);margin-top:8px;">${esc(it.subtitle)}</div>` : '';
+            const badge = it.badge ? `<span class="chip chip-xs ${chip}">● ${esc(it.badge)}</span>` : '';
+            const sub   = it.subtitle ? `<div class="metric-sub">${esc(it.subtitle)}</div>` : '';
             return `
-            <div class="health-metric" style="text-align:left;">
+            <div class="health-metric metric-title">
                 <div class="pr-lbl">${esc(it.title)}</div>
-                <div style="font-weight:700;font-size:1rem;color:${color};margin-bottom:8px;word-break:break-word;">${esc(it.value)}</div>
+                <div class="metric-val sz-md mb-2 ${cls}">${esc(it.value)}</div>
                 ${badge}${sub}
             </div>`;
         }).join('');
@@ -712,7 +738,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }).join('');
         if (!rows) return '';
         return `<div class="pr-section">${secTitle(sec)}
-            <div class="pr-table-wrap"><div class="table-responsive"><table class="pr-table"><thead><tr>${cols}</tr></thead><tbody>${rows}</tbody></table></div></div>
+            <div class="pr-scroll"><div class="table-responsive"><table class="data-table"><thead><tr>${cols}</tr></thead><tbody>${rows}</tbody></table></div></div>
         </div>`;
     }
 
@@ -736,7 +762,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const el = document.getElementById('render-' + panelName);
         if (!el) return;
 
-        el.innerHTML = `<div class="pr-loading"><span class="spinner-small"></span> Mengambil data dari OLT...</div>`;
+        el.innerHTML = `<div class="pr-loading"><span class="spinner-sm"></span> Mengambil data dari OLT...</div>`;
 
         try {
             const res  = await fetch(`action/get-olt-panel.php?id=${encodeURIComponent(oltId)}&panel=${encodeURIComponent(panelName)}`, {
@@ -827,10 +853,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const errBox     = document.getElementById('health-error-container');
         const lastCheck  = document.getElementById('health-last-check');
 
-        cpuEl.innerHTML = ramEl.innerHTML = '<span class="spinner-small"></span>';
-        tempEl.innerHTML = '<span class="spinner-small"></span>';
-        snmpEl.innerHTML = '● Loading...'; snmpEl.style.color = 'var(--text-muted)';
-        uptimeEl.innerHTML = '<span class="spinner-small"></span> Memuat...';
+        cpuEl.innerHTML = ramEl.innerHTML = '<span class="spinner-sm"></span>';
+        tempEl.innerHTML = '<span class="spinner-sm"></span>';
+        snmpEl.innerHTML = '● Loading...'; snmpEl.className = 'val val-sm text-muted';
+        uptimeEl.innerHTML = '<span class="spinner-sm"></span> Memuat...';
         snmpBadge.textContent = '● Connecting...'; snmpBadge.className = 'badge bg-orange';
         errBox.classList.add('hidden');
 
@@ -848,26 +874,26 @@ document.addEventListener('DOMContentLoaded', () => {
                     sysNameEl.textContent = data.sys_name || '-';
                     sysLocEl.textContent  = data.sys_location || '-';
                     snmpEl.textContent   = `● ${data.snmp_status}`;
-                    snmpEl.style.color   = data.snmp_status === 'Connected' ? 'var(--color-success)' : 'var(--color-danger)';
+                    snmpEl.className     = 'val val-sm ' + (data.snmp_status === 'Connected' ? 'text-success' : 'text-danger');
                     snmpBadge.textContent = `● ${data.snmp_status}`;
                     snmpBadge.className   = 'badge ' + (data.snmp_status === 'Connected' ? 'bg-green' : 'bg-red');
                     const tempNum = parseFloat(data.temp);
                     if (!isNaN(tempNum)) {
-                        tempEl.style.color = tempNum > 55 ? 'var(--color-danger)' : tempNum > 48 ? 'var(--color-warning)' : 'var(--text-main)';
+                        tempEl.className = 'val ' + (tempNum > 55 ? 'text-danger' : tempNum > 48 ? 'text-warning' : '');
                     }
                     lastCheck.textContent = new Date().toLocaleString();
                 } else {
                     ['cpu','ram','temp'].forEach(k => document.getElementById('health-'+k).textContent = 'N/A');
-                    snmpEl.textContent = '● Disconnected'; snmpEl.style.color = 'var(--color-danger)';
+                    snmpEl.textContent = '● Disconnected'; snmpEl.className = 'val val-sm text-danger';
                     snmpBadge.textContent = '● Disconnected'; snmpBadge.className = 'badge bg-red';
                     uptimeEl.textContent = 'N/A';
-                    errBox.innerHTML = `<strong>⚠️ Gagal Terhubung ke OLT Fisik:</strong><br><span style="font-family:monospace;">${esc(data.message || '')}</span>`;
+                    errBox.innerHTML = `<strong>⚠️ Gagal Terhubung ke OLT Fisik:</strong><br><span class="mono">${esc(data.message || '')}</span>`;
                     errBox.classList.remove('hidden');
                 }
             })
             .catch(err => {
                 ['cpu','ram','temp'].forEach(k => document.getElementById('health-'+k).textContent = 'N/A');
-                snmpEl.textContent = '● Error'; snmpEl.style.color = 'var(--color-danger)';
+                snmpEl.textContent = '● Error'; snmpEl.className = 'val val-sm text-danger';
                 snmpBadge.textContent = '● Error'; snmpBadge.className = 'badge bg-red';
                 uptimeEl.textContent = 'N/A';
                 const msg = err.name === 'AbortError' ? 'Timeout: OLT tidak merespon dalam 45 detik. Periksa koneksi jaringan.' : err.message;
@@ -888,7 +914,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!msgEl) return;
         msgEl.className = 'olt-inline-msg ' + (ok ? 'ok' : 'err');
         msgEl.textContent = text;
-        msgEl.style.display = 'block';
     }
 
     async function vlanApi(payload) {
@@ -952,7 +977,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         vlanTbody.innerHTML = vlans.map(v => {
             const locked = v.protected;
-            const btnEdit = '<button class="btn btn-xs btn-outline vlan-edit" style="margin-right: 6px;" data-vlan=\'' + esc(JSON.stringify(v)) + '\'><i data-lucide="pencil" style="width:10px;height:10px;display:inline-block;vertical-align:middle;margin-right:2px;"></i> Edit</button>';
+            const btnEdit = '<button class="btn btn-xs btn-outline vlan-edit mr-2" data-vlan=\'' + esc(JSON.stringify(v)) + '\'><i data-lucide="pencil" class="icon-inline"></i> Edit</button>';
             const aksi = btnEdit + (locked
                 ? '<span class="chip chip-slate" title="VLAN sistem / layer 3 tidak dapat dihapus">Terproteksi</span>'
                 : '<button class="btn btn-xs btn-danger vlan-del" data-vlan="' + esc(v.id) + '">Hapus</button>');
@@ -995,16 +1020,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const mgmtCheckbox = document.getElementById('vlan-modal-is-management');
 
         tbody.innerHTML = '';
-        document.getElementById('vlan-modal-msg').style.display = 'none';
+        document.getElementById('vlan-modal-msg').className = 'olt-inline-msg';
 
         if (vlanData) {
-            titleEl.innerHTML = `<i data-lucide="pencil" style="width:18px;height:18px;display:inline-block;vertical-align:middle;margin-right:4px;"></i> Edit VLAN ${esc(vlanData.id)}`;
+            titleEl.innerHTML = `<i data-lucide="pencil" class="icon-title"></i> Edit VLAN ${esc(vlanData.id)}`;
             idInput.value = vlanData.id;
             idInput.disabled = true;
             descInput.value = vlanData.description || '';
             mgmtCheckbox.checked = vlanData.type === 'management';
         } else {
-            titleEl.innerHTML = `<i data-lucide="plus-circle" style="width:18px;height:18px;display:inline-block;vertical-align:middle;margin-right:4px;"></i> Tambah VLAN Baru`;
+            titleEl.innerHTML = `<i data-lucide="plus-circle" class="icon-title"></i> Tambah VLAN Baru`;
             idInput.value = '';
             idInput.disabled = false;
             descInput.value = '';
@@ -1023,7 +1048,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const ports = window.oltPorts || [];
         if (ports.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:12px; color:var(--text-muted);">Memuat daftar port... Mohon tunggu sebentar.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Memuat daftar port... Mohon tunggu sebentar.</td></tr>';
         } else {
             ports.forEach(port => {
                 let currentAssignment = 'none';
@@ -1039,14 +1064,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 tbody.innerHTML += `
                     <tr>
-                        <td style="font-weight: 600; vertical-align: middle;">${esc(port)}</td>
-                        <td style="text-align: center; vertical-align: middle;">
+                        <td class="fw-600 cell-mid">${esc(port)}</td>
+                        <td class="text-center cell-mid">
                             <input type="radio" name="vlan_port_${esc(port)}" value="tagged" ${currentAssignment === 'tagged' ? 'checked' : ''}>
                         </td>
-                        <td style="text-align: center; vertical-align: middle;">
+                        <td class="text-center cell-mid">
                             <input type="radio" name="vlan_port_${esc(port)}" value="untagged" ${currentAssignment === 'untagged' ? 'checked' : ''}>
                         </td>
-                        <td style="text-align: center; vertical-align: middle;">
+                        <td class="text-center cell-mid">
                             <input type="radio" name="vlan_port_${esc(port)}" value="none" ${currentAssignment === 'none' ? 'checked' : ''}>
                         </td>
                     </tr>
@@ -1197,14 +1222,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!msgEl) return;
         msgEl.className = 'olt-inline-msg ' + (ok ? 'ok' : 'err');
         msgEl.textContent = text;
-        msgEl.style.display = 'block';
     }
 
     function updatePortConfigForm() {
         if (!pcAutoNego) return;
         const auto = pcAutoNego.value === 'enable';
-        pcSpeedWrap.style.display = auto ? 'none' : 'block';
-        pcDuplexWrap.style.display = auto ? 'none' : 'block';
+        pcSpeedWrap.classList.toggle('hidden', auto);
+        pcDuplexWrap.classList.toggle('hidden', auto);
     }
 
     if (pcAutoNego) {
@@ -1236,7 +1260,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('pc-duplex').value = (arg.duplex && arg.duplex.toLowerCase() === 'half') ? 'half' : 'full';
 
         updatePortConfigForm();
-        document.getElementById('port-config-msg').style.display = 'none';
+        document.getElementById('port-config-msg').className = 'olt-inline-msg';
         portConfigModal.classList.add('open');
     });
 
@@ -1312,43 +1336,43 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 <!-- MODAL ADD/EDIT VLAN -->
-<div id="vlan-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="vlan-modal-title">
-    <div class="modal-content" style="max-width: 650px;">
+<div id="vlan-modal" class="modal modal-lg" role="dialog" aria-modal="true" aria-labelledby="vlan-modal-title">
+    <div class="modal-content">
         <div class="modal-header">
             <h2 id="vlan-modal-title"><i data-lucide="layers"></i> Tambah VLAN</h2>
             <button class="modal-close" id="btn-close-vlan-modal">&times;</button>
         </div>
         <div class="modal-body">
-            <div class="olt-form-grid" style="grid-template-columns: 1fr 2fr; gap: 16px; margin-bottom: 20px;">
+            <div class="form-grid-2 mb-5">
                 <div>
-                    <label class="modal-label">VLAN ID</label>
-                    <input type="number" id="vlan-modal-id" class="modal-input" placeholder="e.g. 100" min="1" max="4094" required>
+                    <label>VLAN ID</label>
+                    <input type="number" id="vlan-modal-id" class="form-control" placeholder="e.g. 100" min="1" max="4094" required>
                 </div>
                 <div>
-                    <label class="modal-label">Deskripsi (opsional, maks 32 karakter)</label>
-                    <input type="text" id="vlan-modal-desc" class="modal-input" placeholder="e.g. PPPOE" maxlength="32" pattern="[A-Za-z0-9 ._-]*">
+                    <label>Deskripsi (opsional, maks 32 karakter)</label>
+                    <input type="text" id="vlan-modal-desc" class="form-control" placeholder="e.g. PPPOE" maxlength="32" pattern="[A-Za-z0-9 ._-]*">
                 </div>
             </div>
 
-            <div style="margin-bottom: 20px;">
-                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem;">
+            <div class="mb-5">
+                <label class="check-label">
                     <input type="checkbox" id="vlan-modal-is-management">
                     Tandai sebagai VLAN Management
                 </label>
             </div>
 
-            <div style="margin-top: 20px;">
-                <h3 style="font-size: 0.9rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px;">
+            <div class="mt-5">
+                <h3 class="subhead">
                     Konfigurasi Port Uplink
                 </h3>
-                <div class="pr-table-wrap">
-                    <div class="table-responsive"><table class="data-table" style="width: 100%;">
+                <div class="pr-scroll">
+                    <div class="table-responsive"><table class="data-table">
                         <thead>
                             <tr>
                                 <th>Port</th>
-                                <th style="text-align: center; width: 120px;">Tagged</th>
-                                <th style="text-align: center; width: 120px;">Untagged</th>
-                                <th style="text-align: center; width: 120px;">None</th>
+                                <th class="text-center w-120">Tagged</th>
+                                <th class="text-center w-120">Untagged</th>
+                                <th class="text-center w-120">None</th>
                             </tr>
                         </thead>
                         <tbody id="vlan-modal-ports-tbody">
@@ -1358,10 +1382,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>
             
-            <p style="margin: 16px 0 0; font-size: 0.78rem; color: var(--color-warning);">
+            <p class="warn-note">
                 ⚠️ Mengubah port VLAN dapat berdampak pada kelancaran trafik pelanggan. Pastikan setelan Anda sudah benar.
             </p>
-            <div id="vlan-modal-msg" class="olt-inline-msg" style="margin-top: 15px;"></div>
+            <div id="vlan-modal-msg" class="olt-inline-msg mt-4"></div>
         </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" id="btn-cancel-vlan-modal">Batal</button>
@@ -1371,23 +1395,23 @@ document.addEventListener('DOMContentLoaded', () => {
 </div>
 
 <!-- MODAL EDIT PORT NEGOTIATION -->
-<div id="port-config-modal" class="modal" role="dialog" aria-modal="true">
-    <div class="modal-content" style="max-width: 450px;">
+<div id="port-config-modal" class="modal modal-sm" role="dialog" aria-modal="true">
+    <div class="modal-content">
         <div class="modal-header">
             <h2><i data-lucide="settings"></i> Edit Port <span id="pc-port-label"></span></h2>
             <button class="modal-close" id="btn-close-port-config-modal">&times;</button>
         </div>
         <div class="modal-body">
             <div class="form-group">
-                <label class="modal-label">Auto Negotiation</label>
-                <select id="pc-auto-nego" class="modal-input">
+                <label>Auto Negotiation</label>
+                <select id="pc-auto-nego" class="form-control">
                     <option value="enable">Enable (Auto speed & duplex)</option>
                     <option value="disable">Disable (Force speed & duplex)</option>
                 </select>
             </div>
             <div class="form-group" id="pc-speed-wrap">
-                <label class="modal-label">Speed (Mbps)</label>
-                <select id="pc-speed" class="modal-input">
+                <label>Speed (Mbps)</label>
+                <select id="pc-speed" class="form-control">
                     <option value="10">10 Mbps</option>
                     <option value="100">100 Mbps</option>
                     <option value="1000">1000 Mbps (1 Gbps)</option>
@@ -1395,13 +1419,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 </select>
             </div>
             <div class="form-group" id="pc-duplex-wrap">
-                <label class="modal-label">Duplex</label>
-                <select id="pc-duplex" class="modal-input">
+                <label>Duplex</label>
+                <select id="pc-duplex" class="form-control">
                     <option value="full">Full Duplex</option>
                     <option value="half">Half Duplex</option>
                 </select>
             </div>
-            <div id="port-config-msg" class="olt-inline-msg" style="margin-top: 15px;"></div>
+            <div id="port-config-msg" class="olt-inline-msg mt-4"></div>
         </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" id="btn-cancel-port-config-modal">Batal</button>
