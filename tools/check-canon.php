@@ -20,6 +20,14 @@ foreach ($cssFiles as $f) {
 }
 
 $pages = glob($root . '/frontend/*.php');
+
+// JS hook classes may be bound from any page (e.g. footer.php binds header markup),
+// so collect every string/selector literal across all pages first.
+$allSrc = '';
+foreach ($pages as $p) {
+    $allSrc .= file_get_contents($p);
+}
+
 $errors = [];
 $inlineReport = [];
 
@@ -57,8 +65,8 @@ foreach ($pages as $page) {
                 continue;
             }
             $seen[$cls] = true;
-            // JS hook: referenced as a selector or string literal in the page
-            if (strpos($src, "'" . $cls . "'") !== false || strpos($src, '.' . $cls) !== false) {
+            // JS hook: referenced as a selector or string literal in any page
+            if (strpos($allSrc, "'" . $cls . "'") !== false || strpos($allSrc, '.' . $cls) !== false) {
                 continue;
             }
             $errors[] = sprintf('%s: class "%s" has no CSS definition', $name, $cls);

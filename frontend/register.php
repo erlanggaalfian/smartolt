@@ -54,7 +54,7 @@ h2 { font-family: 'Poppins', sans-serif; font-weight: 700; }
     <div class="register-container">
         <div class="register-card">
             <div class="register-logo">
-                <i data-lucide="key-round" style="width: 48px; height: 48px; color: #06b6d4;"></i>
+                <i data-lucide="key-round" class="auth-brand-icon"></i>
                 <h2>Setup Administrator</h2>
                 <p>Buat akun Superadmin pertama untuk memulai</p>
             </div>

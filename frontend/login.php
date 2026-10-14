@@ -59,7 +59,7 @@ h2 { font-family: 'Poppins', sans-serif; font-weight: 700; }
     <div class="login-container">
         <div class="login-card motion-scale-in">
             <div class="login-logo motion-fade-up">
-                <i data-lucide="shield-check" style="width: 48px; height: 48px; color: #06b6d4;"></i>
+                <i data-lucide="shield-check" class="auth-brand-icon"></i>
                 <h2>SmartOLT Panel</h2>
                 <p>Silakan masuk untuk mengelola OLT & pelanggan</p>
             </div>
