@@ -67,9 +67,12 @@ def main():
         # 4. Clean name
         clean_name = val(d.get('onu_name'))
         if clean_name:
-            clean_name = re.sub(r'^(?:zone_|name_)[^_]+_descr_', '', clean_name, flags=re.I)
-            clean_name = re.sub(r'_odb_.*$', '', clean_name, flags=re.I)
-            clean_name = clean_name.replace('_', ' ').strip()
+            # Extract name dari structured description: name_XXX_zone_...
+            m_name = re.search(r'(?:^|_)name_(.*?)(?:_(?:zone|descr|odb|authd|contact)_|$)', clean_name, flags=re.I)
+            if m_name:
+                clean_name = m_name.group(1).replace('_', ' ').strip()
+            else:
+                clean_name = clean_name.replace('_', ' ').strip()
             
         # 5. Parse description
         zone_val = None

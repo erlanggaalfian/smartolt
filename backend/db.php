@@ -19,13 +19,16 @@ $db_pass = getenv('DB_PASSWORD')  ?: '';
  */
 function extract_customer_name(?string $desc): string {
     $desc = (string)$desc;
-    if (preg_match('/^name_(.*?)(?:_(?:zone|descr|odb|authd|contact)_|$)/i', $desc, $m)) {
-        return trim($m[1]);
+    // Coba extract dari structured description: name_XXX_zone_...
+    // Non-greedy stop di delimiter berikutnya (_zone_, _descr_, _odb_, _authd_, _contact_)
+    if (preg_match('/(?:^|_)name_(.*?)(?:_(?:zone|descr|odb|authd|contact)_|$)/i', $desc, $m)) {
+        $name = trim($m[1]);
+        // Normalisasi underscore -> spasi (nama pelanggan)
+        $name = str_replace('_', ' ', $name);
+        return $name;
     }
-    if (preg_match('/_name_(.*?)(?:_(?:zone|descr|odb|authd|contact|name)_|$)/i', $desc, $m)) {
-        return trim($m[1]);
-    }
-    return $desc;
+    // Bukan structured format — kembalikan apa adanya
+    return trim($desc);
 }
 
 /**
@@ -40,12 +43,16 @@ function parse_structured_description(?string $desc): array {
         'contact' => null,
         'external_id' => null
     ];
-    if (preg_match('/zone_([^_]+)/i', $desc, $m)) {
-        $val = trim($m[1]);
+    // Zone: ambil semua antara zone_ dan _descr_ (bisa punya underscore/spasi)
+    if (preg_match('/zone_(.*?)(?:_descr_|_odb_|_authd_|_contact_|_name_|$)/i', $desc, $m)) {
+        $val = trim(str_replace('_', ' ', $m[1]));
         $res['zone'] = ($val !== '' && $val !== 'None') ? $val : null;
     }
-    if (preg_match('/descr_(.*?)(_odb_|_authd_|_contact_|_name_|$)/i', $desc, $m)) {
+    // Address/descr: ambil semua antara descr_ dan delimiter berikutnya
+    if (preg_match('/descr_(.*?)(?:_odb_|_authd_|_contact_|_name_|$)/i', $desc, $m)) {
         $val = trim($m[1]);
+        // Normalisasi underscore -> spasi kecuali untuk separator yang sudah ada spasi
+        $val = preg_replace('/(?<=\w)_(?=\w)/', ' ', $val);
         $res['address'] = ($val !== '' && $val !== 'None') ? $val : null;
     }
     if (preg_match('/_odb_(.*?)(?:_authd|_auth|_extid|$)/i', $desc, $m)) {
