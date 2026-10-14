@@ -53,15 +53,15 @@ $board_port_display = count($pon_parts) === 3 ? "Shelf {$pon_parts[0]} / Slot {$
 
 <div class="content-card">
     <div class="card-header border-accent">
-        <h1 id="page-title">Otorisasi Pelanggan Baru <span style="font-weight:400;color:var(--text-muted);font-size:0.85em;">(<?php echo htmlspecialchars($olt['name']); ?>)</span></h1>
+        <h1 id="page-title">Otorisasi Pelanggan Baru <span class="fw-400 text-muted title-suffix">(<?php echo htmlspecialchars($olt['name']); ?>)</span></h1>
     </div>
     <div class="card-body">
         <div class="auth-preset-row">
-            <label style="flex:0 0 auto;font-weight:600;">Gunakan Preset</label>
+            <label class="label-static">Gunakan Preset</label>
             <select id="auth-preset-select" class="form-control">
                 <option value="">Tidak ada</option>
             </select>
-            <button type="button" class="btn-icon-square" id="btn-save-preset" title="Simpan kombinasi saat ini sebagai preset baru"><i data-lucide="plus" style="width:16px;height:16px;"></i></button>
+            <button type="button" class="btn-icon-square" id="btn-save-preset" title="Simpan kombinasi saat ini sebagai preset baru"><i data-lucide="plus" class="icon-sm"></i></button>
         </div>
 
         <form action="action/auth-onu.php" method="POST" id="form-auth-onu">
@@ -131,7 +131,7 @@ $board_port_display = count($pon_parts) === 3 ? "Shelf {$pon_parts[0]} / Slot {$
             </div>
             <div class="auth-form-row" id="auth-pppoe-fields" style="display:none;">
                 <label>PPPoE</label>
-                <div class="auth-field" style="display:flex; gap:8px;">
+                <div class="auth-field flex-row gap-2">
                     <input type="text" id="auth-pppoe-username" name="pppoe_username" class="form-control" placeholder="Username PPPoE">
                     <input type="password" id="auth-pppoe-password" name="pppoe_password" class="form-control" placeholder="Password PPPoE">
                 </div>
@@ -192,28 +192,28 @@ $board_port_display = count($pon_parts) === 3 ? "Shelf {$pon_parts[0]} / Slot {$
             <div class="auth-form-row">
                 <label></label>
                 <div class="auth-field">
-                    <label style="font-weight:400; display:flex; align-items:center; gap:8px; cursor:pointer;">
+                    <label class="checkbox-row fw-400">
                         <input type="checkbox" id="auth-use-gps"> Gunakan GPS
                     </label>
                     <div id="gps-fields" class="hidden">
                         <input type="text" id="auth-latitude" name="latitude" class="form-control" placeholder="Latitude">
                         <input type="text" id="auth-longitude" name="longitude" class="form-control" placeholder="Longitude">
-                        <button type="button" class="btn-icon-square" id="btn-use-gps" title="Gunakan lokasi saya"><i data-lucide="map-pin" style="width:16px; height:16px;"></i></button>
+                        <button type="button" class="btn-icon-square" id="btn-use-gps" title="Gunakan lokasi saya"><i data-lucide="map-pin" class="icon-sm"></i></button>
                     </div>
                 </div>
             </div>
             <div class="loading-spinner hidden" id="auth-onu-loading">
-                <div style="display:flex;flex-direction:column;gap:8px;">
-                    <div class="skeleton" style="height:14px;width:70%;"></div>
-                    <div class="skeleton" style="height:14px;width:50%;"></div>
-                    <div class="skeleton" style="height:14px;width:60%;"></div>
+                <div class="flex-col">
+                    <div class="skeleton skel-line-sm skel-70"></div>
+                    <div class="skeleton skel-line-sm skel-50"></div>
+                    <div class="skeleton skel-line-sm skel-60"></div>
                 </div>
                 <p id="auth-progress-text">Mengirim konfigurasi ke OLT...</p>
             </div>
-            <div class="modal-footer" style="padding:16px 0 0; border-top:1px solid var(--border-color, #e2e8f0); margin-top:16px; display:flex; gap:16px; align-items:center;">
-                <button type="submit" class="btn btn-success" id="auth-submit-btn" disabled><i data-lucide="save" style="width:15px;height:15px;"></i> Simpan</button>
+            <div class="modal-footer modal-footer--inline">
+                <button type="submit" class="btn btn-success" id="auth-submit-btn" disabled><i data-lucide="save" class="icon-sm"></i> Simpan</button>
                 <a href="unconfigured.php" class="btn-link-plain">Batal</a>
-                <span id="auth-onu-id-error" style="display:none; color:var(--color-danger); font-size:0.85rem; font-weight:600;"></span>
+                <span id="auth-onu-id-error" class="text-danger fs-sm fw-600" style="display:none;"></span>
             </div>
         </form>
     </div>
@@ -221,7 +221,7 @@ $board_port_display = count($pon_parts) === 3 ? "Shelf {$pon_parts[0]} / Slot {$
 
 <!-- Modal simpan preset -->
 <div class="modal" id="modal-save-preset">
-    <div class="modal-content" style="max-width:420px;">
+    <div class="modal-content modal-sm">
         <div class="modal-header">
             <h2>Simpan Preset</h2>
             <button type="button" class="modal-close" id="btn-close-preset-modal">&times;</button>

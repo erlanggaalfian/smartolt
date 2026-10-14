@@ -166,7 +166,7 @@ $onus = $stmt_data->fetchAll();
 ?>
 
 <div class="filter-panel">
-    <form method="GET" id="form-filter" action="configured.php" class="filter-row" style="margin:0;">
+    <form method="GET" id="form-filter" action="configured.php" class="filter-row form-inline">
         <input type="hidden" name="limit" id="filter-limit" value="<?php echo $limit; ?>">
         <div class="filter-item search-item">
             <input type="text" name="search" class="form-control" aria-label="Cari pelanggan" placeholder="Cari nama, SN, alamat, PPPoE, OLT, VLAN, splitter, zone..." value="<?php echo htmlspecialchars($search); ?>">
@@ -244,7 +244,7 @@ $onus = $stmt_data->fetchAll();
         </div>
         <?php if (!empty($filter_zone) || !empty($filter_odb) || !empty($filter_pon) || !empty($search) || !empty($status) || !empty($filter_signal) || !empty($filter_type) || $limit !== 100): ?>
         <div class="filter-item">
-            <a href="configured.php?olt_id=<?php echo htmlspecialchars($selected_olt_id); ?>" class="btn btn-outline" style="text-decoration:none;">
+            <a href="configured.php?olt_id=<?php echo htmlspecialchars($selected_olt_id); ?>" class="btn btn-outline">
                 <i data-lucide="x"></i> Reset
             </a>
         </div>
@@ -259,17 +259,17 @@ $onus = $stmt_data->fetchAll();
                 'pon_port' => $filter_pon ?: null,
                 'signal' => $filter_signal ?: null,
                 'onu_type' => $filter_type ?: null,
-            ], fn($v) => $v !== null && $v !== '')); ?>" class="btn btn-outline" style="text-decoration:none;" title="Download CSV dengan filter saat ini">
+            ], fn($v) => $v !== null && $v !== '')); ?>" class="btn btn-outline" title="Download CSV dengan filter saat ini">
                 <i data-lucide="download"></i> CSV
             </a>
         </div>
         <?php if (!empty($selected_olt_id)): ?>
-        <div class="filter-item" style="display:flex; align-items:center; gap:6px;">
+        <div class="filter-item inline-flex-center">
             <button type="button" class="btn btn-xs btn-warning" id="btn-sync-pelanggan" onclick="triggerSyncPelanggan(event)">
-                <i data-lucide="refresh-cw" style="width:12px; height:12px; display:inline-block; vertical-align:middle;"></i> Sync Pelanggan
+                <i data-lucide="refresh-cw" class="icon-xs"></i> Sync Pelanggan
             </button>
-            <label style="display:flex; align-items:center; gap:4px; font-size:0.75rem; color:var(--text-muted); cursor:pointer; user-select:none;" title="Tampilkan detail error saat sync gagal">
-                <input type="checkbox" id="toggle-debug" style="width:13px; height:13px; cursor:pointer;">
+            <label class="toggle-inline" title="Tampilkan detail error saat sync gagal">
+                <input type="checkbox" id="toggle-debug" class="checkbox-xs">
                 Debug
             </label>
         </div>
@@ -277,25 +277,25 @@ $onus = $stmt_data->fetchAll();
     </form>
 </div>
 
-<div style="display:flex; gap:16px; flex-wrap:wrap; margin-bottom:16px;">
-    <div style="display:flex; align-items:center; gap:8px; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:8px; padding:10px 16px;">
-        <span style="font-size:0.85rem; color:var(--text-muted);">Total</span>
-        <span id="stat-total" style="font-size:1.25rem; font-weight:700; color:var(--text-main);"><?php echo number_format($stats_total); ?></span>
+<div class="statstrip">
+    <div class="statstrip-item">
+        <span class="text-muted fs-sm">Total</span>
+        <span id="stat-total" class="statstrip-value"><?php echo number_format($stats_total); ?></span>
     </div>
-    <div style="display:flex; align-items:center; gap:8px; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:8px; padding:10px 16px;">
-        <span style="width:8px;height:8px;border-radius:50%;background:var(--color-success);display:inline-block;"></span>
-        <span style="font-size:0.85rem; color:var(--text-muted);">Online</span>
-        <span id="stat-online" style="font-size:1.25rem; font-weight:700; color:var(--color-success);"><?php echo number_format($stats_map['online']); ?></span>
+    <div class="statstrip-item">
+        <span class="dot-sm dot-success"></span>
+        <span class="text-muted fs-sm">Online</span>
+        <span id="stat-online" class="statstrip-value text-success"><?php echo number_format($stats_map['online']); ?></span>
     </div>
-    <div style="display:flex; align-items:center; gap:8px; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:8px; padding:10px 16px;">
-        <span style="width:8px;height:8px;border-radius:50%;background:var(--color-danger);display:inline-block;"></span>
-        <span style="font-size:0.85rem; color:var(--text-muted);">Offline</span>
-        <span id="stat-offline" style="font-size:1.25rem; font-weight:700; color:var(--color-danger);"><?php echo number_format($stats_map['offline']); ?></span>
+    <div class="statstrip-item">
+        <span class="dot-sm dot-danger"></span>
+        <span class="text-muted fs-sm">Offline</span>
+        <span id="stat-offline" class="statstrip-value text-danger"><?php echo number_format($stats_map['offline']); ?></span>
     </div>
-    <div style="display:flex; align-items:center; gap:8px; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:8px; padding:10px 16px;">
-        <span style="width:8px;height:8px;border-radius:50%;background:var(--color-warning);display:inline-block;"></span>
-        <span style="font-size:0.85rem; color:var(--text-muted);">Disabled</span>
-        <span id="stat-disabled" style="font-size:1.25rem; font-weight:700; color:var(--color-warning);"><?php echo number_format($stats_map['disabled']); ?></span>
+    <div class="statstrip-item">
+        <span class="dot-sm dot-warning"></span>
+        <span class="text-muted fs-sm">Disabled</span>
+        <span id="stat-disabled" class="statstrip-value text-warning"><?php echo number_format($stats_map['disabled']); ?></span>
     </div>
 </div>
 
@@ -639,11 +639,11 @@ $onus = $stmt_data->fetchAll();
 </script>
 
 <div class="content-card">
-    <div class="card-header border-accent" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; padding: 12px 20px;">
+    <div class="card-header border-accent card-header--wrap">
         <h1 id="page-title">Daftar Pelanggan Terdaftar (Configured)</h1>
-        <div style="display:flex; align-items:center; gap:8px;">
-            <label for="header-limit-select" style="margin:0;font-weight:600;font-size:0.85rem;color:var(--text-muted);">Tampilkan:</label>
-            <select id="header-limit-select" class="form-control" aria-label="Jumlah baris" style="width:105px; padding:4px 8px; font-size:0.85rem; height:32px; border-radius:4px; background-color:var(--bg-tertiary); border:1px solid var(--border-color); color:var(--text-main); font-weight:600; cursor:pointer;">
+        <div class="inline-flex-center">
+            <label for="header-limit-select" class="m-0 fw-600 fs-sm text-muted">Tampilkan:</label>
+            <select id="header-limit-select" class="form-control form-control--compact" aria-label="Jumlah baris">
                 <option value="20" <?php echo $limit === 20 ? 'selected' : ''; ?>>20 / hal</option>
                 <option value="50" <?php echo $limit === 50 ? 'selected' : ''; ?>>50 / hal</option>
                 <option value="100" <?php echo $limit === 100 ? 'selected' : ''; ?>>100 / hal</option>
@@ -656,7 +656,7 @@ $onus = $stmt_data->fetchAll();
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th style="width:60px;text-align:center;">Status</th>
+                        <th class="w-60 text-center">Status</th>
                         <th>Aksi</th>
                         <th>Nama Pelanggan</th>
                         <th>Serial Number</th>
@@ -671,12 +671,12 @@ $onus = $stmt_data->fetchAll();
                 <tbody class="motion-fade-in">
                     <?php if (empty($onus)): ?>
                         <tr>
-                            <td colspan="10" style="text-align:center;color:var(--text-muted);padding:16px;">Tidak ada ONU terdaftar yang sesuai dengan kriteria filter.</td>
+                            <td colspan="10" class="empty-state">Tidak ada ONU terdaftar yang sesuai dengan kriteria filter.</td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($onus as $onu): ?>
                             <tr class="onu-row" data-onu-id="<?php echo (int)$onu['id']; ?>" data-name="<?php echo htmlspecialchars($onu['name'] ?? ''); ?>" data-status="<?php echo htmlspecialchars($onu['status']); ?>" data-vlan="<?php echo htmlspecialchars($onu['vlan'] ?: 'None'); ?>" data-rx-onu="<?php echo $onu['last_rx_power'] !== null ? number_format((float)$onu['last_rx_power'], 2) : 'N/A'; ?>" data-rx-olt="<?php echo $onu['last_rx_olt_power'] !== null ? number_format((float)$onu['last_rx_olt_power'], 2) : 'N/A'; ?>" data-down-cause="<?php echo htmlspecialchars($onu['last_down_cause'] ?? '-'); ?>" data-wan="<?php echo htmlspecialchars($onu['wan_mode'] ?? ''); ?>" data-onu-type="<?php echo htmlspecialchars($onu['onu_type'] ?? ''); ?>" data-dl-prof="<?php echo htmlspecialchars($onu['download_profile'] ?? ''); ?>" data-ul-prof="<?php echo htmlspecialchars($onu['upload_profile'] ?? ''); ?>">
-                                <td class="status-cell" style="text-align:center;">
+                                <td class="status-cell text-center">
                                     <?php if ($onu['status'] === 'online'): ?>
                                         <span class="status-icon-badge icon-green" title="Online"><i data-lucide="globe"></i></span>
                                     <?php elseif ($onu['status'] === 'disabled'): ?>
@@ -740,7 +740,7 @@ $onus = $stmt_data->fetchAll();
                                         <span class="badge bg-red">N/A</span>
                                     <?php endif; ?>
                                 </td>
-                                <td class="onu-type-cell" style="font-size:0.8rem;color:var(--text-muted);"><?php echo htmlspecialchars($onu['onu_type'] ?: '-'); ?></td>
+                                <td class="onu-type-cell text-muted fs-xs"><?php echo htmlspecialchars($onu['onu_type'] ?: '-'); ?></td>
                             </tr>
                         <?php endforeach; ?>
                     <?php endif; ?>
@@ -763,23 +763,23 @@ $onus = $stmt_data->fetchAll();
             ];
             $base_query = http_build_query($link_params);
             ?>
-            <div class="pagination-bar" style="margin-top:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
-                <div style="font-size:0.85rem; color:var(--text-muted);">
+            <div class="pagination-bar mt-5">
+                <div class="text-muted fs-sm">
                     Menampilkan <?php echo ($offset + 1); ?> - <?php echo min($offset + $limit, $total_items); ?> dari <?php echo $total_items; ?> pelanggan
                 </div>
-                <div class="pagination-buttons" style="display:flex; gap:6px; align-items:center;">
+                <div class="pagination-buttons">
                     <!-- First Page Link (<<) -->
                     <?php if ($current_page > 1): ?>
-                        <a href="configured.php?<?php echo $base_query; ?>&page=1" class="btn btn-xs btn-outline" style="text-decoration:none;" title="Halaman Pertama"><<</a>
+                        <a href="configured.php?<?php echo $base_query; ?>&page=1" class="btn btn-xs btn-outline" title="Halaman Pertama"><<</a>
                     <?php else: ?>
-                        <span class="btn btn-xs btn-outline disabled" style="opacity:0.5; cursor:not-allowed;"><<</span>
+                        <span class="btn btn-xs btn-outline disabled"><<</span>
                     <?php endif; ?>
 
                     <!-- Prev Page Link (<) -->
                     <?php if ($current_page > 1): ?>
-                        <a href="configured.php?<?php echo $base_query; ?>&page=<?php echo ($current_page - 1); ?>" class="btn btn-xs btn-outline" style="text-decoration:none;" title="Halaman Sebelumnya"><</a>
+                        <a href="configured.php?<?php echo $base_query; ?>&page=<?php echo ($current_page - 1); ?>" class="btn btn-xs btn-outline" title="Halaman Sebelumnya"><</a>
                     <?php else: ?>
-                        <span class="btn btn-xs btn-outline disabled" style="opacity:0.5; cursor:not-allowed;"><</span>
+                        <span class="btn btn-xs btn-outline disabled"><</span>
                     <?php endif; ?>
 
                     <!-- Page Numbers (Sliding Window of 5) -->
@@ -799,22 +799,22 @@ $onus = $stmt_data->fetchAll();
 
                     for ($i = $start; $i <= $end; $i++) {
                         $active_class = ($i === $current_page) ? 'btn-primary' : 'btn-outline';
-                        echo '<a href="configured.php?' . $base_query . '&page=' . $i . '" class="btn btn-xs ' . $active_class . '" style="text-decoration:none;">' . $i . '</a>';
+                        echo '<a href="configured.php?' . $base_query . '&page=' . $i . '" class="btn btn-xs ' . $active_class . '">' . $i . '</a>';
                     }
                     ?>
 
                     <!-- Next Page Link (>) -->
                     <?php if ($current_page < $total_pages): ?>
-                        <a href="configured.php?<?php echo $base_query; ?>&page=<?php echo ($current_page + 1); ?>" class="btn btn-xs btn-outline" style="text-decoration:none;" title="Halaman Selanjutnya">></a>
+                        <a href="configured.php?<?php echo $base_query; ?>&page=<?php echo ($current_page + 1); ?>" class="btn btn-xs btn-outline" title="Halaman Selanjutnya">></a>
                     <?php else: ?>
-                        <span class="btn btn-xs btn-outline disabled" style="opacity:0.5; cursor:not-allowed;">></span>
+                        <span class="btn btn-xs btn-outline disabled">></span>
                     <?php endif; ?>
 
                     <!-- Last Page Link (>>) -->
                     <?php if ($current_page < $total_pages): ?>
-                        <a href="configured.php?<?php echo $base_query; ?>&page=<?php echo $total_pages; ?>" class="btn btn-xs btn-outline" style="text-decoration:none;" title="Halaman Terakhir">>></a>
+                        <a href="configured.php?<?php echo $base_query; ?>&page=<?php echo $total_pages; ?>" class="btn btn-xs btn-outline" title="Halaman Terakhir">>></a>
                     <?php else: ?>
-                        <span class="btn btn-xs btn-outline disabled" style="opacity:0.5; cursor:not-allowed;">>></span>
+                        <span class="btn btn-xs btn-outline disabled">>></span>
                     <?php endif; ?>
                 </div>
             </div>
