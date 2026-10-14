@@ -55,39 +55,39 @@ $logs = $pdo->query("SELECT l.*, o.name as olt_name FROM logs l LEFT JOIN olts o
     <div class="stat-card motion-fade-up">
         <div class="stat-icon bg-orange"><i data-lucide="scan-eye"></i></div>
         <div class="stat-info"><div class="stat-title">Unconfigured</div>
-            <p><a href="unconfigured.php" style="color:inherit;text-decoration:none;">Scan Baru</a></p>
+            <p><a href="unconfigured.php" class="link-plain">Scan Baru</a></p>
         </div>
     </div>
 </div>
 
 <!-- Signal Quality Health -->
-<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
-    <i data-lucide="radio" style="width:16px;height:16px;color:var(--text-muted);"></i>
-    <span style="font-weight:600;font-size:0.85rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">Signal Quality</span>
+<div class="inline-flex-center mb-4">
+    <i data-lucide="radio" class="icon-sm text-muted"></i>
+    <span class="section-eyebrow">Signal Quality</span>
 </div>
 <div class="stats-grid motion-stagger scroll-reveal">
-    <a href="configured.php?signal=critical" class="stat-card motion-fade-up" style="text-decoration:none;color:inherit;">
-        <div class="stat-icon" style="background:rgba(239,68,68,0.15);color:#ef4444;"><i data-lucide="alert-triangle"></i></div>
+    <a href="configured.php?signal=critical" class="stat-card motion-fade-up link-plain">
+        <div class="stat-icon stat-icon--tint-red"><i data-lucide="alert-triangle"></i></div>
         <div class="stat-info"><div class="stat-title">Critical</div>
-            <p style="color:#ef4444;font-weight:700;"><?php echo (int)$signal['critical']; ?></p>
+            <p class="stat-value stat-value--red"><?php echo (int)$signal['critical']; ?></p>
         </div>
     </a>
-    <a href="configured.php?signal=weak" class="stat-card motion-fade-up" style="text-decoration:none;color:inherit;">
-        <div class="stat-icon" style="background:rgba(245,158,11,0.15);color:#f59e0b;"><i data-lucide="signal-medium"></i></div>
+    <a href="configured.php?signal=weak" class="stat-card motion-fade-up link-plain">
+        <div class="stat-icon stat-icon--tint-amber"><i data-lucide="signal-medium"></i></div>
         <div class="stat-info"><div class="stat-title">Weak</div>
-            <p style="color:#f59e0b;font-weight:700;"><?php echo (int)$signal['weak']; ?></p>
+            <p class="stat-value stat-value--amber"><?php echo (int)$signal['weak']; ?></p>
         </div>
     </a>
-    <a href="configured.php?signal=fair" class="stat-card motion-fade-up" style="text-decoration:none;color:inherit;">
-        <div class="stat-icon" style="background:rgba(48,129,209,0.15);color:#3081d1;"><i data-lucide="signal"></i></div>
+    <a href="configured.php?signal=fair" class="stat-card motion-fade-up link-plain">
+        <div class="stat-icon stat-icon--tint-blue"><i data-lucide="signal"></i></div>
         <div class="stat-info"><div class="stat-title">Fair</div>
-            <p style="font-weight:700;"><?php echo (int)$signal['fair']; ?></p>
+            <p class="stat-value"><?php echo (int)$signal['fair']; ?></p>
         </div>
     </a>
-    <a href="configured.php?signal=good" class="stat-card motion-fade-up" style="text-decoration:none;color:inherit;">
+    <a href="configured.php?signal=good" class="stat-card motion-fade-up link-plain">
         <div class="stat-icon bg-green"><i data-lucide="signal-high"></i></div>
         <div class="stat-info"><div class="stat-title">Good</div>
-            <p style="color:#22c55e;font-weight:700;"><?php echo (int)$signal['good']; ?></p>
+            <p class="stat-value stat-value--green"><?php echo (int)$signal['good']; ?></p>
         </div>
     </a>
 </div>
@@ -115,7 +115,7 @@ $logs = $pdo->query("SELECT l.*, o.name as olt_name FROM logs l LEFT JOIN olts o
                     <tbody>
                         <?php if (empty($olts)): ?>
                             <tr>
-                                <td colspan="7" style="text-align:center;color:var(--text-muted);">Belum ada OLT terdaftar. Silakan tambahkan OLT di menu Setting.</td>
+                                <td colspan="7" class="empty-state">Belum ada OLT terdaftar. Silakan tambahkan OLT di menu Setting.</td>
                             </tr>
                         <?php else: ?>
                             <?php foreach ($olts as $olt): ?>
@@ -130,7 +130,7 @@ $logs = $pdo->query("SELECT l.*, o.name as olt_name FROM logs l LEFT JOIN olts o
                                     <td><?php echo htmlspecialchars($olt['last_cpu'] ?: 'N/A'); ?></td>
                                     <td><?php echo htmlspecialchars($olt['last_ram'] ?: 'N/A'); ?></td>
                                     <td>
-                                        <span style="font-weight:600; color:<?php 
+                                        <span class="fw-600" style="color:<?php 
                                             $t_val = (float)$olt['last_temp'];
                                             if ($t_val > 55) echo 'var(--color-danger)';
                                             elseif ($t_val > 48) echo 'var(--color-warning)';
@@ -140,8 +140,8 @@ $logs = $pdo->query("SELECT l.*, o.name as olt_name FROM logs l LEFT JOIN olts o
                                         </span>
                                     </td>
                                     <td>
-                                        <a href="olt-detail.php?id=<?php echo (int)$olt['id']; ?>" class="btn btn-xs btn-outline" style="text-decoration:none; display:inline-flex; align-items:center;">
-                                            <i data-lucide="activity" style="margin-right:2px; width:12px; height:12px;"></i> Monitor
+                                        <a href="olt-detail.php?id=<?php echo (int)$olt['id']; ?>" class="btn btn-xs btn-outline">
+                                            <i data-lucide="activity" class="icon-xs"></i> Monitor
                                         </a>
                                     </td>
                                 </tr>
@@ -161,7 +161,7 @@ $logs = $pdo->query("SELECT l.*, o.name as olt_name FROM logs l LEFT JOIN olts o
         <div class="card-body">
             <ul class="activity-list">
                 <?php if (empty($logs)): ?>
-                    <li class="activity-item" style="color:var(--text-muted);">Belum ada log aktivitas.</li>
+                    <li class="activity-item text-muted">Belum ada log aktivitas.</li>
                 <?php else: ?>
                     <?php foreach ($logs as $log): ?>
                         <li class="activity-item">

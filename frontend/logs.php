@@ -60,22 +60,22 @@ unset($_SESSION['success']);
 ?>
 
 <?php if ($success_msg): ?>
-    <div style="background:rgba(16,185,129,0.15); border:1px solid var(--color-success); color:var(--color-success); padding:12px; border-radius:var(--radius-sm); margin-bottom:20px; font-weight:600;">
+    <div class="alert alert-success">
         ✓ <?php echo htmlspecialchars($success_msg); ?>
     </div>
 <?php endif; ?>
 
-<div class="section-actions" style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
-    <form action="action/clear-logs.php" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus semua log aktivitas? Tindakan ini tidak dapat dibatalkan.');" style="margin:0;">
+<div class="section-actions filter-row">
+    <form action="action/clear-logs.php" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus semua log aktivitas? Tindakan ini tidak dapat dibatalkan.');" class="form-inline">
         <button type="submit" class="btn btn-danger">
             <i data-lucide="trash-2"></i> Bersihkan Semua Log
         </button>
     </form>
 
-    <form method="GET" action="logs.php" style="display:flex; gap:8px; align-items:center; margin:0; flex-wrap:wrap;">
+    <form method="GET" action="logs.php" class="form-inline filter-row">
         <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>"
-               placeholder="Cari log..." aria-label="Cari log" class="form-control" style="width:200px;">
-        <select name="action_type" aria-label="Jenis aksi" class="form-control" style="width:160px;">
+               placeholder="Cari log..." aria-label="Cari log" class="form-control w-200">
+        <select name="action_type" aria-label="Jenis aksi" class="form-control w-160">
             <option value="">Semua Aksi</option>
             <?php foreach ($action_types as $at): ?>
                 <option value="<?php echo htmlspecialchars($at); ?>" <?php echo $action_filter === $at ? 'selected' : ''; ?>>
@@ -83,7 +83,7 @@ unset($_SESSION['success']);
                 </option>
             <?php endforeach; ?>
         </select>
-        <select name="limit" aria-label="Jumlah baris" class="form-control" style="width:80px;" onchange="this.form.submit()">
+        <select name="limit" aria-label="Jumlah baris" class="form-control w-80" onchange="this.form.submit()">
             <?php foreach ([20, 50, 100, 200] as $l): ?>
                 <option value="<?php echo $l; ?>" <?php echo $limit === $l ? 'selected' : ''; ?>><?php echo $l; ?></option>
             <?php endforeach; ?>
@@ -93,9 +93,9 @@ unset($_SESSION['success']);
 </div>
 
 <div class="content-card">
-    <div class="card-header border-accent" style="display:flex; justify-content:space-between; align-items:center;">
+    <div class="card-header border-accent">
         <h1 id="page-title">Audit Logs Aktivitas Sistem</h1>
-        <span style="color:var(--text-muted); font-size:13px;"><?php echo number_format($total_items); ?> total</span>
+        <span class="text-muted fs-sm"><?php echo number_format($total_items); ?> total</span>
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -111,7 +111,7 @@ unset($_SESSION['success']);
                 <tbody class="motion-fade-in">
                     <?php if (empty($logs)): ?>
                         <tr>
-                            <td colspan="4" style="text-align:center;color:var(--text-muted);padding:16px;">Log aktivitas kosong.</td>
+                            <td colspan="4" class="empty-state">Log aktivitas kosong.</td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($logs as $log): ?>
@@ -141,7 +141,7 @@ unset($_SESSION['success']);
 </div>
 
 <?php if ($total_pages > 1): ?>
-<nav style="display:flex; justify-content:center; gap:4px; margin-top:16px;">
+<nav class="pagination-buttons pagination-buttons--center">
     <?php if ($page > 1): ?>
         <a href="<?php echo log_page_url(1, $base_qs); ?>" class="btn btn-sm btn-outline">«</a>
         <a href="<?php echo log_page_url($page - 1, $base_qs); ?>" class="btn btn-sm btn-outline">‹</a>
