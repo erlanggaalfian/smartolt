@@ -15,22 +15,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // Brute-force protection: max 5 attempts per 15 minutes per session
+    // Brute-force protection: max 5 attempts per 15 minutes per IP
     $max_attempts = 5;
     $lockout_seconds = 900; // 15 menit
-    if (!isset($_SESSION['login_attempts'])) $_SESSION['login_attempts'] = 0;
-    if (!isset($_SESSION['login_lockout_until'])) $_SESSION['login_lockout_until'] = 0;
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
 
-    if ($_SESSION['login_attempts'] >= $max_attempts && time() < $_SESSION['login_lockout_until']) {
-        $remaining = $_SESSION['login_lockout_until'] - time();
-        $_SESSION['error'] = "Terlalu banyak percobaan login gagal. Coba lagi dalam {$remaining} detik.";
+    try {
+        // Buat tabel jika belum ada (idempotent)
+        $pdo->exec("CREATE TABLE IF NOT EXISTS login_attempts (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            ip VARCHAR(45) NOT NULL,
+            attempted_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_ip_time (ip, attempted_at)
+        ) ENGINE=InnoDB");
+    } catch (PDOException $e) {}
+
+    // Hitung percobaan gagal dari IP ini dalam 15 menit terakhir
+    $attempt_count = 0;
+    try {
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM login_attempts WHERE ip = ? AND attempted_at > DATE_SUB(NOW(), INTERVAL ? SECOND)");
+        $stmt->execute([$ip, $lockout_seconds]);
+        $attempt_count = (int)$stmt->fetchColumn();
+    } catch (PDOException $e) {}
+
+    if ($attempt_count >= $max_attempts) {
+        $_SESSION['error'] = 'Terlalu banyak percobaan login gagal. Coba lagi dalam beberapa menit.';
         header('Location: ../login.php');
         exit;
-    }
-
-    // Reset lockout if window expired
-    if (time() >= $_SESSION['login_lockout_until']) {
-        $_SESSION['login_attempts'] = 0;
     }
 
     try {
@@ -39,9 +50,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $stmt->fetch();
 
         if ($user && password_verify($password, $user['password'])) {
-            // Login sukses — reset counter
-            $_SESSION['login_attempts'] = 0;
-            $_SESSION['login_lockout_until'] = 0;
+            // Login sukses — hapus catatan percobaan gagal untuk IP ini
+            try {
+                $stmt = $pdo->prepare("DELETE FROM login_attempts WHERE ip = ?");
+                $stmt->execute([$ip]);
+            } catch (PDOException $e) {}
 
             // Regenerasi ID Sesi untuk menghindari Session Fixation
             session_regenerate_id(true);
@@ -57,14 +70,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header('Location: ../dashboard.php');
             exit;
         } else {
-            // Gagal — increment counter
-            $_SESSION['login_attempts'] = ($_SESSION['login_attempts'] ?? 0) + 1;
-            if ($_SESSION['login_attempts'] >= $max_attempts) {
-                $_SESSION['login_lockout_until'] = time() + $lockout_seconds;
-                write_audit_log(null, 'LOGIN_LOCKOUT', "IP login terkunci selama {$lockout_seconds} detik setelah {$max_attempts} percobaan gagal (username: {$username}).");
+            // Gagal — catat percobaan ke DB (berbasis IP, bukan session)
+            try {
+                $stmt = $pdo->prepare("INSERT INTO login_attempts (ip, attempted_at) VALUES (?, NOW())");
+                $stmt->execute([$ip]);
+            } catch (PDOException $e) {}
+            // Pesan seragam — jangan bocorkan info username salah vs password salah
+            $sisa = $max_attempts - $attempt_count - 1;
+            if ($sisa <= 0) {
+                write_audit_log(null, 'LOGIN_LOCKOUT', "IP {$ip} terkunci selama {$lockout_seconds} detik setelah {$max_attempts} percobaan gagal.");
                 $_SESSION['error'] = 'Terlalu banyak percobaan gagal. Akun dikunci selama 15 menit.';
             } else {
-                $sisa = $max_attempts - $_SESSION['login_attempts'];
                 $_SESSION['error'] = "Username atau password salah! ({$sisa} percobaan tersisa)";
             }
         }

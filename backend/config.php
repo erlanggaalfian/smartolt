@@ -34,6 +34,17 @@ function load_env(string $path): void {
 // Struktur: /var/www/<domain>/.env  (aman, di luar DocumentRoot)
 load_env(__DIR__ . '/../.env');
 
+// APP_KEY wajib diset — tanpa ini semua enkripsi & token bisa dipecah attacker.
+if (!getenv('APP_KEY')) {
+    if (php_sapi_name() === 'cli') {
+        fwrite(STDERR, "[FATAL] APP_KEY tidak diset. Tambahkan APP_KEY=<random-64-chars> di file .env\n");
+        exit(1);
+    }
+    http_response_code(500);
+    echo 'Server configuration error: APP_KEY not set.';
+    exit(1);
+}
+
 // Security headers dasar (clickjacking, MIME sniffing)
 if (!headers_sent()) {
     header('X-Frame-Options: SAMEORIGIN');
@@ -169,48 +180,58 @@ function verify_csrf_token(): bool {
 }
 
 /**
- * Encrypt a plaintext password using AES-256-CBC.
+ * Encrypt a plaintext password using AES-256-GCM (authenticated encryption).
+ * Format: base64(iv + tag + ciphertext)
  */
 function encrypt_password(string $plaintext): string {
-    $key = getenv('APP_KEY') ?: 'some-default-long-secret-key-change-me';
+    $key = getenv('APP_KEY');
+    if (!$key) throw new RuntimeException('APP_KEY not configured');
     $encryption_key = hash('sha256', $key, true);
-    
-    $iv_length = openssl_cipher_iv_length('aes-256-cbc');
-    $iv = random_bytes($iv_length);
-    
-    $ciphertext = openssl_encrypt($plaintext, 'aes-256-cbc', $encryption_key, OPENSSL_RAW_DATA, $iv);
-    
-    return base64_encode($iv . $ciphertext);
+
+    $iv = random_bytes(12); // GCM recommended IV size
+    $tag = '';
+    $ciphertext = openssl_encrypt($plaintext, 'aes-256-gcm', $encryption_key, OPENSSL_RAW_DATA, $iv, $tag, '', 16);
+
+    return base64_encode($iv . $tag . $ciphertext);
 }
 
 /**
- * Decrypt a base64 encoded ciphertext using AES-256-CBC.
- * Falls back to returning the input string if decryption fails or format is invalid.
+ * Decrypt a base64 encoded ciphertext.
+ * Tries AES-256-GCM first (new format: 12-byte IV + 16-byte tag + ciphertext),
+ * falls back to AES-256-CBC (legacy: 16-byte IV + ciphertext).
+ * Returns plaintext or raw input if decryption fails.
  */
 function decrypt_password(string $ciphertext_b64): string {
-    $key = getenv('APP_KEY') ?: 'some-default-long-secret-key-change-me';
+    $key = getenv('APP_KEY');
+    if (!$key) throw new RuntimeException('APP_KEY not configured');
     $encryption_key = hash('sha256', $key, true);
-    
+
     $data = base64_decode($ciphertext_b64, true);
-    if ($data === false) {
+    if ($data === false || strlen($data) < 28) {
         return $ciphertext_b64;
     }
-    
+
+    // Try GCM first (12-byte IV + 16-byte tag + ciphertext)
+    $iv = substr($data, 0, 12);
+    $tag = substr($data, 12, 16);
+    $ciphertext = substr($data, 28);
+    $decrypted = openssl_decrypt($ciphertext, 'aes-256-gcm', $encryption_key, OPENSSL_RAW_DATA, $iv, $tag);
+    if ($decrypted !== false) {
+        return $decrypted;
+    }
+
+    // Legacy CBC fallback (16-byte IV + ciphertext)
     $iv_length = openssl_cipher_iv_length('aes-256-cbc');
-    if (strlen($data) <= $iv_length) {
-        return $ciphertext_b64;
+    if (strlen($data) > $iv_length) {
+        $iv = substr($data, 0, $iv_length);
+        $ciphertext = substr($data, $iv_length);
+        $decrypted = openssl_decrypt($ciphertext, 'aes-256-cbc', $encryption_key, OPENSSL_RAW_DATA, $iv);
+        if ($decrypted !== false) {
+            return $decrypted;
+        }
     }
-    
-    $iv = substr($data, 0, $iv_length);
-    $ciphertext = substr($data, $iv_length);
-    
-    $decrypted = openssl_decrypt($ciphertext, 'aes-256-cbc', $encryption_key, OPENSSL_RAW_DATA, $iv);
-    
-    if ($decrypted === false) {
-        return $ciphertext_b64;
-    }
-    
-    return $decrypted;
+
+    return $ciphertext_b64;
 }
 
 /**
@@ -228,7 +249,8 @@ function engine_token(?int $user_id = null, ?string $role = null, int $ttl = 360
         return '';
     }
 
-    $key = getenv('APP_KEY') ?: 'some-default-long-secret-key-change-me';
+    $key = getenv('APP_KEY');
+    if (!$key) return '';
 
     // Kunci payload WAJIB urut abjad (exp, role, uid) agar sama persis dengan
     // json.dumps(sort_keys=True) di sisi Python.

@@ -14,7 +14,8 @@ function get_api_token(): string {
     static $token = null;
     if ($token !== null) return $token;
 
-    $key = getenv('APP_KEY') ?: 'smartolt-default-secret-change-me';
+    $key = getenv('APP_KEY');
+    if (!$key) throw new RuntimeException('APP_KEY not configured');
     $header = base64url_encode(json_encode(['alg' => 'HS256', 'typ' => 'JWT']));
     $payload = base64url_encode(json_encode([
         'uid' => (int)($_SESSION['smartolt_user_id'] ?? 0),

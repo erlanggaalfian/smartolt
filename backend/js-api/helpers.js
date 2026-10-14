@@ -2,32 +2,47 @@
 const crypto = require('crypto');
 const http = require('http');
 
-const APP_KEY = process.env.APP_KEY || 'smartolt-default-secret-change-me';
+const APP_KEY = process.env.APP_KEY;
+if (!APP_KEY) { console.error('[FATAL] APP_KEY tidak diset. Tambahkan APP_KEY=<random> di .env'); process.exit(1); }
 const ENGINE_PORT = parseInt(process.env.ENGINE_PORT || '8000');
 
-// AES-256-CBC decrypt — matches PHP encrypt_password / Python decrypt_password
+// AES-256-GCM decrypt (new) with AES-256-CBC fallback (legacy)
 function decryptPassword(ciphertextB64) {
   if (!ciphertextB64) return '';
   try {
     const key = crypto.createHash('sha256').update(APP_KEY).digest();
     const data = Buffer.from(ciphertextB64, 'base64');
-    if (data.length <= 16) return ciphertextB64;
-    const iv = data.subarray(0, 16);
-    const ciphertext = data.subarray(16);
-    const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
-    let decrypted = Buffer.concat([decipher.update(ciphertext), decipher.finalize()]);
-    // PKCS7 unpad
-    const pad = decrypted[decrypted.length - 1];
-    if (pad > 0 && pad <= 16) decrypted = decrypted.subarray(0, decrypted.length - pad);
-    return decrypted.toString('utf8');
+    if (data.length < 28) return ciphertextB64;
+
+    // Try GCM first (12-byte IV + 16-byte tag + ciphertext)
+    try {
+      const iv = data.subarray(0, 12);
+      const tag = data.subarray(12, 28);
+      const ciphertext = data.subarray(28);
+      const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
+      decipher.setAuthTag(tag);
+      return Buffer.concat([decipher.update(ciphertext), decipher.finalize()]).toString('utf8');
+    } catch { /* not GCM, try CBC */ }
+
+    // Legacy CBC fallback (16-byte IV + ciphertext)
+    if (data.length > 16) {
+      const iv = data.subarray(0, 16);
+      const ciphertext = data.subarray(16);
+      const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
+      let decrypted = Buffer.concat([decipher.update(ciphertext), decipher.finalize()]);
+      const pad = decrypted[decrypted.length - 1];
+      if (pad > 0 && pad <= 16) decrypted = decrypted.subarray(0, decrypted.length - pad);
+      return decrypted.toString('utf8');
+    }
+    return ciphertextB64;
   } catch {
-    return ciphertextB64; // fallback: not encrypted
+    return ciphertextB64;
   }
 }
 
 // HMAC token for Python engine (same format as PHP engine_token)
-function engineToken() {
-  const payload = Buffer.from(JSON.stringify({ uid: 0, role: 'superadmin', exp: Math.floor(Date.now() / 1000) + 300 })).toString('base64url');
+function engineToken(userId = 0, role = 'superadmin') {
+  const payload = Buffer.from(JSON.stringify({ uid: userId, role, exp: Math.floor(Date.now() / 1000) + 300 })).toString('base64url');
   const sig = crypto.createHmac('sha256', APP_KEY).update(payload).digest();
   return `${payload}.${sig.toString('base64url')}`;
 }

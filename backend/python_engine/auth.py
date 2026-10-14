@@ -7,7 +7,7 @@ token HMAC berumur pendek ke halaman; browser/PHP mengirimnya di header
 
 Hanya memakai pustaka standar (hmac/hashlib/base64/json) — tanpa dependensi baru.
 Format token: base64url(payload_json) + "." + base64url(hmac_sha256)
-Payload: {"uid": <int>, "role": "<superadmin|biasa>", "exp": <unix_ts>}
+Payload: {"uid": <int>, "role": "<superadmin|admin|user>", "exp": <unix_ts>}
 """
 import base64
 import hashlib
@@ -16,12 +16,13 @@ import json
 import os
 import time
 
-DEFAULT_KEY = 'some-default-long-secret-key-change-me'
 TOKEN_TTL = 3600  # 1 jam
 
-
 def _key() -> bytes:
-    return (os.getenv('APP_KEY') or DEFAULT_KEY).encode('utf-8')
+    k = os.getenv('APP_KEY')
+    if not k:
+        raise RuntimeError('APP_KEY tidak diset. Tambahkan APP_KEY=<random> di .env')
+    return k.encode('utf-8')
 
 
 def _b64e(raw: bytes) -> str:

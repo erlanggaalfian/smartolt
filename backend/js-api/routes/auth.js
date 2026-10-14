@@ -33,10 +33,10 @@ router.post('/register', async (req, res) => {
 
     if (!isFirst) {
       // Setelah user pertama ada, wajib login dan punya akses settings.
-      const token = req.headers.authorization?.replace('Bearer ', '') || req.query.token;
+      const token = req.headers.authorization?.replace('Bearer ', '');
       let caller;
       try {
-        caller = token ? require('jsonwebtoken').verify(token, process.env.APP_KEY || 'smartolt-default-secret-change-me') : null;
+        caller = token ? require('jsonwebtoken').verify(token, process.env.APP_KEY) : null;
       } catch { caller = null; }
       if (!caller || (caller.role !== 'superadmin' && caller.role !== 'admin')) {
         return res.status(403).json({ success: false, message: 'Akses ditolak.' });

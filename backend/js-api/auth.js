@@ -1,7 +1,8 @@
 // SmartOLT JS API — JWT Auth Middleware
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = process.env.APP_KEY || 'smartolt-default-secret-change-me';
+const JWT_SECRET = process.env.APP_KEY;
+if (!JWT_SECRET) { console.error('[FATAL] APP_KEY tidak diset. Tambahkan APP_KEY=<random> di .env'); process.exit(1); }
 const TOKEN_TTL = '24h';
 
 function mintToken(userId, role) {
@@ -9,7 +10,7 @@ function mintToken(userId, role) {
 }
 
 function authMiddleware(req, res, next) {
-  const token = req.headers.authorization?.replace('Bearer ', '') || req.query.token;
+  const token = req.headers.authorization?.replace('Bearer ', '');
   if (!token) return res.status(401).json({ success: false, message: 'Token tidak ditemukan.' });
   try {
     req.user = jwt.verify(token, JWT_SECRET);

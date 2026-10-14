@@ -1287,6 +1287,13 @@ class OltZteC320Driver(BaseDriver):
                 commands.append(f'ip-host 2 ip {ip} mask {mask} gateway 0.0.0.0')
             else:
                 return {'success': False, 'message': f'Mode {mode} tidak didukung.'}
+            # Toggle remote WAN access (security-mgmt) di pon-onu-mng context
+            if wan_remote == 'yes':
+                commands.append('security-mgmt 1 state enable mode forward ingress-type wan protocol web')
+                commands.append('security-mgmt 2 state enable mode forward ingress-type wan protocol telnet')
+            else:
+                commands.append('security-mgmt 1 state enable mode discard ingress-type wan protocol web')
+                commands.append('security-mgmt 2 state enable mode discard ingress-type wan protocol telnet')
             commands.extend(['exit', 'exit', 'write'])
 
         log = execute_ssh_commands(olt, commands)

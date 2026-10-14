@@ -138,7 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($old_tip) {
                 foreach ($routes as $rt) {
                     $rt = trim($rt);
-                    if ($rt) exec("sudo ip route replace $rt via $old_tip dev tun0 2>/dev/null");
+                    if ($rt) exec("sudo ip route replace " . escapeshellarg($rt) . " via " . escapeshellarg($old_tip) . " dev tun0 2>/dev/null");
                 }
             }
             // Always update CCD (takes effect on next connect)
@@ -154,7 +154,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($row['tunnel_ip']) {
                 foreach ((array)$routes as $rt) {
                     $rt = trim($rt);
-                    if ($rt) exec("sudo ip route del $rt via {$row['tunnel_ip']} dev tun0 2>/dev/null");
+                    if ($rt) exec("sudo ip route del " . escapeshellarg($rt) . " via " . escapeshellarg($row['tunnel_ip']) . " dev tun0 2>/dev/null");
                 }
             }
             // Remove CCD file

@@ -51,35 +51,44 @@ def get_db_connection():
 
 def decrypt_password(ciphertext_b64: str) -> str:
     """
-    Decrypt OLT password using AES-256-CBC (replicates PHP decrypt_password function)
+    Decrypt OLT password. Tries AES-256-GCM first (new), falls back to AES-256-CBC (legacy).
     """
     if not ciphertext_b64:
         return ""
     try:
-        key = os.getenv('APP_KEY', 'some-default-long-secret-key-change-me')
+        key = os.getenv('APP_KEY')
+        if not key:
+            raise RuntimeError('APP_KEY tidak diset')
         encryption_key = hashlib.sha256(key.encode('utf-8')).digest()
-        
-        # Base64 decode
+
         data = base64.b64decode(ciphertext_b64.encode('utf-8'))
-        
-        iv_length = 16  # AES block size
-        if len(data) <= iv_length:
+        if len(data) < 28:
             return ciphertext_b64
-            
-        iv = data[:iv_length]
-        ciphertext = data[iv_length:]
-        
-        cipher = Cipher(algorithms.AES(encryption_key), modes.CBC(iv), backend=default_backend())
-        decryptor = cipher.decryptor()
-        decrypted_padded = decryptor.update(ciphertext) + decryptor.finalize()
-        
-        # Unpad PKCS7
-        unpacker = padding.PKCS7(128).unpadder()
-        decrypted = unpacker.update(decrypted_padded) + unpacker.finalize()
-        
-        return decrypted.decode('utf-8')
+
+        # Try GCM first (12-byte IV + 16-byte tag + ciphertext)
+        try:
+            iv = data[:12]
+            tag = data[12:28]
+            ciphertext = data[28:]
+            cipher = Cipher(algorithms.AES(encryption_key), modes.GCM(iv, tag), backend=default_backend())
+            decryptor = cipher.decryptor()
+            return (decryptor.update(ciphertext) + decryptor.finalize()).decode('utf-8')
+        except Exception:
+            pass
+
+        # Legacy CBC fallback (16-byte IV + ciphertext)
+        iv_length = 16
+        if len(data) > iv_length:
+            iv = data[:iv_length]
+            ciphertext = data[iv_length:]
+            cipher = Cipher(algorithms.AES(encryption_key), modes.CBC(iv), backend=default_backend())
+            decryptor = cipher.decryptor()
+            decrypted_padded = decryptor.update(ciphertext) + decryptor.finalize()
+            unpacker = padding.PKCS7(128).unpadder()
+            return (unpacker.update(decrypted_padded) + unpacker.finalize()).decode('utf-8')
+
+        return ciphertext_b64
     except Exception:
-        # Fallback to returning input if not encrypted or decryption fails
         return ciphertext_b64
 
 def extract_customer_name(desc: str) -> str:

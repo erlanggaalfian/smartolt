@@ -720,9 +720,44 @@ class OltCdataFd1602sb1Driver(BaseDriver):
 
         log = execute_ssh_commands(olt, commands)
         ok = not any(x in log.lower() for x in ['failed', 'error', 'invalid'])
-        return {
+        result = {
             'success': ok,
             'message': f'IP Manajemen berhasil diubah ke {mode}.' if ok else f'OLT menolak: {log}',
+            'log': log
+        }
+
+        # Push remote WAN access toggle jika user mengubahnya
+        if ok and wan_remote in ('yes', 'no'):
+            remote_res = self.set_remote_wan_access(olt, pon_port, onu_id, wan_remote == 'yes')
+            if not remote_res.get('success'):
+                result['message'] += f' (Peringatan: remote WAN access gagal: {remote_res.get("message", "")})'
+                result['log'] += '\n' + (remote_res.get('log', '') or '')
+
+        return result
+
+    def set_remote_wan_access(self, olt: dict, pon_port: str, onu_id: int, enable: bool) -> dict:
+        """Toggle akses remote WAN (web management via WAN) di CDATA OLT.
+        Command: ont security-mgmt <port> <onu_id> 1 state enable/disable mode forward protocol web ingress-type iphost0
+        Index 1 = service port untuk web management akses dari WAN."""
+        if is_demo_olt(olt):
+            return {'success': True, 'message': f'Remote WAN access {"diaktifkan" if enable else "dinonaktifkan"} (Mode Demo).'}
+
+        parts = pon_port.split('/')
+        port = int(parts[-1]) if len(parts) >= 3 else 1
+        interface_path = "/".join(parts[:-1]) if len(parts) >= 3 else pon_port
+
+        commands = ["enable", "config", f"interface gpon {interface_path}"]
+        if enable:
+            commands.append(f"ont security-mgmt {port} {onu_id} 1 state enable mode forward protocol web ingress-type iphost0")
+        else:
+            commands.append(f"ont security-mgmt {port} {onu_id} 1 state disable")
+        commands += ["exit", "write"]
+
+        log = execute_ssh_commands(olt, commands)
+        ok = not any(x in log.lower() for x in ['failed', 'error', 'invalid', 'not support'])
+        return {
+            'success': ok,
+            'message': f'Akses Remote WAN berhasil {"diaktifkan" if enable else "dinonaktifkan"}.' if ok else f'OLT menolak: {log}',
             'log': log
         }
 
@@ -945,6 +980,9 @@ class OltCdataFd1602sb1Driver(BaseDriver):
             # gem-car-upstream = download (traffic-profile id).
             elif preg := re.search(r'ont\s+gemport\s+' + port + r'\s+' + str(ont_id) + r'\s+\d+\s+tcont\s+1\s+gem-car-upstream\s+(\d+)', line, re.IGNORECASE):
                 traffic_id = int(preg.group(1))
+            elif re.search(r'ont\s+security-mgmt\s+' + port + r'\s+' + str(ont_id) + r'\s+\d+\s+state\s+enable', line, re.IGNORECASE):
+                result['allow_remote_mgmt'] = 'yes'
+                result['wan_remote_access'] = 'yes'
 
         # Terjemahkan ID profile -> nama, supaya kolom DB langsung terisi tiap
         # full-sync (tak perlu tunggu klik manual "Show running-config").

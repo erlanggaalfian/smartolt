@@ -1,5 +1,5 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) session_start();
 if (!isset($_SESSION['smartolt_role'])) { http_response_code(403); echo 'Forbidden'; exit; }
 // Beberapa endpoint (addObject/deleteObject) bisa nunggu connection-request device NAT/CGNAT
 // sampai 45 detik -- default php.ini Apache max_execution_time=30 detik motong duluan sebelum
@@ -222,6 +222,15 @@ $row_dbpass = $stmt->fetch();
 $db_pppoe_password = ($row_dbpass['pppoe_password'] ?? '') ?: null;
 $db_wlan_passwords = $row_dbpass && $row_dbpass['wlan_passwords'] ? (json_decode($row_dbpass['wlan_passwords'], true) ?: []) : [];
 function emit_device(array $data, ?string $dbPassword, array $wlanPasswords = []): void {
+    global $pdo, $serial;
+    // Simpan device ID ke cache DB untuk lookup cepat berikutnya
+    $dev_id = $data['_id'] ?? null;
+    if ($dev_id && $serial) {
+        try {
+            $pdo->prepare("UPDATE onus SET tr069_device_id = ? WHERE serial_number = ? AND (tr069_device_id IS NULL OR tr069_device_id != ?)")
+                 ->execute([$dev_id, $serial, $dev_id]);
+        } catch (Exception $e) {}
+    }
     if ($dbPassword !== null && is_array($data['InternetGatewayDevice']['WANDevice'] ?? null)) {
         foreach ($data['InternetGatewayDevice']['WANDevice'] as &$wanDev) {
             if (!is_array($wanDev['WANConnectionDevice'] ?? null)) { continue; }
@@ -323,10 +332,13 @@ function emit_device(array $data, ?string $dbPassword, array $wlanPasswords = []
     echo json_encode($data); exit;
 }
 
-// Try direct ID + query by SerialNumber for each serial variant
-foreach ($serials as $s) {
-    // Direct ID lookup
-    $ch = curl_init($nbi . '/devices/' . urlencode($s));
+// Caching: kalau device ID sudah pernah diketahui, langsung pakai
+$cached_dev_id = null;
+$cache_stmt = $pdo->prepare("SELECT tr069_device_id FROM onus WHERE serial_number = ? AND tr069_device_id IS NOT NULL AND tr069_device_id != '' LIMIT 1");
+$cache_stmt->execute([$serial]);
+$cached_row = $cache_stmt->fetch();
+if ($cached_row && $cached_row['tr069_device_id']) {
+    $ch = curl_init($nbi . '/devices/' . urlencode($cached_row['tr069_device_id']));
     curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 10, CURLOPT_HTTPHEADER => ['Accept: application/json']]);
     $resp = curl_exec($ch);
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -334,41 +346,67 @@ foreach ($serials as $s) {
     if ($code === 200 && $resp && ($data = json_decode($resp, true)) && !empty($data['_id'])) {
         emit_device($data, $db_pppoe_password, $db_wlan_passwords);
     }
+}
+
+// Try direct ID + query by SerialNumber for each serial variant
+$found = false;
+foreach ($serials as $s) {
+    if ($found) break;
+
+    // Direct ID lookup
+    $ch = curl_init($nbi . '/devices/' . urlencode($s));
+    curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 10, CURLOPT_HTTPHEADER => ['Accept: application/json']]);
+    $resp = curl_exec($ch);
+    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    if ($code === 200 && $resp && ($data = json_decode($resp, true)) && !empty($data['_id'])) {
+        $found = true;
+        emit_device($data, $db_pppoe_password, $db_wlan_passwords);
+    }
 
     // Query by SerialNumber
-    foreach (['InternetGatewayDevice', 'Device'] as $root) {
-        $query = json_encode(["{$root}.DeviceInfo.SerialNumber._value" => $s]);
-        $ch = curl_init($nbi . '/devices/?query=' . urlencode($query));
-        curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 10, CURLOPT_HTTPHEADER => ['Accept: application/json']]);
-        $resp = curl_exec($ch);
-        curl_close($ch);
-        if ($resp) {
-            $arr = json_decode($resp, true);
-            if (is_array($arr) && !empty($arr[0]['_id'])) {
-                emit_device($arr[0], $db_pppoe_password, $db_wlan_passwords);
+    if (!$found) {
+        foreach (['InternetGatewayDevice', 'Device'] as $root) {
+            if ($found) break;
+            $query = json_encode(["{$root}.DeviceInfo.SerialNumber._value" => $s]);
+            $ch = curl_init($nbi . '/devices/?query=' . urlencode($query));
+            curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 10, CURLOPT_HTTPHEADER => ['Accept: application/json']]);
+            $resp = curl_exec($ch);
+            curl_close($ch);
+            if ($resp) {
+                $arr = json_decode($resp, true);
+                if (is_array($arr) && !empty($arr[0]['_id'])) {
+                    $found = true;
+                    emit_device($arr[0], $db_pppoe_password, $db_wlan_passwords);
+                }
             }
         }
     }
 }
 
 // Last resort: scan all device IDs for suffix match
-$suffix = substr($serial, -8);
-$ch = curl_init($nbi . '/devices/?projection=_id');
-curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 10, CURLOPT_HTTPHEADER => ['Accept: application/json']]);
-$resp = curl_exec($ch);
-curl_close($ch);
-if ($resp) {
-    $all = json_decode($resp, true);
-    if (is_array($all)) {
-        foreach ($all as $dev) {
-            if (stripos($dev['_id'] ?? '', $suffix) !== false) {
-                $q2 = json_encode(['_id' => $dev['_id']]);
-                $ch2 = curl_init($nbi . '/devices/?query=' . urlencode($q2));
-                curl_setopt_array($ch2, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 10, CURLOPT_HTTPHEADER => ['Accept: application/json']]);
-                $full = curl_exec($ch2);
-                curl_close($ch2);
-                $fullArr = $full ? json_decode($full, true) : null;
-                if (is_array($fullArr) && !empty($fullArr[0]['_id'])) { emit_device($fullArr[0], $db_pppoe_password, $db_wlan_passwords); }
+// HANYA jalankan kalau serial terdaftar di DB SmartOLT (ONU yang kita kelola),
+// jangan scan seluruh GenieACS untuk serial asing yang tidak dikenal.
+if (!$found && !empty($row_dbpass)) {
+    $suffix = substr($serial, -8);
+    $ch = curl_init($nbi . '/devices/?projection=_id');
+    curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 10, CURLOPT_HTTPHEADER => ['Accept: application/json']]);
+    $resp = curl_exec($ch);
+    curl_close($ch);
+    if ($resp) {
+        $all = json_decode($resp, true);
+        if (is_array($all)) {
+            foreach ($all as $dev) {
+                if ($found) break;
+                if (stripos($dev['_id'] ?? '', $suffix) !== false) {
+                    $q2 = json_encode(['_id' => $dev['_id']]);
+                    $ch2 = curl_init($nbi . '/devices/?query=' . urlencode($q2));
+                    curl_setopt_array($ch2, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 10, CURLOPT_HTTPHEADER => ['Accept: application/json']]);
+                    $full = curl_exec($ch2);
+                    curl_close($ch2);
+                    $fullArr = $full ? json_decode($full, true) : null;
+                    if (is_array($fullArr) && !empty($fullArr[0]['_id'])) { $found = true; emit_device($fullArr[0], $db_pppoe_password, $db_wlan_passwords); }
+                }
             }
         }
     }
@@ -379,6 +417,8 @@ if ($resp) {
 // by serial di atas gagal walau device sudah lapor ke ACS. IP diambil LIVE dari OLT
 // (DB last_status_cli terlalu stale/basi untuk WAN management yang baru di-assign) --
 // jalan lambat (CLI call), tapi ini last-resort, cuma kepanggil kalau serial match gagal.
+// Catatan: emit_device() sudah panggil exit; jadi kode di bawah hanya jalan kalau
+// device BELUM ditemukan di step atas.
 $stmt_onu = $pdo->prepare("SELECT onus.pon_port, onus.onu_id, olts.ip as olt_ip, olts.username as olt_username, olts.password as olt_password, olts.ssh_port, olts.type, olts.protocol, olts.snmp_port, olts.snmp_community, olts.snmp_community_rw FROM onus JOIN olts ON onus.olt_id = olts.id WHERE onus.serial_number = ? LIMIT 1");
 $stmt_onu->execute([$serial]);
 $row_onu = $stmt_onu->fetch();

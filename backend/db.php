@@ -307,6 +307,15 @@ try {
             }
             try { $pdo->exec("INSERT IGNORE INTO schema_migrations (version) VALUES (5)"); } catch (Exception $e) {}
         }
+
+        if ($mig_version < 6) {
+            // Cache GenieACS device ID untuk hindari lookup berulang ke NBI (performa TR-069 Status).
+            try {
+                $pdo->exec("ALTER TABLE onus ADD COLUMN tr069_device_id VARCHAR(128) NULL AFTER tr069_vlan_mode");
+                $pdo->exec("CREATE INDEX idx_onus_tr069_device_id ON onus (tr069_device_id)");
+            } catch (Exception $e) {}
+            try { $pdo->exec("INSERT IGNORE INTO schema_migrations (version) VALUES (6)"); } catch (Exception $e) {}
+        }
     }
 
 } catch (PDOException $e) {

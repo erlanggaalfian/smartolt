@@ -1994,7 +1994,17 @@ $tr069_profiles = tr069_get_profiles($pdo);
                 fetch(`action/genieacs-proxy.php?serial=${encodeURIComponent(serial)}`)
                     .then(r => r.json())
                     .then(d => {
-                        if (d.error) { cliOutputBox.innerHTML = '<div class="text-muted p-y-md">⚠️ Tidak terkoneksi ke ACS (device belum pernah lapor TR-069 atau serial tidak ditemukan).</div>'; return; }
+                        if (d.error) {
+                            cliOutputBox.innerHTML = '<div class="flex-col gap-3 p-y-md" style="text-align:center;">'
+                                + '<div style="font-size:2rem;">📡</div>'
+                                + '<div style="font-weight:600;color:var(--text-main);">ONU Tidak Terhubung ke TR-069</div>'
+                                + '<div class="text-muted" style="font-size:0.85rem;max-width:400px;margin:0 auto;">'
+                                + 'Device belum pernah lapor ke GenieACS atau serial number tidak ditemukan. '
+                                + 'Pastikan profil TR-069 sudah aktif dan ONU sudah ter-register di ACS.</div>'
+                                + '<button class="btn btn-secondary btn-sm" onclick="loadTr069Status()" style="margin-top:8px;">🔄 Coba Lagi</button>'
+                                + '</div>';
+                            return;
+                        }
                         const root = d.InternetGatewayDevice || d.Device || {};
                     window._portDeviceRoot = root;
                     window._portDeviceSerial = serial;
@@ -3691,7 +3701,14 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         });
                         cliOutputBox.style.maxHeight = 'none';
                     })
-                    .catch(() => { cliOutputBox.innerHTML = '<div class="text-muted p-y-md">⚠️ Tidak terkoneksi ke ACS.</div>'; })
+                    .catch(() => {
+                        cliOutputBox.innerHTML = '<div class="flex-col gap-3 p-y-md" style="text-align:center;">'
+                            + '<div style="font-size:2rem;">🔌</div>'
+                            + '<div style="font-weight:600;color:var(--text-main);">Gagal Terhubung ke GenieACS</div>'
+                            + '<div class="text-muted" style="font-size:0.85rem;">Server ACS tidak merespon atau terjadi error jaringan.</div>'
+                            + '<button class="btn btn-secondary btn-sm" onclick="loadTr069Status()" style="margin-top:8px;">🔄 Coba Lagi</button>'
+                            + '</div>';
+                    })
                     .finally(() => { btnTr069.disabled = false; });
             }
             btnTr069.addEventListener('click', loadTr069Status);
