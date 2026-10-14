@@ -66,7 +66,7 @@ foreach ($profiles as $p) {
             <i data-lucide="shield-check" class="icon-lg text-accent"></i>
             <strong class="fs-lg"><?= htmlspecialchars($default['name']) ?></strong>
             <span class="pd-badge">Default</span>
-            <button class="btn btn-secondary btn-sm" onclick='editProfile(<?= json_encode($default) ?>)' class="ml-auto" title="Edit Username/Password"><i data-lucide="pencil" class="icon-sm"></i> Edit Auth</button>
+            <button class="btn btn-secondary btn-sm ml-auto" onclick='editProfile(<?= json_encode($default) ?>)' title="Edit Username/Password"><i data-lucide="pencil" class="icon-sm"></i> Edit Auth</button>
         </div>
         <div class="pd-url"><?= htmlspecialchars($default['acs_url']) ?></div>
         <div class="text-muted fs-sm mb-3">

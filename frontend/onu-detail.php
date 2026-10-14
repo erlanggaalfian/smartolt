@@ -3993,7 +3993,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                 
                 <div class="form-group">
                     <label>Serial Number Lama</label>
-                    <input type="text" class="modal-input" value="<?php echo htmlspecialchars($onu['serial_number']); ?>" readonly class="form-control form-control--mono">
+                    <input type="text" class="modal-input form-control form-control--mono" value="<?php echo htmlspecialchars($onu['serial_number']); ?>" readonly>
                 </div>
                 
                 <div class="form-group">

@@ -149,7 +149,7 @@ if ($edit_splitter) {
         <div class="inline-flex-center">
             <form method="GET" class="inline-flex-center">
                 <?php if ($fzone !== ''): ?><input type="hidden" name="zone" value="<?= htmlspecialchars($fzone) ?>"><?php endif; ?>
-                <input type="text" name="search" class="form-control" value="<?= htmlspecialchars($fsearch) ?>" placeholder="Cari..." class="w-200">
+                <input type="text" name="search" class="form-control w-200" value="<?= htmlspecialchars($fsearch) ?>" placeholder="Cari...">
                 <button type="submit" class="btn btn-secondary">Cari</button>
                 <?php if ($fsearch !== ''): ?><a href="splitters.php<?= $fzone !== '' ? '?zone='.urlencode($fzone) : '' ?>" class="btn btn-secondary">Reset</a><?php endif; ?>
             </form>
