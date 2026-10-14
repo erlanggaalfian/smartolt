@@ -20,15 +20,13 @@ $db_pass = getenv('DB_PASSWORD')  ?: '';
 function extract_customer_name(?string $desc): string {
     $desc = (string)$desc;
     // Coba extract dari structured description: name_XXX_zone_...
-    // Non-greedy stop di delimiter berikutnya (_zone_, _descr_, _odb_, _authd_, _contact_)
     if (preg_match('/(?:^|_)name_(.*?)(?:_(?:zone|descr|odb|authd|contact)_|$)/i', $desc, $m)) {
         $name = trim($m[1]);
-        // Normalisasi underscore -> spasi (nama pelanggan)
         $name = str_replace('_', ' ', $name);
         return $name;
     }
-    // Bukan structured format — kembalikan apa adanya
-    return trim($desc);
+    // Bukan structured format — normalisasi underscore -> spasi untuk nama pelanggan
+    return str_replace('_', ' ', trim($desc));
 }
 
 /**

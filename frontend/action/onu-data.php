@@ -191,7 +191,7 @@ if ($full) {
     if (stripos($desc_val, 'name_') !== false) {
         $clean_name = extract_customer_name($desc_val);
     } elseif (!empty($d['onu_name']) && !preg_match('/^onu_\d+$/i', $d['onu_name'])) {
-        $clean_name = preg_replace('/^name_/i', '', $d['onu_name']);
+        $clean_name = str_replace('_', ' ', preg_replace('/^name_/i', '', $d['onu_name']));
     } elseif (!empty($onu['name']) && !preg_match('/^onu_\d+$/i', $onu['name'])) {
         $clean_name = $onu['name'];
     } else {
