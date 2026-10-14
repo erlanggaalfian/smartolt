@@ -305,7 +305,7 @@ if (!empty($onu['onu_type'])) {
 
             <div class="detail-plain-row">
                 <span class="detail-plain-label">Tanggal otorisasi</span>
-                <span class="detail-plain-value" class="text-muted"><?php echo htmlspecialchars($parsed_desc['auth_date'] ?: date('d-M-Y H:i:s', strtotime($onu['created_at']))); ?></span>
+                <span class="detail-plain-value text-muted"><?php echo htmlspecialchars($parsed_desc['auth_date'] ?: date('d-M-Y H:i:s', strtotime($onu['created_at']))); ?></span>
             </div>
 
             <div class="detail-plain-row" data-clickable onclick="document.getElementById('edit-identity-modal').classList.add('open')">
@@ -350,7 +350,7 @@ if (!empty($onu['onu_type'])) {
 
             <div class="detail-plain-row">
                 <span class="detail-plain-label">Last Down</span>
-                <span class="detail-plain-value" id="detail-last-down" class="text-muted">
+                <span class="detail-plain-value text-muted" id="detail-last-down">
                     <?php echo htmlspecialchars($onu['last_down_cause'] ?? '-'); ?>
                 </span>
             </div>
@@ -2397,8 +2397,8 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         }
 
                         // Render accordion
-                        let html = '<div style="font-size:0.85rem;background:var(--bg-primary);">';
-                        html += '<div style="font-weight:700;margin-bottom:12px;font-size:0.95rem;display:flex;align-items:center;gap:8px;"><span style="width:10px;height:10px;border-radius:50%;background:#28a745;display:inline-block;"></span> ' + (d._id || serial) + '</div>';
+                        let html = '<div class="tr069-body">';
+                        html += '<div class="tr069-device-title"><span class="status-dot-online"></span> ' + (d._id || serial) + '</div>';
                         // Render one PPP Interface card matching the ONU-webpage layout (readonly + editable rows).
                         function pv(sec, key) {
                             const v = sec.params[key];
@@ -2406,16 +2406,14 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             return (v === undefined || v === null) ? '' : v;
                         }
                         function pppRow(label, valueHtml) {
-                            return '<div style="display:grid;grid-template-columns:180px 1fr;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border-color);">'
-                                + '<span style="color:var(--text-muted);font-size:0.82rem;">' + label + '</span>'
-                                + '<span style="word-break:break-all;">' + valueHtml + '</span></div>';
+                            return '<div class="ppp-row">'
+                                + '<span class="ppp-row-label">' + label + '</span>'
+                                + '<span class="ppp-row-value">' + valueHtml + '</span></div>';
                         }
                         function pppInput(key, i, value, opts) {
                             opts = opts || {};
                             const w = opts.narrow ? '110px' : '320px';
-                            return '<input type="text" class="ppp-field" data-key="'+key+'" data-idx="'+i+'" value="'+String(value).replace(/"/g,'&quot;')+'"'
-                                + (opts.placeholder ? ' placeholder="'+opts.placeholder+'"' : '')
-                                + ' style="width:100%;max-width:'+w+';box-sizing:border-box;padding:5px 8px;font-size:0.85rem;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">';
+                            return '<input type="text" class="ppp-field panel-input" data-key="'+key+'" data-idx="'+i+'" value="'+String(value).replace(/"/g,'&quot;')+'"' + (opts.placeholder ? ' placeholder="'+opts.placeholder+'"' : '') + ' style="max-width:'+w+'">';
                         }
                         function renderPppCard(sec, i) {
                             const status = pv(sec, 'ConnectionStatus') || 'N/A';
@@ -2441,12 +2439,12 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             // Fallback ke VLANID (param TR-069 standar) kalau device tidak
                             // punya X_HW_VLAN (mis. FiberHome pakai VLANID native, bukan vendor Huawei).
                             const vlan = pv(sec, 'X_HW_VLAN') || pv(sec, 'VLANID');
-                            let h = '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
-                            h += '<div class="tr069-toggle" data-idx="'+i+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
-                            h += '<span>' + sec.title + '</span><span class="tr069-refresh" data-idx="'+i+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:' + (i === 0 ? 'inline' : 'none') + ';">&#8635;</span></div>';
-                            h += '<div class="tr069-panel" style="display:' + (i === 0 ? 'block' : 'none') + ';padding:4px 12px;background:var(--bg-primary);">';
+                            let h = '<div class="tr069-card">';
+                            h += '<div class="tr069-toggle tr069-card-head" data-idx="'+i+'">';
+                            h += '<span>' + sec.title + '</span><span class="tr069-refresh tr069-refresh-icon" data-idx="'+i+'" title="Refresh" style="display:' + (i === 0 ? 'inline' : 'none') + ';">&#8635;</span></div>';
+                            h += '<div class="tr069-panel" style="display:' + (i === 0 ? 'block' : 'none') + ';">';
                             h += pppRow('Connection name', connName);
-                            h += pppRow('Connection status', '<span style="color:'+statusColor+';font-weight:600;">'+status+'</span>');
+                            h += pppRow('Connection status', '<span class="fw-600" style="color:'+statusColor+'">'+status+'</span>');
                             h += pppRow('Uptime', uptime || 'N/A');
                             h += pppRow('IP Address', ip || 'N/A');
                             h += pppRow('PPP Gateway', gw || 'N/A');
@@ -2454,7 +2452,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             h += pppRow('Password', pppInput('password', i, pv(sec, 'Password'), {narrow:false}));
                             h += pppRow('DNS Servers', dns || 'N/A');
                             h += pppRow('ACS Name', acsName || 'N/A');
-                            h += pppRow('Connection trigger', '<select class="ppp-field" data-key="trigger" data-idx="'+i+'" style="width:100%;max-width:320px;box-sizing:border-box;padding:5px 8px;font-size:0.85rem;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);"><option'+(trigger==='AlwaysOn'?' selected':'')+'>AlwaysOn</option><option'+(trigger==='OnDemand'?' selected':'')+'>OnDemand</option><option'+(trigger==='Manual'?' selected':'')+'>Manual</option></select>');
+                            h += pppRow('Connection trigger', '<select class="ppp-field panel-input panel-input--lg" data-key="trigger" data-idx="'+i+'"><option'+(trigger==='AlwaysOn'?' selected':'')+'>AlwaysOn</option><option'+(trigger==='OnDemand'?' selected':'')+'>OnDemand</option><option'+(trigger==='Manual'?' selected':'')+'>Manual</option></select>');
                             h += pppRow('Max MRU Size', pppInput('max_mru', i, mru, {narrow:true}));
                             h += pppRow('MAC Clone', ppRadio('mac_clone', i, macClone));
                             h += pppRow('MAC Address', mac || 'N/A');
@@ -2467,7 +2465,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             h += pppRow('VLAN ID', pppInput('vlan', i, vlan, {narrow:true}));
                             h += pppRow('Reset connection', '<button type="button" class="btn ppp-reset" data-idx="'+i+'" style="padding:5px 14px;font-size:0.8rem;background:#6c757d;color:#fff;border:none;border-radius:4px;cursor:pointer;">Reset Connection</button>');
                             h += '<div style="padding:12px 0 8px;display:flex;gap:8px;">';
-                            h += '<button type="button" class="btn btn-success ppp-save" data-idx="'+i+'" class="btn btn-xs">Simpan Perubahan</button>';
+                            h += '<button type="button" class="btn btn-success ppp-save btn-xs" data-idx="'+i+'">Simpan Perubahan</button>';
                             h += '</div>';
                             h += '<div style="padding:8px 0 4px;border-top:1px solid var(--border-color);">';
                             h += '<button type="button" class="btn ppp-remove" data-idx="'+i+'" style="padding:6px 16px;font-size:0.82rem;background:#dc3545;color:#fff;border:none;border-radius:4px;cursor:pointer;">Remove PPP WAN</button>';
@@ -2477,13 +2475,13 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         }
                         function ppRadio(key, i, current) {
                             const yes = current === true || current === 'true' || current === 'Enabled' || current === 1 || current === '1';
-                            return '<label style="margin-right:18px;display:inline-flex;align-items:center;gap:5px;"><input type="radio" name="ppp-'+key+'-'+i+'" class="ppp-radio" data-key="'+key+'" data-idx="'+i+'" value="1"'+(yes?' checked':'')+'> Enabled</label>'
-                                + '<label style="display:inline-flex;align-items:center;gap:5px;"><input type="radio" name="ppp-'+key+'-'+i+'" class="ppp-radio" data-key="'+key+'" data-idx="'+i+'" value="0"'+(!yes?' checked':'')+'> Disabled</label>';
+                            return '<label class="inline-flex-center mr-3"><input type="radio" name="ppp-'+key+'-'+i+'" class="ppp-radio" data-key="'+key+'" data-idx="'+i+'" value="1"'+(yes?' checked':'')+'> Enabled</label>'
+                                + '<label class="inline-flex-center"><input type="radio" name="ppp-'+key+'-'+i+'" class="ppp-radio" data-key="'+key+'" data-idx="'+i+'" value="0"'+(!yes?' checked':'')+'> Disabled</label>';
                         }
                         function ppRadioYN(key, i, current) {
                             const yes = current === true || current === 'true' || current === 'Yes' || current === 1 || current === '1';
-                            return '<label style="margin-right:18px;display:inline-flex;align-items:center;gap:5px;"><input type="radio" name="ppp-'+key+'-'+i+'" class="ppp-radio" data-key="'+key+'" data-idx="'+i+'" value="1"'+(yes?' checked':'')+'> Yes</label>'
-                                + '<label style="display:inline-flex;align-items:center;gap:5px;"><input type="radio" name="ppp-'+key+'-'+i+'" class="ppp-radio" data-key="'+key+'" data-idx="'+i+'" value="0"'+(!yes?' checked':'')+'> No</label>';
+                            return '<label class="inline-flex-center mr-3"><input type="radio" name="ppp-'+key+'-'+i+'" class="ppp-radio" data-key="'+key+'" data-idx="'+i+'" value="1"'+(yes?' checked':'')+'> Yes</label>'
+                                + '<label class="inline-flex-center"><input type="radio" name="ppp-'+key+'-'+i+'" class="ppp-radio" data-key="'+key+'" data-idx="'+i+'" value="0"'+(!yes?' checked':'')+'> No</label>';
                         }
                         // Render card IP Interface (WANIPConnection) — layout mirip webUI router asli,
                         // Static Address/Gateway/DNS/MTU/NAT editable, DHCP field read-only (device kelola sendiri).
@@ -2506,14 +2504,14 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             const vlan = pv(sec, 'X_HW_VLAN') || pv(sec, 'VLANID') || '';
                             const isStatic = String(addrType).toUpperCase() === 'STATIC';
                             const ipInput = (key, val, narrow) => '<input type="text" class="ip-field" data-key="'+key+'" data-idx="'+i+'" value="'+String(val ?? '').replace(/"/g,'&quot;')+'" style="width:100%;max-width:'+(narrow?'120px':'280px')+';box-sizing:border-box;padding:5px 8px;font-size:0.85rem;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">';
-                            let h = '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
-                            h += '<div class="tr069-toggle" data-idx="'+i+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
-                            h += '<span>' + sec.title + '</span><span class="tr069-refresh" data-idx="'+i+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:' + (i === 0 ? 'inline' : 'none') + ';">&#8635;</span></div>';
-                            h += '<div class="tr069-panel" style="display:' + (i === 0 ? 'block' : 'none') + ';padding:4px 12px;background:var(--bg-primary);">';
+                            let h = '<div class="tr069-card">';
+                            h += '<div class="tr069-toggle tr069-card-head" data-idx="'+i+'">';
+                            h += '<span>' + sec.title + '</span><span class="tr069-refresh tr069-refresh-icon" data-idx="'+i+'" title="Refresh" style="display:' + (i === 0 ? 'inline' : 'none') + ';">&#8635;</span></div>';
+                            h += '<div class="tr069-panel" style="display:' + (i === 0 ? 'block' : 'none') + ';">';
                             h += pppRow('Name', name || 'N/A');
                             h += pppRow('Enabled', enabled ? '1' : '0');
                             h += pppRow('Addressing type', addrType);
-                            h += pppRow('Connection status', '<span style="color:'+statusColor+';font-weight:600;">'+status+'</span>');
+                            h += pppRow('Connection status', '<span class="fw-600" style="color:'+statusColor+'">'+status+'</span>');
                             h += pppRow('Uptime', uptime || 'N/A');
                             h += pppRow('IP Address', isStatic ? ipInput('ip_address', ip, false) : (ip || 'N/A'));
                             h += pppRow('Subnet Mask', isStatic ? ipInput('subnet_mask', mask, false) : (mask || 'N/A'));
@@ -2527,7 +2525,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             h += pppRow('NAT Enabled', ppRadioYN('nat', i, nat).replace(/name="ppp-/g, 'name="ip-').replace(/class="ppp-radio"/g, 'class="ip-radio"'));
                             h += pppRow('VLAN ID', vlan || 'N/A');
                             h += '<div style="padding:12px 0 8px;display:flex;gap:8px;">';
-                            h += '<button type="button" class="btn btn-success ip-save" data-idx="'+i+'" data-path="'+sec.tr069Path+'" class="btn btn-xs">Simpan Perubahan</button>';
+                            h += '<button type="button" class="btn btn-success ip-save btn-xs" data-idx="'+i+'" data-path="'+sec.tr069Path+'">Simpan Perubahan</button>';
                             h += '</div>';
                             h += '<div style="padding:8px 0 4px;border-top:1px solid var(--border-color);">';
                             h += '<button type="button" class="btn ip-remove" data-idx="'+i+'" data-path="'+sec.tr069Path+'" style="padding:6px 16px;font-size:0.82rem;background:#dc3545;color:#fff;border:none;border-radius:4px;cursor:pointer;">Remove IP WAN</button>';
@@ -2585,13 +2583,13 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             const wmm = pv(sec, 'WMMEnable');
                             const vlanId = pv(sec, 'X_HW_VLAN') || '';
                             const txPowerSupported = (pv(sec, 'TransmitPowerSupported') || '').split(',').map(s => s.trim()).filter(Boolean);
-                            let h = '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
-                            h += '<div class="tr069-toggle" data-idx="'+i+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
-                            h += '<span>' + sec.title + '</span><span class="tr069-refresh" data-idx="'+i+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:' + (i === 0 ? 'inline' : 'none') + ';">&#8635;</span></div>';
-                            h += '<div class="tr069-panel" style="display:' + (i === 0 ? 'block' : 'none') + ';padding:8px 12px;background:var(--bg-primary);font-size:0.85rem;">';
+                            let h = '<div class="tr069-card">';
+                            h += '<div class="tr069-toggle tr069-card-head" data-idx="'+i+'">';
+                            h += '<span>' + sec.title + '</span><span class="tr069-refresh tr069-refresh-icon" data-idx="'+i+'" title="Refresh" style="display:' + (i === 0 ? 'inline' : 'none') + ';">&#8635;</span></div>';
+                            h += '<div class="tr069-panel fs-sm" style="display:' + (i === 0 ? 'block' : 'none') + ';">';
                             h += pppRow('SSID', wlanInput('ssid', i, ssid, {narrow:false}));
                             h += pppRow('Password', wlanInput('password', i, password, {narrow:false}));
-                            h += pppRow('Connection status', '<span style="color:'+statusColor+';font-weight:600;">'+status+'</span>');
+                            h += pppRow('Connection status', '<span class="fw-600" style="color:'+statusColor+'">'+status+'</span>');
                             h += pppRow('Radio', wlanRadio('enable', i, enabled));
                             h += pppRow('Band', band + ' (' + standard + ')');
                             h += pppRow('Security', wlanSecuritySelect(i, wpaEnc));
@@ -2607,7 +2605,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             h += pppRow('VLAN ID', wlanInput('vlan', i, vlanId, {narrow:true}));
                             h += pppRow('Total Associations', (totalAssoc !== '' && totalAssoc != null) ? totalAssoc : '0');
                             h += '<div style="padding:12px 0 4px;">';
-                            h += '<button type="button" class="btn btn-success wlan-save" data-idx="'+i+'" data-wlan-num="'+wlanNum+'" class="btn btn-xs">Simpan Perubahan</button>';
+                            h += '<button type="button" class="btn btn-success wlan-save btn-xs" data-idx="'+i+'" data-wlan-num="'+wlanNum+'">Simpan Perubahan</button>';
                             h += '</div>';
                             h += '</div></div>';
                             return h;
@@ -2615,24 +2613,23 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         function wlanInput(key, i, value, opts) {
                             opts = opts || {};
                             const w = opts.narrow ? '110px' : '320px';
-                            return '<input type="text" class="wlan-field" data-key="'+key+'" data-idx="'+i+'" value="'+String(value).replace(/"/g,'&quot;')+'"'
-                                + ' style="width:100%;max-width:'+w+';box-sizing:border-box;padding:5px 8px;font-size:0.85rem;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">';
+                            return '<input type="text" class="wlan-field panel-input" data-key="'+key+'" data-idx="'+i+'" value="'+String(value).replace(/"/g,'&quot;')+'"' + ' style="max-width:'+w+'">';
                         }
                         function wlanRadio(key, i, current) {
                             const yes = current === true || current === 'true' || current === 1 || current === '1';
-                            return '<label style="margin-right:18px;display:inline-flex;align-items:center;gap:5px;"><input type="radio" name="wlan-'+key+'-'+i+'" class="wlan-radio" data-key="'+key+'" data-idx="'+i+'" value="1"'+(yes?' checked':'')+'> Enabled</label>'
-                                + '<label style="display:inline-flex;align-items:center;gap:5px;"><input type="radio" name="wlan-'+key+'-'+i+'" class="wlan-radio" data-key="'+key+'" data-idx="'+i+'" value="0"'+(!yes?' checked':'')+'> Disabled</label>';
+                            return '<label class="inline-flex-center mr-3"><input type="radio" name="wlan-'+key+'-'+i+'" class="wlan-radio" data-key="'+key+'" data-idx="'+i+'" value="1"'+(yes?' checked':'')+'> Enabled</label>'
+                                + '<label class="inline-flex-center"><input type="radio" name="wlan-'+key+'-'+i+'" class="wlan-radio" data-key="'+key+'" data-idx="'+i+'" value="0"'+(!yes?' checked':'')+'> Disabled</label>';
                         }
                         function wlanSecuritySelect(i, current) {
                             const opts = [['TKIPEncryption','WPA2 (TKIP)'],['AESEncryption','WPA2 (AES)'],['TKIPAndAESEncryption','WPA2 (TKIP+AES)'],['None','None']];
-                            let s = '<select class="wlan-field" data-key="security" data-idx="'+i+'" style="width:100%;max-width:220px;box-sizing:border-box;padding:5px 8px;font-size:0.85rem;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">';
+                            let s = '<select class="wlan-field panel-input panel-input--md" data-key="security" data-idx="'+i+'">';
                             opts.forEach(([val, label]) => { s += '<option value="'+val+'"'+(current===val?' selected':'')+'>'+label+'</option>'; });
                             s += '</select>';
                             return s;
                         }
                         function wlanBandwidthSelect(i, ht20) {
                             const cur = (ht20 === true || ht20 === '1' || ht20 === 1) ? '1' : '0';
-                            let s = '<select class="wlan-field" data-key="bandwidth" data-idx="'+i+'" style="width:100%;max-width:140px;box-sizing:border-box;padding:5px 8px;font-size:0.85rem;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">';
+                            let s = '<select class="wlan-field panel-input panel-input--xs" data-key="bandwidth" data-idx="'+i+'">';
                             s += '<option value="1"'+(cur==='1'?' selected':'')+'>20 MHz</option>';
                             s += '<option value="0"'+(cur==='0'?' selected':'')+'>40 MHz</option>';
                             s += '</select>';
@@ -2646,30 +2643,30 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             let normalized = current || '';
                             if (normalized && !normalized.startsWith('11')) normalized = '11' + normalized;
                             if (normalized && !opts.includes(normalized)) opts.unshift(normalized);
-                            let s = '<select class="wlan-field" data-key="wireless_mode" data-idx="'+i+'" style="width:100%;max-width:140px;box-sizing:border-box;padding:5px 8px;font-size:0.85rem;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">';
+                            let s = '<select class="wlan-field panel-input panel-input--xs" data-key="wireless_mode" data-idx="'+i+'">';
                             opts.forEach(val => { s += '<option value="'+val+'"'+(normalized===val?' selected':'')+'>'+val+'</option>'; });
                             s += '</select>';
                             return s;
                         }
                         function wlanTxPowerSelect(i, current, supported) {
                             const opts = (supported && supported.length) ? supported : ['20','40','60','80','100'];
-                            let s = '<select class="wlan-field" data-key="tx_power" data-idx="'+i+'" style="width:100%;max-width:120px;box-sizing:border-box;padding:5px 8px;font-size:0.85rem;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">';
+                            let s = '<select class="wlan-field panel-input panel-input--xxs" data-key="tx_power" data-idx="'+i+'">';
                             opts.forEach(val => { s += '<option value="'+val+'"'+(String(current)===String(val)?' selected':'')+'>'+val+'%</option>'; });
                             s += '</select>';
                             return s;
                         }
                         function wlanRegDomainSelect(i, current) {
                             const opts = ['ID','US','GB','SG','MY','CN'];
-                            let s = '<select class="wlan-field" data-key="regulatory_domain" data-idx="'+i+'" style="width:100%;max-width:120px;box-sizing:border-box;padding:5px 8px;font-size:0.85rem;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">';
+                            let s = '<select class="wlan-field panel-input panel-input--xxs" data-key="regulatory_domain" data-idx="'+i+'">';
                             opts.forEach(val => { s += '<option value="'+val+'"'+(current===val?' selected':'')+'>'+val+'</option>'; });
                             s += '</select>';
                             return s;
                         }
                         function wlanChannelRow(i, channel, autoChannel) {
                             const isAuto = autoChannel === true || autoChannel === 'true' || autoChannel === 1 || autoChannel === '1';
-                            let s = '<label style="margin-right:14px;display:inline-flex;align-items:center;gap:5px;"><input type="radio" name="wlan-chmode-'+i+'" class="wlan-chmode" data-idx="'+i+'" value="auto"'+(isAuto?' checked':'')+'> Auto</label>';
-                            s += '<label style="display:inline-flex;align-items:center;gap:5px;margin-right:10px;"><input type="radio" name="wlan-chmode-'+i+'" class="wlan-chmode" data-idx="'+i+'" value="fix"'+(!isAuto?' checked':'')+'> Fix</label>';
-                            s += '<input type="text" class="wlan-field" data-key="channel" data-idx="'+i+'" value="'+String(channel).replace(/"/g,'&quot;')+'" style="width:70px;box-sizing:border-box;padding:5px 8px;font-size:0.85rem;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">';
+                            let s = '<label class="inline-flex-center mr-2"><input type="radio" name="wlan-chmode-'+i+'" class="wlan-chmode" data-idx="'+i+'" value="auto"'+(isAuto?' checked':'')+'> Auto</label>';
+                            s += '<label class="inline-flex-center mr-2"><input type="radio" name="wlan-chmode-'+i+'" class="wlan-chmode" data-idx="'+i+'" value="fix"'+(!isAuto?' checked':'')+'> Fix</label>';
+                            s += '<input type="text" class="wlan-field panel-input panel-input--tiny" data-key="channel" data-idx="'+i+'" value="'+String(channel).replace(/"/g,'&quot;')+'">';
                             return s;
                         }
                         function ppRadioReadonly(current) {
@@ -2701,12 +2698,12 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             const boolSelect = (key, val, path) => {
                                 const fid = 'dhcp-' + i + '-' + key;
                                 genFields.push({ id: fid, path, type: 'xsd:boolean' });
-                                return '<select id="'+fid+'" style="padding:5px 8px;font-size:0.85rem;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);"><option value="true"'+(val?' selected':'')+'>Yes</option><option value="false"'+(!val?' selected':'')+'>No</option></select>';
+                                return '<select id="'+fid+'" class="panel-input"><option value="true"'+(val?' selected':'')+'>Yes</option><option value="false"'+(!val?' selected':'')+'>No</option></select>';
                             };
-                            let h = '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
-                            h += '<div class="tr069-toggle" data-idx="'+i+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
-                            h += '<span>' + sec.title + '</span><span class="tr069-refresh" data-idx="'+i+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:' + (i === 0 ? 'inline' : 'none') + ';">&#8635;</span></div>';
-                            h += '<div class="tr069-panel" style="display:' + (i === 0 ? 'block' : 'none') + ';padding:4px 12px;background:var(--bg-primary);">';
+                            let h = '<div class="tr069-card">';
+                            h += '<div class="tr069-toggle tr069-card-head" data-idx="'+i+'">';
+                            h += '<span>' + sec.title + '</span><span class="tr069-refresh tr069-refresh-icon" data-idx="'+i+'" title="Refresh" style="display:' + (i === 0 ? 'inline' : 'none') + ';">&#8635;</span></div>';
+                            h += '<div class="tr069-panel" style="display:' + (i === 0 ? 'block' : 'none') + ';">';
                             h += pppRow('Router IP', textInput('ip', ip, ipBase + 'IPInterfaceIPAddress'));
                             h += pppRow('Netmask', textInput('mask', mask, ipBase + 'IPInterfaceSubnetMask'));
                             h += pppRow('DHCP Server', boolSelect('dhcp_enable', dhcpEnable, base + 'DHCPServerEnable'));
@@ -2716,7 +2713,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             h += pppRow('DNS Server', textInput('dns', dns, base + 'DNSServers'));
                             h += pppRow('Lease Time (detik)', textInput('lease', lease, base + 'DHCPLeaseTime', 'xsd:int', true));
                             h += '<div style="padding:12px 0 8px;">';
-                            h += '<button type="button" class="btn btn-success gen-save" data-idx="'+i+'" data-fields=\''+JSON.stringify(genFields).replace(/'/g,'&#39;')+'\' class="btn btn-xs">Simpan Perubahan</button>';
+                            h += '<button type="button" class="btn btn-success gen-save btn-xs" data-idx="'+i+'" data-fields=\''+JSON.stringify(genFields).replace(/'/g,'&#39;')+'\'>Simpan Perubahan</button>';
                             h += '</div>';
                             h += '</div></div>';
                             return h;
@@ -2778,9 +2775,9 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             }
                             // Ikon refresh muncul HANYA saat section sedang terbuka (di-toggle via JS di bawah),
                             // tidak ada lagi badge "N params" permanen di semua section.
-                            const rightHtml = '<span class="tr069-refresh" data-idx="'+i+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:' + (i === 0 ? 'inline' : 'none') + ';">&#8635;</span>';
-                            html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
-                            html += '<div class="tr069-toggle" data-idx="'+i+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
+                            const rightHtml = '<span class="tr069-refresh tr069-refresh-icon" data-idx="'+i+'" title="Refresh" style="display:' + (i === 0 ? 'inline' : 'none') + ';">&#8635;</span>';
+                            html += '<div class="tr069-card">';
+                            html += '<div class="tr069-toggle tr069-card-head" data-idx="'+i+'">';
                             html += '<span>' + sec.title + '</span>' + rightHtml + '</div>';
                             html += '<div class="tr069-panel" style="display:' + (i === 0 ? 'block' : 'none') + ';padding:8px 12px;background:var(--bg-primary);">';
                             const genFields = [];
@@ -2791,27 +2788,27 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 if (isWritable && fullPath && typeof v !== 'boolean') {
                                     const fid = 'gen-' + i + '-' + k;
                                     genFields.push({ id: fid, path: fullPath, type: typeof v === 'number' ? 'xsd:unsignedInt' : 'xsd:string' });
-                                    val = '<input type="text" id="'+fid+'" value="'+String(v ?? '').replace(/"/g,'&quot;')+'" style="width:100%;max-width:280px;box-sizing:border-box;padding:3px 6px;font-size:0.82rem;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">';
+                                    val = '<input type="text" id="'+fid+'" value="'+String(v ?? '').replace(/"/g,'&quot;')+'" class="panel-input panel-input--sm">';
                                 } else if (isWritable && fullPath && typeof v === 'boolean') {
                                     const fid = 'gen-' + i + '-' + k;
                                     genFields.push({ id: fid, path: fullPath, type: 'xsd:boolean' });
-                                    val = '<select id="'+fid+'" style="padding:3px 6px;font-size:0.82rem;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);"><option value="true"'+(v?' selected':'')+'>Enabled</option><option value="false"'+(!v?' selected':'')+'>Disabled</option></select>';
+                                    val = '<select id="'+fid+'" class="panel-input panel-input--sm"><option value="true"'+(v?' selected':'')+'>Enabled</option><option value="false"'+(!v?' selected':'')+'>Disabled</option></select>';
                                 } else if (v && typeof v === 'object' && v.v) {
                                     val = '<span style="color:' + (v.color || 'inherit') + ';font-weight:600;">' + v.v + '</span>';
                                 } else {
                                     val = (v === '' || v == null) ? '<span class="text-muted">(empty)</span>' : String(v);
                                 }
                                 html += '<div style="padding:3px 0;border-bottom:1px solid var(--border-color);display:flex;gap:8px;align-items:center;">';
-                                html += '<span style="min-width:200px;color:var(--text-muted);flex-shrink:0;">' + k + '</span>';
-                                html += '<span style="word-break:break-all;flex:1;">' + val + '</span></div>';
+                                html += '<span class="col-label">' + k + '</span>';
+                                html += '<span class="ppp-row-value flex-1">' + val + '</span></div>';
                             }
                             if (genFields.length) {
-                                html += '<div style="padding:10px 0 4px;"><button type="button" class="btn btn-success gen-save" data-idx="'+i+'" data-fields=\''+JSON.stringify(genFields).replace(/'/g,'&#39;')+'\' class="btn btn-xs">Simpan Perubahan</button></div>';
+                                html += '<div style="padding:10px 0 4px;"><button type="button" class="btn btn-success gen-save btn-xs" data-idx="'+i+'" data-fields=\''+JSON.stringify(genFields).replace(/'/g,'&#39;')+'\'>Simpan Perubahan</button></div>';
                             }
                             if (isGeneral) {
                                 html += '<div style="padding:3px 0;border-bottom:1px solid var(--border-color);display:flex;gap:8px;align-items:center;">';
-                                html += '<span style="min-width:200px;color:var(--text-muted);flex-shrink:0;">Pending provisions</span>';
-                                html += '<span style="display:flex;gap:8px;flex:1;"><input type="text" id="tr069-prov-input" placeholder="Provision name" style="flex:1;padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);font-size:0.85rem;">';
+                                html += '<span class="col-label">Pending provisions</span>';
+                                html += '<span style="display:flex;gap:8px;flex:1;"><input type="text" id="tr069-prov-input" placeholder="Provision name" class="panel-input flex-1">';
                                 html += '<button type="button" class="btn btn-success" id="tr069-prov-add" style="padding:4px 12px;font-size:0.8rem;">+ Add</button></span></div>';
                             }
                             html += '</div></div>';
@@ -2821,18 +2818,18 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         // webUI router asli (tabel eth0:1..N).
                         (() => {
                             const idx = sections.length + 100; // offset unik, jangan tabrakan sama sections/hosts/routes
-                            html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
-                            html += '<div class="tr069-toggle" data-idx="'+idx+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
-                            html += '<span>LAN Ports</span><span class="tr069-refresh" data-idx="'+idx+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:none;">&#8635;</span></div>';
-                            html += '<div class="tr069-panel" style="display:none;padding:8px 12px;background:var(--bg-primary);font-size:0.85rem;">';
+                            html += '<div class="tr069-card">';
+                            html += '<div class="tr069-toggle tr069-card-head" data-idx="'+idx+'">';
+                            html += '<span>LAN Ports</span><span class="tr069-refresh tr069-refresh-icon" data-idx="'+idx+'" title="Refresh" style="display:none;">&#8635;</span></div>';
+                            html += '<div class="tr069-panel fs-sm" style="display:none;">';
                             if (!lanPortList.length) {
-                                html += '<div style="color:var(--text-muted);padding:8px 0;">Tidak ada port LAN.</div>';
+                                html += '<div class="text-muted p-y-sm">Tidak ada port LAN.</div>';
                             } else {
                                 html += '<div class="table-responsive"><table class="kv-table">';
-                                html += '<tr style="text-align:left;color:var(--text-muted);font-size:0.78rem;"><th style="padding:5px 8px 5px 0;">Port</th><th style="padding:5px 8px;">Enable</th><th style="padding:5px 8px;">Status</th><th style="padding:5px 8px;">Speed</th><th style="padding:5px 8px;">Duplex</th><th style="padding:5px 8px;">L3 Enable</th><th style="padding:5px 8px;">Speed mode</th><th style="padding:5px 8px;">Duplex mode</th><th style="padding:5px 8px;">Flow control</th><th style="padding:5px 0 5px 8px;"></th></tr>';
+                                html += '<tr class="text-left text-muted fs-xs"><th style="padding:5px 8px 5px 0;">Port</th><th style="padding:5px 8px;">Enable</th><th style="padding:5px 8px;">Status</th><th style="padding:5px 8px;">Speed</th><th style="padding:5px 8px;">Duplex</th><th style="padding:5px 8px;">L3 Enable</th><th style="padding:5px 8px;">Speed mode</th><th style="padding:5px 8px;">Duplex mode</th><th style="padding:5px 8px;">Flow control</th><th style="padding:5px 0 5px 8px;"></th></tr>';
                                 lanPortList.forEach((p, pi) => {
                                     const B = 'InternetGatewayDevice.' + p.path + '.';
-                                    const sel = (id, opts, cur) => '<select id="'+id+'" style="padding:3px 4px;font-size:0.8rem;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">'
+                                    const sel = (id, opts, cur) => '<select id="'+id+'" class="panel-input panel-input--sm">'
                                         + opts.map(o => '<option value="'+o.v+'"'+(String(cur)===String(o.v)?' selected':'')+'>'+o.l+'</option>').join('') + '</select>';
                                     const enableId = 'lan-enable-'+pi, l3Id = 'lan-l3-'+pi, speedId = 'lan-speedmode-'+pi, duplexId = 'lan-duplexmode-'+pi, flowId = 'lan-flow-'+pi;
                                     const fieldsMeta = [
@@ -2842,7 +2839,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                         {id: duplexId, path: B+'DuplexMode', type: 'xsd:string'},
                                         {id: flowId, path: B+'X_HW_FlowCtrlEnable', type: 'xsd:boolean'},
                                     ];
-                                    html += '<tr style="border-top:1px solid var(--border-color);">'
+                                    html += '<tr class="row-divider">'
                                         + '<td style="padding:6px 8px 6px 0;">' + esc(p.name) + '</td>'
                                         + '<td style="padding:6px 8px;">' + sel(enableId, [{v:'true',l:'Yes'},{v:'false',l:'No'}], p.enable) + '</td>'
                                         + '<td style="padding:6px 8px;">' + esc(p.status) + '</td>'
@@ -2862,19 +2859,19 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         // Card "LAN Counters" — traffic counter per port (Bytes/Pkts/Uni/Multi/Bro/Err/Disc, In/Out).
                         (() => {
                             const idx = sections.length + 200;
-                            html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
-                            html += '<div class="tr069-toggle" data-idx="'+idx+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
-                            html += '<span>LAN Counters</span><span class="tr069-refresh" data-idx="'+idx+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:none;">&#8635;</span></div>';
-                            html += '<div class="tr069-panel" style="display:none;padding:8px 12px;background:var(--bg-primary);font-size:0.8rem;overflow-x:auto;">';
+                            html += '<div class="tr069-card">';
+                            html += '<div class="tr069-toggle tr069-card-head" data-idx="'+idx+'">';
+                            html += '<span>LAN Counters</span><span class="tr069-refresh tr069-refresh-icon" data-idx="'+idx+'" title="Refresh" style="display:none;">&#8635;</span></div>';
+                            html += '<div class="tr069-panel fs-xs tr069-panel--scroll" style="display:none;">';
                             if (!lanPortList.length) {
-                                html += '<div style="color:var(--text-muted);padding:8px 0;">Tidak ada data counter.</div>';
+                                html += '<div class="text-muted p-y-sm">Tidak ada data counter.</div>';
                             } else {
                                 html += '<div class="table-responsive"><table class="kv-table">';
                                 const cols = ['#','Bytes In','Bytes Out','Pkts In','Pkts Out','Uni In','Uni Out','Multi In','Multi Out','Bro In','Bro Out','Err In','Err Out','Disc In','Disc Out'];
                                 html += '<tr style="text-align:left;color:var(--text-muted);font-size:0.75rem;">' + cols.map(c => '<th style="padding:5px 8px;">'+c+'</th>').join('') + '</tr>';
                                 lanPortList.forEach((p, pi) => {
                                     const vals = [pi+1, p.bytesIn, p.bytesOut, p.pktsIn, p.pktsOut, p.uniIn, p.uniOut, p.multiIn, p.multiOut, p.broIn, p.broOut, p.errIn, p.errOut, p.discIn, p.discOut];
-                                    html += '<tr style="border-top:1px solid var(--border-color);">' + vals.map(v => '<td style="padding:6px 8px;">'+v+'</td>').join('') + '</tr>';
+                                    html += '<tr class="row-divider">' + vals.map(v => '<td style="padding:6px 8px;">'+v+'</td>').join('') + '</tr>';
                                 });
                                 html += '</table></div>';
                             }
@@ -2883,19 +2880,19 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         // Card "Connected Hosts" — jumlah host + tabel ringkas (IP, InterfaceType, SSID, MAC).
                         (() => {
                             const idx = sections.length; // index unik buat accordion toggle
-                            html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
-                            html += '<div class="tr069-toggle" data-idx="'+idx+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
-                            html += '<span>Connected Hosts</span><span class="tr069-refresh" data-idx="'+idx+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:none;">&#8635;</span></div>';
-                            html += '<div class="tr069-panel" style="display:none;padding:8px 12px;background:var(--bg-primary);font-size:0.85rem;">';
+                            html += '<div class="tr069-card">';
+                            html += '<div class="tr069-toggle tr069-card-head" data-idx="'+idx+'">';
+                            html += '<span>Connected Hosts</span><span class="tr069-refresh tr069-refresh-icon" data-idx="'+idx+'" title="Refresh" style="display:none;">&#8635;</span></div>';
+                            html += '<div class="tr069-panel fs-sm" style="display:none;">';
                             if (!hostList.length) {
-                                html += '<div style="color:var(--text-muted);padding:8px 0;">Tidak ada host terkoneksi.</div>';
+                                html += '<div class="text-muted p-y-sm">Tidak ada host terkoneksi.</div>';
                             } else {
                                 html += '<div class="table-responsive"><table class="kv-table">';
-                                html += '<tr style="text-align:left;color:var(--text-muted);font-size:0.78rem;"><th style="padding:5px 8px 5px 0;">#</th><th style="padding:5px 8px;">MAC Address</th><th style="padding:5px 8px;">IP Address</th><th style="padding:5px 8px;">Address source</th><th style="padding:5px 8px;">Hostname</th><th style="padding:5px 8px;">Port</th><th style="padding:5px 0 5px 8px;">Active</th></tr>';
+                                html += '<tr class="text-left text-muted fs-xs"><th style="padding:5px 8px 5px 0;">#</th><th style="padding:5px 8px;">MAC Address</th><th style="padding:5px 8px;">IP Address</th><th style="padding:5px 8px;">Address source</th><th style="padding:5px 8px;">Hostname</th><th style="padding:5px 8px;">Port</th><th style="padding:5px 0 5px 8px;">Active</th></tr>';
                                 hostList.forEach((h, hi) => {
                                     const activeText = h.active === true || h.active === '1' || h.active === 1 ? 'Yes' : 'No';
                                     const port = h.ssid || h.iface;
-                                    html += '<tr style="border-top:1px solid var(--border-color);">'
+                                    html += '<tr class="row-divider">'
                                         + '<td style="padding:6px 8px 6px 0;">' + (hi + 1) + '</td>'
                                         + '<td style="padding:6px 8px;">' + esc(h.mac) + '</td>'
                                         + '<td style="padding:6px 8px;">' + esc(h.ip) + '</td>'
@@ -2912,17 +2909,17 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         // Card "Routing" — tabel route aktif (Dest/Mask/Gateway/Interface/Origin).
                         (() => {
                             const idx = sections.length + 1;
-                            html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
-                            html += '<div class="tr069-toggle" data-idx="'+idx+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
-                            html += '<span>Routing</span><span class="tr069-refresh" data-idx="'+idx+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:none;">&#8635;</span></div>';
-                            html += '<div class="tr069-panel" style="display:none;padding:8px 12px;background:var(--bg-primary);font-size:0.85rem;">';
+                            html += '<div class="tr069-card">';
+                            html += '<div class="tr069-toggle tr069-card-head" data-idx="'+idx+'">';
+                            html += '<span>Routing</span><span class="tr069-refresh tr069-refresh-icon" data-idx="'+idx+'" title="Refresh" style="display:none;">&#8635;</span></div>';
+                            html += '<div class="tr069-panel fs-sm" style="display:none;">';
                             if (!routeList.length) {
-                                html += '<div style="color:var(--text-muted);padding:8px 0;">Tidak ada route.</div>';
+                                html += '<div class="text-muted p-y-sm">Tidak ada route.</div>';
                             } else {
                                 html += '<div class="table-responsive"><table class="kv-table">';
-                                html += '<tr style="text-align:left;color:var(--text-muted);font-size:0.78rem;"><th style="padding:5px 8px 5px 0;">Destination</th><th style="padding:5px 8px;">Subnet Mask</th><th style="padding:5px 8px;">Gateway</th><th style="padding:5px 8px;">Interface</th><th style="padding:5px 0 5px 8px;">Origin</th></tr>';
+                                html += '<tr class="text-left text-muted fs-xs"><th style="padding:5px 8px 5px 0;">Destination</th><th style="padding:5px 8px;">Subnet Mask</th><th style="padding:5px 8px;">Gateway</th><th style="padding:5px 8px;">Interface</th><th style="padding:5px 0 5px 8px;">Origin</th></tr>';
                                 routeList.forEach(r => {
-                                    html += '<tr style="border-top:1px solid var(--border-color);">'
+                                    html += '<tr class="row-divider">'
                                         + '<td style="padding:6px 8px 6px 0;">' + esc(r.dest) + '</td>'
                                         + '<td style="padding:6px 8px;">' + esc(r.mask) + '</td>'
                                         + '<td style="padding:6px 8px;">' + esc(r.gw) + '</td>'
@@ -2937,19 +2934,19 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         // Card "Voice lines" — ringkas per line (Enable/DirectoryNumber/SIP), EDITABLE.
                         (() => {
                             const idx = sections.length + 3;
-                            html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
-                            html += '<div class="tr069-toggle" data-idx="'+idx+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
-                            html += '<span>Voice lines</span><span class="tr069-refresh" data-idx="'+idx+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:none;">&#8635;</span></div>';
-                            html += '<div class="tr069-panel" style="display:none;padding:10px 12px;background:var(--bg-primary);font-size:0.85rem;">';
+                            html += '<div class="tr069-card">';
+                            html += '<div class="tr069-toggle tr069-card-head" data-idx="'+idx+'">';
+                            html += '<span>Voice lines</span><span class="tr069-refresh tr069-refresh-icon" data-idx="'+idx+'" title="Refresh" style="display:none;">&#8635;</span></div>';
+                            html += '<div class="tr069-panel fs-sm" style="display:none;">';
                             if (!voiceLines.length) {
-                                html += '<div style="color:var(--text-muted);padding:8px 0;">Tidak ada voice line.</div>';
+                                html += '<div class="text-muted p-y-sm">Tidak ada voice line.</div>';
                             } else {
                                 voiceLines.forEach((ln, li) => {
                                     html += '<div style="border-top:'+(li?'1px solid var(--border-color);':'none;')+'padding:'+(li?'10px 0 0':'0')+' 0 10px;margin-bottom:10px;">';
                                     html += '<div style="font-weight:600;margin-bottom:6px;">Line ' + ln.num + ' <span style="font-weight:400;color:var(--text-muted);font-size:0.78rem;">(Status: ' + esc(ln.status) + ')</span></div>';
-                                    const rowSel = (label, id, val, opts) => '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><label style="width:160px;color:var(--text-muted);">'+label+'</label><select id="'+id+'" style="flex:1;padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">'
+                                    const rowSel = (label, id, val, opts) => '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><label class="col-label col-label--md">'+label+'</label><select id="'+id+'" class="panel-input flex-1">'
                                         + opts.map(o => '<option value="'+o[0]+'"'+(String(val)===o[0]?' selected':'')+'>'+o[1]+'</option>').join('') + '</select></div>';
-                                    const rowText = (label, id, val) => '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><label style="width:160px;color:var(--text-muted);">'+label+'</label><input type="text" id="'+id+'" value="'+esc(val)+'" style="flex:1;padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);"></div>';
+                                    const rowText = (label, id, val) => '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><label class="col-label col-label--md">'+label+'</label><input type="text" id="'+id+'" value="'+esc(val)+'" class="panel-input flex-1"></div>';
                                     html += rowSel('Enable', 'voice-enable-'+ln.num, ln.enable, [['Enabled','Enabled'],['Disabled','Disabled']]);
                                     html += rowText('Directory Number', 'voice-dn-'+ln.num, ln.directoryNumber);
                                     html += rowText('SIP Username', 'voice-sipuser-'+ln.num, ln.sipUser);
@@ -2994,16 +2991,16 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 };
                             });
                             const idx = sections.length + 2;
-                            html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
-                            html += '<div class="tr069-toggle" data-idx="'+idx+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
-                            html += '<span>Security</span><span class="tr069-refresh" data-idx="'+idx+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:none;">&#8635;</span></div>';
-                            html += '<div class="tr069-panel" style="display:none;padding:10px 12px;background:var(--bg-primary);font-size:0.85rem;">';
+                            html += '<div class="tr069-card">';
+                            html += '<div class="tr069-toggle tr069-card-head" data-idx="'+idx+'">';
+                            html += '<span>Security</span><span class="tr069-refresh tr069-refresh-icon" data-idx="'+idx+'" title="Refresh" style="display:none;">&#8635;</span></div>';
+                            html += '<div class="tr069-panel fs-sm" style="display:none;">';
                             const rowRadio = (label, id, val, opts) => {
-                                return '<div class="flex-row gap-2 mb-1"><label style="width:230px;color:var(--text-muted);">'+label+'</label><div style="flex:1;display:flex;gap:18px;">'
-                                    + opts.map(o => '<label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-weight:400;"><input type="radio" name="'+id+'" value="'+o[0]+'" id="'+id+'-'+o[0]+'"'+(String(val)===o[0]?' checked':'')+'> '+o[1]+'</label>').join('')
+                                return '<div class="flex-row gap-2 mb-1"><label class="col-label col-label--wide">'+label+'</label><div class="flex-1 flex-row">'
+                                    + opts.map(o => '<label class="inline-flex-center cursor-pointer"><input type="radio" name="'+id+'" value="'+o[0]+'" id="'+id+'-'+o[0]+'"'+(String(val)===o[0]?' checked':'')+'> '+o[1]+'</label>').join('')
                                     + '</div></div>';
                             };
-                            const rowText = (label, id, val, ph) => '<div class="flex-row gap-2 mb-1"><label style="width:150px;color:var(--text-muted);">'+label+'</label><input type="text" id="'+id+'" value="'+esc(val)+'" placeholder="'+(ph||'')+'" style="flex:1;padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);"></div>';
+                            const rowText = (label, id, val, ph) => '<div class="flex-row gap-2 mb-1"><label class="col-label col-label--md">'+label+'</label><input type="text" id="'+id+'" value="'+esc(val)+'" placeholder="'+(ph||'')+'" class="panel-input flex-1"></div>';
                             const enDis = [['1','Enabled'],['0','Disabled']];
                             // ACL Enable: kalau device belum eksplisit set (mis. field kosong/tidak dikenal),
                             // JANGAN paksa default Enabled/Disabled -- biarkan tidak ada radio tercentang,
@@ -3013,7 +3010,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 : (aclEnableRaw === false || aclEnableRaw === 'false' || aclEnableRaw === 0 || aclEnableRaw === '0') ? '0'
                                 : null;
                             html += rowRadio('ACL Enable (master switch)', 'fhsec-acl-enable', aclEnableVal, enDis);
-                            html += '<div style="border-top:1px solid var(--border-color);margin:4px 0 10px;"></div>';
+                            html += '<div class="hr-divider"></div>';
 
                             // Tabel ACL Settings -- mirror GUI asli device: ID | Active | Source IP | Protocol | Interface,
                             // plus tombol Add dan Edit (bukan form inline) yang buka modal.
@@ -3024,9 +3021,9 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             const ruleTbl = acl.Rule || {};
                             const ruleIds = Object.keys(ruleTbl).filter(k => /^\d+$/.test(k)).sort((a,b) => a - b);
                             html += '<div class="table-responsive"><table class="data-table" style="width:100%;border-collapse:collapse;font-size:0.8rem;margin-bottom:8px;">';
-                            html += '<tr><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);">ID</th><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);">Active</th><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);">Source IP</th><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);">Protocol</th><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);">Interface</th><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);"></th></tr>';
+                            html += '<tr><th class="cell cell--head">ID</th><th class="cell cell--head">Active</th><th class="cell cell--head">Source IP</th><th class="cell cell--head">Protocol</th><th class="cell cell--head">Interface</th><th class="cell cell--head"></th></tr>';
                             if (ruleIds.length === 0) {
-                                html += '<tr><td colspan="6" style="padding:6px;border:1px solid var(--border-color);color:var(--text-muted);">Belum ada rule.</td></tr>';
+                                html += '<tr><td colspan="6" class="cell text-muted">Belum ada rule.</td></tr>';
                             }
                             ruleIds.forEach(rid => {
                                 const r = ruleTbl[rid];
@@ -3039,12 +3036,12 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 const endShown = (rawEnd && rawEnd !== '255.255.255.255') ? rawEnd : '';
                                 const srcIp = (startShown || endShown) ? (esc(startShown||'*')+' - '+esc(endShown||'*')) : '--';
                                 html += '<tr>'
-                                    + '<td style="padding:5px 6px;border:1px solid var(--border-color);">'+rid+'</td>'
-                                    + '<td style="padding:5px 6px;border:1px solid var(--border-color);">'+active+'</td>'
-                                    + '<td style="padding:5px 6px;border:1px solid var(--border-color);">'+srcIp+'</td>'
-                                    + '<td style="padding:5px 6px;border:1px solid var(--border-color);">'+esc(r.Protocol?._value||'')+'</td>'
-                                    + '<td style="padding:5px 6px;border:1px solid var(--border-color);">'+esc(r.Interface?._value||'')+'</td>'
-                                    + '<td style="padding:5px 6px;border:1px solid var(--border-color);"><button type="button" class="btn btn-secondary fhacl-edit" data-rule="'+rid+'" data-active="'+(active==='YES'?'1':'0')+'" data-srcstart="'+esc(startShown)+'" data-srcend="'+esc(endShown)+'" data-protocol="'+esc(r.Protocol?._value||'')+'" data-interface="'+esc(r.Interface?._value||'')+'" style="padding:3px 10px;font-size:0.76rem;">Edit</button> <button type="button" class="btn btn-danger fhacl-delete" data-rule="'+rid+'" style="padding:3px 10px;font-size:0.76rem;">Delete</button></td>'
+                                    + '<td class="cell">'+rid+'</td>'
+                                    + '<td class="cell">'+active+'</td>'
+                                    + '<td class="cell">'+srcIp+'</td>'
+                                    + '<td class="cell">'+esc(r.Protocol?._value||'')+'</td>'
+                                    + '<td class="cell">'+esc(r.Interface?._value||'')+'</td>'
+                                    + '<td class="cell"><button type="button" class="btn btn-secondary fhacl-edit" data-rule="'+rid+'" data-active="'+(active==='YES'?'1':'0')+'" data-srcstart="'+esc(startShown)+'" data-srcend="'+esc(endShown)+'" data-protocol="'+esc(r.Protocol?._value||'')+'" data-interface="'+esc(r.Interface?._value||'')+'" style="padding:3px 10px;font-size:0.76rem;">Edit</button> <button type="button" class="btn btn-danger fhacl-delete" data-rule="'+rid+'" style="padding:3px 10px;font-size:0.76rem;">Delete</button></td>'
                                     + '</tr>';
                             });
                             html += '</table></div>';
@@ -3058,17 +3055,17 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             html += '<tr style="height:38px;"><td style="width:140px;font-weight:600;">Active</td><td>'
                                 + '<label style="margin-right:16px;cursor:pointer;"><input type="radio" name="fhacl-modal-active" value="1" checked> YES</label>'
                                 + '<label style="cursor:pointer;"><input type="radio" name="fhacl-modal-active" value="0"> NO</label></td></tr>';
-                            html += '<tr style="height:38px;"><td class="fw-600">Source IP Start</td><td><input type="text" id="fhacl-modal-srcstart" placeholder="kosong = semua IP" style="width:100%;padding:6px 10px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);color:var(--text-main);"></td></tr>';
-                            html += '<tr style="height:38px;"><td class="fw-600">Source IP End</td><td><input type="text" id="fhacl-modal-srcend" placeholder="kosong = semua IP" style="width:100%;padding:6px 10px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);color:var(--text-main);"></td></tr>';
-                            html += '<tr style="height:38px;"><td class="fw-600">Protocol</td><td><select id="fhacl-modal-protocol" style="width:100%;padding:6px 10px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);color:var(--text-main);"><option value="ALL">ALL</option><option value="TCP">TCP</option><option value="UDP">UDP</option><option value="ICMP">ICMP</option></select></td></tr>';
-                            html += '<tr style="height:38px;"><td class="fw-600">Interface</td><td><select id="fhacl-modal-interface" style="width:100%;padding:6px 10px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);color:var(--text-main);"></select></td></tr>';
+                            html += '<tr style="height:38px;"><td class="fw-600">Source IP Start</td><td><input type="text" id="fhacl-modal-srcstart" placeholder="kosong = semua IP" class="form-control"></td></tr>';
+                            html += '<tr style="height:38px;"><td class="fw-600">Source IP End</td><td><input type="text" id="fhacl-modal-srcend" placeholder="kosong = semua IP" class="form-control"></td></tr>';
+                            html += '<tr style="height:38px;"><td class="fw-600">Protocol</td><td><select id="fhacl-modal-protocol" class="form-control"><option value="ALL">ALL</option><option value="TCP">TCP</option><option value="UDP">UDP</option><option value="ICMP">ICMP</option></select></td></tr>';
+                            html += '<tr style="height:38px;"><td class="fw-600">Interface</td><td><select id="fhacl-modal-interface" class="form-control"></select></td></tr>';
                             html += '</table></div>';
                             html += '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px;">'
-                                + '<button type="button" class="btn btn-secondary" id="fhacl-inline-cancel" class="btn btn-xs">Batal</button>'
-                                + '<button type="button" class="btn btn-primary" id="fhacl-modal-save" class="btn btn-xs">Simpan</button></div>';
+                                + '<button type="button" class="btn btn-secondary btn-xs" id="fhacl-inline-cancel">Batal</button>'
+                                + '<button type="button" class="btn btn-primary btn-xs" id="fhacl-modal-save">Simpan</button></div>';
                             html += '</div>';
 
-                            html += '<div style="border-top:1px solid var(--border-color);margin:12px 0 10px;"></div>';
+                            html += '<div class="hr-divider"></div>';
                             // Remote Access (X_FH_WebUserInfo.RemoteAccess) — gerbang akses GUI web dari
                             // sisi WAN. TERPISAH dari X_FH_ACL: ACL boleh mengizinkan HTTP:80 penuh, tapi
                             // kalau RemoteAccess=0 device tetap menolak koneksi web dari WAN (port 80/443
@@ -3080,7 +3077,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 : null;
                             html += rowRadio('Remote Access (GUI web dari WAN)', 'fhsec-remote-access', raVal, enDis);
                             html += '<button type="button" class="btn btn-success fhsec-ra-save" data-idx="'+idx+'" style="padding:6px 16px;font-size:0.82rem;margin:0 0 10px;">Simpan Akses WAN</button>';
-                            html += '<div style="border-top:1px solid var(--border-color);margin:4px 0 10px;"></div>';
+                            html += '<div class="hr-divider"></div>';
                             html += rowText('Web Login Username', 'fhsec-web-user', lcs.ConfigUsername?._value ?? '', '');
                             html += rowText('Web Login Password', 'fhsec-web-pass', '', 'kosong = tidak diubah');
                             html += '<button type="button" class="btn btn-success fhsec-save" data-idx="'+idx+'" style="padding:6px 16px;font-size:0.82rem;margin-top:4px;">Simpan Login</button>';
@@ -3109,16 +3106,16 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             const adminUser = users['1'] || {};
                             const userUser = users['2'] || {};
                             const idx = sections.length + 2;
-                            html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
-                            html += '<div class="tr069-toggle" data-idx="'+idx+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
-                            html += '<span>Security</span><span class="tr069-refresh" data-idx="'+idx+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:none;">&#8635;</span></div>';
-                            html += '<div class="tr069-panel" style="display:none;padding:10px 12px;background:var(--bg-primary);font-size:0.85rem;">';
+                            html += '<div class="tr069-card">';
+                            html += '<div class="tr069-toggle tr069-card-head" data-idx="'+idx+'">';
+                            html += '<span>Security</span><span class="tr069-refresh tr069-refresh-icon" data-idx="'+idx+'" title="Refresh" style="display:none;">&#8635;</span></div>';
+                            html += '<div class="tr069-panel fs-sm" style="display:none;">';
                             const enDis = [['true','Enabled'],['false','Disabled']];
-                            const rowRadio = (label, id, val, opts) => '<div class="flex-row gap-2 mb-1"><label style="width:230px;color:var(--text-muted);">'+label+'</label><div style="flex:1;display:flex;gap:18px;">'
-                                + opts.map(o => '<label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-weight:400;"><input type="radio" name="'+id+'" value="'+o[0]+'" id="'+id+'-'+o[0]+'"'+(String(val)===o[0]?' checked':'')+'> '+o[1]+'</label>').join('')
+                            const rowRadio = (label, id, val, opts) => '<div class="flex-row gap-2 mb-1"><label class="col-label col-label--wide">'+label+'</label><div class="flex-1 flex-row">'
+                                + opts.map(o => '<label class="inline-flex-center cursor-pointer"><input type="radio" name="'+id+'" value="'+o[0]+'" id="'+id+'-'+o[0]+'"'+(String(val)===o[0]?' checked':'')+'> '+o[1]+'</label>').join('')
                                 + '</div></div>';
-                            const rowText = (label, id, val, type) => '<div class="flex-row gap-2 mb-1"><label style="width:230px;color:var(--text-muted);">'+label+'</label><input type="'+(type||'text')+'" id="'+id+'" value="'+esc(val)+'" style="flex:1;padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);"></div>';
-                            const rowSelect = (label, id, val, opts) => '<div class="flex-row gap-2 mb-1"><label style="width:230px;color:var(--text-muted);">'+label+'</label><select id="'+id+'" style="flex:1;padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">'
+                            const rowText = (label, id, val, type) => '<div class="flex-row gap-2 mb-1"><label class="col-label col-label--wide">'+label+'</label><input type="'+(type||'text')+'" id="'+id+'" value="'+esc(val)+'" class="panel-input flex-1"></div>';
+                            const rowSelect = (label, id, val, opts) => '<div class="flex-row gap-2 mb-1"><label class="col-label col-label--wide">'+label+'</label><select id="'+id+'" class="panel-input flex-1">'
                                 + opts.map(o => '<option value="'+o[0]+'"'+(String(val)===o[0]?' selected':'')+'>'+o[1]+'</option>').join('') + '</select></div>';
                             html += '<input type="hidden" id="ztesec-rspc-http-idx" value="'+esc(httpR.idx)+'">';
                             html += '<input type="hidden" id="ztesec-rspc-ftp-idx" value="'+esc(ftpR.idx)+'">';
@@ -3136,7 +3133,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             html += rowText('Port-Scan Threshold', 'ztesec-dos-threshold', dos.Threshold?._value ?? 100, 'number');
                             html += rowRadio('MAC Filter', 'ztesec-mac-filter', mac.Enable?._value, enDis);
                             html += rowSelect('MAC Filter Mode', 'ztesec-mac-mode', mac.Mode?._value, [['Black List','Black List'],['White List','White List']]);
-                            html += '<div style="border-top:1px solid var(--border-color);margin:10px 0;"></div>';
+                            html += '<div class="hr-divider"></div>';
                             html += rowRadio('Admin Account', 'ztesec-admin-enable', admin.Enable?._value, enDis);
                             html += rowText('Login Admin — Username', 'ztesec-admin-user', adminUser.Username?._value ?? 'admin', 'text');
                             html += rowText('Login Admin — Password', 'ztesec-admin-pass', '', 'text');
@@ -3173,22 +3170,22 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 return {};
                             })();
                             const idx = sections.length + 2;
-                            html += '<div style="margin-bottom:8px;border:1px solid var(--border-color);border-radius:6px;overflow:hidden;">';
-                            html += '<div class="tr069-toggle" data-idx="'+idx+'" style="padding:8px 12px;cursor:pointer;background:var(--bg-secondary);color:var(--text-main);font-weight:600;display:flex;justify-content:space-between;align-items:center;">';
-                            html += '<span>Security</span><span class="tr069-refresh" data-idx="'+idx+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:none;">&#8635;</span></div>';
-                            html += '<div class="tr069-panel" style="display:none;padding:10px 12px;background:var(--bg-primary);font-size:0.85rem;">';
+                            html += '<div class="tr069-card">';
+                            html += '<div class="tr069-toggle tr069-card-head" data-idx="'+idx+'">';
+                            html += '<span>Security</span><span class="tr069-refresh tr069-refresh-icon" data-idx="'+idx+'" title="Refresh" style="display:none;">&#8635;</span></div>';
+                            html += '<div class="tr069-panel fs-sm" style="display:none;">';
                             // Radio group persis tampilan router asli (bukan dropdown), 2 opsi per baris.
                             const rowRadio = (label, id, val, opts) => {
                                 const name = id;
-                                return '<div class="flex-row gap-2 mb-1"><label style="width:230px;color:var(--text-muted);">'+label+'</label><div style="flex:1;display:flex;gap:18px;">'
-                                    + opts.map(o => '<label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-weight:400;"><input type="radio" name="'+name+'" value="'+o[0]+'" id="'+id+'-'+o[0]+'"'+(String(val)===o[0]?' checked':'')+'> '+o[1]+'</label>').join('')
+                                return '<div class="flex-row gap-2 mb-1"><label class="col-label col-label--wide">'+label+'</label><div class="flex-1 flex-row">'
+                                    + opts.map(o => '<label class="inline-flex-center cursor-pointer"><input type="radio" name="'+name+'" value="'+o[0]+'" id="'+id+'-'+o[0]+'"'+(String(val)===o[0]?' checked':'')+'> '+o[1]+'</label>').join('')
                                     + '</div></div>';
                             };
-                            const rowText = (label, id, val, type) => '<div class="flex-row gap-2 mb-1"><label style="width:230px;color:var(--text-muted);">'+label+'</label><input type="'+(type||'text')+'" id="'+id+'" value="'+esc(val)+'" style="flex:1;padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);"></div>';
+                            const rowText = (label, id, val, type) => '<div class="flex-row gap-2 mb-1"><label class="col-label col-label--wide">'+label+'</label><input type="'+(type||'text')+'" id="'+id+'" value="'+esc(val)+'" class="panel-input flex-1"></div>';
                             const enDis = [['true','Enabled'],['false','Disabled']];
                             const blockPermit = [['false','Block'],['true','Permit']];
                             const fwLevel = secObj.X_HW_FirewallLevel?._value;
-                            const rowSelect = (label, id, val, opts) => '<div class="flex-row gap-2 mb-1"><label style="width:230px;color:var(--text-muted);">'+label+'</label><select id="'+id+'" style="flex:1;padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">'
+                            const rowSelect = (label, id, val, opts) => '<div class="flex-row gap-2 mb-1"><label class="col-label col-label--wide">'+label+'</label><select id="'+id+'" class="panel-input flex-1">'
                                 + opts.map(o => '<option value="'+o[0]+'"'+(String(val)===o[0]?' selected':'')+'>'+o[1]+'</option>').join('') + '</select></div>';
                             const svcList = ppp1.X_HW_SERVICELIST?._value;
                             html += '<input type="hidden" id="sec-wan-service-path" value="'+esc(pppTr069Path)+'">';
@@ -3205,14 +3202,14 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             html += rowRadio('Telnet access from LAN', 'sec-telnet-lan', acl.TELNETLanEnable?._value, enDis);
                             html += rowRadio('WAN ICMP Echo reply', 'sec-icmp', dos.IcmpEchoReplyEn?._value, blockPermit);
                             html += rowRadio('Telnet Service', 'sec-telnet-service', telnet.Access?._value, enDis);
-                            html += '<div style="border-top:1px solid var(--border-color);margin:10px 0;"></div>';
+                            html += '<div class="hr-divider"></div>';
                             html += rowText('CLI Username', 'sec-cli-user', cli1.Username?._value ?? '', 'text');
                             html += rowText('CLI Password', 'sec-cli-pass', '', 'text');
-                            html += '<div style="border-top:1px solid var(--border-color);margin:10px 0;"></div>';
+                            html += '<div class="hr-divider"></div>';
                             html += rowRadio('Web user account', 'sec-web1-enable', web1.Enable?._value, enDis);
                             html += rowText('Web user name', 'sec-web1-user', web1.UserName?._value ?? '', 'text');
                             html += rowText('Web user password', 'sec-web1-pass', '', 'text');
-                            html += '<div style="border-top:1px solid var(--border-color);margin:10px 0;"></div>';
+                            html += '<div class="hr-divider"></div>';
                             html += rowRadio('Web admin account', 'sec-web2-enable', web2.Enable?._value, enDis);
                             html += rowText('Web admin name', 'sec-web2-user', web2.UserName?._value ?? '', 'text');
                             html += rowText('Web admin password', 'sec-web2-pass', '', 'text');

@@ -342,6 +342,39 @@
 .info-box { margin-top: 16px; padding: 14px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 0.85rem; line-height: 1.8; }
 .alert-warning-box { background-color: var(--tint-warning); border: 1px solid var(--color-amber); border-radius: var(--radius-sm); padding: 12px 16px; margin-bottom: 18px; color: var(--color-amber); line-height: 1.5; font-size: 0.85rem; }
 
+
+/* TR-069 / CLI panel components */
+.tr069-card { margin-bottom: 8px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); overflow: hidden; }
+.tr069-card-head { padding: 8px 12px; cursor: pointer; background: var(--bg-secondary); color: var(--text-main); font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+.tr069-panel { padding: 4px 12px; background: var(--bg-primary); }
+.tr069-panel--scroll { overflow-x: auto; }
+.tr069-refresh-icon { cursor: pointer; color: var(--text-muted); font-size: 1rem; line-height: 1; }
+.tr069-body { font-size: 0.85rem; background: var(--bg-primary); }
+.tr069-device-title { font-weight: 700; margin-bottom: 12px; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
+.status-dot-online { width: 10px; height: 10px; border-radius: 50%; background: var(--color-success); display: inline-block; }
+
+.ppp-row { display: grid; grid-template-columns: 180px 1fr; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--border-color); }
+.ppp-row-label { color: var(--text-muted); font-size: 0.82rem; }
+.ppp-row-value { word-break: break-all; }
+
+.panel-input { width: 100%; box-sizing: border-box; padding: 5px 8px; font-size: 0.85rem; border: 1px solid var(--border-color); border-radius: var(--radius-xs); background: var(--bg-secondary); color: var(--text-main); }
+.panel-input--lg { max-width: 320px; }
+.panel-input--md { max-width: 220px; }
+.panel-input--sm { max-width: 280px; padding: 3px 6px; font-size: 0.82rem; }
+.panel-input--xs { max-width: 140px; }
+.panel-input--xxs { max-width: 120px; }
+.panel-input--tiny { max-width: 70px; }
+
+.col-label { min-width: 200px; color: var(--text-muted); flex-shrink: 0; }
+.col-label--wide { width: 230px; min-width: 0; }
+.col-label--md { width: 160px; min-width: 0; }
+.cell { padding: 5px 6px; border: 1px solid var(--border-color); }
+.cell--head { text-align: left; }
+.p-y-sm { padding: 8px 0; }
+.row-divider { border-top: 1px solid var(--border-color); }
+.hr-divider { border-top: 1px solid var(--border-color); margin: 10px 0; }
+.mr-3 { margin-right: 18px; }
+
 /* Update ONU Mode modal: stack table rows on narrow screens */
 @media (max-width: 500px) {
     #update-onu-mode-modal .modal-body table,
