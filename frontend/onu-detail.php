@@ -17,7 +17,8 @@ if (empty($id)) {
 $stmt = $pdo->prepare("SELECT onus.*, olts.name as olt_name, olts.ip as olt_ip, olts.type as olt_type,
                               olts.username as olt_username, olts.password as olt_password,
                               olts.ssh_port, olts.protocol,
-                              olts.snmp_port, olts.snmp_community, olts.snmp_community_rw
+                              olts.snmp_port, olts.snmp_community, olts.snmp_community_rw,
+                              olts.last_snmp_status, olts.last_health_check
                        FROM onus 
                        JOIN olts ON onus.olt_id = olts.id 
                        WHERE onus.id = ?");
@@ -225,6 +226,17 @@ if (!empty($onu['onu_type'])) {
 
 <div class="smartolt-layout">
     <h1 id="page-title" class="mb-4">Detail ONU — <?php echo htmlspecialchars($parsed_desc['clean_name'] ?: $onu['serial_number']); ?></h1>
+
+    <?php if (($onu['last_snmp_status'] ?? '') !== 'Connected'): ?>
+    <div id="olt-offline-banner" class="alert alert-danger" style="display:flex;align-items:center;gap:12px;padding:12px 16px;margin-bottom:16px;border-radius:8px;background:var(--danger-bg,#fff5f5);border:1px solid var(--danger-border,#e53e3e);color:var(--danger-text,#c53030);">
+        <span style="font-size:1.4rem;">🔴</span>
+        <div style="flex:1;">
+            <strong>OLT Offline</strong> — <span><?php echo htmlspecialchars($onu['olt_name']); ?></span> (<?php echo htmlspecialchars($onu['olt_ip']); ?>) tidak merespon.
+            <br><small class="text-muted">Terakhir diperiksa: <?php echo $onu['last_health_check'] ? date('d/m/Y H:i', strtotime($onu['last_health_check'])) : 'Belum pernah'; ?> · Status: <?php echo htmlspecialchars($onu['last_snmp_status'] ?: 'Unknown'); ?></small>
+        </div>
+        <button class="btn btn-sm btn-secondary" onclick="recheckOltStatus()">🔄 Cek Ulang</button>
+    </div>
+    <?php endif; ?>
     <!-- Sync Loading Banner (Bypassed in foreground) -->
 
     <!-- Section 1: Identity & Status (clean text layout, no card/table) -->
@@ -736,7 +748,36 @@ if (!empty($onu['onu_type'])) {
 
     document.addEventListener('DOMContentLoaded', () => {
         const onuId = "<?php echo (int)$onu['id']; ?>";
+        const oltId = "<?php echo (int)$onu['olt_id']; ?>";
         window.currentWanMode = "<?php echo htmlspecialchars($onu['wan_mode'] ?: 'Setup via ONU webpage'); ?>";
+
+        function recheckOltStatus() {
+            const banner = document.getElementById('olt-offline-banner');
+            if (!banner) return;
+            const btn = banner.querySelector('button');
+            btn.disabled = true;
+            btn.textContent = '⏳ Mengecek...';
+            fetch('action/get-olt-health.php?id=' + oltId)
+                .then(r => r.json())
+                .then(d => {
+                    if (d.snmp_status === 'Connected') {
+                        banner.style.background = 'var(--success-bg,#f0fff4)';
+                        banner.style.borderColor = 'var(--success-border,#38a169)';
+                        banner.style.color = 'var(--success-text,#276749)';
+                        banner.querySelector('span').textContent = '🟢';
+                        banner.querySelector('strong').textContent = 'OLT Online';
+                        btn.textContent = '✅ Terhubung';
+                        setTimeout(() => banner.style.display = 'none', 3000);
+                    } else {
+                        btn.disabled = false;
+                        btn.textContent = '🔄 Coba Lagi';
+                    }
+                })
+                .catch(() => {
+                    btn.disabled = false;
+                    btn.textContent = '🔄 Coba Lagi';
+                });
+        }
 
         // Theme-aware chart colors
         const _cs = getComputedStyle(document.documentElement);
@@ -1171,7 +1212,6 @@ if (!empty($onu['onu_type'])) {
             const selectEl = document.getElementById('modal-vlan-select');
             if (!selectEl) return;
             
-            const oltId = "<?php echo (int)$onu['olt_id']; ?>";
             const currentVlan = "<?php echo htmlspecialchars($onu['vlan'] ?: ''); ?>";
             const selectedVal = selectEl.value || currentVlan;
             
