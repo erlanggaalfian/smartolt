@@ -153,7 +153,7 @@ $sql_data = "SELECT onus.id, onus.olt_id, onus.pon_port, onus.onu_id, onus.name,
                     onus.vlan, onus.status, onus.last_rx_power, onus.last_rx_olt_power, onus.updated_at, onus.last_down_cause,
                     onus.wan_mode, onus.onu_type, onus.zone, onus.splitter,
                     onus.download_profile, onus.upload_profile,
-                    olts.name as olt_name, olts.ip as olt_ip 
+                    olts.name as olt_name, olts.ip as olt_ip, olts.last_snmp_status
              FROM onus 
              JOIN olts ON onus.olt_id = olts.id 
              WHERE 1=1" . $filter_sql . " 
@@ -387,9 +387,10 @@ $onus = $stmt_data->fetchAll();
                             vlanCell.textContent = vlanVal;
                         }
 
-                        // Update signal badge (Rx ONU)
+                        // Update signal badges — skip jika OLT offline
+                        const oltOffline = row.getAttribute('data-olt-offline') === '1';
                         const signalCell = row.querySelector('.signal-cell');
-                        if (signalCell) {
+                        if (signalCell && !oltOffline) {
                             if (onu.status === 'online') {
                                 const rx = parseFloat(onu.rx_onu);
                                 if (isNaN(rx)) {
@@ -406,9 +407,8 @@ $onus = $stmt_data->fetchAll();
                             }
                         }
 
-                        // Update signal badge (Rx OLT)
                         const signalOltCell = row.querySelector('.signal-olt-cell');
-                        if (signalOltCell) {
+                        if (signalOltCell && !oltOffline) {
                             if (onu.status === 'online') {
                                 const rxOlt = parseFloat(onu.rx_olt);
                                 if (isNaN(rxOlt)) {
@@ -675,9 +675,12 @@ $onus = $stmt_data->fetchAll();
                         </tr>
                     <?php else: ?>
                         <?php foreach ($onus as $onu): ?>
-                            <tr class="onu-row" data-onu-id="<?php echo (int)$onu['id']; ?>" data-name="<?php echo htmlspecialchars($onu['name'] ?? ''); ?>" data-status="<?php echo htmlspecialchars($onu['status']); ?>" data-vlan="<?php echo htmlspecialchars($onu['vlan'] ?: 'None'); ?>" data-rx-onu="<?php echo $onu['last_rx_power'] !== null ? number_format((float)$onu['last_rx_power'], 2) : 'N/A'; ?>" data-rx-olt="<?php echo $onu['last_rx_olt_power'] !== null ? number_format((float)$onu['last_rx_olt_power'], 2) : 'N/A'; ?>" data-down-cause="<?php echo htmlspecialchars($onu['last_down_cause'] ?? '-'); ?>" data-wan="<?php echo htmlspecialchars($onu['wan_mode'] ?? ''); ?>" data-onu-type="<?php echo htmlspecialchars($onu['onu_type'] ?? ''); ?>" data-dl-prof="<?php echo htmlspecialchars($onu['download_profile'] ?? ''); ?>" data-ul-prof="<?php echo htmlspecialchars($onu['upload_profile'] ?? ''); ?>">
+                            <tr class="onu-row" data-onu-id="<?php echo (int)$onu['id']; ?>" data-name="<?php echo htmlspecialchars($onu['name'] ?? ''); ?>" data-status="<?php echo htmlspecialchars($onu['status']); ?>" data-vlan="<?php echo htmlspecialchars($onu['vlan'] ?: 'None'); ?>" data-rx-onu="<?php echo $onu['last_rx_power'] !== null ? number_format((float)$onu['last_rx_power'], 2) : 'N/A'; ?>" data-rx-olt="<?php echo $onu['last_rx_olt_power'] !== null ? number_format((float)$onu['last_rx_olt_power'], 2) : 'N/A'; ?>" data-down-cause="<?php echo htmlspecialchars($onu['last_down_cause'] ?? '-'); ?>" data-wan="<?php echo htmlspecialchars($onu['wan_mode'] ?? ''); ?>" data-onu-type="<?php echo htmlspecialchars($onu['onu_type'] ?? ''); ?>" data-dl-prof="<?php echo htmlspecialchars($onu['download_profile'] ?? ''); ?>" data-ul-prof="<?php echo htmlspecialchars($onu['upload_profile'] ?? ''); ?>" data-olt-offline="<?php echo $olt_offline ? '1' : '0'; ?>">
                                 <td class="status-cell text-center">
-                                    <?php if ($onu['status'] === 'online'): ?>
+                                    <?php $olt_offline = ($onu['last_snmp_status'] ?? '') !== 'Connected'; ?>
+                                    <?php if ($olt_offline): ?>
+                                        <span class="status-icon-badge icon-red" title="OLT Offline — <?php echo htmlspecialchars($onu['olt_name']); ?>"><i data-lucide="server-crash"></i></span>
+                                    <?php elseif ($onu['status'] === 'online'): ?>
                                         <span class="status-icon-badge icon-green" title="Online"><i data-lucide="globe"></i></span>
                                     <?php elseif ($onu['status'] === 'disabled'): ?>
                                         <span class="status-icon-badge icon-yellow" title="Disabled"><i data-lucide="shield-off"></i></span>
@@ -713,7 +716,9 @@ $onus = $stmt_data->fetchAll();
                                 <td class="vlan-cell"><?php echo htmlspecialchars($onu['vlan'] ?: '-'); ?></td>
                                 <td class="wan-cell"><?php echo htmlspecialchars($onu['wan_mode'] === 'Static' ? 'Static IP' : ($onu['wan_mode'] ?: '-')); ?></td>
                                 <td class="signal-cell">
-                                    <?php if ($onu['status'] === 'online' && $onu['last_rx_power'] !== null): ?>
+                                    <?php if ($olt_offline): ?>
+                                        <span class="text-muted">—</span>
+                                    <?php elseif ($onu['status'] === 'online' && $onu['last_rx_power'] !== null): ?>
                                         <?php 
                                         $rx = (float)$onu['last_rx_power'];
                                         $sig_class = 'bg-red';
@@ -727,7 +732,9 @@ $onus = $stmt_data->fetchAll();
                                     <?php endif; ?>
                                 </td>
                                 <td class="signal-olt-cell">
-                                    <?php if ($onu['status'] === 'online' && $onu['last_rx_olt_power'] !== null): ?>
+                                    <?php if ($olt_offline): ?>
+                                        <span class="text-muted">—</span>
+                                    <?php elseif ($onu['status'] === 'online' && $onu['last_rx_olt_power'] !== null): ?>
                                         <?php 
                                         $rx_olt = (float)$onu['last_rx_olt_power'];
                                         $sig_class_olt = 'bg-red';
