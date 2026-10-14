@@ -129,7 +129,7 @@ if ($edit_splitter) {
 <div class="content-card">
     <div class="card-header"><h2>ONU Terpasang (<?= count($edit_onus) ?>)</h2></div>
     <div class="table-responsive"><table class="data-table"><thead><tr><th>Port</th><th>Serial Number</th><th>Nama</th></tr></thead><tbody>
-    <?php foreach ($edit_onus as $o): ?><tr><td><a href="onu-detail.php?id=<?= $o['id'] ?>" class="text-accent link-plain"><?= htmlspecialchars($o['pon_port'].':'.$o['onu_id']) ?></a></td><td class="mono"><?= htmlspecialchars($o['serial_number']) ?></td><td><?= htmlspecialchars($o['name']) ?></td></tr><?php endforeach; ?>
+    <?php foreach ($edit_onus as $o): ?><tr><td><a href="onu-detail.php?id=<?= $o['id'] ?>" class="text-accent link-plain"><?= htmlspecialchars($o['pon_port'].':'.$o['onu_id']) ?></a></td><td class="mono"><?= htmlspecialchars($o['serial_number']) ?></td><td><?= htmlspecialchars(display_name($o['name'])) ?></td></tr><?php endforeach; ?>
     </tbody></table></div>
 </div>
 <?php endif;

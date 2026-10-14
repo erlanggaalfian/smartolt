@@ -141,7 +141,7 @@ fputcsv($output, [
 
 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
     fputcsv($output, [
-        $row['name'],
+        display_name($row['name']),
         $row['serial_number'],
         $row['onu_id'],
         $row['pon_port'],
