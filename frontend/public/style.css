@@ -610,3 +610,15 @@ a { transition: color var(--duration-short) var(--ease-out); }
 .modal-sm-inner { max-width:var(--modal-sm); }
 .modal-lg-inner { max-width:600px; }
 .btn-detail--danger { color:var(--color-danger); border-color:var(--color-danger); }
+.w-120 { width:120px; }
+.d-block { display:block; }
+.italic { font-style:italic; }
+.fw-400 { font-weight:400; }
+.flex-2 { flex:2; }
+.flex-15 { flex:1.5; }
+.form-inline-block { display:inline; }
+.checkbox-list { max-height:250px; overflow-y:auto; padding:10px; border:1px solid var(--border-color); border-radius:var(--radius-sm); background:var(--bg-primary); display:flex; flex-direction:column; gap:10px; }
+.checkbox-list--sm { max-height:150px; gap:8px; }
+.checkbox-row { display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem; }
+.btn-action--amber { background:var(--chip-amber-bg); color:var(--chip-amber-fg); border-color:var(--chip-amber-bd); margin-right:4px; }
+.btn-action--blue { background:var(--chip-blue-bg); color:var(--chip-blue-fg); border-color:var(--chip-blue-bd); margin-right:4px; }

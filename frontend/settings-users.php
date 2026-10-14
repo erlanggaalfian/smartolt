@@ -26,11 +26,11 @@ $all_olts = get_allowed_olts();
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th style="width: 80px;">ID</th>
+                        <th class="w-80">ID</th>
                         <th>Username</th>
                         <th>Peran (Role)</th>
                         <th>Tanggal Dibuat</th>
-                        <th style="width: 120px; text-align: center;">Aksi</th>
+                        <th class="w-120 text-center">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="motion-fade-in">
@@ -38,9 +38,9 @@ $all_olts = get_allowed_olts();
                         <tr>
                             <td><?php echo (int)$user['id']; ?></td>
                             <td>
-                                <div style="display:flex; align-items:center; gap:8px;">
-                                    <i data-lucide="user" style="width:16px; height:16px; color:var(--text-muted);"></i>
-                                    <strong style="color:var(--text-muted);"><?php echo htmlspecialchars($user['username']); ?></strong>
+                                <div class="inline-flex-center">
+                                    <i data-lucide="user" class="icon-sm text-muted"></i>
+                                    <strong class="text-muted"><?php echo htmlspecialchars($user['username']); ?></strong>
                                 </div>
                             </td>
                             <td>
@@ -53,25 +53,25 @@ $all_olts = get_allowed_olts();
                                 <?php endif; ?>
                             </td>
                             <td><?php echo date('d-m-Y H:i', strtotime($user['created_at'])); ?> WIB</td>
-                            <td style="text-align: center;">
+                            <td class="text-center">
                                 <?php if ($user['id'] == $_SESSION['smartolt_user_id']): ?>
-                                    <span class="text-muted" style="font-size:0.85rem; font-style:italic;">Akun Aktif</span>
+                                    <span class="text-muted fs-sm italic">Akun Aktif</span>
                                 <?php elseif (!can_manage_target_user((int)$user['id'], $user['role'])): ?>
-                                    <span class="text-muted" style="font-size:0.85rem; font-style:italic;">Di luar grup Anda</span>
+                                    <span class="text-muted fs-sm italic">Di luar grup Anda</span>
                                 <?php else: ?>
                                     <?php if ($user['role'] !== 'superadmin'): ?>
-                                        <button type="button" class="btn-action btn-edit-user" data-user-id="<?php echo (int)$user['id']; ?>" data-username="<?php echo htmlspecialchars($user['username']); ?>" title="Edit User" style="display:inline-flex; align-items:center; justify-content:center; padding:6px; background:#fef9c3; border:none; border-radius:4px; color:#a16207; margin-right:4px; cursor:pointer;">
-                                            <i data-lucide="pencil" style="width:16px; height:16px;"></i>
+                                        <button type="button" class="btn-action btn-action--amber btn-edit-user" data-user-id="<?php echo (int)$user['id']; ?>" data-username="<?php echo htmlspecialchars($user['username']); ?>" title="Edit User">
+                                            <i data-lucide="pencil" class="icon-sm"></i>
                                         </button>
-                                        <button type="button" class="btn-action btn-manage-access" data-user-id="<?php echo (int)$user['id']; ?>" data-username="<?php echo htmlspecialchars($user['username']); ?>" title="Kelola Akses OLT" style="display:inline-flex; align-items:center; justify-content:center; padding:6px; background:#e0f2fe; border:none; border-radius:4px; color:#0369a1; margin-right:4px; cursor:pointer;">
-                                            <i data-lucide="key-round" style="width:16px; height:16px;"></i>
+                                        <button type="button" class="btn-action btn-action--blue btn-manage-access" data-user-id="<?php echo (int)$user['id']; ?>" data-username="<?php echo htmlspecialchars($user['username']); ?>" title="Kelola Akses OLT">
+                                            <i data-lucide="key-round" class="icon-sm"></i>
                                         </button>
                                     <?php else: ?>
-                                        <button type="button" class="btn-action btn-edit-user" data-user-id="<?php echo (int)$user['id']; ?>" data-username="<?php echo htmlspecialchars($user['username']); ?>" title="Edit User" style="display:inline-flex; align-items:center; justify-content:center; padding:6px; background:#fef9c3; border:none; border-radius:4px; color:#a16207; margin-right:4px; cursor:pointer;">
-                                            <i data-lucide="pencil" style="width:16px; height:16px;"></i>
+                                        <button type="button" class="btn-action btn-action--amber btn-edit-user" data-user-id="<?php echo (int)$user['id']; ?>" data-username="<?php echo htmlspecialchars($user['username']); ?>" title="Edit User">
+                                            <i data-lucide="pencil" class="icon-sm"></i>
                                         </button>
                                     <?php endif; ?>
-                                    <form action="action/user.php" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus user ini?');" style="display:inline;">
+                                    <form action="action/user.php" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus user ini?');" class="form-inline-block">
                                         <input type="hidden" name="action" value="delete">
                                         <input type="hidden" name="id" value="<?php echo (int)$user['id']; ?>">
                                         <button type="submit" class="btn-action btn-delete" title="Hapus User">
@@ -116,11 +116,11 @@ $all_olts = get_allowed_olts();
                         <?php endif; ?>
                     </select>
                 </div>
-                <div class="form-group" id="group-add-user-olts" style="margin-top: 15px;">
-                    <label style="font-weight: 500; margin-bottom: 5px; display: block;">Akses OLT (Grup)</label>
-                    <div style="max-height: 150px; overflow-y: auto; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-primary); display: flex; flex-direction: column; gap: 8px;">
+                <div class="form-group mt-4" id="group-add-user-olts">
+                    <label>Akses OLT (Grup)</label>
+                    <div class="checkbox-list checkbox-list--sm">
                         <?php foreach ($all_olts as $olt): ?>
-                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.9rem;">
+                            <label class="checkbox-row">
                                 <input type="checkbox" name="olt_ids[]" value="<?php echo (int)$olt['id']; ?>">
                                 <span><?php echo htmlspecialchars($olt['name']); ?> (<?php echo htmlspecialchars($olt['ip']); ?>)</span>
                             </label>
@@ -148,17 +148,17 @@ $all_olts = get_allowed_olts();
             <input type="hidden" name="action" value="update_access">
             <input type="hidden" name="user_id" id="access-user-id">
             <div class="modal-body">
-                <p style="margin-bottom: 15px;">Pilih OLT yang boleh diakses oleh user: <strong id="access-username" style="color:var(--text-accent);"></strong></p>
-                <div style="max-height: 250px; overflow-y: auto; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-primary); display: flex; flex-direction: column; gap: 10px;">
+                <p class="mb-4">Pilih OLT yang boleh diakses oleh user: <strong id="access-username" class="text-accent"></strong></p>
+                <div class="checkbox-list">
                     <?php if (count($all_olts) === 0): ?>
-                        <p style="font-style: italic; color: var(--text-muted);">Belum ada OLT terdaftar.</p>
+                        <p class="italic text-muted">Belum ada OLT terdaftar.</p>
                     <?php else: ?>
                         <?php foreach ($all_olts as $olt): ?>
-                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                            <label class="checkbox-row">
                                 <input type="checkbox" name="olt_ids[]" value="<?php echo (int)$olt['id']; ?>" class="olt-access-checkbox">
                                 <div>
-                                    <strong style="display: block; font-size: 0.9rem; color: var(--text-muted);"><?php echo htmlspecialchars($olt['name']); ?></strong>
-                                    <span style="font-size: 0.8rem; color: var(--text-muted);"><?php echo htmlspecialchars($olt['ip']); ?></span>
+                                    <strong class="text-muted d-block"><?php echo htmlspecialchars($olt['name']); ?></strong>
+                                    <span class="text-muted fs-xs"><?php echo htmlspecialchars($olt['ip']); ?></span>
                                 </div>
                             </label>
                         <?php endforeach; ?>
@@ -189,7 +189,7 @@ $all_olts = get_allowed_olts();
                     <input type="text" id="edit-username" name="username" required class="form-control">
                 </div>
                 <div class="form-group">
-                    <label for="edit-password">Password Baru <span style="font-weight:400;font-size:0.8rem;color:var(--text-muted);">(kosongkan jika tidak diganti)</span></label>
+                    <label for="edit-password">Password Baru <span class="text-muted fs-xs fw-400">(kosongkan jika tidak diganti)</span></label>
                     <input type="password" id="edit-password" name="password" placeholder="Biarkan kosong jika tidak diganti" class="form-control">
                 </div>
                 <div class="form-group">

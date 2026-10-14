@@ -49,7 +49,7 @@ $olt_types = get_supported_olt_types();
                 <tbody class="motion-fade-in">
                     <?php if (empty($olts)): ?>
                         <tr>
-                            <td colspan="4" style="text-align:center;color:var(--text-muted);">Belum ada OLT terdaftar. Silakan klik tombol di atas untuk menambahkan.</td>
+                            <td colspan="4" class="empty-state">Belum ada OLT terdaftar. Silakan klik tombol di atas untuk menambahkan.</td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($olts as $olt): ?>
@@ -58,9 +58,9 @@ $olt_types = get_supported_olt_types();
                                 <td><?php echo htmlspecialchars($olt['ip']); ?></td>
                                 <td><span class="badge bg-green"><?php echo htmlspecialchars($olt['type']); ?></span></td>
                                  <td>
-                                     <div style="display:flex;gap:6px;">
-                                         <a href="olt-detail.php?id=<?php echo (int)$olt['id']; ?>" class="btn btn-xs btn-outline" style="text-decoration:none; display:inline-flex; align-items:center;">
-                                             <i data-lucide="eye" style="margin-right:2px;"></i> View
+                                     <div class="flex-row gap-2">
+                                         <a href="olt-detail.php?id=<?php echo (int)$olt['id']; ?>" class="btn btn-xs btn-outline">
+                                             <i data-lucide="eye" class="icon-xs"></i> View
                                          </a>
                                          <button type="button" class="btn btn-xs btn-warning btn-edit-olt" 
                                                  data-id="<?php echo (int)$olt['id']; ?>"
@@ -72,14 +72,13 @@ $olt_types = get_supported_olt_types();
                                                  data-username="<?php echo htmlspecialchars($olt['username']); ?>"
                                                  data-snmp-port="<?php echo htmlspecialchars($olt['snmp_port'] ?? '8161'); ?>"
                                                  data-snmp-community="<?php echo htmlspecialchars($olt['snmp_community'] ?? ''); ?>"
-                                                 data-snmp-community-rw="<?php echo htmlspecialchars($olt['snmp_community_rw'] ?? ''); ?>"
-                                                 style="display:inline-flex; align-items:center;">
-                                             <i data-lucide="edit" style="margin-right:2px;"></i> Edit
+                                                 data-snmp-community-rw="<?php echo htmlspecialchars($olt['snmp_community_rw'] ?? ''); ?>">
+                                             <i data-lucide="edit" class="icon-xs"></i> Edit
                                          </button>
-                                         <form action="action/delete-olt.php" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus OLT ini? Seluruh ONU yang terikat akan dihapus dari cache lokal.');" style="margin:0;">
+                                         <form action="action/delete-olt.php" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus OLT ini? Seluruh ONU yang terikat akan dihapus dari cache lokal.');" class="form-inline">
                                              <input type="hidden" name="id" value="<?php echo (int)$olt['id']; ?>">
-                                             <button type="submit" class="btn btn-xs btn-danger" style="display:inline-flex; align-items:center;">
-                                                 <i data-lucide="trash-2" style="margin-right:2px;"></i> Hapus
+                                             <button type="submit" class="btn btn-xs btn-danger">
+                                                 <i data-lucide="trash-2" class="icon-xs"></i> Hapus
                                              </button>
                                          </form>
                                      </div>
@@ -107,7 +106,7 @@ $olt_types = get_supported_olt_types();
                     <input type="text" id="olt-name" name="name" class="form-control" placeholder="Masukkan nama OLT atau lokasi" required>
                 </div>
                 <div class="form-row">
-                    <div class="form-group" style="flex:1;">
+                    <div class="form-group flex-1">
                         <label for="olt-type">Tipe OLT</label>
                         <select id="olt-type" name="type" class="form-control">
                             <?php foreach ($olt_types as $type_value => $type_label): ?>
@@ -115,42 +114,42 @@ $olt_types = get_supported_olt_types();
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="form-group" style="flex:2;">
+                    <div class="form-group flex-2">
                         <label for="olt-ip">Alamat IP OLT</label>
                         <input type="text" id="olt-ip" name="ip" class="form-control" placeholder="Masukkan alamat IP OLT" required>
                     </div>
                 </div>
                 <div class="form-row">
-                    <div class="form-group" style="flex:1;">
+                    <div class="form-group flex-1">
                         <label for="olt-protocol">Protokol CLI</label>
                         <select id="olt-protocol" name="protocol" class="form-control">
                             <option value="SSH">SSH</option>
                             <option value="TELNET">TELNET</option>
                         </select>
                     </div>
-                    <div class="form-group" style="flex:1;">
+                    <div class="form-group flex-1">
                         <label for="olt-ssh-port" id="lbl-ssh-port">Port SSH</label>
                         <input type="number" id="olt-ssh-port" name="ssh_port" class="form-control" value="22" required>
                     </div>
                 </div>
                 <div class="form-row">
-                    <div class="form-group" style="flex:1;">
+                    <div class="form-group flex-1">
                         <label for="olt-user">Username</label>
                         <input type="text" id="olt-user" name="username" class="form-control" value="admin" required>
                     </div>
-                    <div class="form-group" style="flex:1.5;">
+                    <div class="form-group flex-15">
                         <label for="olt-pass">Password</label>
                         <input type="password" id="olt-pass" name="password" class="form-control" required>
                     </div>
                 </div>
                 <div class="form-row">
-                    <div class="form-group" style="flex:1;">
+                    <div class="form-group flex-1">
                         <label for="olt-snmp-port">Port SNMP</label>
                         <input type="number" id="olt-snmp-port" name="snmp_port" class="form-control" value="8161" required>
                     </div>
                 </div>
                  <div class="error-box hidden" id="add-olt-error"></div>
-                 <div class="alert alert-success hidden" id="add-olt-success" style="background:rgba(34,197,94,0.15); border:1px solid #22c55e; color:#22c55e; padding:12px; border-radius:6px; margin-bottom:15px; font-weight:600;"></div>
+                 <div class="alert alert-success hidden" id="add-olt-success"></div>
                  <div class="loading-spinner hidden" id="add-olt-loading">
                      <div class="spinner"></div>
                      <p id="loading-text">Sedang memverifikasi koneksi OLT...</p>
@@ -180,7 +179,7 @@ $olt_types = get_supported_olt_types();
                     <input type="text" id="edit-olt-name" name="name" class="form-control" placeholder="Masukkan nama OLT atau lokasi" required>
                 </div>
                 <div class="form-row">
-                    <div class="form-group" style="flex:1;">
+                    <div class="form-group flex-1">
                         <label for="edit-olt-type">Tipe OLT</label>
                         <select id="edit-olt-type" name="type" class="form-control">
                             <?php foreach ($olt_types as $type_value => $type_label): ?>
@@ -188,52 +187,52 @@ $olt_types = get_supported_olt_types();
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="form-group" style="flex:2;">
+                    <div class="form-group flex-2">
                         <label for="edit-olt-ip">Alamat IP OLT</label>
                         <input type="text" id="edit-olt-ip" name="ip" class="form-control" placeholder="Masukkan alamat IP OLT" required>
                     </div>
                 </div>
                 <div class="form-row">
-                    <div class="form-group" style="flex:1;">
+                    <div class="form-group flex-1">
                         <label for="edit-olt-protocol">Protokol CLI</label>
                         <select id="edit-olt-protocol" name="protocol" class="form-control">
                             <option value="SSH">SSH</option>
                             <option value="TELNET">TELNET</option>
                         </select>
                     </div>
-                    <div class="form-group" style="flex:1;">
+                    <div class="form-group flex-1">
                         <label for="edit-olt-ssh-port" id="lbl-edit-ssh-port">Port SSH</label>
                         <input type="number" id="edit-olt-ssh-port" name="ssh_port" class="form-control" required>
                     </div>
                 </div>
                 <div class="form-row">
-                    <div class="form-group" style="flex:1;">
+                    <div class="form-group flex-1">
                         <label for="edit-olt-user">Username</label>
                         <input type="text" id="edit-olt-user" name="username" class="form-control" required>
                     </div>
-                    <div class="form-group" style="flex:1.5;">
+                    <div class="form-group flex-15">
                         <label for="edit-olt-pass">Password</label>
                         <input type="password" id="edit-olt-pass" name="password" class="form-control" placeholder="Kosongkan jika tidak diubah">
                     </div>
                 </div>
                 <div class="form-row">
-                    <div class="form-group" style="flex:1;">
+                    <div class="form-group flex-1">
                         <label for="edit-olt-snmp-comm">Community SNMP RO</label>
                         <input type="text" id="edit-olt-snmp-comm" name="snmp_community" class="form-control" required>
                     </div>
-                    <div class="form-group" style="flex:1;">
+                    <div class="form-group flex-1">
                         <label for="edit-olt-snmp-comm-rw">Community SNMP RW</label>
                         <input type="text" id="edit-olt-snmp-comm-rw" name="snmp_community_rw" class="form-control" required>
                     </div>
                 </div>
                 <div class="form-row">
-                    <div class="form-group" style="flex:1;">
+                    <div class="form-group flex-1">
                         <label for="edit-olt-snmp-port">Port SNMP</label>
                         <input type="number" id="edit-olt-snmp-port" name="snmp_port" class="form-control" required>
                     </div>
                 </div>
                  <div class="error-box hidden" id="edit-olt-error"></div>
-                 <div class="alert alert-success hidden" id="edit-olt-success" style="background:rgba(34,197,94,0.15); border:1px solid #22c55e; color:#22c55e; padding:12px; border-radius:6px; margin-bottom:15px; font-weight:600;"></div>
+                 <div class="alert alert-success hidden" id="edit-olt-success"></div>
                  <div class="loading-spinner hidden" id="edit-olt-loading">
                      <div class="spinner"></div>
                      <p id="edit-loading-text">Sedang memverifikasi koneksi OLT...</p>
