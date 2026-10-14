@@ -370,7 +370,7 @@ if (!empty($onu['onu_type'])) {
                         $olt_color = ($olt_val < -30) ? 'var(--color-danger)' : (($olt_val < -28) ? 'var(--color-orange)' : (($olt_val < -25) ? 'var(--color-amber)' : 'var(--color-success)'));
                     }
                     ?>
-                    <strong id="detail-rx-onu" style="color:<?php echo $onu_color; ?>;"><?php echo $onu['last_rx_power'] !== null ? number_format((float)$onu['last_rx_power'], 2) . ' dBm' : '<span class="skel-text skel-w-52"></span>'; ?></strong>
+                    <strong id="detail-rx-onu" style="color:<?php echo $onu_color; ?>"><?php echo $onu['last_rx_power'] !== null ? number_format((float)$onu['last_rx_power'], 2) . ' dBm' : '<span class="skel-text skel-w-52"></span>'; ?></strong>
                     <span class="text-muted">/</span>
                     <strong id="detail-rx-olt" style="color:<?php echo $olt_color; ?>;"><?php echo $onu['last_rx_olt_power'] !== null ? number_format((float)$onu['last_rx_olt_power'], 2) . ' dBm' : '<span class="skel-text skel-w-52"></span>'; ?></strong>
                     <span id="detail-distance" class="text-muted"><span class="skel-text skel-w-44"></span></span>
@@ -1248,22 +1248,22 @@ $tr069_profiles = tr069_get_profiles($pdo);
 
 <!-- Modal Update ONU Mode (WAN / PPPoE Config) -->
 <div class="modal" id="update-onu-mode-modal" role="dialog" aria-modal="true">
-    <div class="modal-content" style="max-width: 650px; width: 90%; border-radius: 6px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
-        <div class="modal-header" style="padding: 15px 24px; display: flex; justify-content: space-between; align-items: center;">
-            <h2 style="margin:0; font-size:1.4rem; font-weight:700; color:var(--text-main);">Update Mode ONU</h2>
-            <button type="button" class="modal-close" onclick="document.getElementById('update-onu-mode-modal').classList.remove('open')" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text-muted); line-height: 1;">&times;</button>
+    <div class="modal-content modal-lg">
+        <div class="modal-header">
+            <h2 class="modal-title">Update Mode ONU</h2>
+            <button type="button" class="modal-close" onclick="document.getElementById('update-onu-mode-modal').classList.remove('open')">&times;</button>
         </div>
         <form action="action/update-onu-mode.php" method="POST">
             <input type="hidden" name="onu_id" value="<?php echo (int)$onu['id']; ?>">
             <input type="hidden" name="change_scope" value="wan_config">
-            <div class="modal-body" style="padding: 24px; font-size:0.95rem; color:var(--text-main);">
+            <div class="modal-body">
                 
-                <div class="table-responsive"><table class="data-table" style="width:100%; border-collapse:collapse;">
+                <div class="table-responsive"><table class="kv-table">
                     <!-- WAN VLAN-ID -->
-                    <tr style="height: 55px;">
-                        <td style="width: 160px; font-weight: 600; color:var(--text-main); vertical-align: middle; padding: 8px 0;">WAN VLAN-ID</td>
-                        <td style="vertical-align: middle; padding: 8px 0;">
-                            <select name="vlan_service" id="modal-vlan-select" style="width:100%; max-width: 320px; padding:8px 12px; border:1px solid var(--border-color); border-radius:4px; background:var(--bg-tertiary); font-size:0.9rem; color:var(--text-main);">
+                    <tr>
+                        <td class="kv-key kv-key--wide">WAN VLAN-ID</td>
+                        <td class="kv-val">
+                            <select name="vlan_service" id="modal-vlan-select" class="form-control form-control--md">
                                 <?php foreach ($cached_vlans as $cv): ?>
                                     <option value="<?php echo (int)$cv; ?>" <?php echo (int)$onu['vlan'] == (int)$cv ? 'selected' : ''; ?>><?php echo (int)$cv; ?></option>
                                 <?php endforeach; ?>
@@ -1272,17 +1272,17 @@ $tr069_profiles = tr069_get_profiles($pdo);
                     </tr>
                     <tr>
                         <td></td>
-                        <td style="padding: 0 0 15px 0;">
-                            <small style="color: var(--text-accent); display: block; line-height: 1.4; font-size: 0.85rem;">
+                        <td class="kv-val kv-val--note">
+                            <small class="text-accent form-hint">
                                 Setelah mengubah WAN VLAN-ID, periksa pengaturan Ethernet ports dan sesuaikan VLAN sesuai kebutuhan.
                             </small>
                         </td>
                     </tr>
 
                     <!-- ONU mode -->
-                    <tr style="height: 45px;">
-                        <td style="font-weight: 600; color:var(--text-main); vertical-align: middle; padding: 8px 0;">Mode ONU</td>
-                        <td style="vertical-align: middle; padding: 8px 0; display: flex; gap: 15px; align-items: center;">
+                    <tr>
+                        <td class="kv-key">Mode ONU</td>
+                        <td class="kv-val kv-val--inline">
                             <label class="inline-flex-center gap-2 cursor-pointer">
                                 <input type="radio" name="onu_mode" value="Routing" <?php echo ($onu['onu_mode'] === 'Routing' || empty($onu['onu_mode'])) ? 'checked' : ''; ?>> Routing
                             </label>
@@ -1294,17 +1294,17 @@ $tr069_profiles = tr069_get_profiles($pdo);
 
                     <!-- WAN mode (disembunyikan kalau Mode ONU = Bridging, karena bridge tidak kenal WAN mode) -->
                     <tr id="row-wan-mode">
-                        <td style="font-weight: 600; color:var(--text-main); vertical-align: top; padding: 12px 0;">Mode WAN</td>
-                        <td style="padding: 8px 0;">
-                            <div style="margin-bottom: 8px;">
+                        <td class="kv-key kv-key--top">Mode WAN</td>
+                        <td class="kv-val">
+                            <div class="mb-2">
                                 <label class="inline-flex-center gap-2 cursor-pointer">
                                     <input type="radio" name="wan_mode" class="wan-mode-radio" value="Setup via ONU webpage" <?php echo ($onu['wan_mode'] === 'Setup via ONU webpage' || empty($onu['wan_mode'])) ? 'checked' : ''; ?>> Setup via ONU webpage
                                 </label>
                             </div>
-                            <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500; margin-bottom: 8px; margin-left: 2px;">
+                            <div class="field-hint">
                                 Pengaturan untuk ONT yang kompatibel:
                             </div>
-                            <div style="display:flex; gap:15px; align-items:center; margin-left: 2px;">
+                            <div class="inline-flex-center">
                                 <label class="inline-flex-center gap-2 cursor-pointer">
                                     <input type="radio" name="wan_mode" class="wan-mode-radio" value="DHCP" <?php echo $onu['wan_mode'] === 'DHCP' ? 'checked' : ''; ?>> DHCP
                                 </label>
@@ -1319,81 +1319,81 @@ $tr069_profiles = tr069_get_profiles($pdo);
                     </tr>
 
                     <!-- Config method -->
-                    <tr style="height: 45px;">
-                        <td style="font-weight: 600; color:var(--text-main); vertical-align: middle; padding: 8px 0;">Metode Konfigurasi</td>
-                        <td style="vertical-align: middle; padding: 8px 0; display: flex; gap: 15px; align-items: center;">
+                    <tr>
+                        <td class="kv-key">Metode Konfigurasi</td>
+                        <td class="kv-val kv-val--inline">
                             <?php $tr069_active = (($onu['tr069_profile'] ?? '') === 'ACS-Smartolt'); ?>
                             <label class="inline-flex-center gap-2 cursor-pointer">
                                 <input type="radio" name="config_method" value="OMCI" <?php echo ($onu['config_method'] === 'OMCI' || empty($onu['config_method'])) ? 'checked' : ''; ?>> OMCI
                             </label>
-                            <label style="display:inline-flex; align-items:center; gap:6px; cursor:<?php echo $tr069_active ? 'pointer' : 'not-allowed'; ?>; <?php echo $tr069_active ? '' : 'opacity:0.5;'; ?>" title="<?php echo $tr069_active ? '' : 'Set TR609 Profile ke ACS-Smartolt dulu untuk mengaktifkan opsi ini'; ?>">
+                            <label class="inline-flex-center<?php echo $tr069_active ? ' cursor-pointer' : ' is-disabled'; ?>" title="<?php echo $tr069_active ? '' : 'Set TR609 Profile ke ACS-Smartolt dulu untuk mengaktifkan opsi ini'; ?>">
                                 <input type="radio" name="config_method" value="TR069" <?php echo $tr069_active ? '' : 'disabled'; ?> <?php echo ($onu['config_method'] === 'TR069' && $tr069_active) ? 'checked' : ''; ?>> TR069<?php echo $tr069_active ? '' : ' - Tidak Aktif'; ?>
                             </label>
                         </td>
                     </tr>
 
                     <!-- Username (PPPoE only) -->
-                    <tr id="row-pppoe-user" style="height: 50px;">
-                        <td style="font-weight: 600; color:var(--text-main); vertical-align: middle; padding: 6px 0;">Nama Pengguna</td>
-                        <td style="vertical-align: middle; padding: 6px 0;">
-                            <input type="text" name="pppoe_username" autocomplete="off" data-lpignore="true" data-form-type="other" value="<?php echo htmlspecialchars($onu['pppoe_username'] ?: ''); ?>" style="width:100%; max-width: 320px; padding:8px 12px; border:1px solid var(--border-color); border-radius:4px; font-size:0.9rem; box-sizing:border-box; color:var(--text-main); background:var(--bg-tertiary);">
+                    <tr id="row-pppoe-user">
+                        <td class="kv-key">Nama Pengguna</td>
+                        <td class="kv-val">
+                            <input type="text" name="pppoe_username" autocomplete="off" data-lpignore="true" data-form-type="other" value="<?php echo htmlspecialchars($onu['pppoe_username'] ?: ''); ?>" class="form-control form-control--md">
                         </td>
                     </tr>
 
                     <!-- Password (PPPoE only) -->
-                    <tr id="row-pppoe-pass" style="height: 50px;">
-                        <td style="font-weight: 600; color:var(--text-main); vertical-align: middle; padding: 6px 0;">Kata Sandi</td>
-                        <td style="vertical-align: middle; padding: 6px 0;">
-                            <input type="password" name="pppoe_password" autocomplete="new-password" data-lpignore="true" data-form-type="other" value="<?php echo htmlspecialchars($onu['pppoe_password'] ?: ''); ?>" style="width:100%; max-width: 320px; padding:8px 12px; border:1px solid var(--border-color); border-radius:4px; font-size:0.9rem; box-sizing:border-box; color:var(--text-main); background:var(--bg-tertiary);">
+                    <tr id="row-pppoe-pass">
+                        <td class="kv-key">Kata Sandi</td>
+                        <td class="kv-val">
+                            <input type="password" name="pppoe_password" autocomplete="new-password" data-lpignore="true" data-form-type="other" value="<?php echo htmlspecialchars($onu['pppoe_password'] ?: ''); ?>" class="form-control form-control--md">
                         </td>
                     </tr>
 
                     <!-- IP Address (Static only) -->
-                    <tr id="row-static-ip" style="height: 50px;">
-                        <td style="font-weight: 600; color:var(--text-main); vertical-align: middle; padding: 6px 0;">Alamat IP</td>
-                        <td style="vertical-align: middle; padding: 6px 0;">
-                            <input type="text" name="static_ip" placeholder="IP Address" value="<?php echo htmlspecialchars($onu['static_ip'] ?: ''); ?>" style="width:100%; max-width: 320px; padding:8px 12px; border:1px solid var(--border-color); border-radius:4px; font-size:0.9rem; box-sizing:border-box; color:var(--text-main); background:var(--bg-tertiary);">
+                    <tr id="row-static-ip">
+                        <td class="kv-key">Alamat IP</td>
+                        <td class="kv-val">
+                            <input type="text" name="static_ip" placeholder="IP Address" value="<?php echo htmlspecialchars($onu['static_ip'] ?: ''); ?>" class="form-control form-control--md">
                         </td>
                     </tr>
 
                     <!-- Netmask (Static only) -->
-                    <tr id="row-static-netmask" style="height: 50px;">
-                        <td style="font-weight: 600; color:var(--text-main); vertical-align: middle; padding: 6px 0;">Netmask</td>
-                        <td style="vertical-align: middle; padding: 6px 0;">
-                            <input type="text" name="static_netmask" placeholder="Netmask" value="<?php echo htmlspecialchars($onu['static_netmask'] ?: ''); ?>" style="width:100%; max-width: 320px; padding:8px 12px; border:1px solid var(--border-color); border-radius:4px; font-size:0.9rem; box-sizing:border-box; color:var(--text-main); background:var(--bg-tertiary);">
+                    <tr id="row-static-netmask">
+                        <td class="kv-key">Netmask</td>
+                        <td class="kv-val">
+                            <input type="text" name="static_netmask" placeholder="Netmask" value="<?php echo htmlspecialchars($onu['static_netmask'] ?: ''); ?>" class="form-control form-control--md">
                         </td>
                     </tr>
 
                     <!-- Gateway (Static only) -->
-                    <tr id="row-static-gateway" style="height: 50px;">
-                        <td style="font-weight: 600; color:var(--text-main); vertical-align: middle; padding: 6px 0;">Gateway</td>
-                        <td style="vertical-align: middle; padding: 6px 0;">
-                            <input type="text" name="static_gateway" placeholder="Gateway" value="<?php echo htmlspecialchars($onu['static_gateway'] ?: ''); ?>" style="width:100%; max-width: 320px; padding:8px 12px; border:1px solid var(--border-color); border-radius:4px; font-size:0.9rem; box-sizing:border-box; color:var(--text-main); background:var(--bg-tertiary);">
+                    <tr id="row-static-gateway">
+                        <td class="kv-key">Gateway</td>
+                        <td class="kv-val">
+                            <input type="text" name="static_gateway" placeholder="Gateway" value="<?php echo htmlspecialchars($onu['static_gateway'] ?: ''); ?>" class="form-control form-control--md">
                         </td>
                     </tr>
 
                     <!-- DNS Primary (Static only) -->
-                    <tr id="row-static-dns-primary" style="height: 50px;">
-                        <td style="font-weight: 600; color:var(--text-main); vertical-align: middle; padding: 6px 0;">DNS Primer</td>
-                        <td style="vertical-align: middle; padding: 6px 0;">
-                            <input type="text" name="static_dns_primary" placeholder="DNS Primer" value="<?php echo htmlspecialchars($onu['static_dns_primary'] ?: ''); ?>" style="width:100%; max-width: 320px; padding:8px 12px; border:1px solid var(--border-color); border-radius:4px; font-size:0.9rem; box-sizing:border-box; color:var(--text-main); background:var(--bg-tertiary);">
+                    <tr id="row-static-dns-primary">
+                        <td class="kv-key">DNS Primer</td>
+                        <td class="kv-val">
+                            <input type="text" name="static_dns_primary" placeholder="DNS Primer" value="<?php echo htmlspecialchars($onu['static_dns_primary'] ?: ''); ?>" class="form-control form-control--md">
                         </td>
                     </tr>
 
                     <!-- DNS Secondary (Static only) -->
-                    <tr id="row-static-dns-secondary" style="height: 50px;">
-                        <td style="font-weight: 600; color:var(--text-main); vertical-align: middle; padding: 6px 0;">DNS Sekunder</td>
-                        <td style="vertical-align: middle; padding: 6px 0;">
-                            <input type="text" name="static_dns_secondary" placeholder="DNS Sekunder" value="<?php echo htmlspecialchars($onu['static_dns_secondary'] ?: ''); ?>" style="width:100%; max-width: 320px; padding:8px 12px; border:1px solid var(--border-color); border-radius:4px; font-size:0.9rem; box-sizing:border-box; color:var(--text-main); background:var(--bg-tertiary);">
+                    <tr id="row-static-dns-secondary">
+                        <td class="kv-key">DNS Sekunder</td>
+                        <td class="kv-val">
+                            <input type="text" name="static_dns_secondary" placeholder="DNS Sekunder" value="<?php echo htmlspecialchars($onu['static_dns_secondary'] ?: ''); ?>" class="form-control form-control--md">
                         </td>
                     </tr>
 
 
                     <!-- Speed Profiles Configuration (sumber: tabel speed_profiles, sama dengan form Otorisasi) -->
-                    <tr style="height: 50px;">
-                        <td style="font-weight: 600; color:var(--text-main); vertical-align: middle; padding: 6px 0;">Kecepatan Download</td>
-                        <td style="vertical-align: middle; padding: 6px 0;">
-                            <select name="download_profile" style="width:100%; max-width: 320px; padding:8px 12px; border:1px solid var(--border-color); border-radius:4px; background:var(--bg-tertiary); font-size:0.9rem; color:var(--text-main);">
+                    <tr>
+                        <td class="kv-key">Kecepatan Download</td>
+                        <td class="kv-val">
+                            <select name="download_profile" class="form-control form-control--md">
                                 <?php if (empty($sp_download_options)): ?>
                                     <option value="" disabled selected>Belum ada profile di OLT ini</option>
                                 <?php else: foreach ($sp_download_options as $p): ?>
@@ -1402,10 +1402,10 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             </select>
                         </td>
                     </tr>
-                    <tr style="height: 50px;">
-                        <td style="font-weight: 600; color:var(--text-main); vertical-align: middle; padding: 6px 0;">Kecepatan Upload</td>
-                        <td style="vertical-align: middle; padding: 6px 0;">
-                            <select name="upload_profile" style="width:100%; max-width: 320px; padding:8px 12px; border:1px solid var(--border-color); border-radius:4px; background:var(--bg-tertiary); font-size:0.9rem; color:var(--text-main);">
+                    <tr>
+                        <td class="kv-key">Kecepatan Upload</td>
+                        <td class="kv-val">
+                            <select name="upload_profile" class="form-control form-control--md">
                                 <?php if (empty($sp_upload_options)): ?>
                                     <option value="" disabled selected>Belum ada profile di OLT ini</option>
                                 <?php else: foreach ($sp_upload_options as $p): ?>
@@ -1416,10 +1416,10 @@ $tr069_profiles = tr069_get_profiles($pdo);
                     </tr>
 
                     <!-- WAN remote access -->
-                    <tr style="height: 50px;">
-                        <td style="font-weight: 600; color:var(--text-main); vertical-align: middle; padding: 6px 0;">Akses Remote WAN</td>
-                        <td style="vertical-align: middle; padding: 6px 0;">
-                            <select name="wan_remote_access" style="width:100%; max-width: 320px; padding:8px 12px; border:1px solid var(--border-color); border-radius:4px; background:var(--bg-tertiary); font-size:0.9rem; color:var(--text-main);">
+                    <tr>
+                        <td class="kv-key">Akses Remote WAN</td>
+                        <td class="kv-val">
+                            <select name="wan_remote_access" class="form-control form-control--md">
                                 <option value="yes" <?php echo ($onu['wan_remote_access'] === 'yes') ? 'selected' : ''; ?>>Aktif dari semua jaringan internet</option>
                                 <option value="no" <?php echo ($onu['wan_remote_access'] !== 'yes') ? 'selected' : ''; ?>>Nonaktif</option>
                             </select>
@@ -1428,9 +1428,9 @@ $tr069_profiles = tr069_get_profiles($pdo);
                 </table></div>
 
             </div>
-            <div class="modal-footer" style="padding: 15px 24px; display:flex; justify-content:flex-end; align-items:center; gap:12px;">
-                <button type="button" onclick="document.getElementById('update-onu-mode-modal').classList.remove('open')" style="background:none; border:none; color:var(--text-accent); font-weight: 500; cursor:pointer; font-size:0.95rem; padding: 8px 12px;">Tutup</button>
-                <button type="submit" class="btn btn-success" style="padding:8px 24px;">Simpan</button>
+            <div class="modal-footer">
+                <button type="button" onclick="document.getElementById('update-onu-mode-modal').classList.remove('open')" class="btn-link-plain">Tutup</button>
+                <button type="submit" class="btn btn-success">Simpan</button>
             </div>
         </form>
     </div>
@@ -1438,18 +1438,18 @@ $tr069_profiles = tr069_get_profiles($pdo);
 
 <!-- Modal Edit ONU Type -->
 <div class="modal" id="edit-onu-type-modal" role="dialog" aria-modal="true">
-    <div class="modal-content" style="max-width: 450px; width: 90%; border-radius: 6px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
-        <div class="modal-header" style="padding: 15px 24px; display: flex; justify-content: space-between; align-items: center;">
-            <h2 style="margin:0; font-size:1.2rem; font-weight:700; color:var(--text-main);">Edit Tipe ONU</h2>
-            <button type="button" class="modal-close" onclick="document.getElementById('edit-onu-type-modal').classList.remove('open')" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text-muted); line-height: 1;">&times;</button>
+    <div class="modal-content modal-sm">
+        <div class="modal-header">
+            <h2 class="modal-title">Edit Tipe ONU</h2>
+            <button type="button" class="modal-close" onclick="document.getElementById('edit-onu-type-modal').classList.remove('open')">&times;</button>
         </div>
         <form action="action/update-onu-mode.php" method="POST">
             <input type="hidden" name="onu_id" value="<?php echo (int)$onu['id']; ?>">
             <input type="hidden" name="change_scope" value="onu_type">
-            <div class="modal-body" style="padding: 24px; font-size:0.95rem; color:var(--text-main);">
-                <div style="margin-bottom: 15px;">
-                    <label style="font-weight: 600; display: block; margin-bottom: 8px;">Tipe ONU</label>
-                    <select name="onu_type" style="width:100%; padding:8px 12px; border:1px solid var(--border-color); border-radius:4px; font-size:0.9rem; box-sizing:border-box; color:var(--text-main); background:var(--bg-tertiary);">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Tipe ONU</label>
+                    <select name="onu_type" class="form-control">
                         <?php
                         $curType = $onu['onu_type'] ?: 'ALL-ONT';
                         $typeOpts = $pdo->query("SELECT name FROM onu_types ORDER BY name")->fetchAll(PDO::FETCH_COLUMN);
@@ -1460,9 +1460,9 @@ $tr069_profiles = tr069_get_profiles($pdo);
                     </select>
                 </div>
             </div>
-            <div class="modal-footer" style="padding: 15px 24px; display:flex; justify-content:flex-end; align-items:center; gap:12px;">
-                <button type="button" onclick="document.getElementById('edit-onu-type-modal').classList.remove('open')" style="background:none; border:none; color:var(--text-accent); font-weight: 500; cursor:pointer; font-size:0.95rem; padding: 8px 12px;">Tutup</button>
-                <button type="submit" class="btn btn-success" style="padding:8px 24px;">Simpan</button>
+            <div class="modal-footer">
+                <button type="button" onclick="document.getElementById('edit-onu-type-modal').classList.remove('open')" class="btn-link-plain">Tutup</button>
+                <button type="submit" class="btn btn-success">Simpan</button>
             </div>
         </form>
     </div>
@@ -1470,18 +1470,18 @@ $tr069_profiles = tr069_get_profiles($pdo);
 
 <!-- Modal Edit Config Preset -->
 <div class="modal" id="edit-config-preset-modal" role="dialog" aria-modal="true">
-    <div class="modal-content" style="max-width: 450px; width: 90%; border-radius: 6px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
-        <div class="modal-header" style="padding: 15px 24px; display: flex; justify-content: space-between; align-items: center;">
-            <h2 style="margin:0; font-size:1.2rem; font-weight:700; color:var(--text-main);">Edit Preset Konfigurasi</h2>
-            <button type="button" class="modal-close" onclick="document.getElementById('edit-config-preset-modal').classList.remove('open')" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text-muted); line-height: 1;">&times;</button>
+    <div class="modal-content modal-sm">
+        <div class="modal-header">
+            <h2 class="modal-title">Edit Preset Konfigurasi</h2>
+            <button type="button" class="modal-close" onclick="document.getElementById('edit-config-preset-modal').classList.remove('open')">&times;</button>
         </div>
         <form action="action/update-onu-mode.php" method="POST">
             <input type="hidden" name="onu_id" value="<?php echo (int)$onu['id']; ?>">
             <input type="hidden" name="change_scope" value="preset">
-            <div class="modal-body" style="padding: 24px; font-size:0.95rem; color:var(--text-main);">
-                <div style="margin-bottom: 15px;">
-                    <label style="font-weight: 600; display: block; margin-bottom: 8px;">Preset Konfigurasi</label>
-                    <select name="config_preset" style="width:100%; padding:8px 12px; border:1px solid var(--border-color); border-radius:4px; font-size:0.9rem; box-sizing:border-box; color:var(--text-main); background:var(--bg-tertiary);">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Preset Konfigurasi</label>
+                    <select name="config_preset" class="form-control">
                         <option value="">Tidak ada</option>
                         <?php
                         $curPreset = $onu['config_preset'] ?? '';
@@ -1493,9 +1493,9 @@ $tr069_profiles = tr069_get_profiles($pdo);
                     </select>
                 </div>
             </div>
-            <div class="modal-footer" style="padding: 15px 24px; display:flex; justify-content:flex-end; align-items:center; gap:12px;">
-                <button type="button" onclick="document.getElementById('edit-config-preset-modal').classList.remove('open')" style="background:none; border:none; color:var(--text-accent); font-weight: 500; cursor:pointer; font-size:0.95rem; padding: 8px 12px;">Tutup</button>
-                <button type="submit" class="btn btn-success" style="padding:8px 24px;">Simpan</button>
+            <div class="modal-footer">
+                <button type="button" onclick="document.getElementById('edit-config-preset-modal').classList.remove('open')" class="btn-link-plain">Tutup</button>
+                <button type="submit" class="btn btn-success">Simpan</button>
             </div>
         </form>
     </div>
@@ -1503,21 +1503,21 @@ $tr069_profiles = tr069_get_profiles($pdo);
 
 <!-- Modal Terpadu: Edit Identitas & Lokasi ONU -->
 <div class="modal" id="edit-identity-modal" role="dialog" aria-modal="true">
-    <div class="modal-content" style="max-width: 560px; width: 95%;">
+    <div class="modal-content">
         <div class="modal-header">
-            <div style="display:flex; align-items:center; gap:10px;">
-                <i data-lucide="user-cog" style="width:18px;height:18px; color:var(--text-accent);"></i>
-                <h2 style="margin:0; font-size:1.1rem; font-weight:600;">Edit Identitas & Lokasi ONU</h2>
+            <div class="inline-flex-center">
+                <i data-lucide="user-cog" class="icon-md text-accent"></i>
+                <h2 class="modal-title">Edit Identitas & Lokasi ONU</h2>
             </div>
             <button type="button" class="modal-close" onclick="document.getElementById('edit-identity-modal').classList.remove('open')">&times;</button>
         </div>
         <form action="action/update-onu-mode.php" method="POST">
             <input type="hidden" name="onu_id" value="<?php echo (int)$onu['id']; ?>">
             <input type="hidden" name="change_scope" value="identity">
-            <div class="modal-body modal-body-grid" style="padding: 20px 24px; display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+            <div class="modal-body modal-body-grid">
 
                 <div>
-                    <label class="modal-label">Nama Pelanggan <span style="color:var(--color-danger);">*</span></label>
+                    <label class="modal-label">Nama Pelanggan <span class="text-danger">*</span></label>
                     <input type="text" name="name" class="modal-input" value="<?php echo htmlspecialchars(($parsed_desc['clean_name'] && strtolower($parsed_desc['clean_name']) !== 'none') ? $parsed_desc['clean_name'] : ''); ?>" required placeholder="Nama pelanggan">
                 </div>
 
@@ -1561,12 +1561,12 @@ $tr069_profiles = tr069_get_profiles($pdo);
                     <input type="text" name="external_id" class="modal-input" value="<?php echo htmlspecialchars($parsed_desc['external_id'] ?? ''); ?>" placeholder="Opsional">
                 </div>
 
-                <div style="display:flex; gap:6px; align-items:flex-end;">
-                    <div style="flex:1;">
+                <div class="flex-row gap-2">
+                    <div class="flex-1">
                         <label class="modal-label">Latitude</label>
                         <input type="text" name="latitude" id="identity-latitude" class="modal-input" value="<?php echo htmlspecialchars($onu['latitude'] ?? ''); ?>" placeholder="-x.xxxxxx" pattern="^-?[0-9]{1,3}\.[0-9]{1,10}$">
                     </div>
-                    <button type="button" class="btn-icon-square" id="btn-identity-gps" title="Gunakan lokasi saya" style="margin-bottom:0;"><i data-lucide="map-pin" style="width:16px;height:16px;"></i></button>
+                    <button type="button" class="btn-icon-square" id="btn-identity-gps" title="Gunakan lokasi saya"><i data-lucide="map-pin" class="icon-sm"></i></button>
                 </div>
 
                 <div>
@@ -2828,7 +2828,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             if (!lanPortList.length) {
                                 html += '<div style="color:var(--text-muted);padding:8px 0;">Tidak ada port LAN.</div>';
                             } else {
-                                html += '<div class="table-responsive"><table class="data-table" style="width:100%;border-collapse:collapse;">';
+                                html += '<div class="table-responsive"><table class="kv-table">';
                                 html += '<tr style="text-align:left;color:var(--text-muted);font-size:0.78rem;"><th style="padding:5px 8px 5px 0;">Port</th><th style="padding:5px 8px;">Enable</th><th style="padding:5px 8px;">Status</th><th style="padding:5px 8px;">Speed</th><th style="padding:5px 8px;">Duplex</th><th style="padding:5px 8px;">L3 Enable</th><th style="padding:5px 8px;">Speed mode</th><th style="padding:5px 8px;">Duplex mode</th><th style="padding:5px 8px;">Flow control</th><th style="padding:5px 0 5px 8px;"></th></tr>';
                                 lanPortList.forEach((p, pi) => {
                                     const B = 'InternetGatewayDevice.' + p.path + '.';
@@ -2869,7 +2869,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             if (!lanPortList.length) {
                                 html += '<div style="color:var(--text-muted);padding:8px 0;">Tidak ada data counter.</div>';
                             } else {
-                                html += '<div class="table-responsive"><table class="data-table" style="width:100%;border-collapse:collapse;">';
+                                html += '<div class="table-responsive"><table class="kv-table">';
                                 const cols = ['#','Bytes In','Bytes Out','Pkts In','Pkts Out','Uni In','Uni Out','Multi In','Multi Out','Bro In','Bro Out','Err In','Err Out','Disc In','Disc Out'];
                                 html += '<tr style="text-align:left;color:var(--text-muted);font-size:0.75rem;">' + cols.map(c => '<th style="padding:5px 8px;">'+c+'</th>').join('') + '</tr>';
                                 lanPortList.forEach((p, pi) => {
@@ -2890,7 +2890,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             if (!hostList.length) {
                                 html += '<div style="color:var(--text-muted);padding:8px 0;">Tidak ada host terkoneksi.</div>';
                             } else {
-                                html += '<div class="table-responsive"><table class="data-table" style="width:100%;border-collapse:collapse;">';
+                                html += '<div class="table-responsive"><table class="kv-table">';
                                 html += '<tr style="text-align:left;color:var(--text-muted);font-size:0.78rem;"><th style="padding:5px 8px 5px 0;">#</th><th style="padding:5px 8px;">MAC Address</th><th style="padding:5px 8px;">IP Address</th><th style="padding:5px 8px;">Address source</th><th style="padding:5px 8px;">Hostname</th><th style="padding:5px 8px;">Port</th><th style="padding:5px 0 5px 8px;">Active</th></tr>';
                                 hostList.forEach((h, hi) => {
                                     const activeText = h.active === true || h.active === '1' || h.active === 1 ? 'Yes' : 'No';
@@ -2919,7 +2919,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             if (!routeList.length) {
                                 html += '<div style="color:var(--text-muted);padding:8px 0;">Tidak ada route.</div>';
                             } else {
-                                html += '<div class="table-responsive"><table class="data-table" style="width:100%;border-collapse:collapse;">';
+                                html += '<div class="table-responsive"><table class="kv-table">';
                                 html += '<tr style="text-align:left;color:var(--text-muted);font-size:0.78rem;"><th style="padding:5px 8px 5px 0;">Destination</th><th style="padding:5px 8px;">Subnet Mask</th><th style="padding:5px 8px;">Gateway</th><th style="padding:5px 8px;">Interface</th><th style="padding:5px 0 5px 8px;">Origin</th></tr>';
                                 routeList.forEach(r => {
                                     html += '<tr style="border-top:1px solid var(--border-color);">'
@@ -3921,35 +3921,35 @@ $tr069_profiles = tr069_get_profiles($pdo);
 
 <!-- Modal Replace ONU (Ganti Serial Number) -->
 <div class="modal" id="replace-onu-modal" role="dialog" aria-modal="true">
-    <div class="modal-content" style="max-width: 500px; width: 90%; border-radius: 6px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
-        <div class="modal-header" style="padding: 15px 24px; display: flex; justify-content: space-between; align-items: center;">
-            <div style="display:flex; align-items:center; gap:10px;">
-                <i data-lucide="refresh-cw" style="width:18px;height:18px; color:var(--text-accent);"></i>
-                <h2 style="margin:0; font-size:1.2rem; font-weight:700; color:var(--text-main);">Replace ONU / Ganti SN</h2>
+    <div class="modal-content modal-sm">
+        <div class="modal-header">
+            <div class="inline-flex-center">
+                <i data-lucide="refresh-cw" class="icon-md text-accent"></i>
+                <h2 class="modal-title">Replace ONU / Ganti SN</h2>
             </div>
-            <button type="button" class="modal-close" onclick="document.getElementById('replace-onu-modal').classList.remove('open')" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text-muted); line-height: 1;">&times;</button>
+            <button type="button" class="modal-close" onclick="document.getElementById('replace-onu-modal').classList.remove('open')">&times;</button>
         </div>
         <form action="action/replace-onu.php" method="POST" onsubmit="return confirmReplaceOnu(event)">
             <input type="hidden" name="onu_id" value="<?php echo (int)$onu['id']; ?>">
-            <div class="modal-body" style="padding: 24px; font-size:0.95rem; color:var(--text-main);">
-                <div style="background-color: var(--tint-warning); border: 1px solid var(--color-amber); border-radius: 6px; padding: 12px 16px; margin-bottom: 18px; color: var(--color-amber); line-height: 1.5; font-size: 0.85rem;">
+            <div class="modal-body">
+                <div class="alert-warning-box">
                     <strong>⚠️ PERINGATAN REPLACE ONU:</strong><br>
                     Proses ini akan menghapus ONU lama dari OLT fisik, mengubah Serial Number ke SN baru di database, lalu mendaftarkan ulang dan mengirimkan konfigurasi WAN lama (VLAN, PPPoE username/password, speed profile, dsb.) ke perangkat ONU baru secara otomatis.
                 </div>
                 
-                <div style="margin-bottom: 15px;">
-                    <label style="font-weight: 600; display: block; margin-bottom: 6px; color:var(--text-main);">Serial Number Lama</label>
-                    <input type="text" class="modal-input" value="<?php echo htmlspecialchars($onu['serial_number']); ?>" readonly style="background-color:var(--bg-tertiary); cursor:not-allowed; border: 1px solid var(--border-color); border-radius: 4px; padding: 8px 12px; width: 100%; box-sizing: border-box; font-family: monospace; color:var(--text-main);">
+                <div class="form-group">
+                    <label>Serial Number Lama</label>
+                    <input type="text" class="modal-input" value="<?php echo htmlspecialchars($onu['serial_number']); ?>" readonly class="form-control form-control--mono">
                 </div>
                 
-                <div style="margin-bottom: 15px;">
-                    <label style="font-weight: 600; display: block; margin-bottom: 6px; color:var(--text-main);">Serial Number Baru <span style="color:var(--color-danger);">*</span></label>
-                    <input type="text" name="new_serial_number" required placeholder="Contoh: ZTEGC1234567" style="border: 1px solid var(--border-color); border-radius: 4px; padding: 8px 12px; width: 100%; box-sizing: border-box; font-family: monospace; font-size: 0.95rem; text-transform: uppercase; color:var(--text-main); background:var(--bg-tertiary);">
+                <div class="form-group">
+                    <label>Serial Number Baru <span class="text-danger">*</span></label>
+                    <input type="text" name="new_serial_number" required placeholder="Contoh: ZTEGC1234567" class="form-control form-control--mono form-control--upper">
                 </div>
             </div>
-            <div class="modal-footer" style="padding: 15px 24px; display:flex; justify-content:flex-end; align-items:center; gap:12px;">
-                <button type="button" onclick="document.getElementById('replace-onu-modal').classList.remove('open')" style="background:none; border:none; color:var(--text-accent); font-weight: 500; cursor:pointer; font-size:0.95rem; padding: 8px 12px;">Batal</button>
-                <button type="submit" class="btn btn-danger" style="padding:8px 24px;">Proses Replace</button>
+            <div class="modal-footer">
+                <button type="button" onclick="document.getElementById('replace-onu-modal').classList.remove('open')" class="btn-link-plain">Batal</button>
+                <button type="submit" class="btn btn-danger">Proses Replace</button>
             </div>
         </form>
     </div>
@@ -3967,56 +3967,56 @@ $tr069_profiles = tr069_get_profiles($pdo);
 
 <!-- Modal IP Manajemen -->
 <div class="modal" id="mgmt-ip-modal" role="dialog" aria-modal="true">
-    <div class="modal-content" style="max-width:520px; width:90%;">
-        <div class="modal-header" style="padding:15px 24px; display:flex; justify-content:space-between; align-items:center;">
-            <h2 style="margin:0; font-size:1.3rem; font-weight:700;">IP Manajemen</h2>
-            <button type="button" onclick="document.getElementById('mgmt-ip-modal').classList.remove('open')" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-muted);">&times;</button>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">IP Manajemen</h2>
+            <button type="button" onclick="document.getElementById('mgmt-ip-modal').classList.remove('open')" class="modal-close">&times;</button>
         </div>
         <form id="mgmt-ip-form" onsubmit="return saveMgmtIp(event)">
             <input type="hidden" name="onu_id" value="<?php echo (int)$onu['id']; ?>">
-            <div class="modal-body" style="padding:24px;">
-                <div class="table-responsive"><table class="data-table" style="width:100%;border-collapse:collapse;">
-                    <tr style="height:50px;">
-                        <td style="width:140px;font-weight:600;color:var(--text-main);vertical-align:middle;">Mode</td>
+            <div class="modal-body">
+                <div class="table-responsive"><table class="kv-table">
+                    <tr>
+                        <td class="kv-key">Mode</td>
                         <td>
-                            <select name="mgmt_ip_mode" id="mgmt-mode-select" style="width:100%;max-width:280px;padding:8px 12px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);font-size:0.9rem;color:var(--text-main);" onchange="toggleMgmtFields()">
+                            <select name="mgmt_ip_mode" id="mgmt-mode-select" class="form-control form-control--sm" onchange="toggleMgmtFields()">
                                 <option value="Inactive" <?php echo ($onu['mgmt_ip_mode'] ?? 'Inactive') === 'Inactive' ? 'selected' : ''; ?>>Nonaktif</option>
                                 <option value="DHCP" <?php echo ($onu['mgmt_ip_mode'] ?? '') === 'DHCP' ? 'selected' : ''; ?>>DHCP</option>
                                 <option value="Static" <?php echo ($onu['mgmt_ip_mode'] ?? '') === 'Static' ? 'selected' : ''; ?>>Static</option>
                             </select>
                         </td>
                     </tr>
-                    <tr style="height:50px;" class="mgmt-detail-row">
-                        <td style="font-weight:600;color:var(--text-main);vertical-align:middle;">VLAN</td>
+                    <tr class="mgmt-detail-row">
+                        <td class="kv-key">VLAN</td>
                         <td>
-                            <select name="mgmt_vlan" style="width:100%;max-width:280px;padding:8px 12px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);font-size:0.9rem;color:var(--text-main);">
+                            <select name="mgmt_vlan" class="form-control form-control--sm">
                                 <option value="">Pilih VLAN...</option>
                                 <?php foreach ($management_vlans as $mv): ?>
                                     <option value="<?php echo (int)$mv['vlan_id']; ?>" <?php echo (int)($onu['mgmt_vlan'] ?? 0) === (int)$mv['vlan_id'] ? 'selected' : ''; ?>><?php echo (int)$mv['vlan_id']; ?> — <?php echo htmlspecialchars($mv['description'] ?? ''); ?></option>
                                 <?php endforeach; ?>
                             </select>
                             <?php if (empty($management_vlans)): ?>
-                                <small style="color:var(--color-orange);">Belum ada VLAN yang ditandai sebagai management. Tambahkan VLAN bertipe management di OLT Settings terlebih dahulu.</small>
+                                <small class="text-warning">Belum ada VLAN yang ditandai sebagai management. Tambahkan VLAN bertipe management di OLT Settings terlebih dahulu.</small>
                             <?php endif; ?>
                         </td>
                     </tr>
-                    <tr style="height:50px;" class="mgmt-static-row" id="mgmt-ip-row">
-                        <td style="font-weight:600;color:var(--text-main);vertical-align:middle;">IP Address</td>
-                        <td><input type="text" name="mgmt_ip" value="<?php echo htmlspecialchars($onu['mgmt_ip'] ?? ''); ?>" placeholder="192.168.1.100" style="width:100%;max-width:280px;padding:8px 12px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);font-size:0.9rem;color:var(--text-main);"></td>
+                    <tr class="mgmt-static-row" id="mgmt-ip-row">
+                        <td class="kv-key">IP Address</td>
+                        <td><input type="text" name="mgmt_ip" value="<?php echo htmlspecialchars($onu['mgmt_ip'] ?? ''); ?>" placeholder="192.168.1.100" class="form-control form-control--sm"></td>
                     </tr>
-                    <tr style="height:50px;" class="mgmt-detail-row">
-                        <td style="font-weight:600;color:var(--text-main);vertical-align:middle;">Akses Remote WAN</td>
+                    <tr class="mgmt-detail-row">
+                        <td class="kv-key">Akses Remote WAN</td>
                         <td>
-                            <select name="wan_remote_access" style="width:100%;max-width:280px;padding:8px 12px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);font-size:0.9rem;color:var(--text-main);">
+                            <select name="wan_remote_access" class="form-control form-control--sm">
                                 <option value="no" <?php echo ($onu['wan_remote_access'] ?? 'no') !== 'yes' ? 'selected' : ''; ?>>Nonaktif</option>
                                 <option value="yes" <?php echo ($onu['wan_remote_access'] ?? '') === 'yes' ? 'selected' : ''; ?>>Aktif dari semua jaringan internet</option>
                             </select>
                         </td>
                     </tr>
                 </table></div>
-                <small style="display:block;margin-top:12px;color:var(--text-muted);line-height:1.4;">IP Manajemen digunakan untuk remote akses ONU via web. VLAN harus ditandai sebagai management di halaman OLT VLAN. Akses Remote WAN membuka akses ONU dari internet luar.</small>
+                <small class="form-hint-block text-muted">IP Manajemen digunakan untuk remote akses ONU via web. VLAN harus ditandai sebagai management di halaman OLT VLAN. Akses Remote WAN membuka akses ONU dari internet luar.</small>
             </div>
-            <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:8px;padding:16px 24px;">
+            <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="document.getElementById('mgmt-ip-modal').classList.remove('open')">Batal</button>
                 <button type="submit" class="btn btn-primary">Simpan</button>
             </div>
@@ -4026,19 +4026,19 @@ $tr069_profiles = tr069_get_profiles($pdo);
 
 <!-- Modal TR609 Profile -->
 <div class="modal" id="tr609-profile-modal" role="dialog" aria-modal="true">
-    <div class="modal-content" style="max-width:480px; width:90%;">
-        <div class="modal-header" style="padding:15px 24px; display:flex; justify-content:space-between; align-items:center;">
-            <h2 style="margin:0; font-size:1.3rem; font-weight:700;">TR609 Profile</h2>
-            <button type="button" onclick="document.getElementById('tr609-profile-modal').classList.remove('open')" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-muted);">&times;</button>
+    <div class="modal-content modal-sm">
+        <div class="modal-header">
+            <h2 class="modal-title">TR609 Profile</h2>
+            <button type="button" onclick="document.getElementById('tr609-profile-modal').classList.remove('open')" class="modal-close">&times;</button>
         </div>
         <form id="tr609-form" onsubmit="return saveTr609(event)">
             <input type="hidden" name="onu_id" value="<?php echo (int)$onu['id']; ?>">
-            <div class="modal-body" style="padding:24px;">
-                <div class="table-responsive"><table class="data-table" style="width:100%;border-collapse:collapse;">
-                    <tr style="height:50px;">
-                        <td style="width:120px;font-weight:600;color:var(--text-main);vertical-align:middle;">Profil</td>
+            <div class="modal-body">
+                <div class="table-responsive"><table class="kv-table">
+                    <tr>
+                        <td class="kv-key">Profil</td>
                         <td>
-                            <select name="tr609_profile" style="width:100%;max-width:300px;padding:8px 12px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);font-size:0.9rem;color:var(--text-main);">
+                            <select name="tr609_profile" class="form-control form-control--sm">
                                 <option value="Nonaktif" <?php echo ($onu['tr069_profile'] ?: 'Nonaktif') === 'Nonaktif' ? 'selected' : ''; ?>>Disable</option>
                                 <option value="ACS-Smartolt" <?php echo ($onu['tr069_profile'] ?? '') === 'ACS-Smartolt' ? 'selected' : ''; ?>>ACS-Smartolt</option>
                                 <?php foreach ($tr069_profiles as $tp): ?>
@@ -4048,22 +4048,22 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             </select>
                         </td>
                     </tr>
-                    <tr style="height:50px;">
-                        <td style="width:120px;font-weight:600;color:var(--text-main);vertical-align:middle;">VLAN</td>
+                    <tr>
+                        <td class="kv-key">VLAN</td>
                         <td>
                             <?php $tr609_vlan_mode = $onu['tr069_vlan_mode'] ?? 'management'; ?>
-                            <label style="margin-right:16px;cursor:pointer;font-size:0.9rem;"><input type="radio" name="vlan_mode" value="management" <?php echo $tr609_vlan_mode === 'management' ? 'checked' : ''; ?>> Management</label>
-                            <label style="cursor:pointer;font-size:0.9rem;"><input type="radio" name="vlan_mode" value="internet" <?php echo $tr609_vlan_mode === 'internet' ? 'checked' : ''; ?>> Ikut Internet (PPPoE)</label>
+                            <label class="radio-inline"><input type="radio" name="vlan_mode" value="management" <?php echo $tr609_vlan_mode === 'management' ? 'checked' : ''; ?>> Management</label>
+                            <label class="radio-inline"><input type="radio" name="vlan_mode" value="internet" <?php echo $tr609_vlan_mode === 'internet' ? 'checked' : ''; ?>> Ikut Internet (PPPoE)</label>
                         </td>
                     </tr>
                 </table></div>
-                <div id="tr609-profile-info" style="margin-top:16px;padding:14px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius-sm);font-size:0.85rem;line-height:1.8;">
+                <div id="tr609-profile-info" class="info-box">
                     <div><strong>ACS URL:</strong> <span id="tr609-info-url">-</span></div>
                     <div><strong>Username:</strong> <span id="tr609-info-user">-</span></div>
                 </div>
-                <small style="display:block;margin-top:12px;color:var(--text-muted);line-height:1.4;">Pilih profil, lalu Simpan untuk push TR609 config ke ONU via OLT CLI. Ubah profil di Settings &gt; TR-069 Management.</small>
+                <small class="form-hint-block text-muted">Pilih profil, lalu Simpan untuk push TR609 config ke ONU via OLT CLI. Ubah profil di Settings &gt; TR-069 Management.</small>
             </div>
-            <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:8px;padding:16px 24px;">
+            <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="document.getElementById('tr609-profile-modal').classList.remove('open')">Batal</button>
                 <button type="submit" class="btn btn-primary">Simpan</button>
             </div>
@@ -4145,37 +4145,37 @@ document.querySelectorAll('.detail-plain-row[data-clickable]').forEach(el => {
 
 <!-- Modal Configure Port -->
 <div class="modal" id="port-configure-modal" role="dialog" aria-modal="true">
-    <div style="background:var(--bg-primary,#1a1a2e);border-radius:10px;width:480px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.4);">
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border-color);">
-            <span id="port-cfg-title" style="font-weight:600;font-size:1rem;">Configure ethernet port</span>
-            <button type="button" onclick="document.getElementById('port-configure-modal').classList.remove('open')" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-muted);line-height:1;">&times;</button>
+    <div class="modal-content modal-sm">
+        <div class="modal-header">
+            <span id="port-cfg-title" class="modal-title">Configure ethernet port</span>
+            <button type="button" class="modal-close" onclick="document.getElementById('port-configure-modal').classList.remove('open')">&times;</button>
         </div>
-        <div style="padding:20px;">
+        <div class="modal-body">
             <input type="hidden" id="port-cfg-serial">
             <input type="hidden" id="port-cfg-port">
             <input type="hidden" id="port-cfg-type">
-            <div style="margin-bottom:16px;">
-                <label style="display:block;font-weight:600;margin-bottom:6px;font-size:0.9rem;">Status</label>
-                <label style="margin-right:16px;cursor:pointer;font-size:0.9rem;"><input type="radio" name="port-cfg-status" value="Enabled" checked> Enabled</label>
-                <label style="cursor:pointer;font-size:0.9rem;"><input type="radio" name="port-cfg-status" value="Disabled"> Port shutdown</label>
+            <div class="form-group">
+                <label>Status</label>
+                <label class="radio-inline"><input type="radio" name="port-cfg-status" value="Enabled" checked> Enabled</label>
+                <label class="radio-inline"><input type="radio" name="port-cfg-status" value="Disabled"> Port shutdown</label>
             </div>
-            <div style="margin-bottom:16px;">
-                <label style="display:block;font-weight:600;margin-bottom:6px;font-size:0.9rem;">Mode</label>
-                <label style="margin-right:14px;cursor:pointer;font-size:0.9rem;"><input type="radio" name="port-cfg-mode" value="LAN" checked> LAN</label>
-                <label style="margin-right:14px;cursor:pointer;font-size:0.9rem;"><input type="radio" name="port-cfg-mode" value="Access"> Access</label>
-                <label style="margin-right:14px;cursor:pointer;font-size:0.9rem;"><input type="radio" name="port-cfg-mode" value="Hybrid"> Hybrid</label>
-                <label style="margin-right:14px;cursor:pointer;font-size:0.9rem;"><input type="radio" name="port-cfg-mode" value="Trunk"> Trunk</label>
-                <label style="cursor:pointer;font-size:0.9rem;"><input type="radio" name="port-cfg-mode" value="Transparent"> Transparent</label>
+            <div class="form-group">
+                <label>Mode</label>
+                <label class="radio-inline"><input type="radio" name="port-cfg-mode" value="LAN" checked> LAN</label>
+                <label class="radio-inline"><input type="radio" name="port-cfg-mode" value="Access"> Access</label>
+                <label class="radio-inline"><input type="radio" name="port-cfg-mode" value="Hybrid"> Hybrid</label>
+                <label class="radio-inline"><input type="radio" name="port-cfg-mode" value="Trunk"> Trunk</label>
+                <label class="radio-inline"><input type="radio" name="port-cfg-mode" value="Transparent"> Transparent</label>
             </div>
-            <div style="margin-bottom:16px;">
-                <label style="display:block;font-weight:600;margin-bottom:6px;font-size:0.9rem;">VLAN-ID</label>
-                <select id="port-cfg-vlan" style="width:100%;padding:8px;border:1px solid var(--border-color);border-radius:6px;font-size:0.9rem;background:var(--bg-secondary,#16213e);color:var(--text-main);">
+            <div class="form-group">
+                <label>VLAN-ID</label>
+                <select id="port-cfg-vlan" class="form-control">
                     <option value="">—</option>
                 </select>
             </div>
-            <div style="margin-bottom:8px;">
-                <label style="display:block;font-weight:600;margin-bottom:6px;font-size:0.9rem;">DHCP</label>
-                <select id="port-cfg-dhcp" style="width:100%;padding:8px;border:1px solid var(--border-color);border-radius:6px;font-size:0.9rem;background:var(--bg-secondary,#16213e);color:var(--text-main);">
+            <div class="form-group">
+                <label>DHCP</label>
+                <select id="port-cfg-dhcp" class="form-control">
                     <option value="No control">No control</option>
                     <option value="From ISP">From ISP</option>
                     <option value="From ONU">From ONU</option>
@@ -4183,9 +4183,9 @@ document.querySelectorAll('.detail-plain-row[data-clickable]').forEach(el => {
                 </select>
             </div>
         </div>
-        <div style="display:flex;justify-content:flex-end;gap:10px;padding:12px 20px;border-top:1px solid var(--border-color);">
-            <button type="button" onclick="document.getElementById('port-configure-modal').classList.remove('open')" style="background:none;border:none;color:var(--text-accent,#60a5fa);font-weight:500;cursor:pointer;font-size:0.95rem;padding:8px 12px;">Close</button>
-            <button type="button" id="port-cfg-save" style="background:var(--accent-green,#22c55e);color:#fff;border:none;border-radius:6px;padding:8px 20px;font-weight:600;cursor:pointer;font-size:0.95rem;">Save</button>
+        <div class="modal-footer">
+            <button type="button" onclick="document.getElementById('port-configure-modal').classList.remove('open')" class="btn-link-plain">Close</button>
+            <button type="button" id="port-cfg-save" class="btn btn-success">Save</button>
         </div>
     </div>
 </div>
