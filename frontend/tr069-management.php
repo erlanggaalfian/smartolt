@@ -118,7 +118,7 @@ foreach ($profiles as $p) {
                         </td>
                         <td>
                             <button class="btn btn-secondary btn-sm" onclick='editProfile(<?= json_encode($p) ?>)'><i data-lucide="pencil" class="icon-sm"></i></button>
-                            <button class="btn btn-secondary btn-sm" class="text-danger" onclick="deleteProfile(<?= $p['id'] ?>, '<?= htmlspecialchars($p['name']) ?>')"><i data-lucide="trash-2" class="icon-sm"></i></button>
+                            <button class="btn btn-secondary btn-sm text-danger" onclick="deleteProfile(<?= $p['id'] ?>, '<?= htmlspecialchars($p['name']) ?>')"><i data-lucide="trash-2" class="icon-sm"></i></button>
                         </td>
                     </tr>
                 <?php endforeach; ?>
