@@ -237,18 +237,18 @@ include __DIR__ . '/header.php';
 
 <div class="content-card">
     <div class="card-header">
-        <h1 id="page-title"><i data-lucide="shield" style="width:18px;height:18px;"></i> VPN Tunnels</h1>
-        <div style="display:flex;gap:8px;align-items:center;">
+        <h1 id="page-title"><i data-lucide="shield" class="icon-md"></i> VPN Tunnels</h1>
+        <div class="inline-flex-center">
             <button class="btn btn-primary btn-sm" onclick="document.getElementById('add-modal').classList.add('open')">
-                <i data-lucide="plus" style="width:14px;height:14px;"></i> Add VPN
+                <i data-lucide="plus" class="icon-sm"></i> Add VPN
             </button>
         </div>
     </div>
 
 <?php if (empty($tunnels)): ?>
-    <div style="text-align:center;padding:60px 20px;color:var(--text-muted);">
-        <i data-lucide="shield-off" style="width:48px;height:48px;opacity:0.3;"></i>
-        <p style="margin-top:12px;">Belum ada VPN tunnel</p>
+    <div class="empty-state empty-state--lg">
+        <i data-lucide="shield-off" class="icon-empty"></i>
+        <p class="mt-3">Belum ada VPN tunnel</p>
     </div>
 <?php else: ?>
     <div class="table-responsive">
@@ -272,36 +272,36 @@ include __DIR__ . '/header.php';
             ?>
                 <tr>
                     <td>
-                        <span class="badge <?= $is_connected ? 'badge-green' : 'badge-red' ?>" style="font-size:11px;">
-                            <i data-lucide="<?= $is_connected ? 'wifi' : 'wifi-off' ?>" style="width:12px;height:12px;"></i>
+                        <span class="badge <?= $is_connected ? 'badge-green' : 'badge-red' ?> fs-xs">
+                            <i data-lucide="<?= $is_connected ? 'wifi' : 'wifi-off' ?>" class="icon-xs"></i>
                             <?= $is_connected ? 'Connected' : 'Disconnected' ?>
                         </span>
                     </td>
                     <td class="mono"><?= htmlspecialchars($t['username']) ?></td>
-                    <td><?= $t['client_ip'] ? htmlspecialchars($t['client_ip']) : '<span style="color:var(--text-muted)">—</span>' ?></td>
+                    <td><?= $t['client_ip'] ? htmlspecialchars($t['client_ip']) : '<span class="text-muted">—</span>' ?></td>
                     <td class="mono"><?= htmlspecialchars($t['tunnel_ip'] ?? '-') ?></td>
                     <td>
                         <?php if ($routes_count > 0): ?>
                             <span class="badge badge-blue"><?= $routes_count ?> route<?= $routes_count > 1 ? 's' : '' ?></span>
                         <?php else: ?>
-                            <span style="color:var(--text-muted)">—</span>
+                            <span class="text-muted">—</span>
                         <?php endif; ?>
                     </td>
-                    <td class="mono" style="font-size:12px;"><?= htmlspecialchars($t['subnet'] ?? '10.198.198.0/24') ?></td>
+                    <td class="mono fs-xs"><?= htmlspecialchars($t['subnet'] ?? '10.198.198.0/24') ?></td>
                     <td>
-                        <div style="display:flex;gap:4px;">
+                        <div class="flex-row gap-2">
                             <button class="btn btn-xs btn-outline" onclick="showMikrotik(<?= $t['id'] ?>)" title="Setup MikroTik">
-                                <i data-lucide="terminal" style="width:13px;height:13px;"></i>
+                                <i data-lucide="terminal" class="icon-sm"></i>
                             </button>
                             <a href="vpn-tunnels.php?edit=<?= $t['id'] ?>" class="btn btn-xs btn-outline" title="Edit">
-                                <i data-lucide="pencil" style="width:13px;height:13px;"></i>
+                                <i data-lucide="pencil" class="icon-sm"></i>
                             </a>
-                            <form method="post" style="display:inline;" onsubmit="return confirm('Hapus tunnel <?= htmlspecialchars($t['username']) ?>?')">
+                            <form method="post" class="form-inline-block" onsubmit="return confirm('Hapus tunnel <?= htmlspecialchars($t['username']) ?>?')">
                                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
                                 <input type="hidden" name="action" value="delete">
                                 <input type="hidden" name="id" value="<?= $t['id'] ?>">
-                                <button type="submit" class="btn btn-xs btn-outline" style="color:var(--color-red);" title="Hapus">
-                                    <i data-lucide="trash-2" style="width:13px;height:13px;"></i>
+                                <button type="submit" class="btn btn-xs btn-outline text-danger" title="Hapus">
+                                    <i data-lucide="trash-2" class="icon-sm"></i>
                                 </button>
                             </form>
                         </div>
@@ -316,7 +316,7 @@ include __DIR__ . '/header.php';
 
 <!-- ADD MODAL -->
 <div class="modal" id="add-modal" role="dialog" aria-modal="true">
-    <div class="modal-content" style="max-width:520px;">
+    <div class="modal-content modal-w-520">
         <div class="modal-header"><h3>Add VPN Tunnel</h3></div>
         <form method="post">
             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
@@ -327,11 +327,11 @@ include __DIR__ . '/header.php';
                     <div class="form-group"><label>Password</label><input type="text" name="password" class="form-control" required></div>
                 </div>
                 <div class="form-group">
-                    <label>Tunnel Routes <small style="color:var(--text-muted)">(subnet per baris, contoh: 192.168.1.0/24)</small></label>
+                    <label>Tunnel Routes <small class="text-muted">(subnet per baris, contoh: 192.168.1.0/24)</small></label>
                     <div id="add-routes-container">
-                        <div style="display:flex;gap:4px;margin-bottom:4px;align-items:center;">
-                            <input type="text" name="routes[]" class="form-control" placeholder="192.168.1.0/24" style="flex:1;">
-                            <button type="button" class="btn btn-xs btn-outline" style="color:var(--color-danger);min-width:28px;" onclick="this.parentElement.remove()">×</button>
+                        <div class="inline-flex-center mb-1">
+                            <input type="text" name="routes[]" class="form-control flex-1" placeholder="192.168.1.0/24">
+                            <button type="button" class="btn btn-xs btn-outline text-danger btn-x" onclick="this.parentElement.remove()">×</button>
                         </div>
                     </div>
                     <button type="button" class="btn btn-xs btn-outline" onclick="addRouteRow('add-routes-container')">+ Tambah Route</button>
@@ -352,7 +352,7 @@ include __DIR__ . '/header.php';
     if (empty($edit_routes)) $edit_routes = [''];
 ?>
 <div class="modal open" role="dialog" aria-modal="true">
-    <div class="modal-content" style="max-width:520px;">
+    <div class="modal-content modal-w-520">
         <div class="modal-header"><h3>Edit VPN Tunnel — <?= htmlspecialchars($edit_tunnel['username']) ?></h3></div>
         <form method="post">
             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
@@ -367,9 +367,9 @@ include __DIR__ . '/header.php';
                     <label>Tunnel Routes</label>
                     <div id="edit-routes-container">
                         <?php foreach ($edit_routes as $r): ?>
-                            <div style="display:flex;gap:4px;margin-bottom:4px;align-items:center;">
-                                <input type="text" name="routes[]" class="form-control" value="<?= htmlspecialchars($r) ?>" placeholder="192.168.1.0/24" style="flex:1;">
-                                <button type="button" class="btn btn-xs btn-outline" style="color:var(--color-danger);min-width:28px;" onclick="this.parentElement.remove()">×</button>
+                            <div class="inline-flex-center mb-1">
+                                <input type="text" name="routes[]" class="form-control" value="<?= htmlspecialchars($r) ?>" placeholder="192.168.1.0/24" class="flex-1">
+                                <button type="button" class="btn btn-xs btn-outline text-danger btn-x" onclick="this.parentElement.remove()">×</button>
                             </div>
                         <?php endforeach; ?>
                     </div>
@@ -387,24 +387,24 @@ include __DIR__ . '/header.php';
 
 <!-- SETUP MIKROTIK MODAL -->
 <div class="modal" id="mt-modal" role="dialog" aria-modal="true">
-    <div class="modal-content" style="max-width:620px;">
+    <div class="modal-content modal-w-620">
         <div class="modal-header"><h3>Setup MikroTik — <span id="mt-username"></span></h3></div>
         <div class="modal-body">
-            <div id="mt-enable-area" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:180px;gap:12px;">
-                <p style="font-size:14px;color:var(--text-muted);">Aktifkan download cert untuk setup VPN</p>
-                <button type="button" id="cert-enable-btn" class="btn btn-primary" onclick="toggleCertAccess()" style="padding:10px 28px;font-size:14px;">Enable Cert Download (5m)</button>
+            <div id="mt-enable-area" class="cert-enable-area">
+                <p class="text-muted">Aktifkan download cert untuk setup VPN</p>
+                <button type="button" id="cert-enable-btn" class="btn btn-primary" onclick="toggleCertAccess()">Enable Cert Download (5m)</button>
             </div>
             <div id="mt-script-area" style="display:none;">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                    <p style="font-size:13px;color:var(--text-muted);margin:0;">Copy-paste script ini ke terminal MikroTik:</p>
-                    <span id="cert-countdown" style="font-size:13px;color:#ef4444;font-weight:600;"></span>
+                <div class="flex-between mb-2">
+                    <p class="text-muted fs-sm m-0">Copy-paste script ini ke terminal MikroTik:</p>
+                    <span id="cert-countdown" class="text-danger fs-sm fw-600"></span>
                 </div>
-                <textarea id="mt-script" class="form-control" rows="14" style="font-family:monospace;font-size:12px;resize:vertical;" readonly></textarea>
+                <textarea id="mt-script" class="form-control code-area" rows="14" readonly></textarea>
             </div>
         </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" onclick="document.getElementById('mt-modal').classList.remove('open')">Tutup</button>
-            <button type="button" id="mt-copy-btn" class="btn btn-primary" onclick="copyMtScript()" style="display:none;">Copy Script</button>
+            <button type="button" id="mt-copy-btn" class="btn btn-primary" style="display:none;" onclick="copyMtScript()">Copy Script</button>
         </div>
     </div>
 </div>

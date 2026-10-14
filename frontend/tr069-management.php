@@ -53,8 +53,8 @@ foreach ($profiles as $p) {
 
 <!-- TAB BAR -->
 <div class="tr069-tab-bar">
-    <button class="tr069-tab active" data-tab="profiles"><i data-lucide="file-cog" style="width:14px;height:14px;"></i> TR-069 Profiles</button>
-    <button class="tr069-tab" data-tab="status"><i data-lucide="activity" style="width:14px;height:14px;"></i> TR-069 Status</button>
+    <button class="tr069-tab active" data-tab="profiles"><i data-lucide="file-cog" class="icon-sm"></i> TR-069 Profiles</button>
+    <button class="tr069-tab" data-tab="status"><i data-lucide="activity" class="icon-sm"></i> TR-069 Status</button>
 </div>
 
 <!-- TAB 1: PROFILES -->
@@ -63,30 +63,30 @@ foreach ($profiles as $p) {
     <?php if ($default): ?>
     <div class="profile-default">
         <div class="pd-header">
-            <i data-lucide="shield-check" style="width:20px;height:20px;color:var(--text-accent);"></i>
-            <strong style="font-size:1.05rem;"><?= htmlspecialchars($default['name']) ?></strong>
+            <i data-lucide="shield-check" class="icon-lg text-accent"></i>
+            <strong class="fs-lg"><?= htmlspecialchars($default['name']) ?></strong>
             <span class="pd-badge">Default</span>
-            <button class="btn btn-secondary btn-sm" onclick='editProfile(<?= json_encode($default) ?>)' style="margin-left:auto;" title="Edit Username/Password"><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit Auth</button>
+            <button class="btn btn-secondary btn-sm" onclick='editProfile(<?= json_encode($default) ?>)' class="ml-auto" title="Edit Username/Password"><i data-lucide="pencil" class="icon-sm"></i> Edit Auth</button>
         </div>
         <div class="pd-url"><?= htmlspecialchars($default['acs_url']) ?></div>
-        <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:12px;">
-            Username: <strong><?= $default['acs_username'] ? htmlspecialchars($default['acs_username']) : '<span style="color:var(--color-orange);">belum diisi</span>' ?></strong>
+        <div class="text-muted fs-sm mb-3">
+            Username: <strong><?= $default['acs_username'] ? htmlspecialchars($default['acs_username']) : '<span class="text-warning">belum diisi</span>' ?></strong>
         </div>
         <?php if ($default['description']): ?>
-            <p style="color:var(--text-muted);font-size:0.85rem;margin:0 0 12px;"><?= htmlspecialchars($default['description']) ?></p>
+            <p class="text-muted fs-sm mb-3 mt-0"><?= htmlspecialchars($default['description']) ?></p>
         <?php endif; ?>
         <div class="pd-status">
             <?php foreach ($health['services'] as $svc): ?>
             <div class="pd-svc">
                 <span class="status-dot <?= $svc['status']==='running' ? 'dot-green' : 'dot-red' ?>"></span>
                 <?= htmlspecialchars($svc['name']) ?>:<?= $svc['port'] ?>
-                <span style="color:var(--text-muted);font-size:0.75rem;"><?= $svc['status'] ?></span>
+                <span class="text-muted fs-xs"><?= $svc['status'] ?></span>
             </div>
             <?php endforeach; ?>
             <div class="pd-svc">
                 <span class="status-dot <?= $health['mongodb'] ? 'dot-green' : 'dot-red' ?>"></span>
                 MongoDB
-                <span style="color:var(--text-muted);font-size:0.75rem;"><?= $health['mongodb'] ? 'connected' : 'down' ?></span>
+                <span class="text-muted fs-xs"><?= $health['mongodb'] ? 'connected' : 'down' ?></span>
             </div>
         </div>
     </div>
@@ -94,31 +94,31 @@ foreach ($profiles as $p) {
 
     <div class="content-card">
         <div class="card-header">
-            <h1 id="page-title"><i data-lucide="list" style="width:18px;height:18px;"></i> Custom Profiles</h1>
-            <button class="btn btn-primary btn-sm" onclick="openProfileModal()"><i data-lucide="plus" style="width:14px;height:14px;"></i> Add Profile</button>
+            <h1 id="page-title"><i data-lucide="list" class="icon-md"></i> Custom Profiles</h1>
+            <button class="btn btn-primary btn-sm" onclick="openProfileModal()"><i data-lucide="plus" class="icon-sm"></i> Add Profile</button>
         </div>
         <div class="table-responsive">
             <table class="data-table">
                 <thead><tr><th>Nama</th><th>ACS URL</th><th>Username</th><th>Status</th><th>Aksi</th></tr></thead>
                 <tbody>
                 <?php if (empty($custom)): ?>
-                    <tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-muted);">Belum ada profil custom.</td></tr>
+                    <tr><td colspan="5" class="empty-state">Belum ada profil custom.</td></tr>
                 <?php endif; ?>
                 <?php foreach ($custom as $p): ?>
                     <tr>
                         <td><strong><?= htmlspecialchars($p['name']) ?></strong></td>
-                        <td><code style="font-size:0.8rem;"><?= htmlspecialchars($p['acs_url']) ?></code></td>
-                        <td style="font-size:0.85rem;"><?= htmlspecialchars($p['acs_username'] ?? '-') ?></td>
+                        <td><code class="fs-xs"><?= htmlspecialchars($p['acs_url']) ?></code></td>
+                        <td class="fs-sm"><?= htmlspecialchars($p['acs_username'] ?? '-') ?></td>
                         <td>
                             <?php if ($p['is_active']): ?>
-                                <span style="color:var(--color-green);font-weight:600;">Active</span>
+                                <span class="text-success fw-600">Active</span>
                             <?php else: ?>
-                                <span style="color:var(--text-muted);">Inactive</span>
+                                <span class="text-muted">Inactive</span>
                             <?php endif; ?>
                         </td>
                         <td>
-                            <button class="btn btn-secondary btn-sm" onclick='editProfile(<?= json_encode($p) ?>)'><i data-lucide="pencil" style="width:13px;height:13px;"></i></button>
-                            <button class="btn btn-secondary btn-sm" style="color:var(--color-red);" onclick="deleteProfile(<?= $p['id'] ?>, '<?= htmlspecialchars($p['name']) ?>')"><i data-lucide="trash-2" style="width:13px;height:13px;"></i></button>
+                            <button class="btn btn-secondary btn-sm" onclick='editProfile(<?= json_encode($p) ?>)'><i data-lucide="pencil" class="icon-sm"></i></button>
+                            <button class="btn btn-secondary btn-sm" class="text-danger" onclick="deleteProfile(<?= $p['id'] ?>, '<?= htmlspecialchars($p['name']) ?>')"><i data-lucide="trash-2" class="icon-sm"></i></button>
                         </td>
                     </tr>
                 <?php endforeach; ?>
@@ -135,17 +135,17 @@ foreach ($profiles as $p) {
         <div class="health-card">
             <div class="label">CWMP</div>
             <div class="value"><span class="status-dot <?= $health['services']['cwmp']['status']==='running' ? 'dot-green' : 'dot-red' ?>"></span><?= $health['services']['cwmp']['status']==='running' ? 'Online' : 'Down' ?></div>
-            <div style="font-size:0.75rem;color:var(--text-muted);">:<?= $health['services']['cwmp']['port'] ?></div>
+            <div class="text-muted fs-xs">:<?= $health['services']['cwmp']['port'] ?></div>
         </div>
         <div class="health-card">
             <div class="label">NBI API</div>
             <div class="value"><span class="status-dot <?= $health['services']['nbi']['status']==='running' ? 'dot-green' : 'dot-red' ?>"></span><?= $health['services']['nbi']['status']==='running' ? 'Online' : 'Down' ?></div>
-            <div style="font-size:0.75rem;color:var(--text-muted);">:<?= $health['services']['nbi']['port'] ?></div>
+            <div class="text-muted fs-xs">:<?= $health['services']['nbi']['port'] ?></div>
         </div>
         <div class="health-card">
             <div class="label">File Server</div>
             <div class="value"><span class="status-dot <?= $health['services']['fs']['status']==='running' ? 'dot-green' : 'dot-red' ?>"></span><?= $health['services']['fs']['status']==='running' ? 'Online' : 'Down' ?></div>
-            <div style="font-size:0.75rem;color:var(--text-muted);">:<?= $health['services']['fs']['port'] ?></div>
+            <div class="text-muted fs-xs">:<?= $health['services']['fs']['port'] ?></div>
         </div>
         <div class="health-card">
             <div class="label">MongoDB</div>
@@ -153,38 +153,38 @@ foreach ($profiles as $p) {
         </div>
     </div>
 
-    <div class="health-grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));">
+    <div class="health-grid health-grid--auto">
         <div class="health-card">
             <div class="label">Total Devices</div>
-            <div class="value" style="color:var(--text-accent);"><?= $health['device_count'] ?></div>
+            <div class="value text-accent"><?= $health['device_count'] ?></div>
         </div>
         <div class="health-card">
             <div class="label">Online (24h)</div>
-            <div class="value" style="color:var(--color-green);"><?= $health['online_24h'] ?></div>
+            <div class="value text-success"><?= $health['online_24h'] ?></div>
         </div>
         <div class="health-card">
             <div class="label">Pending Tasks</div>
-            <div class="value" style="color:var(--color-orange);"><?= count($faults) ?></div>
+            <div class="value text-warning"><?= count($faults) ?></div>
         </div>
     </div>
 
     <!-- Active faults / provisioning tasks -->
-    <div class="content-card" style="margin-top:24px;">
+    <div class="content-card mt-6">
         <div class="card-header">
-            <h2><i data-lucide="alert-triangle" style="width:18px;height:18px;"></i> Active Tasks & Provisioning</h2>
+            <h2><i data-lucide="alert-triangle" class="icon-md"></i> Active Tasks & Provisioning</h2>
         </div>
         <?php if (empty($faults)): ?>
-            <div style="text-align:center;padding:30px;color:var(--text-muted);">Tidak ada task pending.</div>
+            <div class="empty-state">Tidak ada task pending.</div>
         <?php else: ?>
-            <div style="max-height:300px;overflow-y:auto;">
+            <div class="scroll-300">
             <?php foreach ($faults as $t): ?>
                 <div class="fault-item">
-                    <i data-lucide="<?= $t['name']==='setParameterValues' ? 'settings' : 'refresh-cw' ?>" style="width:16px;height:16px;color:var(--text-accent);flex-shrink:0;"></i>
-                    <div style="flex:1;">
+                    <i data-lucide="<?= $t['name']==='setParameterValues' ? 'settings' : 'refresh-cw' ?>" class="icon-sm text-accent"></i>
+                    <div class="flex-1">
                         <strong><?= htmlspecialchars($t['name'] ?? 'unknown') ?></strong>
-                        <span style="color:var(--text-muted);font-size:0.8rem;margin-left:8px;"><?= htmlspecialchars($t['device'] ?? '') ?></span>
+                        <span class="text-muted fs-xs ml-2"><?= htmlspecialchars($t['device'] ?? '') ?></span>
                     </div>
-                    <span style="color:var(--text-muted);font-size:0.75rem;"><?= isset($t['timestamp']) ? date('d/m H:i', strtotime($t['timestamp'])) : '-' ?></span>
+                    <span class="text-muted fs-xs"><?= isset($t['timestamp']) ? date('d/m H:i', strtotime($t['timestamp'])) : '-' ?></span>
                 </div>
             <?php endforeach; ?>
             </div>
@@ -192,16 +192,16 @@ foreach ($profiles as $p) {
     </div>
 
     <!-- ONU Inventory -->
-    <div class="content-card" style="margin-top:24px;">
+    <div class="content-card mt-6">
         <div class="card-header">
-            <h2><i data-lucide="router" style="width:18px;height:18px;"></i> ONU Inventory (<?= count($devices) ?>)</h2>
+            <h2><i data-lucide="router" class="icon-md"></i> ONU Inventory (<?= count($devices) ?>)</h2>
         </div>
         <div class="table-responsive">
             <table class="data-table">
                 <thead><tr><th>Manufacturer</th><th>Model</th><th>Serial</th><th>SW Version</th><th>RX Power</th><th>Last Inform</th></tr></thead>
                 <tbody>
                 <?php if (empty($devices)): ?>
-                    <tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted);">Belum ada ONU terdaftar di ACS.</td></tr>
+                    <tr><td colspan="6" class="empty-state">Belum ada ONU terdaftar di ACS.</td></tr>
                 <?php endif; ?>
                 <?php foreach ($devices as $d):
                     $info = $d['InternetGatewayDevice']['DeviceInfo'] ?? [];
@@ -229,14 +229,14 @@ foreach ($profiles as $p) {
 
 <!-- ADD/EDIT PROFILE MODAL -->
 <div class="modal" id="profile-modal" role="dialog" aria-modal="true" aria-labelledby="profile-modal-title">
-    <div class="modal-content" style="max-width:500px;">
+    <div class="modal-content modal-sm-inner">
         <div class="modal-header">
             <h3 id="profile-modal-title">Add TR-069 Profile</h3>
             <button class="modal-close" onclick="closeProfileModal()">&times;</button>
         </div>
         <div class="modal-body">
             <input type="hidden" id="profile-id" value="">
-            <div class="form-grid" style="grid-template-columns:1fr;">
+            <div class="form-grid form-grid--1col">
                 <div class="form-group">
                     <label>Nama Profil</label>
                     <input type="text" id="profile-name" placeholder="Contoh: ZTE OLT Jakarta">
@@ -245,7 +245,7 @@ foreach ($profiles as $p) {
                     <label>ACS URL</label>
                     <input type="text" id="profile-url" placeholder="http://192.168.1.100:7559">
                 </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div class="grid-2">
                     <div class="form-group">
                         <label>Username</label>
                         <input type="text" id="profile-username" placeholder="ACS username">
@@ -257,11 +257,11 @@ foreach ($profiles as $p) {
                 </div>
                 <div class="form-group">
                     <label>Deskripsi</label>
-                    <textarea id="profile-desc" rows="2" style="width:100%;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-main);padding:10px;resize:vertical;"></textarea>
+                    <textarea id="profile-desc" rows="2" class="form-control"></textarea>
                 </div>
             </div>
         </div>
-        <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:8px;">
+        <div class="modal-footer flex-end">
             <button class="btn btn-secondary" onclick="closeProfileModal()">Batal</button>
             <button class="btn btn-primary" onclick="saveProfile()">Simpan</button>
         </div>
