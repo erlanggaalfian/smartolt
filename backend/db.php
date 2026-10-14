@@ -43,16 +43,12 @@ function parse_structured_description(?string $desc): array {
         'contact' => null,
         'external_id' => null
     ];
-    // Zone: ambil semua antara zone_ dan _descr_ (bisa punya underscore/spasi)
-    if (preg_match('/zone_(.*?)(?:_descr_|_odb_|_authd_|_contact_|_name_|$)/i', $desc, $m)) {
-        $val = trim(str_replace('_', ' ', $m[1]));
+    if (preg_match('/zone_([^_]+)/i', $desc, $m)) {
+        $val = trim($m[1]);
         $res['zone'] = ($val !== '' && $val !== 'None') ? $val : null;
     }
-    // Address/descr: ambil semua antara descr_ dan delimiter berikutnya
-    if (preg_match('/descr_(.*?)(?:_odb_|_authd_|_contact_|_name_|$)/i', $desc, $m)) {
+    if (preg_match('/descr_(.*?)(_odb_|_authd_|_contact_|_name_|$)/i', $desc, $m)) {
         $val = trim($m[1]);
-        // Normalisasi underscore -> spasi kecuali untuk separator yang sudah ada spasi
-        $val = preg_replace('/(?<=\w)_(?=\w)/', ' ', $val);
         $res['address'] = ($val !== '' && $val !== 'None') ? $val : null;
     }
     if (preg_match('/_odb_(.*?)(?:_authd|_auth|_extid|$)/i', $desc, $m)) {
