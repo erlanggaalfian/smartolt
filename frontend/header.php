@@ -122,50 +122,50 @@ session_write_close();
             <header class="top-header">
                 <div class="header-left">
                     <a href="dashboard.php" class="topnav-brand">
-                        <i data-lucide="network" style="width:18px; height:18px;"></i> SmartOLT
+                        <i data-lucide="network" class="icon-md"></i> SmartOLT
                     </a>
                     <nav class="topnav-links">
                         <a href="dashboard.php" class="topnav-item <?php echo $current_page === 'dashboard.php' ? 'active' : ''; ?>">
-                            <i data-lucide="layout-dashboard" style="width:14px; height:14px;"></i> Dashboard
+                            <i data-lucide="layout-dashboard" class="icon-sm"></i> Dashboard
                         </a>
                         <a href="unconfigured.php" class="topnav-item <?php echo $current_page === 'unconfigured.php' ? 'active' : ''; ?>">
-                            <i data-lucide="scan-eye" style="width:14px; height:14px;"></i> Unconfigured
+                            <i data-lucide="scan-eye" class="icon-sm"></i> Unconfigured
                         </a>
                         <a href="configured.php" class="topnav-item <?php echo $current_page === 'configured.php' ? 'active' : ''; ?>">
-                            <i data-lucide="users" style="width:14px; height:14px;"></i> Configured
+                            <i data-lucide="users" class="icon-sm"></i> Configured
                         </a>
                         <?php if (can_access_settings()): ?>
                             <div class="topnav-dropdown">
                                 <button class="topnav-item topnav-dropdown-toggle <?php echo ($current_page === 'settings-olt.php' || $current_page === 'settings-users.php') ? 'active' : ''; ?>" onclick="event.stopImmediatePropagation(); this.parentElement.classList.toggle('open');">
-                                    <i data-lucide="settings" style="width:14px; height:14px;"></i> Settings <i data-lucide="chevron-down" style="width:12px; height:12px;"></i>
+                                    <i data-lucide="settings" class="icon-sm"></i> Settings <i data-lucide="chevron-down" class="icon-xs"></i>
                                 </button>
                                 <div class="topnav-dropdown-menu">
                                     <a href="settings-olt.php" class="topnav-dropdown-item <?php echo $current_page === 'settings-olt.php' ? 'active' : ''; ?>">
-                                        <i data-lucide="server" style="width:14px; height:14px;"></i> OLT Management
+                                        <i data-lucide="server" class="icon-sm"></i> OLT Management
                                     </a>
                                     <a href="settings-users.php" class="topnav-dropdown-item <?php echo $current_page === 'settings-users.php' ? 'active' : ''; ?>">
-                                        <i data-lucide="users-round" style="width:14px; height:14px;"></i> User Management
+                                        <i data-lucide="users-round" class="icon-sm"></i> User Management
                                     </a>
                                     <a href="onu-types.php" class="topnav-dropdown-item <?php echo $current_page === 'onu-types.php' ? 'active' : ''; ?>">
-                                        <i data-lucide="cpu" style="width:14px; height:14px;"></i> ONU Types
+                                        <i data-lucide="cpu" class="icon-sm"></i> ONU Types
                                     </a>
                                     <a href="splitters.php" class="topnav-dropdown-item <?php echo $current_page === 'splitters.php' ? 'active' : ''; ?>">
-                                        <i data-lucide="git-branch" style="width:14px; height:14px;"></i> Splitters
+                                        <i data-lucide="git-branch" class="icon-sm"></i> Splitters
                                     </a>
                                     <a href="settings-speed-profiles.php" class="topnav-dropdown-item <?php echo $current_page === 'settings-speed-profiles.php' ? 'active' : ''; ?>">
-                                        <i data-lucide="gauge" style="width:14px; height:14px;"></i> Speed Profile
+                                        <i data-lucide="gauge" class="icon-sm"></i> Speed Profile
                                     </a>
                                     <a href="vpn-tunnels.php" class="topnav-dropdown-item <?php echo $current_page === 'vpn-tunnels.php' ? 'active' : ''; ?>">
-                                        <i data-lucide="shield" style="width:14px; height:14px;"></i> VPN Tunnels
+                                        <i data-lucide="shield" class="icon-sm"></i> VPN Tunnels
                                     </a>
                                     <a href="tr069-management.php" class="topnav-dropdown-item <?php echo in_array($current_page, ['tr069-management.php']) ? 'active' : ''; ?>">
-                                        <i data-lucide="file-cog" style="width:14px; height:14px;"></i> TR-069 Management
+                                        <i data-lucide="file-cog" class="icon-sm"></i> TR-069 Management
                                     </a>
                                 </div>
                             </div>
                         <?php endif; ?>
                         <a href="logs.php" class="topnav-item <?php echo $current_page === 'logs.php' ? 'active' : ''; ?>">
-                            <i data-lucide="history" style="width:14px; height:14px;"></i> Logs
+                            <i data-lucide="history" class="icon-sm"></i> Logs
                         </a>
                     </nav>
                 </div>
@@ -175,23 +175,23 @@ session_write_close();
                         <span>System Active</span>
                     </div>
                     <?php if (!empty($_SESSION['debug_mode'])): ?>
-                        <a href="?toggle_debug=1" class="header-btn" title="Debug Mode Active" style="color: #ef4444;">
-                            <i data-lucide="bug" style="width:16px; height:16px;"></i>
+                        <a href="?toggle_debug=1" class="header-btn text-danger" title="Debug Mode Active">
+                            <i data-lucide="bug" class="icon-sm"></i>
                         </a>
                     <?php else: ?>
                         <a href="?toggle_debug=1" class="header-btn" title="Toggle Debug Mode">
-                            <i data-lucide="bug" style="width:16px; height:16px;"></i>
+                            <i data-lucide="bug" class="icon-sm"></i>
                         </a>
                     <?php endif; ?>
                     <button id="theme-toggle" class="header-btn" title="Toggle Tema">
-                        <i data-lucide="sun" style="width:16px; height:16px;"></i>
+                        <i data-lucide="sun" class="icon-sm"></i>
                     </button>
                     <div class="topnav-user">
                         <span class="topnav-user-avatar"><?php echo isset($_SESSION['smartolt_username']) ? strtoupper(substr($_SESSION['smartolt_username'], 0, 2)) : 'US'; ?></span>
                         <span class="topnav-user-name"><?php echo isset($_SESSION['smartolt_username']) ? htmlspecialchars($_SESSION['smartolt_username']) : 'User'; ?></span>
                     </div>
                     <a href="action/logout.php" class="header-btn" title="Logout">
-                        <i data-lucide="log-out" style="width:16px; height:16px;"></i>
+                        <i data-lucide="log-out" class="icon-sm"></i>
                     </a>
                 </div>
             </header>
@@ -200,20 +200,20 @@ session_write_close();
             <div class="view-panel">
                 <?php if (isset($_SESSION['debug_log'])): ?>
                     <!-- Terminal Modal -->
-                    <div class="modal open" id="debug-log-modal" role="dialog" aria-modal="true" aria-labelledby="debug-log-modal-title" style="z-index: 9999; display: flex; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);">
-                        <div class="modal-content" style="max-width: 800px; width: 90%; border-radius: 6px; box-shadow: 0 4px 20px rgba(0,0,0,0.25); border: none; background: #1e1e1e; color: #f8f8f2; font-family: 'Courier New', Courier, monospace; display: flex; flex-direction: column;">
-                            <div class="modal-header" style="border-bottom: 1px solid #333; padding: 15px 24px; display: flex; justify-content: space-between; align-items: center; background: #2d2d2d; border-top-left-radius: 6px; border-top-right-radius: 6px;">
-                                <h3 id="debug-log-modal-title" style="margin:0; font-size:1.1rem; font-weight:500; color:#fff; display: flex; align-items: center; gap: 8px;">
-                                    <i data-lucide="terminal" style="width:18px; height:18px; color: #a6e22e;"></i> OLT CLI Debug Log Tracing
+                    <div class="modal open" id="debug-log-modal" role="dialog" aria-modal="true" aria-labelledby="debug-log-modal-title">
+                        <div class="modal-content modal-lg debug-console">
+                            <div class="modal-header">
+                                <h3 id="debug-log-modal-title" class="modal-title inline-flex-center">
+                                    <i data-lucide="terminal" class="icon-md"></i> OLT CLI Debug Log Tracing
                                 </h3>
-                                <button type="button" class="close-btn" aria-label="Tutup" onclick="document.getElementById('debug-log-modal').style.display='none'" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:#94a3b8; line-height: 1;">&times;</button>
+                                <button type="button" class="modal-close" aria-label="Tutup" onclick="document.getElementById('debug-log-modal').style.display='none'">&times;</button>
                             </div>
-                            <div class="modal-body" style="padding: 24px; max-height: 450px; overflow-y: auto;">
-                                <div style="font-weight: bold; color: #66d9ef; margin-bottom: 10px;">[Sent Commands & OLT CLI Trace Output]</div>
-                                <pre style="white-space: pre-wrap; font-size: 0.9rem; margin: 0; line-height: 1.4; color: #a6e22e; font-family: 'Courier New', Courier, monospace;"><?php echo htmlspecialchars($_SESSION['debug_log']); ?></pre>
+                            <div class="modal-body debug-console-body">
+                                <div class="debug-console-caption">[Sent Commands & OLT CLI Trace Output]</div>
+                                <pre class="debug-console-pre"><?php echo htmlspecialchars($_SESSION['debug_log']); ?></pre>
                             </div>
-                            <div class="modal-footer" style="padding: 15px 24px; border-top: 1px solid #333; display:flex; justify-content:flex-end; align-items:center; background: #2d2d2d; border-bottom-left-radius: 6px; border-bottom-right-radius: 6px;">
-                                <button type="button" onclick="document.getElementById('debug-log-modal').style.display='none'" style="padding:8px 24px; border-radius:4px; background:#a6e22e; color:#000; border:none; cursor:pointer; font-weight:600; font-size:0.95rem; font-family: 'Montserrat', sans-serif;">Close</button>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-success" onclick="document.getElementById('debug-log-modal').style.display='none'">Close</button>
                             </div>
                         </div>
                     <script>
@@ -235,14 +235,14 @@ session_write_close();
                 <?php endif; ?>
 
                 <?php if (!empty($_flash_success)): ?>
-                    <div style="background:rgba(16,185,129,0.15); border:1px solid #10b981; color:#10b981; padding:12px 16px; border-radius:6px; margin-bottom:20px; font-weight:600; font-size:0.9rem; display:flex; align-items:center; gap:8px;">
-                        <i data-lucide="check-circle" style="width:18px; height:18px;"></i>
+                    <div class="alert alert-success">
+                        <i data-lucide="check-circle" class="icon-md"></i>
                         <span><?php echo htmlspecialchars($_flash_success); ?></span>
                     </div>
                 <?php endif; ?>
                 <?php if (!empty($_flash_error)): ?>
-                    <div style="background:rgba(239,68,68,0.15); border:1px solid #ef4444; color:#ef4444; padding:12px 16px; border-radius:6px; margin-bottom:20px; font-weight:600; font-size:0.9rem; display:flex; align-items:center; gap:8px;">
-                        <i data-lucide="alert-triangle" style="width:18px; height:18px;"></i>
+                    <div class="alert alert-danger">
+                        <i data-lucide="alert-triangle" class="icon-md"></i>
                         <span><?php echo htmlspecialchars($_flash_error); ?></span>
                     </div>
                 <?php endif; ?>
