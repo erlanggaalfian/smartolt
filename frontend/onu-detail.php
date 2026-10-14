@@ -124,7 +124,7 @@ $parsed_desc = [
     'contact' => $onu['contact'] ?: 'None',
     'external_id' => $onu['external_id'] ?: null,
     'auth_date' => null,
-    'clean_name' => $onu['name']
+    'clean_name' => display_name($onu['name'])
 ];
 
 // Fallback: HANYA jika kolom DB kosong (data lama belum pernah di-sync ulang),
