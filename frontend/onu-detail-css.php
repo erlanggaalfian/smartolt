@@ -145,51 +145,6 @@
     flex-grow: 1;
 }
 
-/* Flat buttons */
-.btn-solt {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    font-family: var(--font-body, 'Montserrat', sans-serif);
-    font-size: 0.88rem;
-    font-weight: 600;
-    border-radius: var(--radius-sm, 6px);
-    border: none;
-    cursor: pointer;
-    transition: var(--transition-fast);
-    text-decoration: none;
-}
-.btn-solt:hover {
-    transform: translateY(-1px);
-    opacity: 0.9;
-}
-
-.btn-solt-blue {
-    background: var(--color-info, #0066cc);
-    color: #ffffff !important;
-}
-
-.btn-solt-green {
-    background: var(--color-success, #28a745);
-    color: var(--color-black) !important;
-}
-
-.btn-solt-orange {
-    background: var(--color-warning, #fd7e14);
-    color: var(--color-black) !important;
-}
-
-.btn-solt-yellow {
-    background: var(--color-warning, #ffc107);
-    color: #212529 !important;
-}
-
-.btn-solt-red {
-    background: var(--color-danger, #dc3545);
-    color: #ffffff !important;
-}
-
 /* Charts grid */
 .flex-row-gap {
     display: flex;
@@ -260,31 +215,6 @@
 .download-dot { background: #3081d1; }
 .upload-dot { background: #f59e0b; }
 .signal-dot { background: #f97316; }
-
-/* Tables */
-.smartolt-data-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 5px;
-}
-
-.smartolt-data-table th, .smartolt-data-table td {
-    border: 1px solid var(--border-color, #e2e8f0) !important;
-    padding: 10px 14px;
-    text-align: left;
-    font-size: 0.88rem;
-}
-
-.smartolt-data-table th {
-    background: var(--bg-tertiary, #f8fafc);
-    color: var(--text-main, #475569);
-    font-weight: 600;
-}
-
-.smartolt-data-table td {
-    color: var(--text-main, #334155);
-    background: var(--bg-secondary, #ffffff);
-}
 
 .action-link {
     color: var(--text-accent, #0284c7);
@@ -371,25 +301,19 @@
     margin: 0;
 }
 
-.form-group {
-    margin-bottom: 18px;
-}
-.form-control {
-    width: 100%;
-    padding: 10px 14px;
-    border: 1px solid var(--border-color, #cbd5e1);
-    border-radius: var(--radius-sm, 6px);
-    font-size: 0.9rem;
-    color: var(--text-main, #1e293b);
-    box-sizing: border-box;
-    background: var(--bg-primary, #ffffff);
-    transition: var(--transition-fast);
-}
-.form-control:focus {
-    border-color: var(--text-accent, #0284c7);
-    outline: none;
-    box-shadow: var(--shadow-glow);
-}
+
+/* Page-specific helpers (onu-detail) */
+.detail-plain-value--ellipsis { flex-wrap: nowrap; overflow: hidden; min-width: 0; white-space: nowrap; text-overflow: ellipsis; }
+.detail-autorefresh { font-size: 0.75rem; color: var(--text-muted); margin-left: 6px; }
+.status-cli-output { display: none; margin-top: 10px; padding: 16px; font-size: 0.85rem; line-height: 1.6; color: var(--text-main); width: 100%; }
+.chart-legend-note { margin-top: 4px; color: var(--text-muted); font-size: 0.8rem; }
+.rx-onu-dot { background: #22d3ee; }
+.rx-olt-dot { background: #a855f7; }
+.port-table { width: 100%; margin-top: 6px; }
+.w-45 { width: 45%; }
+.w-10 { width: 10%; }
+.smartolt-row--tight { margin-bottom: 12px; padding-bottom: 12px; border-bottom: none; }
+.smartolt-row--actions { border-top: 1px solid var(--border-color); padding-top: 24px; }
 
 /* Update ONU Mode modal: stack table rows on narrow screens */
 @media (max-width: 500px) {

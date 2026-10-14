@@ -205,20 +205,6 @@ if (!empty($onu['onu_type'])) {
         ?>
 
 <style>
-
-.spinner-small {
-    width: 14px;
-    height: 14px;
-    border: 2px solid rgba(147, 197, 253, 0.3);
-    border-top-color: #60a5fa;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    display: inline-block;
-    vertical-align: middle;
-}
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
 .animate-spin { animation: spin 1.2s linear infinite; display: inline-block; }
 .skel-text {
     display: inline-block;
@@ -229,6 +215,8 @@ if (!empty($onu['onu_type'])) {
     animation: skel-shimmer 1.3s ease-in-out infinite;
     vertical-align: middle;
 }
+.skel-w-44 { width: 44px; }
+.skel-w-52 { width: 52px; }
 @keyframes skel-shimmer {
     0% { background-position: 200% 0; }
     100% { background-position: -200% 0; }
@@ -236,7 +224,7 @@ if (!empty($onu['onu_type'])) {
 </style>
 
 <div class="smartolt-layout">
-    <h1 id="page-title" style="margin-bottom:16px;">Detail ONU — <?php echo htmlspecialchars($parsed_desc['clean_name'] ?: $onu['serial_number']); ?></h1>
+    <h1 id="page-title" class="mb-4">Detail ONU — <?php echo htmlspecialchars($parsed_desc['clean_name'] ?: $onu['serial_number']); ?></h1>
     <!-- Sync Loading Banner (Bypassed in foreground) -->
 
     <!-- Section 1: Identity & Status (clean text layout, no card/table) -->
@@ -297,7 +285,7 @@ if (!empty($onu['onu_type'])) {
 
             <div class="detail-plain-row" data-clickable onclick="document.getElementById('edit-identity-modal').classList.add('open')">
                 <span class="detail-plain-label">Splitter</span>
-                <span class="detail-plain-value" id="detail-splitter" style="flex-wrap:nowrap; overflow:hidden; min-width:0; white-space:nowrap; text-overflow:ellipsis;" title="<?php echo htmlspecialchars(($parsed_desc['splitter'] && strtolower($parsed_desc['splitter']) !== 'none') ? $parsed_desc['splitter'] : 'Belum diisi'); ?>"><i data-lucide="pencil" style="width:11px;height:11px;flex-shrink:0;"></i> <?php echo htmlspecialchars(($parsed_desc['splitter'] && strtolower($parsed_desc['splitter']) !== 'none') ? $parsed_desc['splitter'] : 'Belum diisi'); ?></span>
+                <span class="detail-plain-value detail-plain-value--ellipsis" id="detail-splitter" title="<?php echo htmlspecialchars(($parsed_desc['splitter'] && strtolower($parsed_desc['splitter']) !== 'none') ? $parsed_desc['splitter'] : 'Belum diisi'); ?>"><i data-lucide="pencil" class="icon-xs"></i> <?php echo htmlspecialchars(($parsed_desc['splitter'] && strtolower($parsed_desc['splitter']) !== 'none') ? $parsed_desc['splitter'] : 'Belum diisi'); ?></span>
             </div>
 
             <div class="detail-plain-row" data-clickable onclick="document.getElementById('edit-identity-modal').classList.add('open')">
@@ -337,7 +325,7 @@ if (!empty($onu['onu_type'])) {
                 <span class="detail-plain-label">Lokasi</span>
                 <span class="detail-plain-value">
                     <?php if ($has_coords): ?>
-                        <a href="https://www.google.com/maps?q=<?php echo htmlspecialchars($onu['latitude']); ?>,<?php echo htmlspecialchars($onu['longitude']); ?>" target="_blank" onclick="event.stopPropagation();" style="color:var(--text-accent);">
+                        <a href="https://www.google.com/maps?q=<?php echo htmlspecialchars($onu['latitude']); ?>,<?php echo htmlspecialchars($onu['longitude']); ?>" target="_blank" onclick="event.stopPropagation();" class="text-accent">
                             <i data-lucide="map-pin" class="icon-sm"></i> <?php echo htmlspecialchars($onu['latitude'] . ', ' . $onu['longitude']); ?>
                         </a>
                     <?php else: ?>
@@ -356,7 +344,7 @@ if (!empty($onu['onu_type'])) {
                 <span class="detail-plain-value">
                     <span class="detail-status-dot checking" id="detail-status-dot"></span>
                     <span id="detail-status">Memeriksa...</span>
-                    <span style="font-size:0.75rem; color:var(--text-muted); margin-left:6px;">auto-refresh <span id="auto-refresh-countdown" style="font-weight:600; color:var(--text-accent);">15</span>s</span>
+                    <span class="detail-autorefresh">auto-refresh <span id="auto-refresh-countdown" class="fw-600 text-accent">15</span>s</span>
                 </span>
             </div>
 
@@ -382,11 +370,11 @@ if (!empty($onu['onu_type'])) {
                         $olt_color = ($olt_val < -30) ? 'var(--color-danger)' : (($olt_val < -28) ? 'var(--color-orange)' : (($olt_val < -25) ? 'var(--color-amber)' : 'var(--color-success)'));
                     }
                     ?>
-                    <strong id="detail-rx-onu" style="color:<?php echo $onu_color; ?>;"><?php echo $onu['last_rx_power'] !== null ? number_format((float)$onu['last_rx_power'], 2) . ' dBm' : '<span class="skel-text" style="width:52px;"></span>'; ?></strong>
+                    <strong id="detail-rx-onu" style="color:<?php echo $onu_color; ?>;"><?php echo $onu['last_rx_power'] !== null ? number_format((float)$onu['last_rx_power'], 2) . ' dBm' : '<span class="skel-text skel-w-52"></span>'; ?></strong>
                     <span class="text-muted">/</span>
-                    <strong id="detail-rx-olt" style="color:<?php echo $olt_color; ?>;"><?php echo $onu['last_rx_olt_power'] !== null ? number_format((float)$onu['last_rx_olt_power'], 2) . ' dBm' : '<span class="skel-text" style="width:52px;"></span>'; ?></strong>
-                    <span id="detail-distance" class="text-muted"><span class="skel-text" style="width:44px;"></span></span>
-                    <i data-lucide="signal" style="width:14px;height:14px;color:var(--color-success);"></i>
+                    <strong id="detail-rx-olt" style="color:<?php echo $olt_color; ?>;"><?php echo $onu['last_rx_olt_power'] !== null ? number_format((float)$onu['last_rx_olt_power'], 2) . ' dBm' : '<span class="skel-text skel-w-52"></span>'; ?></strong>
+                    <span id="detail-distance" class="text-muted"><span class="skel-text skel-w-44"></span></span>
+                    <i data-lucide="signal" class="icon-sm text-success"></i>
                 </span>
             </div>
 
@@ -410,8 +398,8 @@ if (!empty($onu['onu_type'])) {
                     if ($mgmt_mode === 'Static' || $mgmt_mode === 'DHCP'): ?>
                         <strong><?php echo htmlspecialchars($mgmt_mode); ?></strong>
                         <?php if ($mgmt_ip_display): ?>
-                            <a href="http://<?php echo htmlspecialchars($mgmt_ip_display); ?>" target="_blank" class="chip chip-green" style="text-decoration:none;" onclick="event.stopPropagation();">
-                                <i data-lucide="external-link" style="width:11px;height:11px;display:inline-block;vertical-align:middle;margin-right:4px;"></i><?php echo htmlspecialchars($mgmt_ip_display); ?>
+                            <a href="http://<?php echo htmlspecialchars($mgmt_ip_display); ?>" target="_blank" class="chip chip-green" onclick="event.stopPropagation();">
+                                <i data-lucide="external-link" class="icon-xs"></i><?php echo htmlspecialchars($mgmt_ip_display); ?>
                             </a>
                         <?php else: ?>
                             <span class="chip chip-red">Menunggu IP</span>
@@ -444,7 +432,7 @@ if (!empty($onu['onu_type'])) {
                     <?php
                     $wra = $onu['wan_remote_access'] ?? '';
                     if ($wra === 'yes') {
-                        echo '<span style="color:var(--color-success); font-weight:600;">Aktif</span>';
+                        echo '<span class="text-success fw-600">Aktif</span>';
                     } else {
                         echo '<span class="text-muted">Nonaktif</span>';
                     }
@@ -474,8 +462,8 @@ if (!empty($onu['onu_type'])) {
                         }
                         ?>
                         <?php if (!empty($pppoe_ip_display)): ?>
-                            <a href="http://<?php echo htmlspecialchars($pppoe_ip_display); ?>" target="_blank" class="chip chip-green" style="text-decoration: none;" onclick="event.stopPropagation();">
-                                <i data-lucide="external-link" style="width:11px;height:11px;vertical-align:middle;margin-right:4px;"></i><?php echo htmlspecialchars($pppoe_ip_display); ?>
+                            <a href="http://<?php echo htmlspecialchars($pppoe_ip_display); ?>" target="_blank" class="chip chip-green" onclick="event.stopPropagation();">
+                                <i data-lucide="external-link" class="icon-xs"></i><?php echo htmlspecialchars($pppoe_ip_display); ?>
                             </a>
                         <?php elseif (($onu['wan_mode'] ?? '') === 'PPPoE' && ($onu['status'] ?? '') !== 'offline'): ?>
                             <span class="text-muted">Memuat...</span>
@@ -517,8 +505,8 @@ if (!empty($onu['onu_type'])) {
     <!-- Section 2: Status row (Buttons) -->
     <div class="smartolt-row motion-fade-up">
         <div class="smartolt-label">Status</div>
-        <div class="smartolt-content" style="display:flex; flex-direction:column; gap:10px;">
-            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <div class="smartolt-content flex-col">
+            <div class="flex-row">
                 <button type="button" class="btn btn-secondary" id="btn-onu-refresh-signal"><i data-lucide="refresh-cw" class="icon-sm"></i> Status</button>
                 <button type="button" class="btn btn-secondary" id="btn-show-running-config"><i data-lucide="file-text" class="icon-sm"></i> Show running-config</button>
                 <button type="button" class="btn btn-secondary" id="btn-sw-info"><i data-lucide="info" class="icon-sm"></i> Info SW</button>
@@ -529,7 +517,7 @@ if (!empty($onu['onu_type'])) {
             </div>
             
             <!-- Panel Output CLI Langsung di Bawah Tombol -->
-            <div id="status-cli-output-container" style="display: none; margin-top:10px; padding:16px; font-size:0.85rem; line-height:1.6; color:var(--text-main); width:100%;"></div>
+            <div id="status-cli-output-container" class="status-cli-output"></div>
         </div>
     </div>
 
@@ -539,7 +527,7 @@ if (!empty($onu['onu_type'])) {
         <div class="smartolt-content flex-row-gap">
             <div class="chart-wrapper">
                 <div class="chart-title">gpon-onu_<?php echo htmlspecialchars($onu['pon_port']); ?>:<?php echo htmlspecialchars($onu['onu_id']); ?> trafik</div>
-                <div class="chart-container" style="position: relative; height: 220px; width: 100%;">
+                <div class="chart-container">
                     <canvas id="trafficChart"></canvas>
                 </div>
                 <div class="chart-legend-stats">
@@ -554,23 +542,23 @@ if (!empty($onu['onu_type'])) {
                         <span class="legend-max">Maks: <span id="stat-dl-max">0.00 Mbps</span></span>
                     </div>
                 </div>
-                <div class="chart-legend-stats" style="margin-top:4px; color:var(--text-muted); font-size:0.8rem;">
+                <div class="chart-legend-stats chart-legend-note">
                     Total Paket — RX: <span id="stat-rx-packets">-</span> TX: <span id="stat-tx-packets">-</span>
                 </div>
             </div>
             <div class="chart-wrapper">
                 <div class="chart-title">gpon-onu_<?php echo htmlspecialchars($onu['pon_port']); ?>:<?php echo htmlspecialchars($onu['onu_id']); ?> sinyal</div>
-                <div class="chart-container" style="position: relative; height: 220px; width: 100%;">
+                <div class="chart-container">
                     <canvas id="signalChart"></canvas>
                 </div>
                 <div class="chart-legend-stats">
                     <div class="legend-row">
-                        <span class="legend-label"><span class="legend-dot" style="background:#22d3ee;"></span>Rx ONU</span>
+                        <span class="legend-label"><span class="legend-dot rx-onu-dot"></span>Rx ONU</span>
                         <span class="legend-current"><span id="stat-sig-curr"><?php echo $onu['last_rx_power'] !== null ? number_format((float)$onu['last_rx_power'], 2) . ' dBm' : 'N/A'; ?></span></span>
                         <span></span>
                     </div>
                     <div class="legend-row">
-                        <span class="legend-label"><span class="legend-dot" style="background:#a855f7;"></span>Rx OLT</span>
+                        <span class="legend-label"><span class="legend-dot rx-olt-dot"></span>Rx OLT</span>
                         <span class="legend-current"><span id="stat-sig-olt-curr"><?php echo $onu['last_rx_olt_power'] !== null ? number_format((float)$onu['last_rx_olt_power'], 2) . ' dBm' : 'N/A'; ?></span></span>
                         <span></span>
                     </div>
@@ -586,9 +574,9 @@ if (!empty($onu['onu_type'])) {
             <div class="table-responsive"><table class="data-table">
                 <thead>
                     <tr>
-                        <th style="width: 45%;">Download</th>
-                        <th style="width: 45%;">Upload</th>
-                        <th style="width: 10%;">Aksi</th>
+                        <th class="w-45">Download</th>
+                        <th class="w-45">Upload</th>
+                        <th class="w-10">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -612,11 +600,11 @@ if (!empty($onu['onu_type'])) {
         <div class="smartolt-content" id="port-eth-content">
             <?php $eth_count = (int)$onu_type_specs['ethernet_ports']; ?>
             <?php if ($eth_count > 0): ?>
-                <div style="font-size:0.85rem;">
+                <div class="fs-sm">
                     <span class="fw-600"><?php echo $eth_count; ?> port</span>
                     <span class="text-muted">(<?php echo htmlspecialchars($onu['onu_type']); ?>)</span>
-                    <div class="table-responsive"><table class="data-table" style="width:100%;margin-top:6px;border-collapse:collapse;font-size:0.8rem;">
-                        <tr style="background:var(--bg-secondary);">
+                    <div class="table-responsive"><table class="data-table data-table--compact port-table">
+                        <tr>
                             <th class="text-left p-xs text-muted">Port</th>
                             <th class="text-left p-xs text-muted">Admin state</th>
                             <th class="text-left p-xs text-muted">Mode</th>
@@ -625,11 +613,11 @@ if (!empty($onu['onu_type'])) {
                         </tr>
                         <?php for ($i = 1; $i <= $eth_count; $i++): ?>
                         <tr>
-                            <td style="padding:4px 8px;font-weight:600;">eth_0/<?php echo $i; ?></td>
-                            <td style="padding:4px 8px;color:var(--text-muted);">—</td>
-                            <td style="padding:4px 8px;">LAN</td>
-                            <td style="padding:4px 8px;color:var(--text-muted);">—</td>
-                            <td style="padding:4px 8px;"><a href="javascript:void(0)" class="btn-port-configure" data-port="eth_0/<?php echo $i; ?>" data-type="ethernet" style="color:var(--text-accent,#60a5fa);cursor:pointer;font-size:0.82rem;">Configure</a></td>
+                            <td class="p-xs fw-600">eth_0/<?php echo $i; ?></td>
+                            <td class="p-xs text-muted">—</td>
+                            <td class="p-xs">LAN</td>
+                            <td class="p-xs text-muted">—</td>
+                            <td class="p-xs"><a href="javascript:void(0)" class="btn-port-configure" data-port="eth_0/<?php echo $i; ?>" data-type="ethernet">Configure</a></td>
                         </tr>
                         <?php endfor; ?>
                     </table></div>
@@ -646,11 +634,11 @@ if (!empty($onu['onu_type'])) {
         <div class="smartolt-content" id="port-wifi-content">
             <?php $wifi_count = (int)$onu_type_specs['wifi_ssids']; ?>
             <?php if ($wifi_count > 0): ?>
-                <div style="font-size:0.85rem;">
+                <div class="fs-sm">
                     <span class="fw-600"><?php echo $wifi_count; ?> SSIDs</span>
                     <span class="text-muted">(<?php echo htmlspecialchars($onu['onu_type']); ?>)</span>
-                    <div class="table-responsive"><table class="data-table" style="width:100%;margin-top:6px;border-collapse:collapse;font-size:0.8rem;">
-                        <tr style="background:var(--bg-secondary);">
+                    <div class="table-responsive"><table class="data-table data-table--compact port-table">
+                        <tr>
                             <th class="text-left p-xs text-muted">Port</th>
                             <th class="text-left p-xs text-muted">Admin state</th>
                             <th class="text-left p-xs text-muted">Mode</th>
@@ -659,11 +647,11 @@ if (!empty($onu['onu_type'])) {
                         </tr>
                         <?php for ($i = 1; $i <= $wifi_count; $i++): ?>
                         <tr>
-                            <td style="padding:4px 8px;font-weight:600;">wifi_0/<?php echo $i; ?></td>
-                            <td style="padding:4px 8px;color:var(--text-muted);">—</td>
-                            <td style="padding:4px 8px;">LAN</td>
-                            <td style="padding:4px 8px;color:var(--text-muted);">—</td>
-                            <td style="padding:4px 8px;color:var(--text-muted);">—</td>
+                            <td class="p-xs fw-600">wifi_0/<?php echo $i; ?></td>
+                            <td class="p-xs text-muted">—</td>
+                            <td class="p-xs">LAN</td>
+                            <td class="p-xs text-muted">—</td>
+                            <td class="p-xs text-muted">—</td>
                         </tr>
                         <?php endfor; ?>
                     </table></div>
@@ -675,21 +663,21 @@ if (!empty($onu['onu_type'])) {
     </div>
 
     <!-- Section 7: VoIP, IPTV, CATV status -->
-    <div class="smartolt-row motion-fade-up" style="margin-bottom: 12px; padding-bottom: 12px; border-bottom:none;">
+    <div class="smartolt-row motion-fade-up smartolt-row--tight">
         <div class="smartolt-label">Layanan VoIP</div>
         <div class="smartolt-content" id="port-voip-content">
             <?php if ($onu_type_specs['voip_ports'] > 0): ?>
-                <span style="font-weight:600; color:var(--text-main);"><?php echo (int)$onu_type_specs['voip_ports']; ?> port</span>
+                <span class="fw-600"><?php echo (int)$onu_type_specs['voip_ports']; ?> port</span>
             <?php else: ?>
                 <span class="text-muted">Nonaktif</span>
             <?php endif; ?>
         </div>
     </div>
-    <div class="smartolt-row motion-fade-up" style="margin-bottom: 12px; padding-bottom: 12px; border-bottom:none;">
+    <div class="smartolt-row motion-fade-up smartolt-row--tight">
         <div class="smartolt-label">CATV</div>
         <div class="smartolt-content" id="port-catv-content">
             <?php if ($onu_type_specs['catv']): ?>
-                <span style="font-weight:600; color:var(--color-green);">Didukung</span>
+                <span class="fw-600 text-success">Didukung</span>
             <?php else: ?>
                 <span class="text-muted">Tidak didukung</span>
             <?php endif; ?>
@@ -697,32 +685,32 @@ if (!empty($onu['onu_type'])) {
     </div>
 
     <!-- Section 8: Action buttons (Reboot, Resync, Restore, Disable, Delete) -->
-    <div class="smartolt-row motion-fade-up" style="border-top:1px solid var(--border-color); padding-top:24px;">
+    <div class="smartolt-row motion-fade-up smartolt-row--actions">
         <div class="smartolt-label"></div>
-        <div class="smartolt-content" style="display:flex; gap:10px; flex-wrap:wrap;">
-            <form action="action/reboot-onu.php" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin me-reboot ONT ini?');" style="margin:0;">
+        <div class="smartolt-content flex-row">
+            <form action="action/reboot-onu.php" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin me-reboot ONT ini?');" class="form-inline">
                 <input type="hidden" name="id" value="<?php echo (int)$onu['id']; ?>">
                 <button type="submit" class="btn btn-warning"><i data-lucide="refresh-cw" class="icon-sm"></i> Reboot</button>
             </form>
-            <form action="action/restore-factory.php" method="POST" onsubmit="return confirm('Restore factory akan MENGHAPUS semua konfigurasi ONT dan mengembalikan ke pengaturan pabrik. ONT perlu diotorisasi ulang. Lanjutkan?');" style="margin:0;">
+            <form action="action/restore-factory.php" method="POST" onsubmit="return confirm('Restore factory akan MENGHAPUS semua konfigurasi ONT dan mengembalikan ke pengaturan pabrik. ONT perlu diotorisasi ulang. Lanjutkan?');" class="form-inline">
                 <input type="hidden" name="id" value="<?php echo (int)$onu['id']; ?>">
                 <button type="submit" class="btn btn-warning"><i data-lucide="rotate-ccw" class="icon-sm"></i> Restore Factory</button>
             </form>
             <button type="button" class="btn btn-warning" id="btn-resync-config"><i data-lucide="refresh-ccw" class="icon-sm"></i> Resync config</button>
             <?php if ($onu['status'] === 'disabled'): ?>
-                <form action="action/onu-state.php" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin mengaktifkan kembali ONT ini?');" style="margin:0;">
+                <form action="action/onu-state.php" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin mengaktifkan kembali ONT ini?');" class="form-inline">
                     <input type="hidden" name="id" value="<?php echo (int)$onu['id']; ?>">
                     <input type="hidden" name="action" value="enable">
                     <button type="submit" class="btn btn-warning"><i data-lucide="shield" class="icon-sm"></i> Aktifkan ONU</button>
                 </form>
             <?php else: ?>
-                <form action="action/onu-state.php" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menonaktifkan ONT ini?');" style="margin:0;">
+                <form action="action/onu-state.php" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menonaktifkan ONT ini?');" class="form-inline">
                     <input type="hidden" name="id" value="<?php echo (int)$onu['id']; ?>">
                     <input type="hidden" name="action" value="disable">
                     <button type="submit" class="btn btn-warning"><i data-lucide="shield-alert" class="icon-sm"></i> Nonaktifkan ONU</button>
                 </form>
             <?php endif; ?>
-            <form action="action/delete-onu.php" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pelanggan ini dari OLT?');" style="margin:0;">
+            <form action="action/delete-onu.php" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pelanggan ini dari OLT?');" class="form-inline">
                 <input type="hidden" name="id" value="<?php echo (int)$onu['id']; ?>">
                 <button type="submit" class="btn btn-danger"><i data-lucide="trash-2" class="icon-sm"></i> Hapus</button>
             </form>
@@ -895,7 +883,7 @@ if (!empty($onu['onu_type'])) {
                             if (mgmtMode === 'Static' || mgmtMode === 'DHCP') {
                                 mgmtHtml += `<strong>${esc(mgmtMode)}</strong> `;
                                 if (mgmtIpDisplay) {
-                                    mgmtHtml += `<a href="http://${esc(mgmtIpDisplay)}" target="_blank" class="chip chip-green" style="text-decoration:none;" onclick="event.stopPropagation();"><i data-lucide="external-link" style="width:11px;height:11px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>${esc(mgmtIpDisplay)}</a>`;
+                                    mgmtHtml += `<a href="http://${esc(mgmtIpDisplay)}" target="_blank" class="chip chip-green" onclick="event.stopPropagation();"><i data-lucide="external-link" class="icon-xs"></i>${esc(mgmtIpDisplay)}</a>`;
                                 } else {
                                     mgmtHtml += `<span class="chip chip-red">Menunggu IP</span>`;
                                 }
@@ -935,7 +923,7 @@ if (!empty($onu['onu_type'])) {
                         const wraEl = document.getElementById('detail-wan-remote');
                         if (wraEl && data.wan_remote_access !== undefined) {
                             if (data.wan_remote_access === 'yes') {
-                                wraEl.innerHTML = '<span style="color:var(--color-success); font-weight:600;">Aktif</span>';
+                                wraEl.innerHTML = '<span class="text-success fw-600">Aktif</span>';
                             } else {
                                 wraEl.innerHTML = '<span class="text-muted">Nonaktif</span>';
                             }
@@ -964,7 +952,7 @@ if (!empty($onu['onu_type'])) {
                                 pppoeContainer.innerHTML = '<span class="text-muted">-</span>';
                             } else if (data.pppoe_ip && data.pppoe_ip !== 'N/A' && data.pppoe_ip !== '0.0.0.0' && data.pppoe_ip !== '') {
                                 pppoeContainer.innerHTML = `
-                                    <a href="http://${esc(data.pppoe_ip)}" target="_blank" class="chip chip-green" style="text-decoration: none;" onclick="event.stopPropagation();">
+                                    <a href="http://${esc(data.pppoe_ip)}" target="_blank" class="chip chip-green" onclick="event.stopPropagation();">
                                         <i data-lucide="external-link" style="width:11px; height:11px; display:inline-block; vertical-align:middle; margin-right:4px;"></i>
                                         ${esc(data.pppoe_ip)}
                                     </a>`;
@@ -1772,7 +1760,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                     pppoeContainer.innerHTML = '<span class="text-muted">-</span>';
                                 } else if (data.pppoe_ip && data.pppoe_ip !== 'N/A' && data.pppoe_ip !== '0.0.0.0' && data.pppoe_ip !== '') {
                                     pppoeContainer.innerHTML = `
-                                        <a href="http://${esc(data.pppoe_ip)}" target="_blank" class="chip chip-green" style="text-decoration: none;" onclick="event.stopPropagation();">
+                                        <a href="http://${esc(data.pppoe_ip)}" target="_blank" class="chip chip-green" onclick="event.stopPropagation();">
                                             <i data-lucide="external-link" style="width:11px; height:11px; display:inline-block; vertical-align:middle; margin-right:4px;"></i>
                                             ${esc(data.pppoe_ip)}
                                         </a>`;
@@ -3036,7 +3024,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             const ruleTbl = acl.Rule || {};
                             const ruleIds = Object.keys(ruleTbl).filter(k => /^\d+$/.test(k)).sort((a,b) => a - b);
                             html += '<div class="table-responsive"><table class="data-table" style="width:100%;border-collapse:collapse;font-size:0.8rem;margin-bottom:8px;">';
-                            html += '<tr style="background:var(--bg-secondary);"><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);">ID</th><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);">Active</th><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);">Source IP</th><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);">Protocol</th><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);">Interface</th><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);"></th></tr>';
+                            html += '<tr><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);">ID</th><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);">Active</th><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);">Source IP</th><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);">Protocol</th><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);">Interface</th><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);"></th></tr>';
                             if (ruleIds.length === 0) {
                                 html += '<tr><td colspan="6" style="padding:6px;border:1px solid var(--border-color);color:var(--text-muted);">Belum ada rule.</td></tr>';
                             }
@@ -3755,16 +3743,16 @@ $tr069_profiles = tr069_get_profiles($pdo);
                     const ethDhcpLabel = dhcpEnabled ? 'From ONU' : 'No control';
                     const ethEl = document.getElementById('port-eth-content');
                     if (ethEl && ethPorts.length) {
-                        let h = '<div style="font-size:0.85rem;">';
+                        let h = '<div class="fs-sm">';
                         h += '<span class="fw-600">' + ethPorts.length + ' port</span>';
                         h += ' <span class="text-muted">(ALL-ONT)</span>';
-                        h += '<div class="table-responsive"><table class="data-table" style="width:100%;margin-top:6px;border-collapse:collapse;font-size:0.8rem;">';
-                        h += '<tr style="background:var(--bg-secondary);"><th class="text-left p-xs text-muted">Port</th><th class="text-left p-xs text-muted">Admin state</th><th class="text-left p-xs text-muted">Mode</th><th class="text-left p-xs text-muted">DHCP</th><th class="text-left p-xs text-muted">Action</th></tr>';
+                        h += '<div class="table-responsive"><table class="data-table data-table--compact port-table">';
+                        h += '<tr><th class="text-left p-xs text-muted">Port</th><th class="text-left p-xs text-muted">Admin state</th><th class="text-left p-xs text-muted">Mode</th><th class="text-left p-xs text-muted">DHCP</th><th class="text-left p-xs text-muted">Action</th></tr>';
                         for (const p of ethPorts) {
                             const color = p.enabled ? '#28a745' : '#6c757d';
-                            h += '<tr><td style="padding:4px 8px;font-weight:600;">' + p.name + '</td>';
+                            h += '<tr><td class="p-xs fw-600">' + p.name + '</td>';
                             h += '<td style="padding:4px 8px;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:' + color + ';margin-right:4px;"></span>' + (p.enabled ? 'Enabled' : 'Disabled') + '</td>';
-                            h += '<td style="padding:4px 8px;">LAN</td>';
+                            h += '<td class="p-xs">LAN</td>';
                             h += '<td style="padding:4px 8px;">' + ethDhcpLabel + '</td>';
                             h += '<td style="padding:4px 8px;"><a href="javascript:void(0)" class="btn-port-configure" data-port="' + p.name + '" data-type="ethernet" style="color:var(--text-accent,#60a5fa);cursor:pointer;font-size:0.82rem;">Configure</a></td></tr>';
                         }
@@ -3773,16 +3761,16 @@ $tr069_profiles = tr069_get_profiles($pdo);
                     }
                     const wifiEl = document.getElementById('port-wifi-content');
                     if (wifiEl && wifiList.length) {
-                        let h = '<div style="font-size:0.85rem;">';
+                        let h = '<div class="fs-sm">';
                         h += '<span class="fw-600">' + wifiList.length + ' SSIDs</span>';
                         h += ' <span class="text-muted">(ALL-ONT)</span>';
-                        h += '<div class="table-responsive"><table class="data-table" style="width:100%;margin-top:6px;border-collapse:collapse;font-size:0.8rem;">';
-                        h += '<tr style="background:var(--bg-secondary);"><th class="text-left p-xs text-muted">Port</th><th class="text-left p-xs text-muted">Admin state</th><th class="text-left p-xs text-muted">Mode</th><th class="text-left p-xs text-muted">SSID</th><th class="text-left p-xs text-muted">DHCP</th></tr>';
+                        h += '<div class="table-responsive"><table class="data-table data-table--compact port-table">';
+                        h += '<tr><th class="text-left p-xs text-muted">Port</th><th class="text-left p-xs text-muted">Admin state</th><th class="text-left p-xs text-muted">Mode</th><th class="text-left p-xs text-muted">SSID</th><th class="text-left p-xs text-muted">DHCP</th></tr>';
                         for (const w of wifiList) {
                             const color = w.enabled ? '#28a745' : '#6c757d';
-                            h += '<tr><td style="padding:4px 8px;font-weight:600;">' + w.port + '</td>';
+                            h += '<tr><td class="p-xs fw-600">' + w.port + '</td>';
                             h += '<td style="padding:4px 8px;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:' + color + ';margin-right:4px;"></span>' + (w.enabled ? 'Enabled' : 'Disabled') + '</td>';
-                            h += '<td style="padding:4px 8px;">LAN</td>';
+                            h += '<td class="p-xs">LAN</td>';
                             h += '<td style="padding:4px 8px;">' + w.ssid + '</td>';
                             h += '<td style="padding:4px 8px;">No control</td></tr>';
                         }
