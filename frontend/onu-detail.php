@@ -953,7 +953,7 @@ if (!empty($onu['onu_type'])) {
                             } else if (data.pppoe_ip && data.pppoe_ip !== 'N/A' && data.pppoe_ip !== '0.0.0.0' && data.pppoe_ip !== '') {
                                 pppoeContainer.innerHTML = `
                                     <a href="http://${esc(data.pppoe_ip)}" target="_blank" class="chip chip-green" onclick="event.stopPropagation();">
-                                        <i data-lucide="external-link" style="width:11px; height:11px; display:inline-block; vertical-align:middle; margin-right:4px;"></i>
+                                        <i data-lucide="external-link" class="icon-xs"></i>
                                         ${esc(data.pppoe_ip)}
                                     </a>`;
                             } else {
@@ -1761,7 +1761,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 } else if (data.pppoe_ip && data.pppoe_ip !== 'N/A' && data.pppoe_ip !== '0.0.0.0' && data.pppoe_ip !== '') {
                                     pppoeContainer.innerHTML = `
                                         <a href="http://${esc(data.pppoe_ip)}" target="_blank" class="chip chip-green" onclick="event.stopPropagation();">
-                                            <i data-lucide="external-link" style="width:11px; height:11px; display:inline-block; vertical-align:middle; margin-right:4px;"></i>
+                                            <i data-lucide="external-link" class="icon-xs"></i>
                                             ${esc(data.pppoe_ip)}
                                         </a>`;
                                 } else {
@@ -1983,18 +1983,18 @@ $tr069_profiles = tr069_get_profiles($pdo);
                     cliOutputBox.style.background = 'none';
                     cliOutputBox.style.border = 'none';
                     cliOutputBox.style.borderRadius = '0';
-                    cliOutputBox.innerHTML = '<div style="display:flex;flex-direction:column;gap:10px;padding:12px 0;">' +
-                        '<div class="skeleton" style="height:16px;width:60%;"></div>' +
-                        '<div class="skeleton" style="height:16px;width:80%;"></div>' +
-                        '<div class="skeleton" style="height:16px;width:45%;"></div>' +
-                        '<div class="skeleton" style="height:16px;width:70%;"></div>' +
+                    cliOutputBox.innerHTML = '<div class="flex-col p-y-md">' +
+                        '<div class="skeleton skel-line skel-60"></div>' +
+                        '<div class="skeleton skel-line skel-80"></div>' +
+                        '<div class="skeleton skel-line skel-45"></div>' +
+                        '<div class="skeleton skel-line skel-70"></div>' +
                         '</div>';
                 }
                 btnTr069.disabled = true;
                 fetch(`action/genieacs-proxy.php?serial=${encodeURIComponent(serial)}`)
                     .then(r => r.json())
                     .then(d => {
-                        if (d.error) { cliOutputBox.innerHTML = '<div style="padding:12px 0;color:var(--text-muted);">⚠️ Tidak terkoneksi ke ACS (device belum pernah lapor TR-069 atau serial tidak ditemukan).</div>'; return; }
+                        if (d.error) { cliOutputBox.innerHTML = '<div class="text-muted p-y-md">⚠️ Tidak terkoneksi ke ACS (device belum pernah lapor TR-069 atau serial tidak ditemukan).</div>'; return; }
                         const root = d.InternetGatewayDevice || d.Device || {};
                     window._portDeviceRoot = root;
                     window._portDeviceSerial = serial;
@@ -2457,18 +2457,18 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             h += pppRow('MAC Clone', ppRadio('mac_clone', i, macClone));
                             h += pppRow('MAC Address', mac || 'N/A');
                             h += pppRow('Service list', svcList);
-                            h += pppRow('Default route', '<span style="background:#212529;color:#fff;padding:1px 8px;border-radius:4px;font-size:0.78rem;">Yes</span>');
+                            h += pppRow('Default route', '<span class="tag-dark">Yes</span>');
                             h += pppRow('NAT Enabled', ppRadioYN('nat', i, nat));
                             h += pppRow('LCP Detection', ppRadio('lcp', i, lcp));
                             h += pppRow('DMZ Enable', ppRadio('dmz', i, dmz));
                             h += pppRow('DMZ Host IP Address', pppInput('dmz_ip', i, dmzIp, {narrow:false}));
                             h += pppRow('VLAN ID', pppInput('vlan', i, vlan, {narrow:true}));
-                            h += pppRow('Reset connection', '<button type="button" class="btn ppp-reset" data-idx="'+i+'" style="padding:5px 14px;font-size:0.8rem;background:#6c757d;color:#fff;border:none;border-radius:4px;cursor:pointer;">Reset Connection</button>');
-                            h += '<div style="padding:12px 0 8px;display:flex;gap:8px;">';
+                            h += pppRow('Reset connection', '<button type="button" class="btn ppp-reset btn-secondary btn-xs" data-idx="'+i+'">Reset Connection</button>');
+                            h += '<div class="p-y-row flex-row gap-2">';
                             h += '<button type="button" class="btn btn-success ppp-save btn-xs" data-idx="'+i+'">Simpan Perubahan</button>';
                             h += '</div>';
-                            h += '<div style="padding:8px 0 4px;border-top:1px solid var(--border-color);">';
-                            h += '<button type="button" class="btn ppp-remove" data-idx="'+i+'" style="padding:6px 16px;font-size:0.82rem;background:#dc3545;color:#fff;border:none;border-radius:4px;cursor:pointer;">Remove PPP WAN</button>';
+                            h += '<div class="p-y-row p-y-row--sep">';
+                            h += '<button type="button" class="btn ppp-remove btn-danger btn-sm" data-idx="'+i+'">Remove PPP WAN</button>';
                             h += '</div>';
                             h += '</div></div>';
                             return h;
@@ -2521,14 +2521,14 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             h += pppRow('MAC Address', mac);
                             h += pppRow('Max MTU Size', ipInput('mtu', mtu, true));
                             h += pppRow('Service list', svcList);
-                            h += pppRow('Default route', '<span style="background:#212529;color:#fff;padding:1px 8px;border-radius:4px;font-size:0.78rem;">No</span>');
+                            h += pppRow('Default route', '<span class="tag-dark">No</span>');
                             h += pppRow('NAT Enabled', ppRadioYN('nat', i, nat).replace(/name="ppp-/g, 'name="ip-').replace(/class="ppp-radio"/g, 'class="ip-radio"'));
                             h += pppRow('VLAN ID', vlan || 'N/A');
-                            h += '<div style="padding:12px 0 8px;display:flex;gap:8px;">';
+                            h += '<div class="p-y-row flex-row gap-2">';
                             h += '<button type="button" class="btn btn-success ip-save btn-xs" data-idx="'+i+'" data-path="'+sec.tr069Path+'">Simpan Perubahan</button>';
                             h += '</div>';
-                            h += '<div style="padding:8px 0 4px;border-top:1px solid var(--border-color);">';
-                            h += '<button type="button" class="btn ip-remove" data-idx="'+i+'" data-path="'+sec.tr069Path+'" style="padding:6px 16px;font-size:0.82rem;background:#dc3545;color:#fff;border:none;border-radius:4px;cursor:pointer;">Remove IP WAN</button>';
+                            h += '<div class="p-y-row p-y-row--sep">';
+                            h += '<button type="button" class="btn ip-remove btn-danger btn-sm" data-idx="'+i+'" data-path="'+sec.tr069Path+'">Remove IP WAN</button>';
                             h += '</div>';
                             h += '</div></div>';
                             return h;
@@ -2604,7 +2604,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             h += pppRow('WMM (QoS)', wlanRadio('wmm', i, wmm));
                             h += pppRow('VLAN ID', wlanInput('vlan', i, vlanId, {narrow:true}));
                             h += pppRow('Total Associations', (totalAssoc !== '' && totalAssoc != null) ? totalAssoc : '0');
-                            h += '<div style="padding:12px 0 4px;">';
+                            h += '<div class="p-y-row">';
                             h += '<button type="button" class="btn btn-success wlan-save btn-xs" data-idx="'+i+'" data-wlan-num="'+wlanNum+'">Simpan Perubahan</button>';
                             h += '</div>';
                             h += '</div></div>';
@@ -2712,7 +2712,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             h += pppRow('Default Gateway', textInput('gw', gw, base + 'IPRouters'));
                             h += pppRow('DNS Server', textInput('dns', dns, base + 'DNSServers'));
                             h += pppRow('Lease Time (detik)', textInput('lease', lease, base + 'DHCPLeaseTime', 'xsd:int', true));
-                            h += '<div style="padding:12px 0 8px;">';
+                            h += '<div class="p-y-row">';
                             h += '<button type="button" class="btn btn-success gen-save btn-xs" data-idx="'+i+'" data-fields=\''+JSON.stringify(genFields).replace(/'/g,'&#39;')+'\'>Simpan Perubahan</button>';
                             h += '</div>';
                             h += '</div></div>';
@@ -2798,18 +2798,18 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 } else {
                                     val = (v === '' || v == null) ? '<span class="text-muted">(empty)</span>' : String(v);
                                 }
-                                html += '<div style="padding:3px 0;border-bottom:1px solid var(--border-color);display:flex;gap:8px;align-items:center;">';
+                                html += '<div class="list-row">';
                                 html += '<span class="col-label">' + k + '</span>';
                                 html += '<span class="ppp-row-value flex-1">' + val + '</span></div>';
                             }
                             if (genFields.length) {
-                                html += '<div style="padding:10px 0 4px;"><button type="button" class="btn btn-success gen-save btn-xs" data-idx="'+i+'" data-fields=\''+JSON.stringify(genFields).replace(/'/g,'&#39;')+'\'>Simpan Perubahan</button></div>';
+                                html += '<div class="p-y-row"><button type="button" class="btn btn-success gen-save btn-xs" data-idx="'+i+'" data-fields=\''+JSON.stringify(genFields).replace(/'/g,'&#39;')+'\'>Simpan Perubahan</button></div>';
                             }
                             if (isGeneral) {
-                                html += '<div style="padding:3px 0;border-bottom:1px solid var(--border-color);display:flex;gap:8px;align-items:center;">';
+                                html += '<div class="list-row">';
                                 html += '<span class="col-label">Pending provisions</span>';
-                                html += '<span style="display:flex;gap:8px;flex:1;"><input type="text" id="tr069-prov-input" placeholder="Provision name" class="panel-input flex-1">';
-                                html += '<button type="button" class="btn btn-success" id="tr069-prov-add" style="padding:4px 12px;font-size:0.8rem;">+ Add</button></span></div>';
+                                html += '<span class="flex-row flex-1 gap-2"><input type="text" id="tr069-prov-input" placeholder="Provision name" class="panel-input flex-1">';
+                                html += '<button type="button" class="btn btn-success btn-xs" id="tr069-prov-add">+ Add</button></span></div>';
                             }
                             html += '</div></div>';
                         });
@@ -2826,7 +2826,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 html += '<div class="text-muted p-y-sm">Tidak ada port LAN.</div>';
                             } else {
                                 html += '<div class="table-responsive"><table class="kv-table">';
-                                html += '<tr class="text-left text-muted fs-xs"><th style="padding:5px 8px 5px 0;">Port</th><th style="padding:5px 8px;">Enable</th><th style="padding:5px 8px;">Status</th><th style="padding:5px 8px;">Speed</th><th style="padding:5px 8px;">Duplex</th><th style="padding:5px 8px;">L3 Enable</th><th style="padding:5px 8px;">Speed mode</th><th style="padding:5px 8px;">Duplex mode</th><th style="padding:5px 8px;">Flow control</th><th style="padding:5px 0 5px 8px;"></th></tr>';
+                                html += '<tr class="text-left text-muted fs-xs"><th class="p-cell p-cell--l0">Port</th><th class="p-cell">Enable</th><th class="p-cell">Status</th><th class="p-cell">Speed</th><th class="p-cell">Duplex</th><th class="p-cell">L3 Enable</th><th class="p-cell">Speed mode</th><th class="p-cell">Duplex mode</th><th class="p-cell">Flow control</th><th class="p-cell p-cell--r0"></th></tr>';
                                 lanPortList.forEach((p, pi) => {
                                     const B = 'InternetGatewayDevice.' + p.path + '.';
                                     const sel = (id, opts, cur) => '<select id="'+id+'" class="panel-input panel-input--sm">'
@@ -2840,16 +2840,16 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                         {id: flowId, path: B+'X_HW_FlowCtrlEnable', type: 'xsd:boolean'},
                                     ];
                                     html += '<tr class="row-divider">'
-                                        + '<td style="padding:6px 8px 6px 0;">' + esc(p.name) + '</td>'
-                                        + '<td style="padding:6px 8px;">' + sel(enableId, [{v:'true',l:'Yes'},{v:'false',l:'No'}], p.enable) + '</td>'
-                                        + '<td style="padding:6px 8px;">' + esc(p.status) + '</td>'
-                                        + '<td style="padding:6px 8px;">' + esc(p.speed) + '</td>'
-                                        + '<td style="padding:6px 8px;">' + esc(p.duplex) + '</td>'
-                                        + '<td style="padding:6px 8px;">' + sel(l3Id, [{v:'true',l:'yes'},{v:'false',l:'no'}], p.l3Enable) + '</td>'
-                                        + '<td style="padding:6px 8px;">' + sel(speedId, [{v:'Auto',l:'Auto'},{v:'10Mbps',l:'10Mbps'},{v:'100Mbps',l:'100Mbps'},{v:'1Gbps',l:'1Gbps'}], p.speedMode) + '</td>'
-                                        + '<td style="padding:6px 8px;">' + sel(duplexId, [{v:'Auto',l:'Auto'},{v:'Half',l:'Half'},{v:'Full',l:'Full'}], p.duplexMode) + '</td>'
-                                        + '<td style="padding:6px 8px;">' + sel(flowId, [{v:'true',l:'Enable'},{v:'false',l:'Disable'}], p.flowCtrl) + '</td>'
-                                        + '<td style="padding:6px 0 6px 8px;"><button type="button" class="btn btn-success gen-save" data-idx="lanport'+pi+'" data-fields=\''+JSON.stringify(fieldsMeta).replace(/'/g,'&#39;')+'\' style="padding:4px 10px;font-size:0.78rem;white-space:nowrap;">Simpan</button></td>'
+                                        + '<td class="p-cell p-cell--md p-cell--l0">' + esc(p.name) + '</td>'
+                                        + '<td class="p-cell p-cell--md">' + sel(enableId, [{v:'true',l:'Yes'},{v:'false',l:'No'}], p.enable) + '</td>'
+                                        + '<td class="p-cell p-cell--md">' + esc(p.status) + '</td>'
+                                        + '<td class="p-cell p-cell--md">' + esc(p.speed) + '</td>'
+                                        + '<td class="p-cell p-cell--md">' + esc(p.duplex) + '</td>'
+                                        + '<td class="p-cell p-cell--md">' + sel(l3Id, [{v:'true',l:'yes'},{v:'false',l:'no'}], p.l3Enable) + '</td>'
+                                        + '<td class="p-cell p-cell--md">' + sel(speedId, [{v:'Auto',l:'Auto'},{v:'10Mbps',l:'10Mbps'},{v:'100Mbps',l:'100Mbps'},{v:'1Gbps',l:'1Gbps'}], p.speedMode) + '</td>'
+                                        + '<td class="p-cell p-cell--md">' + sel(duplexId, [{v:'Auto',l:'Auto'},{v:'Half',l:'Half'},{v:'Full',l:'Full'}], p.duplexMode) + '</td>'
+                                        + '<td class="p-cell p-cell--md">' + sel(flowId, [{v:'true',l:'Enable'},{v:'false',l:'Disable'}], p.flowCtrl) + '</td>'
+                                        + '<td class="p-cell p-cell--md p-cell--r0"><button type="button" class="btn btn-success gen-save btn-xs nowrap" data-idx="lanport'+pi+'" data-fields=\''+JSON.stringify(fieldsMeta).replace(/'/g,'&#39;')+'\'>Simpan</button></td>'
                                         + '</tr>';
                                 });
                                 html += '</table></div>';
@@ -2868,10 +2868,10 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             } else {
                                 html += '<div class="table-responsive"><table class="kv-table">';
                                 const cols = ['#','Bytes In','Bytes Out','Pkts In','Pkts Out','Uni In','Uni Out','Multi In','Multi Out','Bro In','Bro Out','Err In','Err Out','Disc In','Disc Out'];
-                                html += '<tr style="text-align:left;color:var(--text-muted);font-size:0.75rem;">' + cols.map(c => '<th style="padding:5px 8px;">'+c+'</th>').join('') + '</tr>';
+                                html += '<tr class="text-left text-muted fs-xs">' + cols.map(c => '<th class="p-cell">'+c+'</th>').join('') + '</tr>';
                                 lanPortList.forEach((p, pi) => {
                                     const vals = [pi+1, p.bytesIn, p.bytesOut, p.pktsIn, p.pktsOut, p.uniIn, p.uniOut, p.multiIn, p.multiOut, p.broIn, p.broOut, p.errIn, p.errOut, p.discIn, p.discOut];
-                                    html += '<tr class="row-divider">' + vals.map(v => '<td style="padding:6px 8px;">'+v+'</td>').join('') + '</tr>';
+                                    html += '<tr class="row-divider">' + vals.map(v => '<td class="p-cell p-cell--md">'+v+'</td>').join('') + '</tr>';
                                 });
                                 html += '</table></div>';
                             }
@@ -2888,18 +2888,18 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 html += '<div class="text-muted p-y-sm">Tidak ada host terkoneksi.</div>';
                             } else {
                                 html += '<div class="table-responsive"><table class="kv-table">';
-                                html += '<tr class="text-left text-muted fs-xs"><th style="padding:5px 8px 5px 0;">#</th><th style="padding:5px 8px;">MAC Address</th><th style="padding:5px 8px;">IP Address</th><th style="padding:5px 8px;">Address source</th><th style="padding:5px 8px;">Hostname</th><th style="padding:5px 8px;">Port</th><th style="padding:5px 0 5px 8px;">Active</th></tr>';
+                                html += '<tr class="text-left text-muted fs-xs"><th class="p-cell p-cell--l0">#</th><th class="p-cell">MAC Address</th><th class="p-cell">IP Address</th><th class="p-cell">Address source</th><th class="p-cell">Hostname</th><th class="p-cell">Port</th><th class="p-cell p-cell--r0">Active</th></tr>';
                                 hostList.forEach((h, hi) => {
                                     const activeText = h.active === true || h.active === '1' || h.active === 1 ? 'Yes' : 'No';
                                     const port = h.ssid || h.iface;
                                     html += '<tr class="row-divider">'
-                                        + '<td style="padding:6px 8px 6px 0;">' + (hi + 1) + '</td>'
-                                        + '<td style="padding:6px 8px;">' + esc(h.mac) + '</td>'
-                                        + '<td style="padding:6px 8px;">' + esc(h.ip) + '</td>'
-                                        + '<td style="padding:6px 8px;">' + esc(h.addressSource) + '</td>'
-                                        + '<td style="padding:6px 8px;">' + esc(h.name || '-') + '</td>'
-                                        + '<td style="padding:6px 8px;">' + esc(port) + '</td>'
-                                        + '<td style="padding:6px 0 6px 8px;">' + activeText + '</td>'
+                                        + '<td class="p-cell p-cell--md p-cell--l0">' + (hi + 1) + '</td>'
+                                        + '<td class="p-cell p-cell--md">' + esc(h.mac) + '</td>'
+                                        + '<td class="p-cell p-cell--md">' + esc(h.ip) + '</td>'
+                                        + '<td class="p-cell p-cell--md">' + esc(h.addressSource) + '</td>'
+                                        + '<td class="p-cell p-cell--md">' + esc(h.name || '-') + '</td>'
+                                        + '<td class="p-cell p-cell--md">' + esc(port) + '</td>'
+                                        + '<td class="p-cell p-cell--md p-cell--r0">' + activeText + '</td>'
                                         + '</tr>';
                                 });
                                 html += '</table></div>';
@@ -2917,14 +2917,14 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 html += '<div class="text-muted p-y-sm">Tidak ada route.</div>';
                             } else {
                                 html += '<div class="table-responsive"><table class="kv-table">';
-                                html += '<tr class="text-left text-muted fs-xs"><th style="padding:5px 8px 5px 0;">Destination</th><th style="padding:5px 8px;">Subnet Mask</th><th style="padding:5px 8px;">Gateway</th><th style="padding:5px 8px;">Interface</th><th style="padding:5px 0 5px 8px;">Origin</th></tr>';
+                                html += '<tr class="text-left text-muted fs-xs"><th class="p-cell p-cell--l0">Destination</th><th class="p-cell">Subnet Mask</th><th class="p-cell">Gateway</th><th class="p-cell">Interface</th><th class="p-cell p-cell--r0">Origin</th></tr>';
                                 routeList.forEach(r => {
                                     html += '<tr class="row-divider">'
-                                        + '<td style="padding:6px 8px 6px 0;">' + esc(r.dest) + '</td>'
-                                        + '<td style="padding:6px 8px;">' + esc(r.mask) + '</td>'
-                                        + '<td style="padding:6px 8px;">' + esc(r.gw) + '</td>'
-                                        + '<td style="padding:6px 8px;">' + esc(r.iface) + '</td>'
-                                        + '<td style="padding:6px 0 6px 8px;">' + esc(r.origin) + '</td>'
+                                        + '<td class="p-cell p-cell--md p-cell--l0">' + esc(r.dest) + '</td>'
+                                        + '<td class="p-cell p-cell--md">' + esc(r.mask) + '</td>'
+                                        + '<td class="p-cell p-cell--md">' + esc(r.gw) + '</td>'
+                                        + '<td class="p-cell p-cell--md">' + esc(r.iface) + '</td>'
+                                        + '<td class="p-cell p-cell--md p-cell--r0">' + esc(r.origin) + '</td>'
                                         + '</tr>';
                                 });
                                 html += '</table></div>';
@@ -2943,16 +2943,16 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             } else {
                                 voiceLines.forEach((ln, li) => {
                                     html += '<div style="border-top:'+(li?'1px solid var(--border-color);':'none;')+'padding:'+(li?'10px 0 0':'0')+' 0 10px;margin-bottom:10px;">';
-                                    html += '<div style="font-weight:600;margin-bottom:6px;">Line ' + ln.num + ' <span style="font-weight:400;color:var(--text-muted);font-size:0.78rem;">(Status: ' + esc(ln.status) + ')</span></div>';
-                                    const rowSel = (label, id, val, opts) => '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><label class="col-label col-label--md">'+label+'</label><select id="'+id+'" class="panel-input flex-1">'
+                                    html += '<div class="fw-600 mb-1">Line ' + ln.num + ' <span class="text-muted fs-xs">(Status: ' + esc(ln.status) + ')</span></div>';
+                                    const rowSel = (label, id, val, opts) => '<div class="inline-flex-center mb-1"><label class="col-label col-label--md">'+label+'</label><select id="'+id+'" class="panel-input flex-1">'
                                         + opts.map(o => '<option value="'+o[0]+'"'+(String(val)===o[0]?' selected':'')+'>'+o[1]+'</option>').join('') + '</select></div>';
-                                    const rowText = (label, id, val) => '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><label class="col-label col-label--md">'+label+'</label><input type="text" id="'+id+'" value="'+esc(val)+'" class="panel-input flex-1"></div>';
+                                    const rowText = (label, id, val) => '<div class="inline-flex-center mb-1"><label class="col-label col-label--md">'+label+'</label><input type="text" id="'+id+'" value="'+esc(val)+'" class="panel-input flex-1"></div>';
                                     html += rowSel('Enable', 'voice-enable-'+ln.num, ln.enable, [['Enabled','Enabled'],['Disabled','Disabled']]);
                                     html += rowText('Directory Number', 'voice-dn-'+ln.num, ln.directoryNumber);
                                     html += rowText('SIP Username', 'voice-sipuser-'+ln.num, ln.sipUser);
                                     html += rowText('SIP Password', 'voice-sippass-'+ln.num, ln.sipPass);
                                     html += rowText('SIP URI', 'voice-sipuri-'+ln.num, ln.sipUri);
-                                    html += '<button type="button" class="btn btn-success voice-save" data-line="'+ln.num+'" style="padding:5px 14px;font-size:0.8rem;">Simpan Line ' + ln.num + '</button>';
+                                    html += '<button type="button" class="btn btn-success voice-save btn-xs" data-line="'+ln.num+'">Simpan Line ' + ln.num + '</button>';
                                     html += '</div>';
                                 });
                             }
@@ -3014,13 +3014,13 @@ $tr069_profiles = tr069_get_profiles($pdo);
 
                             // Tabel ACL Settings -- mirror GUI asli device: ID | Active | Source IP | Protocol | Interface,
                             // plus tombol Add dan Edit (bukan form inline) yang buka modal.
-                            html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">';
+                            html += '<div class="flex-between mb-1">';
                             html += '<div class="fw-600">ACL Settings (Akses WAN)</div>';
-                            html += '<button type="button" class="btn btn-secondary fhacl-add" style="padding:4px 12px;font-size:0.78rem;">+ Add Rule</button>';
+                            html += '<button type="button" class="btn btn-secondary fhacl-add btn-xs">+ Add Rule</button>';
                             html += '</div>';
                             const ruleTbl = acl.Rule || {};
                             const ruleIds = Object.keys(ruleTbl).filter(k => /^\d+$/.test(k)).sort((a,b) => a - b);
-                            html += '<div class="table-responsive"><table class="data-table" style="width:100%;border-collapse:collapse;font-size:0.8rem;margin-bottom:8px;">';
+                            html += '<div class="table-responsive"><table class="data-table panel-table fs-xs mb-2">';
                             html += '<tr><th class="cell cell--head">ID</th><th class="cell cell--head">Active</th><th class="cell cell--head">Source IP</th><th class="cell cell--head">Protocol</th><th class="cell cell--head">Interface</th><th class="cell cell--head"></th></tr>';
                             if (ruleIds.length === 0) {
                                 html += '<tr><td colspan="6" class="cell text-muted">Belum ada rule.</td></tr>';
@@ -3041,26 +3041,26 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                     + '<td class="cell">'+srcIp+'</td>'
                                     + '<td class="cell">'+esc(r.Protocol?._value||'')+'</td>'
                                     + '<td class="cell">'+esc(r.Interface?._value||'')+'</td>'
-                                    + '<td class="cell"><button type="button" class="btn btn-secondary fhacl-edit" data-rule="'+rid+'" data-active="'+(active==='YES'?'1':'0')+'" data-srcstart="'+esc(startShown)+'" data-srcend="'+esc(endShown)+'" data-protocol="'+esc(r.Protocol?._value||'')+'" data-interface="'+esc(r.Interface?._value||'')+'" style="padding:3px 10px;font-size:0.76rem;">Edit</button> <button type="button" class="btn btn-danger fhacl-delete" data-rule="'+rid+'" style="padding:3px 10px;font-size:0.76rem;">Delete</button></td>'
+                                    + '<td class="cell"><button type="button" class="btn btn-secondary fhacl-edit btn-xs" data-rule="'+rid+'" data-active="'+(active==='YES'?'1':'0')+'" data-srcstart="'+esc(startShown)+'" data-srcend="'+esc(endShown)+'" data-protocol="'+esc(r.Protocol?._value||'')+'" data-interface="'+esc(r.Interface?._value||'')+'">Edit</button> <button type="button" class="btn btn-danger fhacl-delete btn-xs" data-rule="'+rid+'">Delete</button></td>'
                                     + '</tr>';
                             });
                             html += '</table></div>';
 
                             // Panel Add/Edit Rule -- INLINE di bawah tabel (bukan popup modal),
                             // hidden by default, dibuka oleh tombol Add/Edit.
-                            html += '<div id="fhacl-inline-panel" style="display:none;border:1px solid var(--border-color);border-radius:6px;padding:14px;margin-bottom:10px;background:var(--bg-secondary);">';
-                            html += '<div style="font-weight:600;margin-bottom:10px;" id="fhacl-modal-title">Add Rule</div>';
+                            html += '<div id="fhacl-inline-panel" class="inline-edit-box" style="display:none;">';
+                            html += '<div class="fw-600 mb-2" id="fhacl-modal-title">Add Rule</div>';
                             html += '<input type="hidden" id="fhacl-modal-rule-id" value="">';
-                            html += '<div class="table-responsive"><table class="data-table" style="width:100%;border-collapse:collapse;font-size:0.82rem;">';
-                            html += '<tr style="height:38px;"><td style="width:140px;font-weight:600;">Active</td><td>'
-                                + '<label style="margin-right:16px;cursor:pointer;"><input type="radio" name="fhacl-modal-active" value="1" checked> YES</label>'
-                                + '<label style="cursor:pointer;"><input type="radio" name="fhacl-modal-active" value="0"> NO</label></td></tr>';
-                            html += '<tr style="height:38px;"><td class="fw-600">Source IP Start</td><td><input type="text" id="fhacl-modal-srcstart" placeholder="kosong = semua IP" class="form-control"></td></tr>';
-                            html += '<tr style="height:38px;"><td class="fw-600">Source IP End</td><td><input type="text" id="fhacl-modal-srcend" placeholder="kosong = semua IP" class="form-control"></td></tr>';
-                            html += '<tr style="height:38px;"><td class="fw-600">Protocol</td><td><select id="fhacl-modal-protocol" class="form-control"><option value="ALL">ALL</option><option value="TCP">TCP</option><option value="UDP">UDP</option><option value="ICMP">ICMP</option></select></td></tr>';
-                            html += '<tr style="height:38px;"><td class="fw-600">Interface</td><td><select id="fhacl-modal-interface" class="form-control"></select></td></tr>';
+                            html += '<div class="table-responsive"><table class="data-table panel-table">';
+                            html += '<tr class="row-38"><td class="kv-key">Active</td><td>'
+                                + '<label class="radio-inline"><input type="radio" name="fhacl-modal-active" value="1" checked> YES</label>'
+                                + '<label class="cursor-pointer"><input type="radio" name="fhacl-modal-active" value="0"> NO</label></td></tr>';
+                            html += '<tr class="row-38"><td class="fw-600">Source IP Start</td><td><input type="text" id="fhacl-modal-srcstart" placeholder="kosong = semua IP" class="form-control"></td></tr>';
+                            html += '<tr class="row-38"><td class="fw-600">Source IP End</td><td><input type="text" id="fhacl-modal-srcend" placeholder="kosong = semua IP" class="form-control"></td></tr>';
+                            html += '<tr class="row-38"><td class="fw-600">Protocol</td><td><select id="fhacl-modal-protocol" class="form-control"><option value="ALL">ALL</option><option value="TCP">TCP</option><option value="UDP">UDP</option><option value="ICMP">ICMP</option></select></td></tr>';
+                            html += '<tr class="row-38"><td class="fw-600">Interface</td><td><select id="fhacl-modal-interface" class="form-control"></select></td></tr>';
                             html += '</table></div>';
-                            html += '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px;">'
+                            html += '<div class="flex-end mt-3">'
                                 + '<button type="button" class="btn btn-secondary btn-xs" id="fhacl-inline-cancel">Batal</button>'
                                 + '<button type="button" class="btn btn-primary btn-xs" id="fhacl-modal-save">Simpan</button></div>';
                             html += '</div>';
@@ -3076,11 +3076,11 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 : (raRaw === false || raRaw === 'false' || raRaw === 0 || raRaw === '0') ? '0'
                                 : null;
                             html += rowRadio('Remote Access (GUI web dari WAN)', 'fhsec-remote-access', raVal, enDis);
-                            html += '<button type="button" class="btn btn-success fhsec-ra-save" data-idx="'+idx+'" style="padding:6px 16px;font-size:0.82rem;margin:0 0 10px;">Simpan Akses WAN</button>';
+                            html += '<button type="button" class="btn btn-success fhsec-ra-save btn-sm mb-2" data-idx="'+idx+'">Simpan Akses WAN</button>';
                             html += '<div class="hr-divider"></div>';
                             html += rowText('Web Login Username', 'fhsec-web-user', lcs.ConfigUsername?._value ?? '', '');
                             html += rowText('Web Login Password', 'fhsec-web-pass', '', 'kosong = tidak diubah');
-                            html += '<button type="button" class="btn btn-success fhsec-save" data-idx="'+idx+'" style="padding:6px 16px;font-size:0.82rem;margin-top:4px;">Simpan Login</button>';
+                            html += '<button type="button" class="btn btn-success fhsec-save btn-sm mt-1" data-idx="'+idx+'">Simpan Login</button>';
                             html += '</div></div>';
                         })();
                         else if (isZTESecurity) (() => {
@@ -3123,12 +3123,12 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             html += '<input type="hidden" id="ztesec-rspc-https-idx" value="'+esc(httpsR.idx)+'">';
                             html += rowRadio('Firewall', 'ztesec-fw-enable', fw.Enable?._value, enDis);
                             html += rowSelect('Firewall Level', 'ztesec-fw-level', fw.Config?._value, [['Low','Low'],['Middle','Middle'],['High','High']]);
-                            html += '<div style="border-top:1px solid var(--border-color);margin:0 0 10px;"></div>';
+                            html += '<div class="hr-divider hr-divider--top0"></div>';
                             html += rowText('HTTP (Web UI) Port', 'ztesec-http-port', httpR.obj.Port?._value ?? 80, 'number');
                             html += rowText('HTTPS Port', 'ztesec-https-port', httpsR.obj.Port?._value ?? 443, 'number');
                             html += rowText('FTP Port', 'ztesec-ftp-port', ftpR.obj.Port?._value ?? 21, 'number');
                             html += rowText('Telnet Port', 'ztesec-telnet-port', telnetR.obj.Port?._value ?? 23, 'number');
-                            html += '<div style="border-top:1px solid var(--border-color);margin:0 0 10px;"></div>';
+                            html += '<div class="hr-divider hr-divider--top0"></div>';
                             html += rowRadio('Anti Port-Scan (DoS)', 'ztesec-dos', dos.Enable?._value, enDis);
                             html += rowText('Port-Scan Threshold', 'ztesec-dos-threshold', dos.Threshold?._value ?? 100, 'number');
                             html += rowRadio('MAC Filter', 'ztesec-mac-filter', mac.Enable?._value, enDis);
@@ -3139,8 +3139,8 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             html += rowText('Login Admin — Password', 'ztesec-admin-pass', '', 'text');
                             html += rowText('Login User — Username', 'ztesec-user-user', userUser.Username?._value ?? 'user', 'text');
                             html += rowText('Login User — Password', 'ztesec-user-pass', '', 'text');
-                            html += '<div style="color:var(--text-muted);font-size:0.78rem;margin:-4px 0 10px;">Kosongkan password = tidak diubah.</div>';
-                            html += '<button type="button" class="btn btn-success ztesec-save" data-idx="'+idx+'" style="padding:6px 16px;font-size:0.82rem;margin-top:4px;">Simpan Perubahan</button>';
+                            html += '<div class="text-muted fs-xs note-tight">Kosongkan password = tidak diubah.</div>';
+                            html += '<button type="button" class="btn btn-success ztesec-save btn-sm mt-1" data-idx="'+idx+'">Simpan Perubahan</button>';
                             html += '</div></div>';
                         })();
                         else (() => {
@@ -3190,8 +3190,8 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             const svcList = ppp1.X_HW_SERVICELIST?._value;
                             html += '<input type="hidden" id="sec-wan-service-path" value="'+esc(pppTr069Path)+'">';
                             html += rowSelect('Firewall Level', 'sec-fw-level', fwLevel, [['Low','Low'],['Middle','Middle'],['High','High']]);
-                            html += '<div style="color:var(--text-muted);font-size:0.78rem;margin:-4px 0 10px;">Firewall Level "High" memblokir akses WAN. Akses manajemen (WAN Service) otomatis dibuka setiap Simpan.</div>';
-                            html += '<div style="border-top:1px solid var(--border-color);margin:0 0 10px;"></div>';
+                            html += '<div class="text-muted fs-xs note-tight">Firewall Level "High" memblokir akses WAN. Akses manajemen (WAN Service) otomatis dibuka setiap Simpan.</div>';
+                            html += '<div class="hr-divider hr-divider--top0"></div>';
                             html += rowRadio('FTP access from WAN', 'sec-ftp-wan', acl.FTPWanEnable?._value, enDis);
                             html += rowRadio('FTP access from LAN', 'sec-ftp-lan', acl.FTPLanEnable?._value, enDis);
                             html += rowRadio('User interface access from WAN', 'sec-http-wan', acl.HTTPWanEnable?._value, enDis);
@@ -3213,12 +3213,12 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             html += rowRadio('Web admin account', 'sec-web2-enable', web2.Enable?._value, enDis);
                             html += rowText('Web admin name', 'sec-web2-user', web2.UserName?._value ?? '', 'text');
                             html += rowText('Web admin password', 'sec-web2-pass', '', 'text');
-                            html += '<button type="button" class="btn btn-success sec-save" data-idx="'+idx+'" style="padding:6px 16px;font-size:0.82rem;margin-top:4px;">Simpan Perubahan</button>';
+                            html += '<button type="button" class="btn btn-success sec-save btn-sm mt-1" data-idx="'+idx+'">Simpan Perubahan</button>';
                             html += '</div></div>';
                         })();
                         // Tombol perintah TR-069 (Refresh interfaces / Reboot / Reset to factory) --
                         // di paling bawah panel, rata kanan, tanpa garis pembatas (sesuai layout referensi GenieACS).
-                        html += '<div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:16px;">';
+                        html += '<div class="flex-row flex-end mt-4">';
                         html += '<button type="button" class="btn btn-secondary tr069-cmd-btn" data-cmd="refresh"><i data-lucide="refresh-cw" class="icon-sm"></i> Refresh interfaces</button>';
                         html += '<button type="button" class="btn btn-warning tr069-cmd-btn" data-cmd="reboot"><i data-lucide="power" class="icon-sm"></i> Reboot</button>';
                         html += '<button type="button" class="btn btn-danger tr069-cmd-btn" data-cmd="factory_reset"><i data-lucide="rotate-ccw" class="icon-sm"></i> Reset to factory</button>';
@@ -3691,7 +3691,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         });
                         cliOutputBox.style.maxHeight = 'none';
                     })
-                    .catch(() => { cliOutputBox.innerHTML = '<div style="padding:12px 0;color:var(--text-muted);">⚠️ Tidak terkoneksi ke ACS.</div>'; })
+                    .catch(() => { cliOutputBox.innerHTML = '<div class="text-muted p-y-md">⚠️ Tidak terkoneksi ke ACS.</div>'; })
                     .finally(() => { btnTr069.disabled = false; });
             }
             btnTr069.addEventListener('click', loadTr069Status);
@@ -3748,10 +3748,10 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         for (const p of ethPorts) {
                             const color = p.enabled ? '#28a745' : '#6c757d';
                             h += '<tr><td class="p-xs fw-600">' + p.name + '</td>';
-                            h += '<td style="padding:4px 8px;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:' + color + ';margin-right:4px;"></span>' + (p.enabled ? 'Enabled' : 'Disabled') + '</td>';
+                            h += '<td class="p-xs"><span class="dot-xs" style="background:' + color + '"></span>' + (p.enabled ? 'Enabled' : 'Disabled') + '</td>';
                             h += '<td class="p-xs">LAN</td>';
-                            h += '<td style="padding:4px 8px;">' + ethDhcpLabel + '</td>';
-                            h += '<td style="padding:4px 8px;"><a href="javascript:void(0)" class="btn-port-configure" data-port="' + p.name + '" data-type="ethernet" style="color:var(--text-accent,#60a5fa);cursor:pointer;font-size:0.82rem;">Configure</a></td></tr>';
+                            h += '<td class="p-xs">' + ethDhcpLabel + '</td>';
+                            h += '<td class="p-xs"><a href="javascript:void(0)" class="btn-port-configure text-accent cursor-pointer" data-port="' + p.name + '" data-type="ethernet">Configure</a></td></tr>';
                         }
                         h += '</table></div></div>';
                         ethEl.innerHTML = h;
@@ -3766,10 +3766,10 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         for (const w of wifiList) {
                             const color = w.enabled ? '#28a745' : '#6c757d';
                             h += '<tr><td class="p-xs fw-600">' + w.port + '</td>';
-                            h += '<td style="padding:4px 8px;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:' + color + ';margin-right:4px;"></span>' + (w.enabled ? 'Enabled' : 'Disabled') + '</td>';
+                            h += '<td class="p-xs"><span class="dot-xs" style="background:' + color + '"></span>' + (w.enabled ? 'Enabled' : 'Disabled') + '</td>';
                             h += '<td class="p-xs">LAN</td>';
-                            h += '<td style="padding:4px 8px;">' + w.ssid + '</td>';
-                            h += '<td style="padding:4px 8px;">No control</td></tr>';
+                            h += '<td class="p-xs">' + w.ssid + '</td>';
+                            h += '<td class="p-xs">No control</td></tr>';
                         }
                         h += '</table></div></div>';
                         wifiEl.innerHTML = h;
@@ -3783,7 +3783,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 if (lineCount > 0) voipText = lineCount + ' port';
                             }
                         }
-                        voipEl.innerHTML = '<span style="font-weight:600;color:var(--text-main);">' + voipText + '</span>';
+                        voipEl.innerHTML = '<span class="fw-600">' + voipText + '</span>';
                     }
                 }).catch(() => {});
         }
