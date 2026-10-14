@@ -1,0 +1,110 @@
+{
+  "repo": "github.com/erlanggaalfian/smartolt",
+  "branch": "main",
+  "commit_range": "73f3704..58327bb",
+  "status": "pushed_to_github",
+  "generated_at": "2026-10-15",
+  "note": "Semua temuan audit (docs/design-consistency-audit.md, docs/antislop-tahap2-5-findings.md, docs/antislop-tahap3-4-5-recheck.md, docs/antislop-css-responsive-scan.md, docs/refactor-tasks.md) sudah DIEKSEKUSI dan di-commit. File JSON ini ringkasan status akhir, bukan daftar tugas.",
+
+  "tahap_1_security": {
+    "status": "done",
+    "fixes": [
+      "api-vpn-cert-toggle.php: tambah CSRF protection pada POST handler",
+      "snmp-sync.php, backup-config.php: fix require path salah (fatal error -> jalan normal)",
+      "vpn-tunnels.php: CSRF check != -> hash_equals (timing-safe), command injection routes[] (escapeshellarg + regex CIDR), path traversal username (whitelist alfanumerik), password field type=text -> type=password",
+      "tr069-management.php + backend/genieacs.php + action/tr069-profile-save.php: acs_password tidak lagi di-embed ke HTML/JS, backend preserve password lama kalau field dikosongkan"
+    ]
+  },
+
+  "tahap_2_dead_code": {
+    "status": "done",
+    "deleted_files": [
+      "frontend/action/get-debug-cli.php",
+      "frontend/action/test-olt.php",
+      "frontend/sidebar.php",
+      "frontend/style.css (duplikat mati, public/style.css yang dipakai)",
+      "backend/db.php.bak"
+    ],
+    "removed_dead_css_classes": 25
+  },
+
+  "tahap_3_accessibility": {
+    "status": "done",
+    "fixes": [
+      "onu-detail.php: 17 div onclick -> role=button + tabindex + keyboard handler",
+      "modal di seluruh app: tambah role=dialog aria-modal",
+      "12 halaman: tambah h1#page-title (heading order benar)",
+      "logs.php, configured.php: aria-label untuk filter input, toast role=status aria-live"
+    ]
+  },
+
+  "tahap_4_css_responsive": {
+    "status": "done",
+    "fixes": [
+      "kontras WCAG AA diperbaiki (terparah: settings-users.php teks 1.05:1 -> fixed)",
+      "CSS var undefined didefinisikan",
+      "theme-leak (hardcoded hex yang rusak di light mode) diganti ke CSS var"
+    ]
+  },
+
+  "tahap_5_design_consistency": {
+    "status": "done",
+    "note": "Bukan ganti warna/skema (dipertahankan sesuai arahan), murni unifikasi struktur/komponen.",
+    "canon_established": {
+      "tombol": ".btn + modifier, urutan class: btn btn-<variant> btn-<size>, aksi tabel pakai btn-xs",
+      "card_panel": ".content-card > .card-header.border-accent > .card-body",
+      "modal": ".modal > .modal-content > header/body/footer, toggle class .open, tombol tutup .modal-close",
+      "badge_status": ".chip + .chip-<warna> untuk status",
+      "filter_bar": ".filter-panel > .filter-row > .filter-item",
+      "tabel": ".table-responsive > .data-table",
+      "tokens_baru_di_root": [
+        "--radius-xs:4px", "--radius-pill:999px",
+        "--header-height:56px", "--control-height:40px",
+        "--space-1..7 (4px-32px)",
+        "--fs-xs..2xl",
+        "--icon-sm/md/lg"
+      ]
+    },
+    "verification_tool_added": "tools/check-canon.php"
+  },
+
+  "files_touched_per_commit": [
+    {"commit": "feaac73", "desc": "hapus dead code frontend", "files": ["header.php", "onu-detail.php", "settings-olt.php", "sidebar.php"]},
+    {"commit": "7a4d20b", "desc": "security fix", "files": ["api-vpn-cert-toggle.php", "action/snmp-sync.php", "action/backup-config.php", "vpn-tunnels.php"]},
+    {"commit": "f26be6b", "desc": "cleanup dead code + dead CSS", "files": ["action/get-debug-cli.php", "action/test-olt.php", "style.css (dihapus)", "public/style.css"]},
+    {"commit": "eaa4ceb", "desc": "accessibility fixes", "files": ["onu-detail.php", "logs.php", "configured.php", "header.php", "olt-detail.php", "12 halaman (h1)"]},
+    {"commit": "10f9ef5", "desc": "css contrast fixes", "files": ["onu-detail-css.php", "settings-users.php"]},
+    {"commit": "bc67d79", "desc": "kanon design system (tokens + bg-conflict fix)", "files": ["public/style.css"]},
+    {"commit": "bec2369", "desc": "kanon olt-detail", "files": ["olt-detail.php"]},
+    {"commit": "950226b", "desc": "kanon onu-detail (partial)", "files": ["onu-detail.php"]},
+    {"commit": "60b0351", "desc": "define utility classes", "files": ["public/style.css"]},
+    {"commit": "182736d", "desc": "kanon onu-detail (static markup)", "files": ["onu-detail.php"]},
+    {"commit": "0cfb262", "desc": "kanon onu-detail (modals, kv-tables, forms)", "files": ["onu-detail.php"]},
+    {"commit": "c0c12bf", "desc": "kanon onu-detail (TR-069 panel)", "files": ["onu-detail.php"]},
+    {"commit": "e17df81", "desc": "kanon onu-detail (selesai, 0 inline style statis)", "files": ["onu-detail.php"]},
+    {"commit": "dedc372", "desc": "kanon header (0 inline style)", "files": ["header.php"]},
+    {"commit": "850f5e2", "desc": "kanon dashboard + logs", "files": ["dashboard.php", "logs.php"]},
+    {"commit": "71a3b56", "desc": "kanon unconfigured, speed-profiles, onu-types, splitters + tool verifikasi", "files": ["unconfigured.php", "settings-speed-profiles.php", "onu-types.php", "splitters.php", "tools/check-canon.php"]},
+    {"commit": "4cd6be5", "desc": "kanon settings-olt + settings-users", "files": ["settings-olt.php", "settings-users.php"]},
+    {"commit": "fb824ab", "desc": "kanon vpn-tunnels + tr069-management", "files": ["vpn-tunnels.php", "tr069-management.php"]},
+    {"commit": "3883e84", "desc": "kanon configured + auth-onu", "files": ["configured.php", "auth-onu.php"]},
+    {"commit": "58327bb", "desc": "kanon login + register (final)", "files": ["login.php", "register.php"]}
+  ],
+
+  "all_23_pages_status": "semua halaman frontend/*.php sudah di-kanon-kan, php -l bersih di semua file, working tree clean, sudah di-push ke origin/main",
+
+  "verification": {
+    "php_lint": "0 error di semua file PHP yang diubah",
+    "pushed": true,
+    "remote": "https://github.com/erlanggaalfian/smartolt.git",
+    "how_to_pull": "git pull origin main"
+  },
+
+  "source_docs_full_detail": [
+    "docs/design-consistency-audit.md",
+    "docs/antislop-tahap2-5-findings.md",
+    "docs/antislop-tahap3-4-5-recheck.md",
+    "docs/antislop-css-responsive-scan.md",
+    "docs/refactor-tasks.md"
+  ]
+}
