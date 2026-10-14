@@ -15,10 +15,10 @@ if (!in_array($limit, [20, 50, 100, 200])) $limit = 100;
 ?>
 
 <div class="section-actions">
-    <form method="GET" action="unconfigured.php" id="form-select-olt" class="form-group row-inline" style="margin:0; display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-        <div style="display:flex; align-items:center; gap:8px;">
-            <label for="autofind-limit-select" style="margin:0;font-weight:600;white-space:nowrap;">Tampilkan per OLT:</label>
-            <select id="autofind-limit-select" name="limit" class="form-control inline-select" style="width:90px;" onchange="this.form.submit()">
+    <form method="GET" action="unconfigured.php" id="form-select-olt" class="form-group row-inline form-inline filter-row">
+        <div class="inline-flex-center">
+            <label for="autofind-limit-select" class="m-0 fw-600 nowrap">Tampilkan per OLT:</label>
+            <select id="autofind-limit-select" name="limit" class="form-control inline-select w-80" onchange="this.form.submit()">
                 <option value="20" <?php echo $limit === 20 ? 'selected' : ''; ?>>20</option>
                 <option value="50" <?php echo $limit === 50 ? 'selected' : ''; ?>>50</option>
                 <option value="100" <?php echo $limit === 100 ? 'selected' : ''; ?>>100</option>
@@ -34,13 +34,13 @@ if (!in_array($limit, [20, 50, 100, 200])) $limit = 100;
 <?php if (empty($olts)): ?>
     <div class="content-card">
         <div class="card-body">
-            <p style="text-align:center;color:var(--text-muted);padding:20px;">Belum ada OLT terdaftar. Harap tambahkan OLT terlebih dahulu di menu Setting / OLT.</p>
+            <p class="empty-state">Belum ada OLT terdaftar. Harap tambahkan OLT terlebih dahulu di menu Setting / OLT.</p>
         </div>
     </div>
 <?php else: ?>
     <div id="autofind-olt-sections">
         <?php foreach ($olts as $olt): ?>
-            <div class="content-card autofind-olt-section" data-olt-id="<?php echo (int)$olt['id']; ?>" style="margin-bottom:16px;">
+            <div class="content-card autofind-olt-section" data-olt-id="<?php echo (int)$olt['id']; ?>" class="mb-4">
                 <div class="card-header border-accent">
                     <h2><?php echo htmlspecialchars($olt['name']); ?></h2>
                 </div>
@@ -59,10 +59,10 @@ if (!in_array($limit, [20, 50, 100, 200])) $limit = 100;
                             </thead>
                             <tbody class="autofind-tbody">
                                 <tr>
-                                    <td colspan="6" style="text-align:center;padding:30px;">
-                                        <div class="loading-spinner" style="padding:0;">
+                                    <td colspan="6" class="text-center p-lg">
+                                        <div class="loading-spinner p-0">
                                             <div class="spinner"></div>
-                                            <p style="margin-top:8px;font-weight:600;">Memindai <?php echo htmlspecialchars($olt['name']); ?>...</p>
+                                            <p class="mt-2 fw-600">Memindai <?php echo htmlspecialchars($olt['name']); ?>...</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -97,16 +97,16 @@ if (!in_array($limit, [20, 50, 100, 200])) $limit = 100;
             const endNum = Math.min(offset + limit, totalItems);
 
             let html = `
-                <div class="pagination-bar" style="margin-top:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
-                    <div style="font-size:0.85rem; color:var(--text-muted);">
+                <div class="pagination-bar mt-5">
+                    <div class="text-muted fs-sm">
                         Menampilkan ${startNum} - ${endNum} dari ${totalItems} ONU baru
                     </div>
-                    <div class="pagination-buttons" style="display:flex; gap:6px; align-items:center;">
+                    <div class="pagination-buttons">
             `;
 
             const mkBtn = (label, targetPage, disabled) => {
-                if (disabled) return `<span class="btn btn-xs btn-outline disabled" style="opacity:0.5; cursor:not-allowed;">${label}</span>`;
-                return `<button type="button" class="btn btn-xs btn-outline autofind-page-btn" data-page="${targetPage}" style="text-decoration:none;">${label}</button>`;
+                if (disabled) return `<span class="btn btn-xs btn-outline disabled">${label}</span>`;
+                return `<button type="button" class="btn btn-xs btn-outline autofind-page-btn" data-page="${targetPage}">${label}</button>`;
             };
 
             html += mkBtn('<<', 1, page <= 1);
@@ -120,9 +120,9 @@ if (!in_array($limit, [20, 50, 100, 200])) $limit = 100;
 
             for (let i = startPage; i <= endPage; i++) {
                 if (i === page) {
-                    html += `<span class="btn btn-xs btn-primary" style="text-decoration:none;">${i}</span>`;
+                    html += `<span class="btn btn-xs btn-primary">${i}</span>`;
                 } else {
-                    html += `<button type="button" class="btn btn-xs btn-outline autofind-page-btn" data-page="${i}" style="text-decoration:none;">${i}</button>`;
+                    html += `<button type="button" class="btn btn-xs btn-outline autofind-page-btn" data-page="${i}">${i}</button>`;
                 }
             }
 
@@ -143,7 +143,7 @@ if (!in_array($limit, [20, 50, 100, 200])) $limit = 100;
             const totalItems = onus.length;
 
             if (totalItems === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:16px;">Tidak ada ONU baru yang terdeteksi.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Tidak ada ONU baru yang terdeteksi.</td></tr>`;
                 paginationContainer.innerHTML = '';
                 return;
             }
@@ -174,7 +174,7 @@ if (!in_array($limit, [20, 50, 100, 200])) $limit = 100;
             const oltId = section.dataset.oltId;
             const oltName = section.querySelector('.card-header h2').textContent.trim();
             const tbody = section.querySelector('.autofind-tbody');
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:30px;"><div class="loading-spinner" style="padding:0;"><div class="spinner"></div><p style="margin-top:8px;font-weight:600;">Memindai ${esc(oltName)}...</p></div></td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center p-lg"><div class="loading-spinner p-0"><div class="spinner"></div><p class="mt-2 fw-600">Memindai ${esc(oltName)}...</p></div></td></tr>`;
             section.querySelector('.autofind-pagination-container').innerHTML = '';
 
             const controller = new AbortController();
@@ -184,7 +184,7 @@ if (!in_array($limit, [20, 50, 100, 200])) $limit = 100;
                 .then(r => { clearTimeout(timeoutId); return r.json(); })
                 .then(data => {
                     if (!data.success) {
-                        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--color-danger);padding:16px;font-weight:600;">Gagal memindai OLT: ${esc(data.message)}</td></tr>`;
+                        tbody.innerHTML = `<tr><td colspan="6" class="empty-state text-danger fw-600">Gagal memindai OLT: ${esc(data.message)}</td></tr>`;
                         return;
                     }
                     renderSectionRows(section, data.onus || [], pageBySection.get(oltId) || 1);
@@ -192,7 +192,7 @@ if (!in_array($limit, [20, 50, 100, 200])) $limit = 100;
                 .catch(err => {
                     clearTimeout(timeoutId);
                     const msg = err.name === 'AbortError' ? 'Waktu pemindai habis (>60 detik). OLT mungkin tidak merespons.' : 'Gagal memindai OLT: ' + esc(err.message);
-                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--color-danger);padding:16px;font-weight:600;">${msg}</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="6" class="empty-state text-danger fw-600">${msg}</td></tr>`;
                 });
         }
 

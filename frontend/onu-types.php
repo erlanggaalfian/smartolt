@@ -73,15 +73,15 @@ include __DIR__ . '/header.php';
 
 <?php if ($edit_type): ?>
     <!-- EDIT MODE -->
-    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+    <div class="flex-between mb-5">
         <div>
-            <h1 id="page-title" style="margin:0;">Edit ONU type</h1>
-            <p style="color:var(--text-muted); margin:4px 0 0;">Update ONU type properties and port counts.</p>
+            <h1 id="page-title" class="m-0">Edit ONU type</h1>
+            <p class="text-muted page-subtitle">Update ONU type properties and port counts.</p>
         </div>
         <a href="onu-types.php" class="btn btn-secondary">Back to list</a>
     </div>
 
-    <form method="post" class="card" style="max-width:700px;">
+    <form method="post" class="card form-narrow">
         <input type="hidden" name="action" value="update">
         <input type="hidden" name="id" value="<?php echo (int)$edit_type['id']; ?>">
 
@@ -159,7 +159,7 @@ include __DIR__ . '/header.php';
             </div>
         </div>
 
-        <div style="display:flex; gap:10px; margin-top:20px;">
+        <div class="flex-row mt-5">
             <button type="submit" class="btn btn-primary">Save</button>
             <a href="onu-types.php" class="btn btn-secondary">Cancel</a>
         </div>
@@ -167,8 +167,8 @@ include __DIR__ . '/header.php';
 
 <?php else: ?>
     <!-- LIST MODE -->
-    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
-        <h1 id="page-title" style="margin:0;">ONU Types</h1>
+    <div class="flex-between mb-5">
+        <h1 id="page-title" class="m-0">ONU Types</h1>
         <button class="btn btn-primary" onclick="document.getElementById('add-modal').classList.toggle('open')">+ Add ONU type</button>
     </div>
 
@@ -199,7 +199,7 @@ include __DIR__ . '/header.php';
                 <td><?php echo htmlspecialchars($t['capability']); ?></td>
                 <td>
                     <a href="onu-types.php?edit=<?php echo (int)$t['id']; ?>" class="btn btn-sm btn-secondary">Edit</a>
-                    <form method="post" style="display:inline" onsubmit="return confirm('Delete <?php echo htmlspecialchars($t['name']); ?>?')">
+                    <form method="post" class="form-inline" onsubmit="return confirm('Delete <?php echo htmlspecialchars($t['name']); ?>?')">
                         <input type="hidden" name="action" value="delete">
                         <input type="hidden" name="id" value="<?php echo (int)$t['id']; ?>">
                         <button type="submit" class="btn btn-sm btn-danger">Delete</button>
@@ -212,9 +212,9 @@ include __DIR__ . '/header.php';
 
     <!-- ADD MODAL -->
     <div class="modal" id="add-modal">
-        <div class="modal-content" style="max-width:600px;">
+        <div class="modal-content modal-lg-inner">
             <div class="modal-header">
-                <h3 style="margin:0;">Add ONU type</h3>
+                <h3 class="m-0">Add ONU type</h3>
                 <button class="close-btn" onclick="document.getElementById('add-modal').classList.remove('open')">&times;</button>
             </div>
             <form method="post">

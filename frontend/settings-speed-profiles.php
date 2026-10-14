@@ -8,8 +8,8 @@ require_once __DIR__ . '/../backend/driver.php';
 $olts = $pdo->query("SELECT id, name FROM olts ORDER BY name")->fetchAll();
 ?>
 
-<div class="section-actions" style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
-    <select id="sp-olt-select" class="form-control" style="width:220px;">
+<div class="section-actions filter-row">
+    <select id="sp-olt-select" class="form-control w-220">
         <option value="">- Pilih OLT -</option>
         <?php foreach ($olts as $o): ?>
             <option value="<?php echo (int)$o['id']; ?>"><?php echo htmlspecialchars($o['name']); ?></option>
@@ -18,7 +18,7 @@ $olts = $pdo->query("SELECT id, name FROM olts ORDER BY name")->fetchAll();
 </div>
 
 <div class="content-card">
-    <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+    <div class="card-header">
         <div class="sp-subnav">
             <button class="sp-subnav-tab active" data-direction="download">Download Profile</button>
             <button class="sp-subnav-tab" data-direction="upload">Upload Profile</button>
@@ -40,7 +40,7 @@ $olts = $pdo->query("SELECT id, name FROM olts ORDER BY name")->fetchAll();
                     </tr>
                 </thead>
                 <tbody id="sp-table-body">
-                    <tr><td colspan="5" style="text-align:center;color:var(--text-muted);">Pilih OLT, atau tambahkan speed profile baru.</td></tr>
+                    <tr><td colspan="5" class="empty-state">Pilih OLT, atau tambahkan speed profile baru.</td></tr>
                 </tbody>
             </table>
         </div>
@@ -48,13 +48,13 @@ $olts = $pdo->query("SELECT id, name FROM olts ORDER BY name")->fetchAll();
 </div>
 
 <div class="modal-overlay" id="sp-modal-overlay" style="display:none;">
-    <div class="modal-box" style="max-width:420px;">
+    <div class="modal-box modal-sm-inner">
         <div class="modal-header">
             <h3 id="sp-modal-title">Add Speed Profile</h3>
             <button type="button" class="modal-close" id="sp-modal-close">&times;</button>
         </div>
         <form id="sp-form">
-            <div class="modal-body" style="display:flex; flex-direction:column; gap:12px;">
+            <div class="modal-body flex-col">
                 <div>
                     <label>Direction</label>
                     <select id="sp-f-direction" class="form-control" required>
@@ -71,7 +71,7 @@ $olts = $pdo->query("SELECT id, name FROM olts ORDER BY name")->fetchAll();
                     <label>Speed (kbps)</label>
                     <input type="number" id="sp-f-speed" class="form-control" min="1" max="2000000" required>
                 </div>
-                <div id="sp-form-error" style="color:var(--text-danger,#dc2626); font-size:0.85rem;"></div>
+                <div id="sp-form-error" class="text-danger fs-sm"></div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" id="sp-form-cancel">Batal</button>
@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function render() {
         const rows = cachedProfiles.filter(p => p.direction === currentDirection);
         if (!rows.length) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);">Belum ada data. Klik "Ambil dari OLT" atau "Add speed profile".</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Belum ada data. Klik "Ambil dari OLT" atau "Add speed profile".</td></tr>';
             return;
         }
         tbody.innerHTML = rows.map(p => `
@@ -132,7 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${esc(p.speed_kbps)} kbps</td>
                 <td><span class="badge bg-orange">Internet</span></td>
                 <td>${esc(p.onu_count)}</td>
-                <td style="display:flex; gap:6px;">
+                <td class="flex-row gap-2">
                     <button class="btn btn-xs btn-secondary btn-edit-sp" data-direction="${esc(p.direction)}" data-name="${esc(p.name)}" data-speed="${esc(p.speed_kbps)}">Edit</button>
                     <button class="btn btn-xs btn-danger btn-delete-sp" data-direction="${esc(p.direction)}" data-name="${esc(p.name)}" data-onus="${esc(p.onu_count)}">Delete</button>
                 </td>
