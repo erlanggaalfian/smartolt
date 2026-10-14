@@ -277,22 +277,22 @@ if (!empty($onu['onu_type'])) {
 
             <div class="detail-plain-row" data-clickable onclick="document.getElementById('replace-onu-modal').classList.add('open')">
                 <span class="detail-plain-label">SN</span>
-                <span class="detail-plain-value mono" id="detail-sn"><i data-lucide="pencil" style="width:11px;height:11px;"></i> <?php echo htmlspecialchars($onu['serial_number']); ?></span>
+                <span class="detail-plain-value mono" id="detail-sn"><i data-lucide="pencil" class="icon-xs"></i> <?php echo htmlspecialchars($onu['serial_number']); ?></span>
             </div>
 
             <div class="detail-plain-row" data-clickable onclick="document.getElementById('edit-onu-type-modal').classList.add('open')">
                 <span class="detail-plain-label">Tipe ONU</span>
-                <span class="detail-plain-value"><i data-lucide="pencil" style="width:11px;height:11px;"></i> <?php echo htmlspecialchars($onu['onu_type'] ?: 'ALL-ONT'); ?></span>
+                <span class="detail-plain-value"><i data-lucide="pencil" class="icon-xs"></i> <?php echo htmlspecialchars($onu['onu_type'] ?: 'ALL-ONT'); ?></span>
             </div>
 
             <div class="detail-plain-row" data-clickable onclick="document.getElementById('edit-config-preset-modal').classList.add('open')">
                 <span class="detail-plain-label">Preset Konfigurasi</span>
-                <span class="detail-plain-value"><i data-lucide="pencil" style="width:11px;height:11px;"></i> <?php echo htmlspecialchars($onu['config_preset'] ?: 'Tidak ada'); ?></span>
+                <span class="detail-plain-value"><i data-lucide="pencil" class="icon-xs"></i> <?php echo htmlspecialchars($onu['config_preset'] ?: 'Tidak ada'); ?></span>
             </div>
 
             <div class="detail-plain-row" data-clickable onclick="document.getElementById('edit-identity-modal').classList.add('open')">
                 <span class="detail-plain-label">Zone</span>
-                <span class="detail-plain-value" id="detail-zone"><i data-lucide="pencil" style="width:11px;height:11px;"></i> <?php echo htmlspecialchars(($parsed_desc['zone'] && strtolower($parsed_desc['zone']) !== 'none') ? $parsed_desc['zone'] : 'Belum diisi'); ?></span>
+                <span class="detail-plain-value" id="detail-zone"><i data-lucide="pencil" class="icon-xs"></i> <?php echo htmlspecialchars(($parsed_desc['zone'] && strtolower($parsed_desc['zone']) !== 'none') ? $parsed_desc['zone'] : 'Belum diisi'); ?></span>
             </div>
 
             <div class="detail-plain-row" data-clickable onclick="document.getElementById('edit-identity-modal').classList.add('open')">
@@ -302,32 +302,32 @@ if (!empty($onu['onu_type'])) {
 
             <div class="detail-plain-row" data-clickable onclick="document.getElementById('edit-identity-modal').classList.add('open')">
                 <span class="detail-plain-label">Nama</span>
-                <span class="detail-plain-value" id="detail-name"><i data-lucide="pencil" style="width:11px;height:11px;"></i> <?php echo htmlspecialchars(!empty($parsed_desc['clean_name']) && strtolower($parsed_desc['clean_name']) !== 'none' ? $parsed_desc['clean_name'] : 'Belum diisi'); ?></span>
+                <span class="detail-plain-value" id="detail-name"><i data-lucide="pencil" class="icon-xs"></i> <?php echo htmlspecialchars(!empty($parsed_desc['clean_name']) && strtolower($parsed_desc['clean_name']) !== 'none' ? $parsed_desc['clean_name'] : 'Belum diisi'); ?></span>
             </div>
 
             <div class="detail-plain-row" data-clickable onclick="document.getElementById('edit-identity-modal').classList.add('open')">
                 <span class="detail-plain-label">Alamat atau keterangan</span>
-                <span class="detail-plain-value" id="detail-address"><i data-lucide="pencil" style="width:11px;height:11px;"></i> <?php echo htmlspecialchars(($parsed_desc['address'] && strtolower($parsed_desc['address']) !== 'none') ? $parsed_desc['address'] : 'Belum diisi'); ?></span>
+                <span class="detail-plain-value" id="detail-address"><i data-lucide="pencil" class="icon-xs"></i> <?php echo htmlspecialchars(($parsed_desc['address'] && strtolower($parsed_desc['address']) !== 'none') ? $parsed_desc['address'] : 'Belum diisi'); ?></span>
             </div>
 
             <div class="detail-plain-row" data-clickable onclick="document.getElementById('edit-identity-modal').classList.add('open')">
                 <span class="detail-plain-label">Kontak</span>
-                <span class="detail-plain-value" id="detail-contact"><i data-lucide="pencil" style="width:11px;height:11px;"></i> <?php echo htmlspecialchars(($parsed_desc['contact'] && strtolower($parsed_desc['contact']) !== 'none') ? $parsed_desc['contact'] : 'Belum diisi'); ?></span>
+                <span class="detail-plain-value" id="detail-contact"><i data-lucide="pencil" class="icon-xs"></i> <?php echo htmlspecialchars(($parsed_desc['contact'] && strtolower($parsed_desc['contact']) !== 'none') ? $parsed_desc['contact'] : 'Belum diisi'); ?></span>
             </div>
 
             <div class="detail-plain-row">
                 <span class="detail-plain-label">Tanggal otorisasi</span>
-                <span class="detail-plain-value" style="color:var(--text-muted);"><?php echo htmlspecialchars($parsed_desc['auth_date'] ?: date('d-M-Y H:i:s', strtotime($onu['created_at']))); ?></span>
+                <span class="detail-plain-value" class="text-muted"><?php echo htmlspecialchars($parsed_desc['auth_date'] ?: date('d-M-Y H:i:s', strtotime($onu['created_at']))); ?></span>
             </div>
 
             <div class="detail-plain-row" data-clickable onclick="document.getElementById('edit-identity-modal').classList.add('open')">
                 <span class="detail-plain-label">Port ODB</span>
-                <span class="detail-plain-value" id="detail-odb-port"><i data-lucide="pencil" style="width:11px;height:11px;"></i> <?php echo htmlspecialchars(!empty($onu['odb_port']) ? $onu['odb_port'] : 'Belum diisi'); ?></span>
+                <span class="detail-plain-value" id="detail-odb-port"><i data-lucide="pencil" class="icon-xs"></i> <?php echo htmlspecialchars(!empty($onu['odb_port']) ? $onu['odb_port'] : 'Belum diisi'); ?></span>
             </div>
 
             <div class="detail-plain-row" data-clickable onclick="document.getElementById('edit-identity-modal').classList.add('open')">
                 <span class="detail-plain-label">ONU external ID</span>
-                <span class="detail-plain-value" id="detail-external-id"><i data-lucide="pencil" style="width:11px;height:11px;"></i> <?php echo htmlspecialchars(!empty($parsed_desc['external_id']) ? $parsed_desc['external_id'] : 'Belum diisi'); ?></span>
+                <span class="detail-plain-value" id="detail-external-id"><i data-lucide="pencil" class="icon-xs"></i> <?php echo htmlspecialchars(!empty($parsed_desc['external_id']) ? $parsed_desc['external_id'] : 'Belum diisi'); ?></span>
             </div>
 
             <?php
@@ -338,10 +338,10 @@ if (!empty($onu['onu_type'])) {
                 <span class="detail-plain-value">
                     <?php if ($has_coords): ?>
                         <a href="https://www.google.com/maps?q=<?php echo htmlspecialchars($onu['latitude']); ?>,<?php echo htmlspecialchars($onu['longitude']); ?>" target="_blank" onclick="event.stopPropagation();" style="color:var(--text-accent);">
-                            <i data-lucide="map-pin" style="width:14px;height:14px;"></i> <?php echo htmlspecialchars($onu['latitude'] . ', ' . $onu['longitude']); ?>
+                            <i data-lucide="map-pin" class="icon-sm"></i> <?php echo htmlspecialchars($onu['latitude'] . ', ' . $onu['longitude']); ?>
                         </a>
                     <?php else: ?>
-                        <span style="color:var(--text-muted);">N/A</span>
+                        <span class="text-muted">N/A</span>
                     <?php endif; ?>
                 </span>
             </div>
@@ -362,7 +362,7 @@ if (!empty($onu['onu_type'])) {
 
             <div class="detail-plain-row">
                 <span class="detail-plain-label">Last Down</span>
-                <span class="detail-plain-value" id="detail-last-down" style="color:var(--text-muted);">
+                <span class="detail-plain-value" id="detail-last-down" class="text-muted">
                     <?php echo htmlspecialchars($onu['last_down_cause'] ?? '-'); ?>
                 </span>
             </div>
@@ -383,9 +383,9 @@ if (!empty($onu['onu_type'])) {
                     }
                     ?>
                     <strong id="detail-rx-onu" style="color:<?php echo $onu_color; ?>;"><?php echo $onu['last_rx_power'] !== null ? number_format((float)$onu['last_rx_power'], 2) . ' dBm' : '<span class="skel-text" style="width:52px;"></span>'; ?></strong>
-                    <span style="color:var(--text-muted);">/</span>
+                    <span class="text-muted">/</span>
                     <strong id="detail-rx-olt" style="color:<?php echo $olt_color; ?>;"><?php echo $onu['last_rx_olt_power'] !== null ? number_format((float)$onu['last_rx_olt_power'], 2) . ' dBm' : '<span class="skel-text" style="width:52px;"></span>'; ?></strong>
-                    <span id="detail-distance" style="color:var(--text-muted);"><span class="skel-text" style="width:44px;"></span></span>
+                    <span id="detail-distance" class="text-muted"><span class="skel-text" style="width:44px;"></span></span>
                     <i data-lucide="signal" style="width:14px;height:14px;color:var(--color-success);"></i>
                 </span>
             </div>
@@ -393,7 +393,7 @@ if (!empty($onu['onu_type'])) {
             <div class="detail-plain-row" data-clickable onclick="document.getElementById('mgmt-ip-modal').classList.add('open')">
                 <span class="detail-plain-label">IP Manajemen</span>
                 <span class="detail-plain-value" id="detail-mgmt-ip">
-                    <i data-lucide="pencil" style="width:11px;height:11px;"></i>
+                    <i data-lucide="pencil" class="icon-xs"></i>
                     <?php
                     $mgmt_mode = $onu['mgmt_ip_mode'] ?? 'Inactive';
                     // IP yang dipakai untuk chip: Static/DHCP dari OLT, atau fallback TR-069
@@ -417,7 +417,7 @@ if (!empty($onu['onu_type'])) {
                             <span class="chip chip-red">Menunggu IP</span>
                         <?php endif; ?>
                     <?php else: ?>
-                        <span style="color:var(--text-muted);">Nonaktif</span>
+                        <span class="text-muted">Nonaktif</span>
                     <?php endif; ?>
                 </span>
             </div>
@@ -425,7 +425,7 @@ if (!empty($onu['onu_type'])) {
             <div class="detail-plain-row" data-clickable onclick="document.getElementById('tr609-profile-modal').classList.add('open')">
                 <span class="detail-plain-label">TR609 Profile</span>
                 <span class="detail-plain-value" id="detail-tr609">
-                    <i data-lucide="pencil" style="width:11px;height:11px;"></i>
+                    <i data-lucide="pencil" class="icon-xs"></i>
                     <?php
                     $tr609 = $onu['tr069_profile'] ?: 'Nonaktif';
                     echo htmlspecialchars($tr609 === 'Nonaktif' ? 'Disable' : $tr609);
@@ -446,7 +446,7 @@ if (!empty($onu['onu_type'])) {
                     if ($wra === 'yes') {
                         echo '<span style="color:var(--color-success); font-weight:600;">Aktif</span>';
                     } else {
-                        echo '<span style="color:var(--text-muted);">Nonaktif</span>';
+                        echo '<span class="text-muted">Nonaktif</span>';
                     }
                     ?>
                 </span>
@@ -454,13 +454,13 @@ if (!empty($onu['onu_type'])) {
 
             <div class="detail-plain-row" data-clickable onclick="document.getElementById('update-onu-mode-modal').classList.add('open')">
                 <span class="detail-plain-label">Mode ONU</span>
-                <span class="detail-plain-value" id="detail-onu-mode"><i data-lucide="pencil" style="width:11px;height:11px;"></i> <?php echo htmlspecialchars($onu['onu_mode'] ?: 'Routing'); ?> (<?php echo htmlspecialchars($onu['config_method'] ?: 'OMCI'); ?>) &mdash; WAN <?php echo htmlspecialchars($onu['vlan'] ?: 'N/A'); ?></span>
+                <span class="detail-plain-value" id="detail-onu-mode"><i data-lucide="pencil" class="icon-xs"></i> <?php echo htmlspecialchars($onu['onu_mode'] ?: 'Routing'); ?> (<?php echo htmlspecialchars($onu['config_method'] ?: 'OMCI'); ?>) &mdash; WAN <?php echo htmlspecialchars($onu['vlan'] ?: 'N/A'); ?></span>
             </div>
 
             <div class="detail-plain-row" data-clickable onclick="document.getElementById('update-onu-mode-modal').classList.add('open')">
                 <span class="detail-plain-label">Mode setup WAN</span>
                 <span class="detail-plain-value" id="detail-wan-setup">
-                    <i data-lucide="pencil" style="width:11px;height:11px;"></i> <span id="detail-wan-label"><?php echo htmlspecialchars($onu['wan_mode'] === 'Static' ? 'Static IP' : ($onu['wan_mode'] ?: 'Setup via ONU webpage')); ?></span>
+                    <i data-lucide="pencil" class="icon-xs"></i> <span id="detail-wan-label"><?php echo htmlspecialchars($onu['wan_mode'] === 'Static' ? 'Static IP' : ($onu['wan_mode'] ?: 'Setup via ONU webpage')); ?></span>
 
                     <span id="detail-pppoe-ip-wrapper">
                         <?php
@@ -478,9 +478,9 @@ if (!empty($onu['onu_type'])) {
                                 <i data-lucide="external-link" style="width:11px;height:11px;vertical-align:middle;margin-right:4px;"></i><?php echo htmlspecialchars($pppoe_ip_display); ?>
                             </a>
                         <?php elseif (($onu['wan_mode'] ?? '') === 'PPPoE' && ($onu['status'] ?? '') !== 'offline'): ?>
-                            <span style="color:var(--text-muted);">Memuat...</span>
+                            <span class="text-muted">Memuat...</span>
                         <?php else: ?>
-                            <span style="color:var(--text-muted);">-</span>
+                            <span class="text-muted">-</span>
                         <?php endif; ?>
                     </span>
                 </span>
@@ -494,7 +494,7 @@ if (!empty($onu['onu_type'])) {
                         elseif (($onu['wan_mode'] ?? '') === 'PPPoE') echo 'Memuat…';
                         else echo '-';
                     ?></span>
-                    <button type="button" id="btn-toggle-pppoe-user" class="detail-plain-edit" onclick="event.stopPropagation();"><i data-lucide="eye" style="width:14px;height:14px;"></i></button>
+                    <button type="button" id="btn-toggle-pppoe-user" class="detail-plain-edit" onclick="event.stopPropagation();"><i data-lucide="eye" class="icon-sm"></i></button>
                 </span>
             </div>
 
@@ -506,7 +506,7 @@ if (!empty($onu['onu_type'])) {
                         elseif (($onu['wan_mode'] ?? '') === 'PPPoE') echo 'Memuat…';
                         else echo '-';
                     ?></span>
-                    <button type="button" id="btn-toggle-pppoe-pass" class="detail-plain-edit" onclick="event.stopPropagation();"><i data-lucide="eye" style="width:14px;height:14px;"></i></button>
+                    <button type="button" id="btn-toggle-pppoe-pass" class="detail-plain-edit" onclick="event.stopPropagation();"><i data-lucide="eye" class="icon-sm"></i></button>
                 </span>
             </div>
 
@@ -519,13 +519,13 @@ if (!empty($onu['onu_type'])) {
         <div class="smartolt-label">Status</div>
         <div class="smartolt-content" style="display:flex; flex-direction:column; gap:10px;">
             <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                <button type="button" class="btn-solt btn-solt-blue" id="btn-onu-refresh-signal"><i data-lucide="refresh-cw" style="width:14px; height:14px;"></i> Status</button>
-                <button type="button" class="btn-solt btn-solt-blue" id="btn-show-running-config"><i data-lucide="file-text" style="width:14px; height:14px;"></i> Show running-config</button>
-                <button type="button" class="btn-solt btn-solt-blue" id="btn-sw-info"><i data-lucide="info" style="width:14px; height:14px;"></i> Info SW</button>
+                <button type="button" class="btn btn-secondary" id="btn-onu-refresh-signal"><i data-lucide="refresh-cw" class="icon-sm"></i> Status</button>
+                <button type="button" class="btn btn-secondary" id="btn-show-running-config"><i data-lucide="file-text" class="icon-sm"></i> Show running-config</button>
+                <button type="button" class="btn btn-secondary" id="btn-sw-info"><i data-lucide="info" class="icon-sm"></i> Info SW</button>
                 <?php if (($onu['tr069_profile'] ?? '') === 'ACS-Smartolt'): ?>
-                <button type="button" class="btn-solt btn-solt-orange" id="btn-tr069-status"><i data-lucide="activity" style="width:14px; height:14px;"></i> TR069 Status</button>
+                <button type="button" class="btn btn-warning" id="btn-tr069-status"><i data-lucide="activity" class="icon-sm"></i> TR069 Status</button>
                 <?php endif; ?>
-                <button type="button" class="btn-solt btn-solt-green" id="btn-live"><i data-lucide="refresh-cw" style="width:14px; height:14px;"></i> LIVE!</button>
+                <button type="button" class="btn btn-success" id="btn-live"><i data-lucide="refresh-cw" class="icon-sm"></i> LIVE!</button>
             </div>
             
             <!-- Panel Output CLI Langsung di Bawah Tombol -->
@@ -583,7 +583,7 @@ if (!empty($onu['onu_type'])) {
     <div class="smartolt-row motion-fade-up">
         <div class="smartolt-label">Profil Kecepatan</div>
         <div class="smartolt-content">
-            <div class="table-responsive"><table class="smartolt-data-table">
+            <div class="table-responsive"><table class="data-table">
                 <thead>
                     <tr>
                         <th style="width: 45%;">Download</th>
@@ -597,7 +597,7 @@ if (!empty($onu['onu_type'])) {
                         <td id="speed-upload-cell"><?php echo htmlspecialchars($speed_upload_profile ?? 'N/A (klik "Show running-config")'); ?></td>
                         <td>
                             <a href="#" class="action-link" onclick="document.getElementById('update-onu-mode-modal').classList.add('open'); return false;">
-                                <i data-lucide="plus-circle" style="width:14px; height:14px;"></i> Konfigurasi
+                                <i data-lucide="plus-circle" class="icon-sm"></i> Konfigurasi
                             </a>
                         </td>
                     </tr>
@@ -613,15 +613,15 @@ if (!empty($onu['onu_type'])) {
             <?php $eth_count = (int)$onu_type_specs['ethernet_ports']; ?>
             <?php if ($eth_count > 0): ?>
                 <div style="font-size:0.85rem;">
-                    <span style="font-weight:600;"><?php echo $eth_count; ?> port</span>
-                    <span style="color:var(--text-muted);">(<?php echo htmlspecialchars($onu['onu_type']); ?>)</span>
-                    <div class="table-responsive"><table style="width:100%;margin-top:6px;border-collapse:collapse;font-size:0.8rem;">
+                    <span class="fw-600"><?php echo $eth_count; ?> port</span>
+                    <span class="text-muted">(<?php echo htmlspecialchars($onu['onu_type']); ?>)</span>
+                    <div class="table-responsive"><table class="data-table" style="width:100%;margin-top:6px;border-collapse:collapse;font-size:0.8rem;">
                         <tr style="background:var(--bg-secondary);">
-                            <th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Port</th>
-                            <th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Admin state</th>
-                            <th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Mode</th>
-                            <th style="text-align:left;padding:4px 8px;color:var(--text-muted);">DHCP</th>
-                            <th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Action</th>
+                            <th class="text-left p-xs text-muted">Port</th>
+                            <th class="text-left p-xs text-muted">Admin state</th>
+                            <th class="text-left p-xs text-muted">Mode</th>
+                            <th class="text-left p-xs text-muted">DHCP</th>
+                            <th class="text-left p-xs text-muted">Action</th>
                         </tr>
                         <?php for ($i = 1; $i <= $eth_count; $i++): ?>
                         <tr>
@@ -635,7 +635,7 @@ if (!empty($onu['onu_type'])) {
                     </table></div>
                 </div>
             <?php else: ?>
-                <span style="color:var(--text-muted);">—</span>
+                <span class="text-muted">—</span>
             <?php endif; ?>
         </div>
     </div>
@@ -647,15 +647,15 @@ if (!empty($onu['onu_type'])) {
             <?php $wifi_count = (int)$onu_type_specs['wifi_ssids']; ?>
             <?php if ($wifi_count > 0): ?>
                 <div style="font-size:0.85rem;">
-                    <span style="font-weight:600;"><?php echo $wifi_count; ?> SSIDs</span>
-                    <span style="color:var(--text-muted);">(<?php echo htmlspecialchars($onu['onu_type']); ?>)</span>
-                    <div class="table-responsive"><table style="width:100%;margin-top:6px;border-collapse:collapse;font-size:0.8rem;">
+                    <span class="fw-600"><?php echo $wifi_count; ?> SSIDs</span>
+                    <span class="text-muted">(<?php echo htmlspecialchars($onu['onu_type']); ?>)</span>
+                    <div class="table-responsive"><table class="data-table" style="width:100%;margin-top:6px;border-collapse:collapse;font-size:0.8rem;">
                         <tr style="background:var(--bg-secondary);">
-                            <th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Port</th>
-                            <th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Admin state</th>
-                            <th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Mode</th>
-                            <th style="text-align:left;padding:4px 8px;color:var(--text-muted);">SSID</th>
-                            <th style="text-align:left;padding:4px 8px;color:var(--text-muted);">DHCP</th>
+                            <th class="text-left p-xs text-muted">Port</th>
+                            <th class="text-left p-xs text-muted">Admin state</th>
+                            <th class="text-left p-xs text-muted">Mode</th>
+                            <th class="text-left p-xs text-muted">SSID</th>
+                            <th class="text-left p-xs text-muted">DHCP</th>
                         </tr>
                         <?php for ($i = 1; $i <= $wifi_count; $i++): ?>
                         <tr>
@@ -669,7 +669,7 @@ if (!empty($onu['onu_type'])) {
                     </table></div>
                 </div>
             <?php else: ?>
-                <span style="color:var(--text-muted);">—</span>
+                <span class="text-muted">—</span>
             <?php endif; ?>
         </div>
     </div>
@@ -681,7 +681,7 @@ if (!empty($onu['onu_type'])) {
             <?php if ($onu_type_specs['voip_ports'] > 0): ?>
                 <span style="font-weight:600; color:var(--text-main);"><?php echo (int)$onu_type_specs['voip_ports']; ?> port</span>
             <?php else: ?>
-                <span style="color:var(--text-muted);">Nonaktif</span>
+                <span class="text-muted">Nonaktif</span>
             <?php endif; ?>
         </div>
     </div>
@@ -691,7 +691,7 @@ if (!empty($onu['onu_type'])) {
             <?php if ($onu_type_specs['catv']): ?>
                 <span style="font-weight:600; color:var(--color-green);">Didukung</span>
             <?php else: ?>
-                <span style="color:var(--text-muted);">Tidak didukung</span>
+                <span class="text-muted">Tidak didukung</span>
             <?php endif; ?>
         </div>
     </div>
@@ -702,29 +702,29 @@ if (!empty($onu['onu_type'])) {
         <div class="smartolt-content" style="display:flex; gap:10px; flex-wrap:wrap;">
             <form action="action/reboot-onu.php" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin me-reboot ONT ini?');" style="margin:0;">
                 <input type="hidden" name="id" value="<?php echo (int)$onu['id']; ?>">
-                <button type="submit" class="btn-solt btn-solt-orange"><i data-lucide="refresh-cw" style="width:14px; height:14px;"></i> Reboot</button>
+                <button type="submit" class="btn btn-warning"><i data-lucide="refresh-cw" class="icon-sm"></i> Reboot</button>
             </form>
             <form action="action/restore-factory.php" method="POST" onsubmit="return confirm('Restore factory akan MENGHAPUS semua konfigurasi ONT dan mengembalikan ke pengaturan pabrik. ONT perlu diotorisasi ulang. Lanjutkan?');" style="margin:0;">
                 <input type="hidden" name="id" value="<?php echo (int)$onu['id']; ?>">
-                <button type="submit" class="btn-solt btn-solt-orange"><i data-lucide="rotate-ccw" style="width:14px; height:14px;"></i> Restore Factory</button>
+                <button type="submit" class="btn btn-warning"><i data-lucide="rotate-ccw" class="icon-sm"></i> Restore Factory</button>
             </form>
-            <button type="button" class="btn-solt btn-solt-orange" id="btn-resync-config"><i data-lucide="refresh-ccw" style="width:14px; height:14px;"></i> Resync config</button>
+            <button type="button" class="btn btn-warning" id="btn-resync-config"><i data-lucide="refresh-ccw" class="icon-sm"></i> Resync config</button>
             <?php if ($onu['status'] === 'disabled'): ?>
                 <form action="action/onu-state.php" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin mengaktifkan kembali ONT ini?');" style="margin:0;">
                     <input type="hidden" name="id" value="<?php echo (int)$onu['id']; ?>">
                     <input type="hidden" name="action" value="enable">
-                    <button type="submit" class="btn-solt btn-solt-yellow"><i data-lucide="shield" style="width:14px; height:14px;"></i> Aktifkan ONU</button>
+                    <button type="submit" class="btn btn-warning"><i data-lucide="shield" class="icon-sm"></i> Aktifkan ONU</button>
                 </form>
             <?php else: ?>
                 <form action="action/onu-state.php" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menonaktifkan ONT ini?');" style="margin:0;">
                     <input type="hidden" name="id" value="<?php echo (int)$onu['id']; ?>">
                     <input type="hidden" name="action" value="disable">
-                    <button type="submit" class="btn-solt btn-solt-yellow"><i data-lucide="shield-alert" style="width:14px; height:14px;"></i> Nonaktifkan ONU</button>
+                    <button type="submit" class="btn btn-warning"><i data-lucide="shield-alert" class="icon-sm"></i> Nonaktifkan ONU</button>
                 </form>
             <?php endif; ?>
             <form action="action/delete-onu.php" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pelanggan ini dari OLT?');" style="margin:0;">
                 <input type="hidden" name="id" value="<?php echo (int)$onu['id']; ?>">
-                <button type="submit" class="btn-solt btn-solt-red"><i data-lucide="trash-2" style="width:14px; height:14px;"></i> Hapus</button>
+                <button type="submit" class="btn btn-danger"><i data-lucide="trash-2" class="icon-sm"></i> Hapus</button>
             </form>
         </div>
     </div>
@@ -869,7 +869,7 @@ if (!empty($onu['onu_type'])) {
                             const el = document.getElementById(id);
                             if (el) {
                                 const cleanVal = (val && val !== 'None' && val !== 'N/A' && val !== '') ? val : fallback;
-                                el.innerHTML = `<i data-lucide="pencil" style="width:11px;height:11px;"></i> ${esc(cleanVal)}`;
+                                el.innerHTML = `<i data-lucide="pencil" class="icon-xs"></i> ${esc(cleanVal)}`;
                             }
                         };
 
@@ -891,7 +891,7 @@ if (!empty($onu['onu_type'])) {
                         if (mgmtIpEl && data.mgmt_ip !== undefined) {
                             const mgmtMode = data.mgmt_ip_mode || 'Inactive';
                             const mgmtIpDisplay = data.mgmt_ip || data.tr069_ip || null;
-                            let mgmtHtml = '<i data-lucide="pencil" style="width:11px;height:11px;"></i> ';
+                            let mgmtHtml = '<i data-lucide="pencil" class="icon-xs"></i> ';
                             if (mgmtMode === 'Static' || mgmtMode === 'DHCP') {
                                 mgmtHtml += `<strong>${esc(mgmtMode)}</strong> `;
                                 if (mgmtIpDisplay) {
@@ -900,7 +900,7 @@ if (!empty($onu['onu_type'])) {
                                     mgmtHtml += `<span class="chip chip-red">Menunggu IP</span>`;
                                 }
                             } else {
-                                mgmtHtml += `<span style="color:var(--text-muted);">Nonaktif</span>`;
+                                mgmtHtml += `<span class="text-muted">Nonaktif</span>`;
                             }
                             mgmtIpEl.innerHTML = mgmtHtml;
                         }
@@ -916,7 +916,7 @@ if (!empty($onu['onu_type'])) {
 
                         const onuModeEl = document.getElementById('detail-onu-mode');
                         if (onuModeEl) {
-                            onuModeEl.innerHTML = `<i data-lucide="pencil" style="width:11px;height:11px;"></i> ${esc(data.onu_mode || 'Routing')} (${esc(data.config_method || 'OMCI')}) &mdash; WAN ${esc(data.vlan || 'N/A')}`;
+                            onuModeEl.innerHTML = `<i data-lucide="pencil" class="icon-xs"></i> ${esc(data.onu_mode || 'Routing')} (${esc(data.config_method || 'OMCI')}) &mdash; WAN ${esc(data.vlan || 'N/A')}`;
                         }
                         // Update WAN setup label (span wraps label text only, pppoe wrapper is separate)
                         const wanLabelEl = document.getElementById('detail-wan-label');
@@ -937,7 +937,7 @@ if (!empty($onu['onu_type'])) {
                             if (data.wan_remote_access === 'yes') {
                                 wraEl.innerHTML = '<span style="color:var(--color-success); font-weight:600;">Aktif</span>';
                             } else {
-                                wraEl.innerHTML = '<span style="color:var(--text-muted);">Nonaktif</span>';
+                                wraEl.innerHTML = '<span class="text-muted">Nonaktif</span>';
                             }
                         }
 
@@ -961,7 +961,7 @@ if (!empty($onu['onu_type'])) {
                         // Update PPPoE IP (only meaningful for PPPoE mode)
                         if (pppoeContainer) {
                             if (data.wan_mode !== 'PPPoE') {
-                                pppoeContainer.innerHTML = '<span style="color:var(--text-muted);">-</span>';
+                                pppoeContainer.innerHTML = '<span class="text-muted">-</span>';
                             } else if (data.pppoe_ip && data.pppoe_ip !== 'N/A' && data.pppoe_ip !== '0.0.0.0' && data.pppoe_ip !== '') {
                                 pppoeContainer.innerHTML = `
                                     <a href="http://${esc(data.pppoe_ip)}" target="_blank" class="chip chip-green" style="text-decoration: none;" onclick="event.stopPropagation();">
@@ -1145,7 +1145,7 @@ if (!empty($onu['onu_type'])) {
             btnLive.addEventListener('click', () => {
                 const isOn = btnLive.dataset.live === 'on';
                 btnLive.dataset.live = isOn ? 'off' : 'on';
-                btnLive.innerHTML = `<i data-lucide="refresh-cw" style="width:14px; height:14px;"></i> ${isOn ? 'LIVE!' : 'LIVE! (ON)'}`;
+                btnLive.innerHTML = `<i data-lucide="refresh-cw" class="icon-sm"></i> ${isOn ? 'LIVE!' : 'LIVE! (ON)'}`;
                 if (typeof lucide !== 'undefined') lucide.createIcons();
                 btnLive.style.opacity = isOn ? '0.7' : '1';
                 countdownSec = isOn ? 15 : 3;
@@ -1262,15 +1262,15 @@ $tr069_profiles = tr069_get_profiles($pdo);
 <div class="modal" id="update-onu-mode-modal" role="dialog" aria-modal="true">
     <div class="modal-content" style="max-width: 650px; width: 90%; border-radius: 6px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
         <div class="modal-header" style="padding: 15px 24px; display: flex; justify-content: space-between; align-items: center;">
-            <h3 style="margin:0; font-size:1.4rem; font-weight:700; color:var(--text-main);">Update Mode ONU</h3>
-            <button type="button" class="close-btn" onclick="document.getElementById('update-onu-mode-modal').classList.remove('open')" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text-muted); line-height: 1;">&times;</button>
+            <h2 style="margin:0; font-size:1.4rem; font-weight:700; color:var(--text-main);">Update Mode ONU</h2>
+            <button type="button" class="modal-close" onclick="document.getElementById('update-onu-mode-modal').classList.remove('open')" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text-muted); line-height: 1;">&times;</button>
         </div>
         <form action="action/update-onu-mode.php" method="POST">
             <input type="hidden" name="onu_id" value="<?php echo (int)$onu['id']; ?>">
             <input type="hidden" name="change_scope" value="wan_config">
             <div class="modal-body" style="padding: 24px; font-size:0.95rem; color:var(--text-main);">
                 
-                <div class="table-responsive"><table style="width:100%; border-collapse:collapse;">
+                <div class="table-responsive"><table class="data-table" style="width:100%; border-collapse:collapse;">
                     <!-- WAN VLAN-ID -->
                     <tr style="height: 55px;">
                         <td style="width: 160px; font-weight: 600; color:var(--text-main); vertical-align: middle; padding: 8px 0;">WAN VLAN-ID</td>
@@ -1295,10 +1295,10 @@ $tr069_profiles = tr069_get_profiles($pdo);
                     <tr style="height: 45px;">
                         <td style="font-weight: 600; color:var(--text-main); vertical-align: middle; padding: 8px 0;">Mode ONU</td>
                         <td style="vertical-align: middle; padding: 8px 0; display: flex; gap: 15px; align-items: center;">
-                            <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+                            <label class="inline-flex-center gap-2 cursor-pointer">
                                 <input type="radio" name="onu_mode" value="Routing" <?php echo ($onu['onu_mode'] === 'Routing' || empty($onu['onu_mode'])) ? 'checked' : ''; ?>> Routing
                             </label>
-                            <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+                            <label class="inline-flex-center gap-2 cursor-pointer">
                                 <input type="radio" name="onu_mode" value="Bridging" <?php echo $onu['onu_mode'] === 'Bridging' ? 'checked' : ''; ?>> Bridging
                             </label>
                         </td>
@@ -1309,7 +1309,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         <td style="font-weight: 600; color:var(--text-main); vertical-align: top; padding: 12px 0;">Mode WAN</td>
                         <td style="padding: 8px 0;">
                             <div style="margin-bottom: 8px;">
-                                <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+                                <label class="inline-flex-center gap-2 cursor-pointer">
                                     <input type="radio" name="wan_mode" class="wan-mode-radio" value="Setup via ONU webpage" <?php echo ($onu['wan_mode'] === 'Setup via ONU webpage' || empty($onu['wan_mode'])) ? 'checked' : ''; ?>> Setup via ONU webpage
                                 </label>
                             </div>
@@ -1317,13 +1317,13 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 Pengaturan untuk ONT yang kompatibel:
                             </div>
                             <div style="display:flex; gap:15px; align-items:center; margin-left: 2px;">
-                                <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+                                <label class="inline-flex-center gap-2 cursor-pointer">
                                     <input type="radio" name="wan_mode" class="wan-mode-radio" value="DHCP" <?php echo $onu['wan_mode'] === 'DHCP' ? 'checked' : ''; ?>> DHCP
                                 </label>
-                                <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+                                <label class="inline-flex-center gap-2 cursor-pointer">
                                     <input type="radio" name="wan_mode" class="wan-mode-radio" value="Static" <?php echo $onu['wan_mode'] === 'Static' ? 'checked' : ''; ?>> Static IP
                                 </label>
-                                <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+                                <label class="inline-flex-center gap-2 cursor-pointer">
                                     <input type="radio" name="wan_mode" class="wan-mode-radio" value="PPPoE" <?php echo $onu['wan_mode'] === 'PPPoE' ? 'checked' : ''; ?>> PPPoE
                                 </label>
                             </div>
@@ -1335,7 +1335,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                         <td style="font-weight: 600; color:var(--text-main); vertical-align: middle; padding: 8px 0;">Metode Konfigurasi</td>
                         <td style="vertical-align: middle; padding: 8px 0; display: flex; gap: 15px; align-items: center;">
                             <?php $tr069_active = (($onu['tr069_profile'] ?? '') === 'ACS-Smartolt'); ?>
-                            <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+                            <label class="inline-flex-center gap-2 cursor-pointer">
                                 <input type="radio" name="config_method" value="OMCI" <?php echo ($onu['config_method'] === 'OMCI' || empty($onu['config_method'])) ? 'checked' : ''; ?>> OMCI
                             </label>
                             <label style="display:inline-flex; align-items:center; gap:6px; cursor:<?php echo $tr069_active ? 'pointer' : 'not-allowed'; ?>; <?php echo $tr069_active ? '' : 'opacity:0.5;'; ?>" title="<?php echo $tr069_active ? '' : 'Set TR609 Profile ke ACS-Smartolt dulu untuk mengaktifkan opsi ini'; ?>">
@@ -1452,8 +1452,8 @@ $tr069_profiles = tr069_get_profiles($pdo);
 <div class="modal" id="edit-onu-type-modal" role="dialog" aria-modal="true">
     <div class="modal-content" style="max-width: 450px; width: 90%; border-radius: 6px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
         <div class="modal-header" style="padding: 15px 24px; display: flex; justify-content: space-between; align-items: center;">
-            <h3 style="margin:0; font-size:1.2rem; font-weight:700; color:var(--text-main);">Edit Tipe ONU</h3>
-            <button type="button" class="close-btn" onclick="document.getElementById('edit-onu-type-modal').classList.remove('open')" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text-muted); line-height: 1;">&times;</button>
+            <h2 style="margin:0; font-size:1.2rem; font-weight:700; color:var(--text-main);">Edit Tipe ONU</h2>
+            <button type="button" class="modal-close" onclick="document.getElementById('edit-onu-type-modal').classList.remove('open')" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text-muted); line-height: 1;">&times;</button>
         </div>
         <form action="action/update-onu-mode.php" method="POST">
             <input type="hidden" name="onu_id" value="<?php echo (int)$onu['id']; ?>">
@@ -1484,8 +1484,8 @@ $tr069_profiles = tr069_get_profiles($pdo);
 <div class="modal" id="edit-config-preset-modal" role="dialog" aria-modal="true">
     <div class="modal-content" style="max-width: 450px; width: 90%; border-radius: 6px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
         <div class="modal-header" style="padding: 15px 24px; display: flex; justify-content: space-between; align-items: center;">
-            <h3 style="margin:0; font-size:1.2rem; font-weight:700; color:var(--text-main);">Edit Preset Konfigurasi</h3>
-            <button type="button" class="close-btn" onclick="document.getElementById('edit-config-preset-modal').classList.remove('open')" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text-muted); line-height: 1;">&times;</button>
+            <h2 style="margin:0; font-size:1.2rem; font-weight:700; color:var(--text-main);">Edit Preset Konfigurasi</h2>
+            <button type="button" class="modal-close" onclick="document.getElementById('edit-config-preset-modal').classList.remove('open')" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text-muted); line-height: 1;">&times;</button>
         </div>
         <form action="action/update-onu-mode.php" method="POST">
             <input type="hidden" name="onu_id" value="<?php echo (int)$onu['id']; ?>">
@@ -1519,9 +1519,9 @@ $tr069_profiles = tr069_get_profiles($pdo);
         <div class="modal-header">
             <div style="display:flex; align-items:center; gap:10px;">
                 <i data-lucide="user-cog" style="width:18px;height:18px; color:var(--text-accent);"></i>
-                <h3 style="margin:0; font-size:1.1rem; font-weight:600;">Edit Identitas & Lokasi ONU</h3>
+                <h2 style="margin:0; font-size:1.1rem; font-weight:600;">Edit Identitas & Lokasi ONU</h2>
             </div>
-            <button type="button" class="close-btn" onclick="document.getElementById('edit-identity-modal').classList.remove('open')">&times;</button>
+            <button type="button" class="modal-close" onclick="document.getElementById('edit-identity-modal').classList.remove('open')">&times;</button>
         </div>
         <form action="action/update-onu-mode.php" method="POST">
             <input type="hidden" name="onu_id" value="<?php echo (int)$onu['id']; ?>">
@@ -1589,7 +1589,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
             </div>
             <div class="modal-footer">
                 <button type="button" onclick="document.getElementById('edit-identity-modal').classList.remove('open')" class="btn btn-secondary">Batal</button>
-                <button type="submit" class="btn btn-primary"><i data-lucide="save" style="width:14px;height:14px;"></i> Simpan</button>
+                <button type="submit" class="btn btn-primary"><i data-lucide="save" class="icon-sm"></i> Simpan</button>
             </div>
         </form>
     </div>
@@ -1769,7 +1769,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             const pppoeContainer = document.getElementById('detail-pppoe-ip-wrapper');
                             if (pppoeContainer) {
                                 if (window.currentWanMode !== 'PPPoE') {
-                                    pppoeContainer.innerHTML = '<span style="color:var(--text-muted);">-</span>';
+                                    pppoeContainer.innerHTML = '<span class="text-muted">-</span>';
                                 } else if (data.pppoe_ip && data.pppoe_ip !== 'N/A' && data.pppoe_ip !== '0.0.0.0' && data.pppoe_ip !== '') {
                                     pppoeContainer.innerHTML = `
                                         <a href="http://${esc(data.pppoe_ip)}" target="_blank" class="chip chip-green" style="text-decoration: none;" onclick="event.stopPropagation();">
@@ -2477,12 +2477,12 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             h += pppRow('DMZ Enable', ppRadio('dmz', i, dmz));
                             h += pppRow('DMZ Host IP Address', pppInput('dmz_ip', i, dmzIp, {narrow:false}));
                             h += pppRow('VLAN ID', pppInput('vlan', i, vlan, {narrow:true}));
-                            h += pppRow('Reset connection', '<button type="button" class="btn-solt ppp-reset" data-idx="'+i+'" style="padding:5px 14px;font-size:0.8rem;background:#6c757d;color:#fff;border:none;border-radius:4px;cursor:pointer;">Reset Connection</button>');
+                            h += pppRow('Reset connection', '<button type="button" class="btn ppp-reset" data-idx="'+i+'" style="padding:5px 14px;font-size:0.8rem;background:#6c757d;color:#fff;border:none;border-radius:4px;cursor:pointer;">Reset Connection</button>');
                             h += '<div style="padding:12px 0 8px;display:flex;gap:8px;">';
-                            h += '<button type="button" class="btn-solt btn-solt-green ppp-save" data-idx="'+i+'" style="padding:6px 16px;font-size:0.82rem;">Simpan Perubahan</button>';
+                            h += '<button type="button" class="btn btn-success ppp-save" data-idx="'+i+'" class="btn btn-xs">Simpan Perubahan</button>';
                             h += '</div>';
                             h += '<div style="padding:8px 0 4px;border-top:1px solid var(--border-color);">';
-                            h += '<button type="button" class="btn-solt ppp-remove" data-idx="'+i+'" style="padding:6px 16px;font-size:0.82rem;background:#dc3545;color:#fff;border:none;border-radius:4px;cursor:pointer;">Remove PPP WAN</button>';
+                            h += '<button type="button" class="btn ppp-remove" data-idx="'+i+'" style="padding:6px 16px;font-size:0.82rem;background:#dc3545;color:#fff;border:none;border-radius:4px;cursor:pointer;">Remove PPP WAN</button>';
                             h += '</div>';
                             h += '</div></div>';
                             return h;
@@ -2539,10 +2539,10 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             h += pppRow('NAT Enabled', ppRadioYN('nat', i, nat).replace(/name="ppp-/g, 'name="ip-').replace(/class="ppp-radio"/g, 'class="ip-radio"'));
                             h += pppRow('VLAN ID', vlan || 'N/A');
                             h += '<div style="padding:12px 0 8px;display:flex;gap:8px;">';
-                            h += '<button type="button" class="btn-solt btn-solt-green ip-save" data-idx="'+i+'" data-path="'+sec.tr069Path+'" style="padding:6px 16px;font-size:0.82rem;">Simpan Perubahan</button>';
+                            h += '<button type="button" class="btn btn-success ip-save" data-idx="'+i+'" data-path="'+sec.tr069Path+'" class="btn btn-xs">Simpan Perubahan</button>';
                             h += '</div>';
                             h += '<div style="padding:8px 0 4px;border-top:1px solid var(--border-color);">';
-                            h += '<button type="button" class="btn-solt ip-remove" data-idx="'+i+'" data-path="'+sec.tr069Path+'" style="padding:6px 16px;font-size:0.82rem;background:#dc3545;color:#fff;border:none;border-radius:4px;cursor:pointer;">Remove IP WAN</button>';
+                            h += '<button type="button" class="btn ip-remove" data-idx="'+i+'" data-path="'+sec.tr069Path+'" style="padding:6px 16px;font-size:0.82rem;background:#dc3545;color:#fff;border:none;border-radius:4px;cursor:pointer;">Remove IP WAN</button>';
                             h += '</div>';
                             h += '</div></div>';
                             return h;
@@ -2619,7 +2619,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             h += pppRow('VLAN ID', wlanInput('vlan', i, vlanId, {narrow:true}));
                             h += pppRow('Total Associations', (totalAssoc !== '' && totalAssoc != null) ? totalAssoc : '0');
                             h += '<div style="padding:12px 0 4px;">';
-                            h += '<button type="button" class="btn-solt btn-solt-green wlan-save" data-idx="'+i+'" data-wlan-num="'+wlanNum+'" style="padding:6px 16px;font-size:0.82rem;">Simpan Perubahan</button>';
+                            h += '<button type="button" class="btn btn-success wlan-save" data-idx="'+i+'" data-wlan-num="'+wlanNum+'" class="btn btn-xs">Simpan Perubahan</button>';
                             h += '</div>';
                             h += '</div></div>';
                             return h;
@@ -2728,7 +2728,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             h += pppRow('DNS Server', textInput('dns', dns, base + 'DNSServers'));
                             h += pppRow('Lease Time (detik)', textInput('lease', lease, base + 'DHCPLeaseTime', 'xsd:int', true));
                             h += '<div style="padding:12px 0 8px;">';
-                            h += '<button type="button" class="btn-solt btn-solt-green gen-save" data-idx="'+i+'" data-fields=\''+JSON.stringify(genFields).replace(/'/g,'&#39;')+'\' style="padding:6px 16px;font-size:0.82rem;">Simpan Perubahan</button>';
+                            h += '<button type="button" class="btn btn-success gen-save" data-idx="'+i+'" data-fields=\''+JSON.stringify(genFields).replace(/'/g,'&#39;')+'\' class="btn btn-xs">Simpan Perubahan</button>';
                             h += '</div>';
                             h += '</div></div>';
                             return h;
@@ -2811,20 +2811,20 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 } else if (v && typeof v === 'object' && v.v) {
                                     val = '<span style="color:' + (v.color || 'inherit') + ';font-weight:600;">' + v.v + '</span>';
                                 } else {
-                                    val = (v === '' || v == null) ? '<span style="color:var(--text-muted);">(empty)</span>' : String(v);
+                                    val = (v === '' || v == null) ? '<span class="text-muted">(empty)</span>' : String(v);
                                 }
                                 html += '<div style="padding:3px 0;border-bottom:1px solid var(--border-color);display:flex;gap:8px;align-items:center;">';
                                 html += '<span style="min-width:200px;color:var(--text-muted);flex-shrink:0;">' + k + '</span>';
                                 html += '<span style="word-break:break-all;flex:1;">' + val + '</span></div>';
                             }
                             if (genFields.length) {
-                                html += '<div style="padding:10px 0 4px;"><button type="button" class="btn-solt btn-solt-green gen-save" data-idx="'+i+'" data-fields=\''+JSON.stringify(genFields).replace(/'/g,'&#39;')+'\' style="padding:6px 16px;font-size:0.82rem;">Simpan Perubahan</button></div>';
+                                html += '<div style="padding:10px 0 4px;"><button type="button" class="btn btn-success gen-save" data-idx="'+i+'" data-fields=\''+JSON.stringify(genFields).replace(/'/g,'&#39;')+'\' class="btn btn-xs">Simpan Perubahan</button></div>';
                             }
                             if (isGeneral) {
                                 html += '<div style="padding:3px 0;border-bottom:1px solid var(--border-color);display:flex;gap:8px;align-items:center;">';
                                 html += '<span style="min-width:200px;color:var(--text-muted);flex-shrink:0;">Pending provisions</span>';
                                 html += '<span style="display:flex;gap:8px;flex:1;"><input type="text" id="tr069-prov-input" placeholder="Provision name" style="flex:1;padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);font-size:0.85rem;">';
-                                html += '<button type="button" class="btn-solt btn-solt-green" id="tr069-prov-add" style="padding:4px 12px;font-size:0.8rem;">+ Add</button></span></div>';
+                                html += '<button type="button" class="btn btn-success" id="tr069-prov-add" style="padding:4px 12px;font-size:0.8rem;">+ Add</button></span></div>';
                             }
                             html += '</div></div>';
                         });
@@ -2840,7 +2840,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             if (!lanPortList.length) {
                                 html += '<div style="color:var(--text-muted);padding:8px 0;">Tidak ada port LAN.</div>';
                             } else {
-                                html += '<div class="table-responsive"><table style="width:100%;border-collapse:collapse;">';
+                                html += '<div class="table-responsive"><table class="data-table" style="width:100%;border-collapse:collapse;">';
                                 html += '<tr style="text-align:left;color:var(--text-muted);font-size:0.78rem;"><th style="padding:5px 8px 5px 0;">Port</th><th style="padding:5px 8px;">Enable</th><th style="padding:5px 8px;">Status</th><th style="padding:5px 8px;">Speed</th><th style="padding:5px 8px;">Duplex</th><th style="padding:5px 8px;">L3 Enable</th><th style="padding:5px 8px;">Speed mode</th><th style="padding:5px 8px;">Duplex mode</th><th style="padding:5px 8px;">Flow control</th><th style="padding:5px 0 5px 8px;"></th></tr>';
                                 lanPortList.forEach((p, pi) => {
                                     const B = 'InternetGatewayDevice.' + p.path + '.';
@@ -2864,7 +2864,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                         + '<td style="padding:6px 8px;">' + sel(speedId, [{v:'Auto',l:'Auto'},{v:'10Mbps',l:'10Mbps'},{v:'100Mbps',l:'100Mbps'},{v:'1Gbps',l:'1Gbps'}], p.speedMode) + '</td>'
                                         + '<td style="padding:6px 8px;">' + sel(duplexId, [{v:'Auto',l:'Auto'},{v:'Half',l:'Half'},{v:'Full',l:'Full'}], p.duplexMode) + '</td>'
                                         + '<td style="padding:6px 8px;">' + sel(flowId, [{v:'true',l:'Enable'},{v:'false',l:'Disable'}], p.flowCtrl) + '</td>'
-                                        + '<td style="padding:6px 0 6px 8px;"><button type="button" class="btn-solt btn-solt-green gen-save" data-idx="lanport'+pi+'" data-fields=\''+JSON.stringify(fieldsMeta).replace(/'/g,'&#39;')+'\' style="padding:4px 10px;font-size:0.78rem;white-space:nowrap;">Simpan</button></td>'
+                                        + '<td style="padding:6px 0 6px 8px;"><button type="button" class="btn btn-success gen-save" data-idx="lanport'+pi+'" data-fields=\''+JSON.stringify(fieldsMeta).replace(/'/g,'&#39;')+'\' style="padding:4px 10px;font-size:0.78rem;white-space:nowrap;">Simpan</button></td>'
                                         + '</tr>';
                                 });
                                 html += '</table></div>';
@@ -2881,7 +2881,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             if (!lanPortList.length) {
                                 html += '<div style="color:var(--text-muted);padding:8px 0;">Tidak ada data counter.</div>';
                             } else {
-                                html += '<div class="table-responsive"><table style="width:100%;border-collapse:collapse;">';
+                                html += '<div class="table-responsive"><table class="data-table" style="width:100%;border-collapse:collapse;">';
                                 const cols = ['#','Bytes In','Bytes Out','Pkts In','Pkts Out','Uni In','Uni Out','Multi In','Multi Out','Bro In','Bro Out','Err In','Err Out','Disc In','Disc Out'];
                                 html += '<tr style="text-align:left;color:var(--text-muted);font-size:0.75rem;">' + cols.map(c => '<th style="padding:5px 8px;">'+c+'</th>').join('') + '</tr>';
                                 lanPortList.forEach((p, pi) => {
@@ -2902,7 +2902,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             if (!hostList.length) {
                                 html += '<div style="color:var(--text-muted);padding:8px 0;">Tidak ada host terkoneksi.</div>';
                             } else {
-                                html += '<div class="table-responsive"><table style="width:100%;border-collapse:collapse;">';
+                                html += '<div class="table-responsive"><table class="data-table" style="width:100%;border-collapse:collapse;">';
                                 html += '<tr style="text-align:left;color:var(--text-muted);font-size:0.78rem;"><th style="padding:5px 8px 5px 0;">#</th><th style="padding:5px 8px;">MAC Address</th><th style="padding:5px 8px;">IP Address</th><th style="padding:5px 8px;">Address source</th><th style="padding:5px 8px;">Hostname</th><th style="padding:5px 8px;">Port</th><th style="padding:5px 0 5px 8px;">Active</th></tr>';
                                 hostList.forEach((h, hi) => {
                                     const activeText = h.active === true || h.active === '1' || h.active === 1 ? 'Yes' : 'No';
@@ -2931,7 +2931,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             if (!routeList.length) {
                                 html += '<div style="color:var(--text-muted);padding:8px 0;">Tidak ada route.</div>';
                             } else {
-                                html += '<div class="table-responsive"><table style="width:100%;border-collapse:collapse;">';
+                                html += '<div class="table-responsive"><table class="data-table" style="width:100%;border-collapse:collapse;">';
                                 html += '<tr style="text-align:left;color:var(--text-muted);font-size:0.78rem;"><th style="padding:5px 8px 5px 0;">Destination</th><th style="padding:5px 8px;">Subnet Mask</th><th style="padding:5px 8px;">Gateway</th><th style="padding:5px 8px;">Interface</th><th style="padding:5px 0 5px 8px;">Origin</th></tr>';
                                 routeList.forEach(r => {
                                     html += '<tr style="border-top:1px solid var(--border-color);">'
@@ -2967,7 +2967,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                     html += rowText('SIP Username', 'voice-sipuser-'+ln.num, ln.sipUser);
                                     html += rowText('SIP Password', 'voice-sippass-'+ln.num, ln.sipPass);
                                     html += rowText('SIP URI', 'voice-sipuri-'+ln.num, ln.sipUri);
-                                    html += '<button type="button" class="btn-solt btn-solt-green voice-save" data-line="'+ln.num+'" style="padding:5px 14px;font-size:0.8rem;">Simpan Line ' + ln.num + '</button>';
+                                    html += '<button type="button" class="btn btn-success voice-save" data-line="'+ln.num+'" style="padding:5px 14px;font-size:0.8rem;">Simpan Line ' + ln.num + '</button>';
                                     html += '</div>';
                                 });
                             }
@@ -3011,11 +3011,11 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             html += '<span>Security</span><span class="tr069-refresh" data-idx="'+idx+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:none;">&#8635;</span></div>';
                             html += '<div class="tr069-panel" style="display:none;padding:10px 12px;background:var(--bg-primary);font-size:0.85rem;">';
                             const rowRadio = (label, id, val, opts) => {
-                                return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><label style="width:230px;color:var(--text-muted);">'+label+'</label><div style="flex:1;display:flex;gap:18px;">'
+                                return '<div class="flex-row gap-2 mb-1"><label style="width:230px;color:var(--text-muted);">'+label+'</label><div style="flex:1;display:flex;gap:18px;">'
                                     + opts.map(o => '<label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-weight:400;"><input type="radio" name="'+id+'" value="'+o[0]+'" id="'+id+'-'+o[0]+'"'+(String(val)===o[0]?' checked':'')+'> '+o[1]+'</label>').join('')
                                     + '</div></div>';
                             };
-                            const rowText = (label, id, val, ph) => '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><label style="width:150px;color:var(--text-muted);">'+label+'</label><input type="text" id="'+id+'" value="'+esc(val)+'" placeholder="'+(ph||'')+'" style="flex:1;padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);"></div>';
+                            const rowText = (label, id, val, ph) => '<div class="flex-row gap-2 mb-1"><label style="width:150px;color:var(--text-muted);">'+label+'</label><input type="text" id="'+id+'" value="'+esc(val)+'" placeholder="'+(ph||'')+'" style="flex:1;padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);"></div>';
                             const enDis = [['1','Enabled'],['0','Disabled']];
                             // ACL Enable: kalau device belum eksplisit set (mis. field kosong/tidak dikenal),
                             // JANGAN paksa default Enabled/Disabled -- biarkan tidak ada radio tercentang,
@@ -3030,12 +3030,12 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             // Tabel ACL Settings -- mirror GUI asli device: ID | Active | Source IP | Protocol | Interface,
                             // plus tombol Add dan Edit (bukan form inline) yang buka modal.
                             html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">';
-                            html += '<div style="font-weight:600;">ACL Settings (Akses WAN)</div>';
-                            html += '<button type="button" class="btn-solt btn-solt-blue fhacl-add" style="padding:4px 12px;font-size:0.78rem;">+ Add Rule</button>';
+                            html += '<div class="fw-600">ACL Settings (Akses WAN)</div>';
+                            html += '<button type="button" class="btn btn-secondary fhacl-add" style="padding:4px 12px;font-size:0.78rem;">+ Add Rule</button>';
                             html += '</div>';
                             const ruleTbl = acl.Rule || {};
                             const ruleIds = Object.keys(ruleTbl).filter(k => /^\d+$/.test(k)).sort((a,b) => a - b);
-                            html += '<div class="table-responsive"><table style="width:100%;border-collapse:collapse;font-size:0.8rem;margin-bottom:8px;">';
+                            html += '<div class="table-responsive"><table class="data-table" style="width:100%;border-collapse:collapse;font-size:0.8rem;margin-bottom:8px;">';
                             html += '<tr style="background:var(--bg-secondary);"><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);">ID</th><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);">Active</th><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);">Source IP</th><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);">Protocol</th><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);">Interface</th><th style="padding:5px 6px;text-align:left;border:1px solid var(--border-color);"></th></tr>';
                             if (ruleIds.length === 0) {
                                 html += '<tr><td colspan="6" style="padding:6px;border:1px solid var(--border-color);color:var(--text-muted);">Belum ada rule.</td></tr>';
@@ -3056,7 +3056,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                     + '<td style="padding:5px 6px;border:1px solid var(--border-color);">'+srcIp+'</td>'
                                     + '<td style="padding:5px 6px;border:1px solid var(--border-color);">'+esc(r.Protocol?._value||'')+'</td>'
                                     + '<td style="padding:5px 6px;border:1px solid var(--border-color);">'+esc(r.Interface?._value||'')+'</td>'
-                                    + '<td style="padding:5px 6px;border:1px solid var(--border-color);"><button type="button" class="btn-solt btn-solt-blue fhacl-edit" data-rule="'+rid+'" data-active="'+(active==='YES'?'1':'0')+'" data-srcstart="'+esc(startShown)+'" data-srcend="'+esc(endShown)+'" data-protocol="'+esc(r.Protocol?._value||'')+'" data-interface="'+esc(r.Interface?._value||'')+'" style="padding:3px 10px;font-size:0.76rem;">Edit</button> <button type="button" class="btn-solt btn-solt-red fhacl-delete" data-rule="'+rid+'" style="padding:3px 10px;font-size:0.76rem;">Delete</button></td>'
+                                    + '<td style="padding:5px 6px;border:1px solid var(--border-color);"><button type="button" class="btn btn-secondary fhacl-edit" data-rule="'+rid+'" data-active="'+(active==='YES'?'1':'0')+'" data-srcstart="'+esc(startShown)+'" data-srcend="'+esc(endShown)+'" data-protocol="'+esc(r.Protocol?._value||'')+'" data-interface="'+esc(r.Interface?._value||'')+'" style="padding:3px 10px;font-size:0.76rem;">Edit</button> <button type="button" class="btn btn-danger fhacl-delete" data-rule="'+rid+'" style="padding:3px 10px;font-size:0.76rem;">Delete</button></td>'
                                     + '</tr>';
                             });
                             html += '</table></div>';
@@ -3066,18 +3066,18 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             html += '<div id="fhacl-inline-panel" style="display:none;border:1px solid var(--border-color);border-radius:6px;padding:14px;margin-bottom:10px;background:var(--bg-secondary);">';
                             html += '<div style="font-weight:600;margin-bottom:10px;" id="fhacl-modal-title">Add Rule</div>';
                             html += '<input type="hidden" id="fhacl-modal-rule-id" value="">';
-                            html += '<div class="table-responsive"><table style="width:100%;border-collapse:collapse;font-size:0.82rem;">';
+                            html += '<div class="table-responsive"><table class="data-table" style="width:100%;border-collapse:collapse;font-size:0.82rem;">';
                             html += '<tr style="height:38px;"><td style="width:140px;font-weight:600;">Active</td><td>'
                                 + '<label style="margin-right:16px;cursor:pointer;"><input type="radio" name="fhacl-modal-active" value="1" checked> YES</label>'
                                 + '<label style="cursor:pointer;"><input type="radio" name="fhacl-modal-active" value="0"> NO</label></td></tr>';
-                            html += '<tr style="height:38px;"><td style="font-weight:600;">Source IP Start</td><td><input type="text" id="fhacl-modal-srcstart" placeholder="kosong = semua IP" style="width:100%;padding:6px 10px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);color:var(--text-main);"></td></tr>';
-                            html += '<tr style="height:38px;"><td style="font-weight:600;">Source IP End</td><td><input type="text" id="fhacl-modal-srcend" placeholder="kosong = semua IP" style="width:100%;padding:6px 10px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);color:var(--text-main);"></td></tr>';
-                            html += '<tr style="height:38px;"><td style="font-weight:600;">Protocol</td><td><select id="fhacl-modal-protocol" style="width:100%;padding:6px 10px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);color:var(--text-main);"><option value="ALL">ALL</option><option value="TCP">TCP</option><option value="UDP">UDP</option><option value="ICMP">ICMP</option></select></td></tr>';
-                            html += '<tr style="height:38px;"><td style="font-weight:600;">Interface</td><td><select id="fhacl-modal-interface" style="width:100%;padding:6px 10px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);color:var(--text-main);"></select></td></tr>';
+                            html += '<tr style="height:38px;"><td class="fw-600">Source IP Start</td><td><input type="text" id="fhacl-modal-srcstart" placeholder="kosong = semua IP" style="width:100%;padding:6px 10px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);color:var(--text-main);"></td></tr>';
+                            html += '<tr style="height:38px;"><td class="fw-600">Source IP End</td><td><input type="text" id="fhacl-modal-srcend" placeholder="kosong = semua IP" style="width:100%;padding:6px 10px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);color:var(--text-main);"></td></tr>';
+                            html += '<tr style="height:38px;"><td class="fw-600">Protocol</td><td><select id="fhacl-modal-protocol" style="width:100%;padding:6px 10px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);color:var(--text-main);"><option value="ALL">ALL</option><option value="TCP">TCP</option><option value="UDP">UDP</option><option value="ICMP">ICMP</option></select></td></tr>';
+                            html += '<tr style="height:38px;"><td class="fw-600">Interface</td><td><select id="fhacl-modal-interface" style="width:100%;padding:6px 10px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-tertiary);color:var(--text-main);"></select></td></tr>';
                             html += '</table></div>';
                             html += '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px;">'
-                                + '<button type="button" class="btn btn-secondary" id="fhacl-inline-cancel" style="padding:6px 16px;font-size:0.82rem;">Batal</button>'
-                                + '<button type="button" class="btn btn-primary" id="fhacl-modal-save" style="padding:6px 16px;font-size:0.82rem;">Simpan</button></div>';
+                                + '<button type="button" class="btn btn-secondary" id="fhacl-inline-cancel" class="btn btn-xs">Batal</button>'
+                                + '<button type="button" class="btn btn-primary" id="fhacl-modal-save" class="btn btn-xs">Simpan</button></div>';
                             html += '</div>';
 
                             html += '<div style="border-top:1px solid var(--border-color);margin:12px 0 10px;"></div>';
@@ -3091,11 +3091,11 @@ $tr069_profiles = tr069_get_profiles($pdo);
                                 : (raRaw === false || raRaw === 'false' || raRaw === 0 || raRaw === '0') ? '0'
                                 : null;
                             html += rowRadio('Remote Access (GUI web dari WAN)', 'fhsec-remote-access', raVal, enDis);
-                            html += '<button type="button" class="btn-solt btn-solt-green fhsec-ra-save" data-idx="'+idx+'" style="padding:6px 16px;font-size:0.82rem;margin:0 0 10px;">Simpan Akses WAN</button>';
+                            html += '<button type="button" class="btn btn-success fhsec-ra-save" data-idx="'+idx+'" style="padding:6px 16px;font-size:0.82rem;margin:0 0 10px;">Simpan Akses WAN</button>';
                             html += '<div style="border-top:1px solid var(--border-color);margin:4px 0 10px;"></div>';
                             html += rowText('Web Login Username', 'fhsec-web-user', lcs.ConfigUsername?._value ?? '', '');
                             html += rowText('Web Login Password', 'fhsec-web-pass', '', 'kosong = tidak diubah');
-                            html += '<button type="button" class="btn-solt btn-solt-green fhsec-save" data-idx="'+idx+'" style="padding:6px 16px;font-size:0.82rem;margin-top:4px;">Simpan Login</button>';
+                            html += '<button type="button" class="btn btn-success fhsec-save" data-idx="'+idx+'" style="padding:6px 16px;font-size:0.82rem;margin-top:4px;">Simpan Login</button>';
                             html += '</div></div>';
                         })();
                         else if (isZTESecurity) (() => {
@@ -3126,11 +3126,11 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             html += '<span>Security</span><span class="tr069-refresh" data-idx="'+idx+'" title="Refresh" style="cursor:pointer;color:var(--text-muted);font-size:1rem;line-height:1;display:none;">&#8635;</span></div>';
                             html += '<div class="tr069-panel" style="display:none;padding:10px 12px;background:var(--bg-primary);font-size:0.85rem;">';
                             const enDis = [['true','Enabled'],['false','Disabled']];
-                            const rowRadio = (label, id, val, opts) => '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><label style="width:230px;color:var(--text-muted);">'+label+'</label><div style="flex:1;display:flex;gap:18px;">'
+                            const rowRadio = (label, id, val, opts) => '<div class="flex-row gap-2 mb-1"><label style="width:230px;color:var(--text-muted);">'+label+'</label><div style="flex:1;display:flex;gap:18px;">'
                                 + opts.map(o => '<label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-weight:400;"><input type="radio" name="'+id+'" value="'+o[0]+'" id="'+id+'-'+o[0]+'"'+(String(val)===o[0]?' checked':'')+'> '+o[1]+'</label>').join('')
                                 + '</div></div>';
-                            const rowText = (label, id, val, type) => '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><label style="width:230px;color:var(--text-muted);">'+label+'</label><input type="'+(type||'text')+'" id="'+id+'" value="'+esc(val)+'" style="flex:1;padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);"></div>';
-                            const rowSelect = (label, id, val, opts) => '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><label style="width:230px;color:var(--text-muted);">'+label+'</label><select id="'+id+'" style="flex:1;padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">'
+                            const rowText = (label, id, val, type) => '<div class="flex-row gap-2 mb-1"><label style="width:230px;color:var(--text-muted);">'+label+'</label><input type="'+(type||'text')+'" id="'+id+'" value="'+esc(val)+'" style="flex:1;padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);"></div>';
+                            const rowSelect = (label, id, val, opts) => '<div class="flex-row gap-2 mb-1"><label style="width:230px;color:var(--text-muted);">'+label+'</label><select id="'+id+'" style="flex:1;padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">'
                                 + opts.map(o => '<option value="'+o[0]+'"'+(String(val)===o[0]?' selected':'')+'>'+o[1]+'</option>').join('') + '</select></div>';
                             html += '<input type="hidden" id="ztesec-rspc-http-idx" value="'+esc(httpR.idx)+'">';
                             html += '<input type="hidden" id="ztesec-rspc-ftp-idx" value="'+esc(ftpR.idx)+'">';
@@ -3155,7 +3155,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             html += rowText('Login User — Username', 'ztesec-user-user', userUser.Username?._value ?? 'user', 'text');
                             html += rowText('Login User — Password', 'ztesec-user-pass', '', 'text');
                             html += '<div style="color:var(--text-muted);font-size:0.78rem;margin:-4px 0 10px;">Kosongkan password = tidak diubah.</div>';
-                            html += '<button type="button" class="btn-solt btn-solt-green ztesec-save" data-idx="'+idx+'" style="padding:6px 16px;font-size:0.82rem;margin-top:4px;">Simpan Perubahan</button>';
+                            html += '<button type="button" class="btn btn-success ztesec-save" data-idx="'+idx+'" style="padding:6px 16px;font-size:0.82rem;margin-top:4px;">Simpan Perubahan</button>';
                             html += '</div></div>';
                         })();
                         else (() => {
@@ -3192,15 +3192,15 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             // Radio group persis tampilan router asli (bukan dropdown), 2 opsi per baris.
                             const rowRadio = (label, id, val, opts) => {
                                 const name = id;
-                                return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><label style="width:230px;color:var(--text-muted);">'+label+'</label><div style="flex:1;display:flex;gap:18px;">'
+                                return '<div class="flex-row gap-2 mb-1"><label style="width:230px;color:var(--text-muted);">'+label+'</label><div style="flex:1;display:flex;gap:18px;">'
                                     + opts.map(o => '<label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-weight:400;"><input type="radio" name="'+name+'" value="'+o[0]+'" id="'+id+'-'+o[0]+'"'+(String(val)===o[0]?' checked':'')+'> '+o[1]+'</label>').join('')
                                     + '</div></div>';
                             };
-                            const rowText = (label, id, val, type) => '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><label style="width:230px;color:var(--text-muted);">'+label+'</label><input type="'+(type||'text')+'" id="'+id+'" value="'+esc(val)+'" style="flex:1;padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);"></div>';
+                            const rowText = (label, id, val, type) => '<div class="flex-row gap-2 mb-1"><label style="width:230px;color:var(--text-muted);">'+label+'</label><input type="'+(type||'text')+'" id="'+id+'" value="'+esc(val)+'" style="flex:1;padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);"></div>';
                             const enDis = [['true','Enabled'],['false','Disabled']];
                             const blockPermit = [['false','Block'],['true','Permit']];
                             const fwLevel = secObj.X_HW_FirewallLevel?._value;
-                            const rowSelect = (label, id, val, opts) => '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><label style="width:230px;color:var(--text-muted);">'+label+'</label><select id="'+id+'" style="flex:1;padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">'
+                            const rowSelect = (label, id, val, opts) => '<div class="flex-row gap-2 mb-1"><label style="width:230px;color:var(--text-muted);">'+label+'</label><select id="'+id+'" style="flex:1;padding:4px 8px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-secondary);color:var(--text-main);">'
                                 + opts.map(o => '<option value="'+o[0]+'"'+(String(val)===o[0]?' selected':'')+'>'+o[1]+'</option>').join('') + '</select></div>';
                             const svcList = ppp1.X_HW_SERVICELIST?._value;
                             html += '<input type="hidden" id="sec-wan-service-path" value="'+esc(pppTr069Path)+'">';
@@ -3228,15 +3228,15 @@ $tr069_profiles = tr069_get_profiles($pdo);
                             html += rowRadio('Web admin account', 'sec-web2-enable', web2.Enable?._value, enDis);
                             html += rowText('Web admin name', 'sec-web2-user', web2.UserName?._value ?? '', 'text');
                             html += rowText('Web admin password', 'sec-web2-pass', '', 'text');
-                            html += '<button type="button" class="btn-solt btn-solt-green sec-save" data-idx="'+idx+'" style="padding:6px 16px;font-size:0.82rem;margin-top:4px;">Simpan Perubahan</button>';
+                            html += '<button type="button" class="btn btn-success sec-save" data-idx="'+idx+'" style="padding:6px 16px;font-size:0.82rem;margin-top:4px;">Simpan Perubahan</button>';
                             html += '</div></div>';
                         })();
                         // Tombol perintah TR-069 (Refresh interfaces / Reboot / Reset to factory) --
                         // di paling bawah panel, rata kanan, tanpa garis pembatas (sesuai layout referensi GenieACS).
                         html += '<div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:16px;">';
-                        html += '<button type="button" class="btn-solt btn-solt-blue tr069-cmd-btn" data-cmd="refresh"><i data-lucide="refresh-cw" style="width:14px;height:14px;"></i> Refresh interfaces</button>';
-                        html += '<button type="button" class="btn-solt btn-solt-orange tr069-cmd-btn" data-cmd="reboot"><i data-lucide="power" style="width:14px;height:14px;"></i> Reboot</button>';
-                        html += '<button type="button" class="btn-solt btn-solt-red tr069-cmd-btn" data-cmd="factory_reset"><i data-lucide="rotate-ccw" style="width:14px;height:14px;"></i> Reset to factory</button>';
+                        html += '<button type="button" class="btn btn-secondary tr069-cmd-btn" data-cmd="refresh"><i data-lucide="refresh-cw" class="icon-sm"></i> Refresh interfaces</button>';
+                        html += '<button type="button" class="btn btn-warning tr069-cmd-btn" data-cmd="reboot"><i data-lucide="power" class="icon-sm"></i> Reboot</button>';
+                        html += '<button type="button" class="btn btn-danger tr069-cmd-btn" data-cmd="factory_reset"><i data-lucide="rotate-ccw" class="icon-sm"></i> Reset to factory</button>';
                         html += '</div>';
                         html += '</div>';
                         cliOutputBox.innerHTML = html;
@@ -3756,10 +3756,10 @@ $tr069_profiles = tr069_get_profiles($pdo);
                     const ethEl = document.getElementById('port-eth-content');
                     if (ethEl && ethPorts.length) {
                         let h = '<div style="font-size:0.85rem;">';
-                        h += '<span style="font-weight:600;">' + ethPorts.length + ' port</span>';
-                        h += ' <span style="color:var(--text-muted);">(ALL-ONT)</span>';
-                        h += '<div class="table-responsive"><table style="width:100%;margin-top:6px;border-collapse:collapse;font-size:0.8rem;">';
-                        h += '<tr style="background:var(--bg-secondary);"><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Port</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Admin state</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Mode</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">DHCP</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Action</th></tr>';
+                        h += '<span class="fw-600">' + ethPorts.length + ' port</span>';
+                        h += ' <span class="text-muted">(ALL-ONT)</span>';
+                        h += '<div class="table-responsive"><table class="data-table" style="width:100%;margin-top:6px;border-collapse:collapse;font-size:0.8rem;">';
+                        h += '<tr style="background:var(--bg-secondary);"><th class="text-left p-xs text-muted">Port</th><th class="text-left p-xs text-muted">Admin state</th><th class="text-left p-xs text-muted">Mode</th><th class="text-left p-xs text-muted">DHCP</th><th class="text-left p-xs text-muted">Action</th></tr>';
                         for (const p of ethPorts) {
                             const color = p.enabled ? '#28a745' : '#6c757d';
                             h += '<tr><td style="padding:4px 8px;font-weight:600;">' + p.name + '</td>';
@@ -3774,10 +3774,10 @@ $tr069_profiles = tr069_get_profiles($pdo);
                     const wifiEl = document.getElementById('port-wifi-content');
                     if (wifiEl && wifiList.length) {
                         let h = '<div style="font-size:0.85rem;">';
-                        h += '<span style="font-weight:600;">' + wifiList.length + ' SSIDs</span>';
-                        h += ' <span style="color:var(--text-muted);">(ALL-ONT)</span>';
-                        h += '<div class="table-responsive"><table style="width:100%;margin-top:6px;border-collapse:collapse;font-size:0.8rem;">';
-                        h += '<tr style="background:var(--bg-secondary);"><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Port</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Admin state</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">Mode</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">SSID</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted);">DHCP</th></tr>';
+                        h += '<span class="fw-600">' + wifiList.length + ' SSIDs</span>';
+                        h += ' <span class="text-muted">(ALL-ONT)</span>';
+                        h += '<div class="table-responsive"><table class="data-table" style="width:100%;margin-top:6px;border-collapse:collapse;font-size:0.8rem;">';
+                        h += '<tr style="background:var(--bg-secondary);"><th class="text-left p-xs text-muted">Port</th><th class="text-left p-xs text-muted">Admin state</th><th class="text-left p-xs text-muted">Mode</th><th class="text-left p-xs text-muted">SSID</th><th class="text-left p-xs text-muted">DHCP</th></tr>';
                         for (const w of wifiList) {
                             const color = w.enabled ? '#28a745' : '#6c757d';
                             h += '<tr><td style="padding:4px 8px;font-weight:600;">' + w.port + '</td>';
@@ -3937,9 +3937,9 @@ $tr069_profiles = tr069_get_profiles($pdo);
         <div class="modal-header" style="padding: 15px 24px; display: flex; justify-content: space-between; align-items: center;">
             <div style="display:flex; align-items:center; gap:10px;">
                 <i data-lucide="refresh-cw" style="width:18px;height:18px; color:var(--text-accent);"></i>
-                <h3 style="margin:0; font-size:1.2rem; font-weight:700; color:var(--text-main);">Replace ONU / Ganti SN</h3>
+                <h2 style="margin:0; font-size:1.2rem; font-weight:700; color:var(--text-main);">Replace ONU / Ganti SN</h2>
             </div>
-            <button type="button" class="close-btn" onclick="document.getElementById('replace-onu-modal').classList.remove('open')" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text-muted); line-height: 1;">&times;</button>
+            <button type="button" class="modal-close" onclick="document.getElementById('replace-onu-modal').classList.remove('open')" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text-muted); line-height: 1;">&times;</button>
         </div>
         <form action="action/replace-onu.php" method="POST" onsubmit="return confirmReplaceOnu(event)">
             <input type="hidden" name="onu_id" value="<?php echo (int)$onu['id']; ?>">
@@ -3981,13 +3981,13 @@ $tr069_profiles = tr069_get_profiles($pdo);
 <div class="modal" id="mgmt-ip-modal" role="dialog" aria-modal="true">
     <div class="modal-content" style="max-width:520px; width:90%;">
         <div class="modal-header" style="padding:15px 24px; display:flex; justify-content:space-between; align-items:center;">
-            <h3 style="margin:0; font-size:1.3rem; font-weight:700;">IP Manajemen</h3>
+            <h2 style="margin:0; font-size:1.3rem; font-weight:700;">IP Manajemen</h2>
             <button type="button" onclick="document.getElementById('mgmt-ip-modal').classList.remove('open')" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-muted);">&times;</button>
         </div>
         <form id="mgmt-ip-form" onsubmit="return saveMgmtIp(event)">
             <input type="hidden" name="onu_id" value="<?php echo (int)$onu['id']; ?>">
             <div class="modal-body" style="padding:24px;">
-                <div class="table-responsive"><table style="width:100%;border-collapse:collapse;">
+                <div class="table-responsive"><table class="data-table" style="width:100%;border-collapse:collapse;">
                     <tr style="height:50px;">
                         <td style="width:140px;font-weight:600;color:var(--text-main);vertical-align:middle;">Mode</td>
                         <td>
@@ -4040,13 +4040,13 @@ $tr069_profiles = tr069_get_profiles($pdo);
 <div class="modal" id="tr609-profile-modal" role="dialog" aria-modal="true">
     <div class="modal-content" style="max-width:480px; width:90%;">
         <div class="modal-header" style="padding:15px 24px; display:flex; justify-content:space-between; align-items:center;">
-            <h3 style="margin:0; font-size:1.3rem; font-weight:700;">TR609 Profile</h3>
+            <h2 style="margin:0; font-size:1.3rem; font-weight:700;">TR609 Profile</h2>
             <button type="button" onclick="document.getElementById('tr609-profile-modal').classList.remove('open')" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-muted);">&times;</button>
         </div>
         <form id="tr609-form" onsubmit="return saveTr609(event)">
             <input type="hidden" name="onu_id" value="<?php echo (int)$onu['id']; ?>">
             <div class="modal-body" style="padding:24px;">
-                <div class="table-responsive"><table style="width:100%;border-collapse:collapse;">
+                <div class="table-responsive"><table class="data-table" style="width:100%;border-collapse:collapse;">
                     <tr style="height:50px;">
                         <td style="width:120px;font-weight:600;color:var(--text-main);vertical-align:middle;">Profil</td>
                         <td>
