@@ -767,6 +767,7 @@ echo -e "\n${YELLOW}[7/7] Mengonfigurasi Cron Job & Finalisasi...${NC}"
 CRON_FILE="/etc/cron.d/smartolt-sync"
 cat <<EOF > "$CRON_FILE"
 * * * * * root ${TARGET_DIR}/backend/python_engine/venv/bin/python3 ${TARGET_DIR}/backend/python_engine/cron_sync.py > /dev/null 2>&1
+* * * * * root ${TARGET_DIR}/backend/python_engine/venv/bin/python3 ${TARGET_DIR}/backend/python_engine/cron_sync_snmp.py > /dev/null 2>&1
 EOF
 chmod 644 "$CRON_FILE"
 echo -e "      ${GREEN}[OK] Cron job didaftarkan.${NC}"
