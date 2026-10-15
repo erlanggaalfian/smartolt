@@ -16,10 +16,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $act = $_POST['action'] ?? '';
     if ($act === 'add') {
         $pdo->prepare("INSERT INTO splitters (name,external_id,nr_of_ports,comment,note,zone,latitude,longitude) VALUES (?,?,?,?,?,?,?,?)")
-            ->execute([trim($_POST['name']??''), trim($_POST['external_id']??'')?:null, (int)($_POST['nr_of_ports']??0)?:null, trim($_POST['comment']??'')?:null, trim($_POST['note']??'')?:null, $_POST['zone']?:null, (float)($_POST['latitude']??0)?:null, (float)($_POST['longitude']??0)?:null]);
+            ->execute([trim($_POST['name']??''), trim($_POST['external_id']??'')?:null, (int)($_POST['nr_of_ports']??0)?:null, trim($_POST['comment']??'')?:null, trim($_POST['note']??'')?:null, trim($_POST['zone']??'')?:null, (float)($_POST['latitude']??0)?:null, (float)($_POST['longitude']??0)?:null]);
     } elseif ($act === 'update' && ($id=(int)($_POST['id']??0))) {
         $pdo->prepare("UPDATE splitters SET name=?,external_id=?,nr_of_ports=?,comment=?,note=?,zone=?,latitude=?,longitude=? WHERE id=?")
-            ->execute([trim($_POST['name']??''), trim($_POST['external_id']??'')?:null, (int)($_POST['nr_of_ports']??0)?:null, trim($_POST['comment']??'')?:null, trim($_POST['note']??'')?:null, $_POST['zone']?:null, (float)($_POST['latitude']??0)?:null, (float)($_POST['longitude']??0)?:null, $id]);
+            ->execute([trim($_POST['name']??''), trim($_POST['external_id']??'')?:null, (int)($_POST['nr_of_ports']??0)?:null, trim($_POST['comment']??'')?:null, trim($_POST['note']??'')?:null, trim($_POST['zone']??'')?:null, (float)($_POST['latitude']??0)?:null, (float)($_POST['longitude']??0)?:null, $id]);
     } elseif ($act === 'delete' && ($id=(int)($_POST['id']??0))) {
         $pdo->prepare("DELETE FROM splitters WHERE id=?")->execute([$id]);
     }
@@ -113,7 +113,7 @@ if ($edit_splitter) {
             </div>
             <div class="form-group"><label>Comment</label><input type="text" name="comment" class="form-control" value="<?= htmlspecialchars($edit_splitter['comment'] ?? '') ?>"></div>
             <div class="form-group"><label>Note</label><textarea name="note" class="form-control" rows="2"><?= htmlspecialchars($edit_splitter['note'] ?? '') ?></textarea></div>
-            <div class="form-group"><label>Zone</label><select name="zone" class="form-control"><option value="">— Tanpa Zone —</option><?php foreach ($zones as $z): ?><option value="<?= htmlspecialchars($z) ?>" <?= ($edit_splitter['zone'] ?? '') === $z ? 'selected' : '' ?>><?= htmlspecialchars($z) ?></option><?php endforeach; ?></select></div>
+            <div class="form-group"><label>Zone</label><input type="text" name="zone" class="form-control" list="zone-datalist" value="<?= htmlspecialchars($edit_splitter['zone'] ?? '') ?>" placeholder="Pilih yang sudah ada atau ketik zone baru" autocomplete="off"></div>
             <div class="form-grid">
                 <div class="form-group"><label>Latitude</label><input type="text" name="latitude" class="form-control" value="<?= htmlspecialchars($edit_splitter['latitude'] ?? '') ?>"></div>
                 <div class="form-group"><label>Longitude</label><input type="text" name="longitude" class="form-control" value="<?= htmlspecialchars($edit_splitter['longitude'] ?? '') ?>"></div>
@@ -223,7 +223,7 @@ if ($edit_splitter) {
                     <div class="form-group"><label>External ID</label><input type="text" name="external_id" class="form-control"></div>
                     <div class="form-group"><label>Jumlah Port</label><input type="number" name="nr_of_ports" class="form-control" min="1" max="128" value="8"></div>
                 </div>
-                <div class="form-group"><label>Zone</label><select name="zone" class="form-control"><option value="">— Tanpa Zone —</option><?php foreach ($zones as $z) echo '<option value="'.htmlspecialchars($z).'">'.htmlspecialchars($z).'</option>'; ?></select></div>
+                <div class="form-group"><label>Zone</label><input type="text" name="zone" class="form-control" list="zone-datalist" placeholder="Pilih yang sudah ada atau ketik zone baru" autocomplete="off"></div>
                 <div class="form-group"><label>Comment</label><input type="text" name="comment" class="form-control"></div>
                 <div class="form-grid">
                     <div class="form-group"><label>Latitude</label><input type="text" name="latitude" class="form-control" placeholder="-7.250"></div>
@@ -237,6 +237,7 @@ if ($edit_splitter) {
         </form>
     </div>
 </div>
+<datalist id="zone-datalist"><?php foreach ($zones as $z) echo '<option value="'.htmlspecialchars($z).'">'; ?></datalist>
 <?php } // end else (list mode) ?>
 
 <?php include __DIR__ . '/footer.php'; ?>
