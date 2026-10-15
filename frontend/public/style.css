@@ -295,6 +295,15 @@ body.light-mode .header-btn:hover {
 .filter-row { display: flex; gap: 10px 12px; flex-wrap: wrap; align-items: flex-end; }
 .filter-item { flex: 1; min-width: 150px; max-width: 220px; }
 .filter-item .form-group { margin-bottom: 0; }
+.filter-item--narrow { flex: 0 1 110px; min-width: 90px; max-width: 110px; }
+/* Fused label+input pill: label menyatu di kiri, tanpa border/gap terpisah */
+.filter-fused { display: flex; align-items: stretch; border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; background: var(--bg-primary); }
+.filter-fused-label { display: flex; align-items: center; padding: 0 10px; font-size: 11.5px; font-weight: 600; color: var(--text-muted); background: var(--bg-tertiary); white-space: nowrap; border-right: 1px solid var(--border-color); }
+.filter-fused .form-control { border: none; border-radius: 0; height: 38px; background: transparent; min-width: 0; }
+.filter-fused .form-control:focus { box-shadow: none; }
+.filter-fused-btn { display: flex; padding: 0; height: 40px; gap: 0; }
+.filter-fused-btn .ms-label { flex: 1; padding: 0 10px; text-align: left; font-size: 13px; }
+.filter-fused-btn .ms-caret { padding-right: 10px; }
 /* Grup tombol aksi (Filter/Reset/CSV/Sync): dipisah dari filter-row utama supaya
    tombol tak ikut melebar sama rata dgn input filter, melekat rata kanan */
 .filter-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-left: auto; }

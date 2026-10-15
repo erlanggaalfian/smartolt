@@ -207,11 +207,15 @@ $onus = $stmt_data->fetchAll();
         })();
         </script>
         <div class="filter-item search-item">
-            <input type="text" name="search" class="form-control" aria-label="Cari pelanggan" placeholder="Cari nama, SN, alamat, PPPoE, OLT, VLAN, splitter, zone..." value="<?php echo htmlspecialchars($search); ?>">
+            <div class="filter-fused">
+                <span class="filter-fused-label">🔍 Cari</span>
+                <input type="text" name="search" class="form-control" aria-label="Cari pelanggan" placeholder="Nama, SN, alamat, PPPoE, OLT, VLAN, splitter, zone..." value="<?php echo htmlspecialchars($search); ?>">
+            </div>
         </div>
         <div class="filter-item ms-dropdown" id="ms-olt">
-            <button type="button" class="form-control ms-btn" onclick="this.closest('.ms-dropdown').classList.toggle('open')">
-                <span class="ms-label">🔍 Semua OLT</span>
+            <button type="button" class="form-control ms-btn filter-fused-btn" onclick="this.closest('.ms-dropdown').classList.toggle('open')">
+                <span class="filter-fused-label">OLT</span>
+                <span class="ms-label">Semua</span>
                 <span class="ms-caret">▾</span>
             </button>
             <div class="ms-panel">
@@ -228,14 +232,20 @@ $onus = $stmt_data->fetchAll();
             </div>
         </div>
         <div class="filter-item">
-            <input type="text" name="status" class="form-control" list="dl-status" autocomplete="off" aria-label="Filter Status" placeholder="🔍 Semua Status" value="<?php echo $status ? htmlspecialchars(['online'=>'Online','offline_power'=>'Offline - Power Down','offline_fiber'=>'Offline - Fiber Terputus','offline_other'=>'Offline - Lainnya','offline'=>'Offline - Semua','disabled'=>'Disabled'][$status] ?? $status) : ''; ?>" onchange="const v=this.value.trim();const t={'Online':'online','Offline - Power Down':'offline_power','Offline - Fiber Terputus':'offline_fiber','Offline - Lainnya':'offline_other','Offline - Semua':'offline','Disabled':'disabled'};this.value=v?(t[v]||v):'';this.form.submit();">
+            <div class="filter-fused">
+                <span class="filter-fused-label">Status</span>
+                <input type="text" name="status" class="form-control" list="dl-status" autocomplete="off" aria-label="Filter Status" placeholder="Semua" value="<?php echo $status ? htmlspecialchars(['online'=>'Online','offline_power'=>'Offline - Power Down','offline_fiber'=>'Offline - Fiber Terputus','offline_other'=>'Offline - Lainnya','offline'=>'Offline - Semua','disabled'=>'Disabled'][$status] ?? $status) : ''; ?>" onchange="const v=this.value.trim();const t={'Online':'online','Offline - Power Down':'offline_power','Offline - Fiber Terputus':'offline_fiber','Offline - Lainnya':'offline_other','Offline - Semua':'offline','Disabled':'disabled'};this.value=v?(t[v]||v):'';this.form.submit();">
+            </div>
             <datalist id="dl-status">
                 <option value="">Semua Status</option>
                 <?php foreach (['online'=>'Online','offline_power'=>'Offline - Power Down','offline_fiber'=>'Offline - Fiber Terputus','offline_other'=>'Offline - Lainnya','offline'=>'Offline - Semua','disabled'=>'Disabled'] as $v=>$l): ?><option value="<?php echo $l; ?>" label="<?php echo $l; ?>"></option><?php endforeach; ?>
             </datalist>
         </div>
         <div class="filter-item">
-            <input type="text" name="zone" class="form-control" list="dl-zone" autocomplete="off" aria-label="Filter Zone" placeholder="🔍 Semua Zone" value="<?php echo htmlspecialchars($filter_zone); ?>" onchange="this.form.submit()">
+            <div class="filter-fused">
+                <span class="filter-fused-label">Zone</span>
+                <input type="text" name="zone" class="form-control" list="dl-zone" autocomplete="off" aria-label="Filter Zone" placeholder="Semua" value="<?php echo htmlspecialchars($filter_zone); ?>" onchange="this.form.submit()">
+            </div>
             <datalist id="dl-zone">
                 <option value="">Semua Zone</option>
                 <option value="None">None (belum diisi)</option>
@@ -243,8 +253,9 @@ $onus = $stmt_data->fetchAll();
             </datalist>
         </div>
         <div class="filter-item ms-dropdown" id="ms-odb">
-            <button type="button" class="form-control ms-btn" onclick="this.closest('.ms-dropdown').classList.toggle('open')">
-                <span class="ms-label">🔍 Semua ODB</span>
+            <button type="button" class="form-control ms-btn filter-fused-btn" onclick="this.closest('.ms-dropdown').classList.toggle('open')">
+                <span class="filter-fused-label">Splitter</span>
+                <span class="ms-label">Semua</span>
                 <span class="ms-caret">▾</span>
             </button>
             <div class="ms-panel">
@@ -264,8 +275,11 @@ $onus = $stmt_data->fetchAll();
                 <button type="submit" class="btn btn-primary btn-xs ms-apply">Terapkan</button>
             </div>
         </div>
-        <div class="filter-item">
-            <input type="text" name="pon_port" class="form-control" list="dl-pon" autocomplete="off" aria-label="Filter PON" placeholder="🔍 Semua PON" value="<?php echo htmlspecialchars($filter_pon); ?>" onchange="this.form.submit()">
+        <div class="filter-item filter-item--narrow">
+            <div class="filter-fused">
+                <span class="filter-fused-label">PON</span>
+                <input type="text" name="pon_port" class="form-control" list="dl-pon" autocomplete="off" aria-label="Filter PON" placeholder="Semua" value="<?php echo htmlspecialchars($filter_pon); ?>" onchange="this.form.submit()">
+            </div>
             <datalist id="dl-pon">
                 <option value="">Semua PON</option>
                 <?php foreach ($available_pons as $p): ?><option value="<?php echo htmlspecialchars($p); ?>"><?php endforeach; ?>
@@ -273,7 +287,10 @@ $onus = $stmt_data->fetchAll();
         </div>
 
         <div class="filter-item">
-            <input type="text" name="signal" class="form-control" list="dl-signal" autocomplete="off" aria-label="Filter Sinyal" placeholder="🔍 Semua Sinyal" value="<?php echo $filter_signal ? htmlspecialchars(['critical'=>'Sinyal Kritis','weak'=>'Sinyal Lemah','fair'=>'Sinyal Sedang','good'=>'Sinyal Bagus'][$filter_signal] ?? $filter_signal) : ''; ?>" onchange="const v=this.value.trim();const t={'Sinyal Kritis':'critical','Sinyal Lemah':'weak','Sinyal Sedang':'fair','Sinyal Bagus':'good'};this.value=v?(t[v]||v):'';this.form.submit();">
+            <div class="filter-fused">
+                <span class="filter-fused-label">Sinyal</span>
+                <input type="text" name="signal" class="form-control" list="dl-signal" autocomplete="off" aria-label="Filter Sinyal" placeholder="Semua" value="<?php echo $filter_signal ? htmlspecialchars(['critical'=>'Sinyal Kritis','weak'=>'Sinyal Lemah','fair'=>'Sinyal Sedang','good'=>'Sinyal Bagus'][$filter_signal] ?? $filter_signal) : ''; ?>" onchange="const v=this.value.trim();const t={'Sinyal Kritis':'critical','Sinyal Lemah':'weak','Sinyal Sedang':'fair','Sinyal Bagus':'good'};this.value=v?(t[v]||v):'';this.form.submit();">
+            </div>
             <datalist id="dl-signal">
                 <option value="">Semua Sinyal</option>
                 <option value="Sinyal Kritis">Sinyal Kritis (&lt; -30 dBm)</option>
@@ -282,22 +299,31 @@ $onus = $stmt_data->fetchAll();
                 <option value="Sinyal Bagus">Sinyal Bagus (&gt; -25 dBm)</option>
             </datalist>
         </div>
-        <div class="filter-item">
-            <input type="text" name="onu_type" class="form-control" list="dl-type" autocomplete="off" aria-label="Filter Tipe ONU" placeholder="🔍 Semua Tipe" value="<?php echo htmlspecialchars($filter_type); ?>" onchange="this.form.submit()">
+        <div class="filter-item filter-item--narrow">
+            <div class="filter-fused">
+                <span class="filter-fused-label">Tipe</span>
+                <input type="text" name="onu_type" class="form-control" list="dl-type" autocomplete="off" aria-label="Filter Tipe ONU" placeholder="Semua" value="<?php echo htmlspecialchars($filter_type); ?>" onchange="this.form.submit()">
+            </div>
             <datalist id="dl-type">
                 <option value="">Semua Tipe</option>
                 <?php foreach ($available_types as $t): ?><option value="<?php echo htmlspecialchars($t); ?>"><?php endforeach; ?>
             </datalist>
         </div>
-        <div class="filter-item">
-            <input type="text" name="vlan" class="form-control" list="dl-vlan" autocomplete="off" aria-label="Filter VLAN" placeholder="🔍 Semua VLAN" value="<?php echo htmlspecialchars($filter_vlan); ?>" onchange="this.form.submit()">
+        <div class="filter-item filter-item--narrow">
+            <div class="filter-fused">
+                <span class="filter-fused-label">VLAN</span>
+                <input type="text" name="vlan" class="form-control" list="dl-vlan" autocomplete="off" aria-label="Filter VLAN" placeholder="Semua" value="<?php echo htmlspecialchars($filter_vlan); ?>" onchange="this.form.submit()">
+            </div>
             <datalist id="dl-vlan">
                 <option value="">Semua VLAN</option>
                 <?php foreach ($available_vlans as $v): ?><option value="<?php echo htmlspecialchars($v); ?>"><?php endforeach; ?>
             </datalist>
         </div>
         <div class="filter-item">
-            <input type="text" name="profile" class="form-control" list="dl-profile" autocomplete="off" aria-label="Filter Profile" placeholder="🔍 Semua Profile" value="<?php echo htmlspecialchars($filter_profile); ?>" onchange="this.form.submit()">
+            <div class="filter-fused">
+                <span class="filter-fused-label">Profile</span>
+                <input type="text" name="profile" class="form-control" list="dl-profile" autocomplete="off" aria-label="Filter Profile" placeholder="Semua" value="<?php echo htmlspecialchars($filter_profile); ?>" onchange="this.form.submit()">
+            </div>
             <datalist id="dl-profile">
                 <option value="">Semua Profile</option>
                 <?php foreach ($available_profiles as $p): ?><option value="<?php echo htmlspecialchars($p); ?>"><?php endforeach; ?>
