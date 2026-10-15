@@ -723,8 +723,8 @@ $onus = $stmt_data->fetchAll();
                 <thead>
                     <tr>
                         <th class="w-60 text-center" style="width:40px">Status</th>
-                        <th style="width:56px">Aksi</th>
-                        <th style="width:17%">Nama Pelanggan</th>
+                        <th style="width:96px">Aksi</th>
+                        <th style="width:15%">Nama Pelanggan</th>
                         <th style="width:10%">Serial Number</th>
                         <th style="width:12%">Koneksi OLT & PON</th>
                         <th class="text-center" style="width:5%">VLAN</th>
@@ -775,9 +775,9 @@ $onus = $stmt_data->fetchAll();
                                 </td>
                                 <td class="name-cell"><strong><?php echo htmlspecialchars(extract_customer_name($onu['name'])); ?></strong></td>
                                 <td><code><?php echo htmlspecialchars($onu['serial_number']); ?></code></td>
-                                <td>
+                                <td class="koneksi-cell">
                                     <?php echo htmlspecialchars($onu['olt_name']); ?><br>
-                                    PON <?php echo htmlspecialchars($onu['pon_port'] . ':' . $onu['onu_id']); ?>
+                                    <span class="text-muted">PON <?php echo htmlspecialchars($onu['pon_port'] . ':' . $onu['onu_id']); ?></span>
                                 </td>
                                 <td class="vlan-cell text-center"><?php echo htmlspecialchars($onu['vlan'] ?: '-'); ?></td>
                                 <td class="odp-cell"><?php echo htmlspecialchars($onu['splitter'] ?: '-'); ?></td>
