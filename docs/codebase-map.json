@@ -905,8 +905,10 @@
     },
     "frontend/action/export-csv.php": {
       "path": "frontend/action/export-csv.php",
-      "purpose": "Streams a CSV export of configured ONUs applying the same filters (search, status, zone, odb, pon, signal, type, vlan, profile, olt_id) used on the configured.php listing page, scoped to OLTs the user has access to.",
+      "purpose": "Streams a CSV export of configured ONUs applying the same filters (search, status[], zone[], odb[], board[], port[], signal[], onu_type[], vlan[], profile[], olt_id[]) used on the configured.php listing page, scoped to OLTs the user has access to.",
       "key_functions": [
+        "ms_param(string $key): array: sama seperti di configured.php, parse $_GET[$key] jadi array",
+        "apply_ms_filter(&$filter_sql, &$params, string $col, array $values): sama seperti di configured.php, generik IN (...) + opsi 'None'",
         "main flow: build dynamic $filter_sql/$params from $_GET filters -> SELECT onus JOIN olts -> stream rows with fputcsv() to php://output"
       ],
       "db_tables_used": [
@@ -919,8 +921,11 @@
       "used_by": [
         "frontend/configured.php"
       ],
-      "notable_patterns": "accepts array params olt_id[] and odb[]; get_allowed_olt_ids()/has_olt_access() scoping; session_write_close(); outputs UTF-8 BOM for Excel; Content-Disposition attachment headers instead of JSON.",
-      "last_updated": "2026-10-15"
+      "notable_patterns": "Semua filter non-search diterima sebagai array (olt_id[], status[], zone[], odb[], board[], port[], signal[], onu_type[], vlan[], profile[]) via ms_param(), mirroring configured.php -- harus tetap sinkron dengan logic filter di configured.php kalau salah satu diubah. board/port displit dari pon_port via SUBSTRING_INDEX (sama seperti configured.php). get_allowed_olt_ids()/has_olt_access() scoping; session_write_close(); outputs UTF-8 BOM for Excel; Content-Disposition attachment headers instead of JSON.",
+      "changelog": [
+        {"date": "2026-10-16", "change": "Semua filter diubah dari scalar jadi array (ms_param/apply_ms_filter, mirror configured.php). Tambah board[]/port[] menggantikan pon_port exact-match."}
+      ],
+      "last_updated": "2026-10-16"
     },
     "frontend/action/genieacs-proxy.php": {
       "path": "frontend/action/genieacs-proxy.php",
@@ -1709,11 +1714,14 @@
     },
     "frontend/configured.php": {
       "path": "frontend/configured.php",
-      "purpose": "Daftar ONU yang sudah terkonfigurasi (customer list) dengan filter multi-kriteria, pagination, live-polling status, dan export CSV.",
+      "purpose": "Daftar ONU yang sudah terkonfigurasi (customer list) dengan filter multi-kriteria (semua multi-select), pagination, live-polling status, dan export CSV.",
       "key_functions": [
-        "Filter parsing: search, olt_id[] (multi-select array), status, zone, odb[] (multi-select array, includes 'None'), pon_port, signal, onu_type, vlan, profile",
-        "SQL filter build: $filter_sql + $params, olt_id/odb pakai IN (...) dengan placeholder dinamis",
-        "Datalist/count queries: $olts, $olt_counts, $available_zones, $available_odbs, $odb_counts, $available_pon_ports, $available_onu_types, $available_vlans, $available_profiles -- semua di-scope ke $olt_filter_in",
+        "ms_param(string $key): array: parse $_GET[$key] jadi array (terima legacy string tunggal juga, dibungkus array 1 elemen)",
+        "apply_ms_filter(&$filter_sql, &$params, string $col, array $values): generik filter IN (...) + dukungan opsi 'None' (NULL/kosong) untuk kolom apa pun",
+        "render_ms_dropdown(string $id, string $label, string $name, array $options, array $selected, bool $narrow): render HTML satu blok filter .ms-dropdown (dipanggil utk semua 9 field filter)",
+        "Filter parsing: search (scalar), olt_id[]/status[]/zone[]/odb[]/board[]/port[]/signal[]/onu_type[]/vlan[]/profile[] (semua array via ms_param)",
+        "pon_port displit jadi board (SUBSTRING_INDEX(pon_port,'/',2)) + port (SUBSTRING_INDEX(pon_port,'/',-1)) -- format DB 'rack/slot/port', lihat backend/python_engine/snmp_module.py",
+        "Count queries per field: $olt_counts, $odb_counts, $zone_counts, $board_counts, $port_counts, $type_counts, $vlan_counts, $profile_counts, $status_counts (manual bucket utk offline_power/fiber/other), $signal_counts (per rentang dBm) -- semua di-scope ke $olt_filter_in",
         "Live poller (JS setInterval): fetch ke action/onu-data.php? untuk update status/sinyal tanpa reload",
         "CSV export link: action/export-csv.php? dengan semua filter saat ini diteruskan via http_build_query"
       ],
@@ -1730,8 +1738,11 @@
         "frontend/action/sync-olt.php"
       ],
       "used_by": [],
-      "notable_patterns": "Filter lama pakai pola input type=text + <datalist> (searchable, auto-submit onchange). Filter OLT & ODB/Splitter sudah diupgrade jadi custom multi-select dropdown: class .ms-dropdown (tombol ringkasan + panel search+checkbox+counter+tombol Terapkan), vanilla JS toggle via classList, checked state dari $_GET array. $selected_olt_id (scalar) tetap dipertahankan sebagai turunan dari $selected_olts (array) HANYA kalau persis 1 OLT dipilih -- jangan dipakai untuk cek 'ada OLT dipilih', pakai !empty($selected_olts). $olt_filter_in = comma-separated ID untuk SQL IN clause, fallback ke $allowed_ids_str kalau kosong. Tabel pakai table-layout:fixed + overflow-wrap:anywhere di semua th/td supaya teks panjang wrap bukan melebar. Kolom WAN & Tipe ONU sudah dihapus, diganti Nama ODP (dari $onu['splitter']) + Zone.",
-      "last_updated": "2026-10-15"
+      "notable_patterns": "SEMUA filter (OLT, Status, Zone, Splitter, Board, Port, Sinyal, Tipe, VLAN, Profile) pakai custom multi-select dropdown: class .ms-dropdown (tombol ringkasan + panel search+checkbox+counter+tombol Terapkan), vanilla JS toggle via classList, checked state dari $_GET array, dirender via render_ms_dropdown() generik -- JANGAN kembalikan ke pola <datalist> lama. $selected_olt_id (scalar) tetap dipertahankan sebagai turunan dari $selected_olts (array) HANYA kalau persis 1 OLT dipilih -- jangan dipakai untuk cek 'ada OLT dipilih', pakai !empty($selected_olts). $olt_filter_in = comma-separated ID untuk SQL IN clause, fallback ke $allowed_ids_str kalau kosong. Tabel pakai table-layout:fixed + overflow-wrap:anywhere di semua th/td supaya teks panjang wrap bukan melebar. Kolom WAN & Tipe ONU sudah dihapus, diganti Nama ODP (dari $onu['splitter']) + Zone. PON filter lama (match persis pon_port) diganti Board+Port independen (bukan gabungan) -- filter Board='1/2' DAN Port='6' sekaligus akan AND, bukan reconstruct 'rack/slot/port' string.",
+      "changelog": [
+        {"date": "2026-10-16", "change": "Semua filter (Status, Zone, Sinyal, Tipe, VLAN, Profile) diupgrade dari <datalist> single-select jadi .ms-dropdown multi-select checkbox, menyamakan pola dgn OLT/Splitter. Filter PON dipecah jadi Board + Port terpisah (SUBSTRING_INDEX di SQL). export-csv.php disamakan (semua filter array-aware)."}
+      ],
+      "last_updated": "2026-10-16"
     }
   },
   "shared_conventions": [
