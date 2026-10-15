@@ -66,7 +66,8 @@ session_write_close();
     <!-- Anti-FOUC: Terapkan tema SEBELUM render agar tidak ada kedipan mode gelap -->
     <script>
         (function() {
-            if (localStorage.getItem('smartolt_theme') === 'light') {
+            // Default tema sekarang TERANG (light-mode); gelap hanya jika user eksplisit pernah pilih 'dark'
+            if (localStorage.getItem('smartolt_theme') !== 'dark') {
                 document.documentElement.classList.add('light-mode');
             }
         })();
@@ -362,4 +363,21 @@ if (typeof window.showToast !== 'function') {
         .catch(() => { t.remove(); });
 })();
 <?php endif; ?>
+
+// Toggle tema terang/gelap - simpan preferensi di localStorage
+(function() {
+    const btn = document.getElementById('theme-toggle');
+    if (!btn) return;
+    function updateIcon() {
+        const isLight = document.documentElement.classList.contains('light-mode');
+        btn.innerHTML = `<i data-lucide="${isLight ? 'moon' : 'sun'}" class="icon-sm"></i>`;
+        if (window.lucide) lucide.createIcons();
+    }
+    updateIcon();
+    btn.addEventListener('click', function() {
+        const isLight = document.documentElement.classList.toggle('light-mode');
+        localStorage.setItem('smartolt_theme', isLight ? 'light' : 'dark');
+        updateIcon();
+    });
+})();
 </script>

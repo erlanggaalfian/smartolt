@@ -293,38 +293,21 @@ body.light-mode .header-btn:hover {
 /* FORMS */
 .filter-panel { background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,.04); }
 .filter-row { display: flex; gap: 10px 12px; flex-wrap: wrap; align-items: flex-end; }
-/* configured.php pakai grid supaya tiap field filter sejajar rapi (lebar & tinggi
-   seragam per baris, tak seperti flex-wrap yg bisa miring antar baris) */
-/* Grid filter: kolom tetap (bukan auto-fill) biar search(span2)+10 dropdown
-   = 12 slot selalu pas habis dibagi 4 kolom, tak ada dropdown menggantung
-   sendirian di baris terakhir. Responsif: 1 kol mobile, 2 kol tablet, 4 kol desktop. */
-.filter-row.filter-row--grid { display: grid; grid-template-columns: 1fr; align-items: stretch; }
-.filter-row--grid .filter-item { min-width: 0; display: flex; flex-direction: column; max-width: none; flex: none; }
-.filter-row--grid .filter-item--narrow { grid-column: span 1; }
-.filter-row--grid .search-item { grid-column: span 1; }
-@media (min-width: 640px) {
-    .filter-row.filter-row--grid { grid-template-columns: repeat(2, 1fr); }
-    .filter-row--grid .search-item { grid-column: span 2; }
-}
-@media (min-width: 1024px) {
-    .filter-row.filter-row--grid { grid-template-columns: repeat(4, 1fr); }
-}
+/* configured.php: compact flexbox, label DI LUAR box (bukan fused di dalam),
+   lebar tiap dropdown pas isi (bukan grid full-width) - mencegah mekar/gemuk */
+.filter-row.filter-row--grid { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.filter-row--grid .filter-item { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
+.filter-label-outside { font-size: 13px; font-weight: 600; color: var(--text-main); white-space: nowrap; }
+.filter-row--grid .search-item input { width: 210px; }
+.filter-row--grid .ms-dropdown .form-control { width: auto; min-width: 100px; max-width: 170px; }
+/* Poin 5: input/select filter bg putih polos, tinggi seragam h-9, border abu tipis rounded-md */
+.filter-row--grid .form-control { height: 36px; padding: 6px 10px; border-radius: 6px; background-color: var(--color-white); border-color: var(--border-color); }
 .filter-item .form-group { margin-bottom: 0; }
-/* Fused label+input pill: label menyatu di kiri, tanpa border/gap terpisah */
-.filter-fused { display: flex; align-items: stretch; height: 40px; border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; background: var(--bg-primary); }
-.filter-fused-label { display: flex; align-items: center; padding: 0 10px; font-size: 11.5px; font-weight: 600; color: var(--text-muted); background: var(--bg-tertiary); white-space: nowrap; border-right: 1px solid var(--border-color); }
-.filter-fused .form-control { border: none; border-radius: 0; height: 100%; background: transparent; min-width: 0; flex: 1; }
-.filter-fused .form-control:focus { box-shadow: none; }
-.filter-fused-btn { display: flex; padding: 0; height: 40px; gap: 0; width: 100%; }
-.filter-fused-btn .ms-label { flex: 1; padding: 0 10px; text-align: left; font-size: 13px; }
-.filter-fused-btn .ms-caret { padding-right: 10px; }
-/* Grup tombol aksi (Filter/Reset/CSV/Sync): dipisah dari filter-row utama supaya
-   tombol tak ikut melebar sama rata dgn input filter, melekat rata kanan */
-.filter-actions { grid-column: 1 / -1; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: flex-end; margin-top: 4px; }
+.filter-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-left: auto; }
 .filter-actions .filter-item { flex: 0 0 auto; min-width: 0; max-width: none; }
 .filter-actions .btn-block { width: auto; padding-left: 18px; padding-right: 18px; }
 .ms-dropdown { position: relative; }
-.ms-btn { display: flex; align-items: center; justify-content: space-between; cursor: pointer; text-align: left; background: var(--bg-secondary); }
+.ms-btn { display: flex; align-items: center; justify-content: space-between; gap: 8px; cursor: pointer; text-align: left; background: var(--color-white); border: 1px solid var(--border-color); }
 .ms-caret { font-size: 10px; color: var(--text-muted); }
 .ms-panel { display: none; position: absolute; top: calc(100% + 4px); left: 0; min-width: 100%; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); box-shadow: var(--shadow-md); z-index: 200; padding: 8px; }
 .ms-dropdown.open .ms-panel { display: block; }

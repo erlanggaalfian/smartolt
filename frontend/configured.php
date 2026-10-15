@@ -249,10 +249,8 @@ $onus = $stmt_data->fetchAll();
         })();
         </script>
         <div class="filter-item search-item">
-            <div class="filter-fused">
-                <span class="filter-fused-label">🔍 Cari</span>
-                <input type="text" name="search" class="form-control" aria-label="Cari pelanggan" placeholder="Nama, SN, alamat, PPPoE, OLT, VLAN, splitter, zone..." value="<?php echo htmlspecialchars($search); ?>">
-            </div>
+            <label class="filter-label-outside" for="f-search">Cari</label>
+            <input type="text" id="f-search" name="search" class="form-control" aria-label="Cari pelanggan" placeholder="Nama, SN, alamat, PPPoE..." value="<?php echo htmlspecialchars($search); ?>">
         </div>
         <?php
         // Render generik satu field .ms-dropdown: $id = id unik, $label = label kolom,
@@ -263,8 +261,8 @@ $onus = $stmt_data->fetchAll();
             $btn_label = $n ? "$n dipilih" : 'Semua';
             ?>
             <div class="filter-item ms-dropdown<?php echo $narrow ? ' filter-item--narrow' : ''; ?>" id="ms-<?php echo $id; ?>">
-                <button type="button" class="form-control ms-btn filter-fused-btn" onclick="this.closest('.ms-dropdown').classList.toggle('open')">
-                    <span class="filter-fused-label"><?php echo htmlspecialchars($label); ?></span>
+                <label class="filter-label-outside"><?php echo htmlspecialchars($label); ?></label>
+                <button type="button" class="form-control ms-btn" onclick="this.closest('.ms-dropdown').classList.toggle('open')">
                     <span class="ms-label"><?php echo htmlspecialchars($btn_label); ?></span>
                     <span class="ms-caret">▾</span>
                 </button>
