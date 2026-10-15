@@ -260,8 +260,8 @@ body.light-mode .header-btn:hover {
 .btn-outline:hover { color: var(--text-main); border-color: var(--text-accent); }
 /* TABLES */
 .table-responsive { width: 100%; overflow-x: auto; border-radius: var(--radius-md); border: 1px solid var(--border-color); }
-.data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
-.data-table th, .data-table td { padding: 10px 14px; border-bottom: 1px solid var(--border-color); }
+.data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; table-layout: fixed; }
+.data-table th, .data-table td { padding: 10px 14px; border-bottom: 1px solid var(--border-color); white-space: normal; overflow-wrap: anywhere; word-break: break-word; }
 .data-table th { color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; background-color: var(--bg-tertiary); position: sticky; top: 0; z-index: 2; }
 .data-table tbody tr:nth-child(even) { background-color: var(--bg-tertiary); }
 .data-table td { font-size: 13px; }
@@ -283,6 +283,14 @@ body.light-mode .header-btn:hover {
 .filter-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
 .filter-item { flex: 1; min-width: 150px; }
 .filter-item .form-group { margin-bottom: 0; }
+.ms-dropdown { position: relative; }
+.ms-btn { display: flex; align-items: center; justify-content: space-between; cursor: pointer; text-align: left; background: var(--bg-secondary); }
+.ms-caret { font-size: 10px; color: var(--text-muted); }
+.ms-panel { display: none; position: absolute; top: calc(100% + 4px); left: 0; min-width: 100%; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); box-shadow: var(--shadow-md); z-index: 200; padding: 8px; }
+.ms-dropdown.open .ms-panel { display: block; }
+.ms-search { margin-bottom: 6px; font-size: 12px; padding: 5px 8px; }
+.ms-list { max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
+.ms-apply { margin-top: 6px; width: 100%; }
 .filter-item input[list] { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px; cursor: pointer; }
 .search-item { flex: 2; min-width: 250px; }
 .search-item .form-group { margin-bottom: 0; }
