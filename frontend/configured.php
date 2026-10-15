@@ -21,7 +21,8 @@ $selected_olt_id = count($selected_olts) === 1 ? $selected_olts[0] : '';
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $status = isset($_GET['status']) ? $_GET['status'] : '';
 $filter_zone = isset($_GET['zone']) ? trim($_GET['zone']) : '';
-$filter_odb  = isset($_GET['odb'])  ? trim($_GET['odb'])  : '';
+$filter_odb  = isset($_GET['odb'])  ? $_GET['odb']  : '';
+if (!is_array($filter_odb)) $filter_odb = $filter_odb !== '' ? [$filter_odb] : [];
 $filter_pon     = isset($_GET['pon_port']) ? trim($_GET['pon_port']) : '';
 $filter_signal  = isset($_GET['signal']) ? $_GET['signal'] : '';
 $filter_type    = isset($_GET['onu_type']) ? trim($_GET['onu_type']) : '';
@@ -47,6 +48,7 @@ $available_types = $pdo->query("SELECT DISTINCT onu_type FROM onus WHERE onu_typ
 $available_vlans = $pdo->query("SELECT DISTINCT vlan FROM onus WHERE vlan IS NOT NULL AND vlan != '' AND olt_id IN ($olt_filter_in) ORDER BY vlan ASC")->fetchAll(PDO::FETCH_COLUMN);
 $available_profiles = $pdo->query("SELECT DISTINCT download_profile FROM onus WHERE download_profile IS NOT NULL AND download_profile != '' AND olt_id IN ($olt_filter_in) ORDER BY download_profile ASC")->fetchAll(PDO::FETCH_COLUMN);
 $olt_counts = $pdo->query("SELECT olt_id, COUNT(*) as cnt FROM onus WHERE olt_id IN ($allowed_ids_str) GROUP BY olt_id")->fetchAll(PDO::FETCH_KEY_PAIR);
+$odb_counts = $pdo->query("SELECT COALESCE(NULLIF(splitter,''),'None') as s, COUNT(*) as cnt FROM onus WHERE olt_id IN ($olt_filter_in) GROUP BY s ORDER BY s ASC")->fetchAll(PDO::FETCH_KEY_PAIR);
 
 // Pagination limit logic (default to 100)
 $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 100;
@@ -79,13 +81,21 @@ if ($filter_zone !== '') {
         $params[] = $filter_zone;
     }
 }
-if ($filter_odb !== '') {
-    if (strtolower($filter_odb) === 'none') {
-        $filter_sql .= " AND (onus.splitter IS NULL OR onus.splitter = '' OR onus.splitter = 'None')";
-    } else {
-        $filter_sql .= " AND onus.splitter = ?";
-        $params[] = $filter_odb;
+if (!empty($filter_odb)) {
+    $has_none = false;
+    $odb_vals = [];
+    foreach ($filter_odb as $o) {
+        if (strtolower($o) === 'none') $has_none = true;
+        elseif ($o !== '') $odb_vals[] = $o;
     }
+    $parts = [];
+    if (!empty($odb_vals)) {
+        $ph = implode(',', array_fill(0, count($odb_vals), '?'));
+        $parts[] = "onus.splitter IN ($ph)";
+        foreach ($odb_vals as $o) $params[] = $o;
+    }
+    if ($has_none) $parts[] = "(onus.splitter IS NULL OR onus.splitter = '' OR onus.splitter = 'None')";
+    if (!empty($parts)) $filter_sql .= " AND (" . implode(' OR ', $parts) . ")";
 }
 if ($filter_pon !== '') {
     $filter_sql .= " AND onus.pon_port = ?";
@@ -232,13 +242,27 @@ $onus = $stmt_data->fetchAll();
                 <?php foreach ($available_zones as $z): ?><option value="<?php echo htmlspecialchars($z); ?>"><?php endforeach; ?>
             </datalist>
         </div>
-        <div class="filter-item">
-            <input type="text" name="odb" class="form-control" list="dl-odb" autocomplete="off" aria-label="Filter ODB" placeholder="🔍 Semua ODB" value="<?php echo htmlspecialchars($filter_odb); ?>" onchange="this.form.submit()">
-            <datalist id="dl-odb">
-                <option value="">Semua ODB</option>
-                <option value="None">None (belum diisi)</option>
-                <?php foreach ($available_odbs as $o): ?><option value="<?php echo htmlspecialchars($o); ?>"><?php endforeach; ?>
-            </datalist>
+        <div class="filter-item ms-dropdown" id="ms-odb">
+            <button type="button" class="form-control ms-btn" onclick="this.closest('.ms-dropdown').classList.toggle('open')">
+                <span class="ms-label">🔍 Semua ODB</span>
+                <span class="ms-caret">▾</span>
+            </button>
+            <div class="ms-panel">
+                <input type="text" class="form-control ms-search" placeholder="Cari ODB..." oninput="const q=this.value.toLowerCase();this.closest('.ms-panel').querySelectorAll('.ms-opt').forEach(o=>{o.style.display=o.textContent.toLowerCase().includes(q)?'':'none'})">
+                <div class="ms-list">
+                    <label class="ms-opt checkbox-row">
+                        <input type="checkbox" name="odb[]" value="None" <?php echo in_array('None', $filter_odb) ? 'checked' : ''; ?>>
+                        <span>None (belum diisi) <span class="text-muted">(<?php echo (int)($odb_counts['None'] ?? 0); ?>)</span></span>
+                    </label>
+                    <?php foreach ($available_odbs as $o): ?>
+                    <label class="ms-opt checkbox-row">
+                        <input type="checkbox" name="odb[]" value="<?php echo htmlspecialchars($o); ?>" <?php echo in_array($o, $filter_odb) ? 'checked' : ''; ?>>
+                        <span><?php echo htmlspecialchars($o); ?> <span class="text-muted">(<?php echo (int)($odb_counts[$o] ?? 0); ?>)</span></span>
+                    </label>
+                    <?php endforeach; ?>
+                </div>
+                <button type="submit" class="btn btn-primary btn-xs ms-apply">Terapkan</button>
+            </div>
         </div>
         <div class="filter-item">
             <input type="text" name="pon_port" class="form-control" list="dl-pon" autocomplete="off" aria-label="Filter PON" placeholder="🔍 Semua PON" value="<?php echo htmlspecialchars($filter_pon); ?>" onchange="this.form.submit()">
