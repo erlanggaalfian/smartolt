@@ -331,6 +331,7 @@ $onus = $stmt_data->fetchAll();
                             row.getAttribute('data-rx-olt') === String(onu.rx_olt) &&
                             row.getAttribute('data-down-cause') === String(onu.last_down_cause || '-') &&
                             row.getAttribute('data-odp') === String(onu.splitter || '') &&
+                            row.getAttribute('data-zone') === String(onu.zone || '') &&
                             row.getAttribute('data-dl-prof') === String(onu.download_profile || '') &&
                             row.getAttribute('data-ul-prof') === String(onu.upload_profile || '')) {
                             return;
@@ -418,6 +419,11 @@ $onus = $stmt_data->fetchAll();
                         const odpCell = row.querySelector('.odp-cell');
                         if (odpCell) {
                             odpCell.textContent = onu.splitter || '-';
+                        }
+                        // Update Zone
+                        const zoneCell = row.querySelector('.zone-cell');
+                        if (zoneCell) {
+                            zoneCell.textContent = onu.zone || '-';
                         }
 
                         // Update data-attributes for next comparison
@@ -644,6 +650,7 @@ $onus = $stmt_data->fetchAll();
                         <th>Koneksi OLT & PON</th>
                         <th>VLAN</th>
                         <th>Nama ODP</th>
+                        <th>Zone</th>
                         <th>Sinyal Rx ONU</th>
                         <th>Sinyal Rx OLT</th>
                     </tr>
@@ -651,11 +658,11 @@ $onus = $stmt_data->fetchAll();
                 <tbody class="motion-fade-in">
                     <?php if (empty($onus)): ?>
                         <tr>
-                            <td colspan="9" class="empty-state">Tidak ada ONU terdaftar yang sesuai dengan kriteria filter.</td>
+                            <td colspan="10" class="empty-state">Tidak ada ONU terdaftar yang sesuai dengan kriteria filter.</td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($onus as $onu): ?>
-                            <tr class="onu-row" data-onu-id="<?php echo (int)$onu['id']; ?>" data-name="<?php echo htmlspecialchars($onu['name'] ?? ''); ?>" data-status="<?php echo htmlspecialchars($onu['status']); ?>" data-vlan="<?php echo htmlspecialchars($onu['vlan'] ?: 'None'); ?>" data-rx-onu="<?php echo $onu['last_rx_power'] !== null ? number_format((float)$onu['last_rx_power'], 2) : 'N/A'; ?>" data-rx-olt="<?php echo $onu['last_rx_olt_power'] !== null ? number_format((float)$onu['last_rx_olt_power'], 2) : 'N/A'; ?>" data-down-cause="<?php echo htmlspecialchars($onu['last_down_cause'] ?? '-'); ?>" data-odp="<?php echo htmlspecialchars($onu['splitter'] ?? ''); ?>" data-dl-prof="<?php echo htmlspecialchars($onu['download_profile'] ?? ''); ?>" data-ul-prof="<?php echo htmlspecialchars($onu['upload_profile'] ?? ''); ?>" data-olt-offline="<?php echo $olt_offline ? '1' : '0'; ?>">
+                            <tr class="onu-row" data-onu-id="<?php echo (int)$onu['id']; ?>" data-name="<?php echo htmlspecialchars($onu['name'] ?? ''); ?>" data-status="<?php echo htmlspecialchars($onu['status']); ?>" data-vlan="<?php echo htmlspecialchars($onu['vlan'] ?: 'None'); ?>" data-rx-onu="<?php echo $onu['last_rx_power'] !== null ? number_format((float)$onu['last_rx_power'], 2) : 'N/A'; ?>" data-rx-olt="<?php echo $onu['last_rx_olt_power'] !== null ? number_format((float)$onu['last_rx_olt_power'], 2) : 'N/A'; ?>" data-down-cause="<?php echo htmlspecialchars($onu['last_down_cause'] ?? '-'); ?>" data-odp="<?php echo htmlspecialchars($onu['splitter'] ?? ''); ?>" data-zone="<?php echo htmlspecialchars($onu['zone'] ?? ''); ?>" data-dl-prof="<?php echo htmlspecialchars($onu['download_profile'] ?? ''); ?>" data-ul-prof="<?php echo htmlspecialchars($onu['upload_profile'] ?? ''); ?>" data-olt-offline="<?php echo $olt_offline ? '1' : '0'; ?>">
                                 <td class="status-cell text-center">
                                     <?php $olt_offline = ($onu['last_snmp_status'] ?? '') !== 'Connected'; ?>
                                     <?php if ($olt_offline): ?>
@@ -695,6 +702,7 @@ $onus = $stmt_data->fetchAll();
                                 </td>
                                 <td class="vlan-cell"><?php echo htmlspecialchars($onu['vlan'] ?: '-'); ?></td>
                                 <td class="odp-cell"><?php echo htmlspecialchars($onu['splitter'] ?: '-'); ?></td>
+                                <td class="zone-cell"><?php echo htmlspecialchars($onu['zone'] ?: '-'); ?></td>
                                 <td class="signal-cell">
                                     <?php if ($olt_offline): ?>
                                         <span class="text-muted">—</span>
