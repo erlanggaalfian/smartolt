@@ -32,16 +32,24 @@ if (is_array($olt_id_raw)) {
 }
 $olt_filter_in = !empty($selected_olts) ? implode(',', $selected_olts) : $allowed_ids_str;
 
+function ms_param($key) {
+    $v = $_GET[$key] ?? '';
+    if (!is_array($v)) $v = $v !== '' ? [$v] : [];
+    return array_values(array_filter($v, fn($x) => $x !== ''));
+}
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
-$status = isset($_GET['status']) ? $_GET['status'] : '';
-$filter_zone = isset($_GET['zone']) ? trim($_GET['zone']) : '';
-$filter_odb  = isset($_GET['odb']) ? $_GET['odb'] : '';
-if (!is_array($filter_odb)) $filter_odb = $filter_odb !== '' ? [$filter_odb] : [];
-$filter_pon     = isset($_GET['pon_port']) ? trim($_GET['pon_port']) : '';
-$filter_signal  = isset($_GET['signal']) ? $_GET['signal'] : '';
-$filter_type    = isset($_GET['onu_type']) ? trim($_GET['onu_type']) : '';
-$filter_vlan    = isset($_GET['vlan']) ? trim($_GET['vlan']) : '';
-$filter_profile = isset($_GET['profile']) ? trim($_GET['profile']) : '';
+$status = ms_param('status');
+$filter_zone = ms_param('zone');
+$filter_odb  = ms_param('odb');
+$filter_board   = ms_param('board');
+$filter_port    = ms_param('port');
+$filter_signal  = ms_param('signal');
+$filter_type    = ms_param('onu_type');
+$filter_vlan    = ms_param('vlan');
+$filter_profile = ms_param('profile');
+// pon_port disimpan sebagai "rack/slot/port" — lihat catatan di configured.php.
+$board_expr = "SUBSTRING_INDEX(onus.pon_port, '/', 2)";
+$port_expr  = "SUBSTRING_INDEX(onus.pon_port, '/', -1)";
 
 $filter_sql = "";
 $params = [];
@@ -57,71 +65,72 @@ if (!empty($selected_olts)) {
 } else {
     $filter_sql .= " AND onus.olt_id IN ($allowed_ids_str)";
 }
-if ($status !== '') {
-    $filter_sql .= " AND onus.status = ?";
-    $params[] = $status;
-}
-if ($filter_zone !== '') {
-    if (strtolower($filter_zone) === 'none') {
-        $filter_sql .= " AND (onus.zone IS NULL OR onus.zone = '' OR onus.zone = 'None')";
-    } else {
-        $filter_sql .= " AND onus.zone = ?";
-        $params[] = $filter_zone;
-    }
-}
-if (!empty($filter_odb)) {
+// Helper generik: filter multi-select IN (...) dengan dukungan opsi "None" (NULL/kosong).
+function apply_ms_filter(&$filter_sql, &$params, $col, $values) {
+    if (empty($values)) return;
     $has_none = false;
-    $odb_vals = [];
-    foreach ($filter_odb as $o) {
-        if (strtolower($o) === 'none') $has_none = true;
-        elseif ($o !== '') $odb_vals[] = $o;
+    $vals = [];
+    foreach ($values as $v) {
+        if (strtolower($v) === 'none') $has_none = true;
+        elseif ($v !== '') $vals[] = $v;
     }
     $parts = [];
-    if (!empty($odb_vals)) {
-        $ph = implode(',', array_fill(0, count($odb_vals), '?'));
-        $parts[] = "onus.splitter IN ($ph)";
-        foreach ($odb_vals as $o) $params[] = $o;
+    if (!empty($vals)) {
+        $ph = implode(',', array_fill(0, count($vals), '?'));
+        $parts[] = "$col IN ($ph)";
+        foreach ($vals as $v) $params[] = $v;
     }
-    if ($has_none) $parts[] = "(onus.splitter IS NULL OR onus.splitter = '' OR onus.splitter = 'None')";
+    if ($has_none) $parts[] = "($col IS NULL OR $col = '' OR $col = 'None')";
     if (!empty($parts)) $filter_sql .= " AND (" . implode(' OR ', $parts) . ")";
 }
-if ($filter_pon !== '') {
-    $filter_sql .= " AND onus.pon_port = ?";
-    $params[] = $filter_pon;
+
+if (!empty($status)) {
+    $status_parts = [];
+    foreach ($status as $s) {
+        if ($s === 'offline_power') {
+            $status_parts[] = "(onus.status = 'offline' AND onus.last_down_cause IN ('Power Down','Manual'))";
+        } elseif ($s === 'offline_fiber') {
+            $status_parts[] = "(onus.status = 'offline' AND onus.last_down_cause IN ('LOS','LOSi','LOFi','SFi','LOAi','LOAMi'))";
+        } elseif ($s === 'offline_other') {
+            $status_parts[] = "(onus.status = 'offline' AND (onus.last_down_cause IS NULL OR onus.last_down_cause NOT IN ('Power Down','Manual','LOS','LOSi','LOFi','SFi','LOAi','LOAMi')))";
+        } else {
+            $status_parts[] = "onus.status = ?";
+            $params[] = $s;
+        }
+    }
+    if (!empty($status_parts)) $filter_sql .= " AND (" . implode(' OR ', $status_parts) . ")";
 }
-if ($filter_signal !== '') {
+apply_ms_filter($filter_sql, $params, 'onus.zone', $filter_zone);
+apply_ms_filter($filter_sql, $params, 'onus.splitter', $filter_odb);
+apply_ms_filter($filter_sql, $params, $board_expr, $filter_board);
+apply_ms_filter($filter_sql, $params, $port_expr, $filter_port);
+apply_ms_filter($filter_sql, $params, 'onus.onu_type', $filter_type);
+apply_ms_filter($filter_sql, $params, 'onus.vlan', $filter_vlan);
+apply_ms_filter($filter_sql, $params, 'onus.download_profile', $filter_profile);
+
+if (!empty($filter_signal)) {
     $signal_ranges = [
         'critical' => ['max' => -30],
         'weak'     => ['min' => -30, 'max' => -28],
         'fair'     => ['min' => -28, 'max' => -25],
         'good'     => ['min' => -25],
     ];
-    if (isset($signal_ranges[$filter_signal])) {
-        $range = $signal_ranges[$filter_signal];
+    $sig_parts = [];
+    foreach ($filter_signal as $key) {
+        if (!isset($signal_ranges[$key])) continue;
+        $range = $signal_ranges[$key];
         if (isset($range['min']) && isset($range['max'])) {
-            $filter_sql .= " AND onus.last_rx_power IS NOT NULL AND onus.last_rx_power >= ? AND onus.last_rx_power < ?";
-            $params[] = $range['min'];
-            $params[] = $range['max'];
+            $sig_parts[] = "(onus.last_rx_power >= ? AND onus.last_rx_power < ?)";
+            $params[] = $range['min']; $params[] = $range['max'];
         } elseif (isset($range['max'])) {
-            $filter_sql .= " AND onus.last_rx_power IS NOT NULL AND onus.last_rx_power < ?";
+            $sig_parts[] = "onus.last_rx_power < ?";
             $params[] = $range['max'];
         } else {
-            $filter_sql .= " AND onus.last_rx_power IS NOT NULL AND onus.last_rx_power >= ?";
+            $sig_parts[] = "onus.last_rx_power >= ?";
             $params[] = $range['min'];
         }
     }
-}
-if ($filter_type !== '') {
-    $filter_sql .= " AND onus.onu_type = ?";
-    $params[] = $filter_type;
-}
-if ($filter_vlan !== '') {
-    $filter_sql .= " AND onus.vlan = ?";
-    $params[] = $filter_vlan;
-}
-if ($filter_profile !== '') {
-    $filter_sql .= " AND onus.download_profile = ?";
-    $params[] = $filter_profile;
+    if (!empty($sig_parts)) $filter_sql .= " AND onus.last_rx_power IS NOT NULL AND (" . implode(' OR ', $sig_parts) . ")";
 }
 
 $sql = "SELECT onus.name, onus.serial_number, onus.onu_id, onus.pon_port,
