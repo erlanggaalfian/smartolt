@@ -32,24 +32,6 @@ $zone_opts = $pdo->query("SELECT DISTINCT zone FROM splitters WHERE zone IS NOT 
 $pon_parts = explode('/', $pon_port);
 $board_port_display = count($pon_parts) === 3 ? "Shelf {$pon_parts[0]} / Slot {$pon_parts[1]} / Port {$pon_parts[2]}" : $pon_port;
 ?>
-<style>
-    .auth-form-row { display:flex; align-items:flex-start; gap:16px; margin-bottom:16px; }
-    .auth-form-row label { flex:0 0 200px; font-weight:600; color:var(--text-main); padding-top:9px; }
-    .auth-form-row .auth-field { flex:1; }
-    .auth-form-row .auth-field small.hint { display:block; color:var(--text-muted); margin-top:4px; font-size:0.8rem; }
-    .auth-static { background:var(--bg-tertiary); border:1px solid var(--border-color); border-radius:6px; padding:8px 12px; color:var(--text-main); }
-    .auth-preset-row { display:flex; align-items:center; gap:8px; margin-bottom:20px; padding-bottom:16px; border-bottom:1px solid var(--border-color); }
-    .auth-preset-row select { flex:1; }
-    .btn-icon-square { width:38px; height:38px; flex:0 0 38px; display:inline-flex; align-items:center; justify-content:center; border:1px solid var(--border-color); border-radius:6px; background:var(--bg-tertiary); cursor:pointer; }
-    .btn-link-plain { color:var(--color-accent); background:none; border:none; padding:0; cursor:pointer; font-weight:600; text-decoration:none; }
-    #gps-fields { margin-top:10px; display:flex; gap:8px; }
-    @media (max-width: 600px) {
-        .auth-form-row { flex-direction:column; gap:4px; }
-        .auth-form-row label { flex:0 0 auto; padding-top:0; font-size:0.85rem; }
-        .auth-preset-row { flex-direction:column; align-items:stretch; }
-        #gps-fields { flex-direction:column; }
-    }
-</style>
 
 <div class="content-card">
     <div class="card-header card-header--seamless">
@@ -61,7 +43,7 @@ $board_port_display = count($pon_parts) === 3 ? "Shelf {$pon_parts[0]} / Slot {$
             <select id="auth-preset-select" class="form-control">
                 <option value="">Tidak ada</option>
             </select>
-            <button type="button" class="btn-icon-square" id="btn-save-preset" title="Simpan kombinasi saat ini sebagai preset baru"><i data-lucide="plus" class="icon-sm"></i></button>
+            <button type="button" class="btn-icon-square btn-icon-square--auth" id="btn-save-preset" title="Simpan kombinasi saat ini sebagai preset baru"><i data-lucide="plus" class="icon-sm"></i></button>
         </div>
 
         <form action="action/auth-onu.php" method="POST" id="form-auth-onu">
@@ -198,7 +180,7 @@ $board_port_display = count($pon_parts) === 3 ? "Shelf {$pon_parts[0]} / Slot {$
                     <div id="gps-fields" class="hidden">
                         <input type="text" id="auth-latitude" name="latitude" class="form-control" placeholder="Latitude">
                         <input type="text" id="auth-longitude" name="longitude" class="form-control" placeholder="Longitude">
-                        <button type="button" class="btn-icon-square" id="btn-use-gps" title="Gunakan lokasi saya"><i data-lucide="map-pin" class="icon-sm"></i></button>
+                        <button type="button" class="btn-icon-square btn-icon-square--auth" id="btn-use-gps" title="Gunakan lokasi saya"><i data-lucide="map-pin" class="icon-sm"></i></button>
                     </div>
                 </div>
             </div>

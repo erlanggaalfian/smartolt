@@ -25,31 +25,6 @@ foreach ($profiles as $p) {
 }
 ?>
 
-<style>
-.tr069-tab-bar { display:flex; align-items:center; gap:6px; background:var(--bg-secondary); border:1px solid var(--border-color); border-bottom:none; border-radius:var(--radius-lg) var(--radius-lg) 0 0; padding:10px 14px 0; }
-.tr069-tab { display:inline-flex; align-items:center; gap:6px; padding:12px 20px; border-radius:var(--radius-sm) var(--radius-sm) 0 0; font-family:var(--font-family); font-size:0.85rem; font-weight:600; color:var(--text-muted); cursor:pointer; border:1px solid transparent; border-bottom:none; background:transparent; transition:all 0.2s; position:relative; bottom:-1px; }
-.tr069-tab:hover { color:var(--text-main); background:var(--surface-2); }
-.tr069-tab.active { color:var(--text-accent); background:var(--bg-card); border-color:var(--border-color); }
-.tr069-tab.active::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--text-accent); border-radius:3px 3px 0 0; }
-.tr069-panel { display:none; background:var(--bg-card); border:1px solid var(--border-color); border-radius:0 0 var(--radius-lg) var(--radius-lg); box-shadow:var(--shadow-md); padding:28px; }
-.tr069-panel.active { display:block; }
-.health-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; margin-bottom:24px; }
-.health-card { background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:18px; text-align:center; }
-.health-card .label { font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; }
-.health-card .value { font-size:1.6rem; font-weight:700; }
-.health-card .status-dot { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px; }
-.dot-green { background:var(--color-green); box-shadow:0 0 6px var(--color-green); }
-.dot-red { background:var(--color-red); box-shadow:0 0 6px var(--color-red); }
-.dot-yellow { background:var(--color-orange); box-shadow:0 0 6px var(--color-orange); }
-.profile-default { background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:20px 24px; margin-bottom:24px; }
-.profile-default .pd-header { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
-.profile-default .pd-badge { background:var(--text-accent-glow); color:var(--text-accent); font-size:0.7rem; font-weight:700; padding:3px 8px; border-radius:99px; text-transform:uppercase; letter-spacing:0.5px; }
-.profile-default .pd-url { font-family:monospace; font-size:0.85rem; color:var(--text-accent); background:var(--bg-card); padding:8px 12px; border-radius:var(--radius-sm); border:1px solid var(--border-color); display:inline-block; margin-bottom:12px; }
-.profile-default .pd-status { display:flex; gap:16px; flex-wrap:wrap; }
-.profile-default .pd-svc { display:flex; align-items:center; gap:6px; font-size:0.85rem; }
-.fault-item { display:flex; align-items:center; gap:12px; padding:10px 14px; border-bottom:1px solid var(--border-color); font-size:0.85rem; }
-.fault-item:last-child { border-bottom:none; }
-</style>
 
 <!-- TAB BAR -->
 <div class="tr069-tab-bar">
@@ -58,7 +33,7 @@ foreach ($profiles as $p) {
 </div>
 
 <!-- TAB 1: PROFILES -->
-<div class="tr069-panel active" id="panel-profiles">
+<div class="tr069mgmt-panel active" id="panel-profiles">
 
     <?php if ($default): ?>
     <div class="profile-default">
@@ -129,7 +104,7 @@ foreach ($profiles as $p) {
 </div>
 
 <!-- TAB 2: STATUS -->
-<div class="tr069-panel" id="panel-status">
+<div class="tr069mgmt-panel" id="panel-status">
 
     <div class="health-grid">
         <div class="health-card">
@@ -273,7 +248,7 @@ foreach ($profiles as $p) {
 document.querySelectorAll('.tr069-tab').forEach(btn => {
     btn.addEventListener('click', () => {
         document.querySelectorAll('.tr069-tab').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.tr069-panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.tr069mgmt-panel').forEach(p => p.classList.remove('active'));
         btn.classList.add('active');
         document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
         lucide.createIcons();

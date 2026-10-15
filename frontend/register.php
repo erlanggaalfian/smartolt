@@ -31,26 +31,8 @@ unset($_SESSION['error'], $_SESSION['success']);
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Montserrat:wght@500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@1.46.0/dist/umd/lucide.min.js" integrity="sha384-1avDoIZZ5mKtAlvTbQ2jge+TZA4z+qwhMFHdCpATww/SLVM8wKs7sROOEKMOizyV" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="public/style.css">
-    <style>
-body { margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; background: radial-gradient(circle at center, var(--auth-bg) 0%, var(--auth-bg-deep) 100%); font-family: 'Montserrat', sans-serif; font-weight: 500; color: var(--auth-text); }
-h2 { font-family: 'Poppins', sans-serif; font-weight: 700; }
-.register-container { width: 100%; max-width: 440px; padding: 20px; }
-.register-card { background: var(--auth-card); border: 1px solid var(--auth-border); border-radius: 12px; padding: 40px; box-shadow: 0 10px 25px -5px var(--shadow-a50), 0 8px 10px -6px var(--shadow-a50); backdrop-filter: blur(10px); }
-.register-logo { text-align: center; margin-bottom: 25px; }
-.register-logo h2 { margin: 10px 0 5px; font-size: 1.8rem; font-weight: 700; background: linear-gradient(135deg, var(--auth-accent) 0%, var(--chip-blue-fg) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.register-logo p { margin: 0; color: var(--auth-muted); font-size: 0.9rem; }
-.form-group { margin-bottom: 18px; }
-.form-group label { display: block; margin-bottom: 8px; font-size: 0.85rem; font-weight: 500; color: var(--auth-muted); }
-.form-group input, .form-group select { width: 100%; padding: 12px 16px; background: var(--auth-bg); border: 1px solid var(--auth-border); border-radius: 6px; color: var(--auth-text); font-family: inherit; font-size: 0.95rem; box-sizing: border-box; transition: all 0.3s ease; }
-.form-group input:focus, .form-group select:focus { border-color: var(--auth-accent); box-shadow: 0 0 0 2px var(--tint-teal); outline: none; }
-.btn-register { width: 100%; padding: 12px; background: linear-gradient(135deg, var(--auth-accent) 0%, var(--chip-blue-fg) 100%); border: none; border-radius: 6px; color: var(--color-white); font-family: inherit; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 12px var(--auth-glow); margin-top: 10px; }
-.btn-register:hover { transform: translateY(-1px); box-shadow: 0 6px 16px var(--auth-glow-strong); }
-.alert { padding: 12px 16px; border-radius: 6px; margin-bottom: 20px; font-size: 0.85rem; line-height: 1.5; }
-.alert-danger { background: var(--tint-danger); border: 1px solid var(--border-danger); color: var(--auth-danger); }
-.alert-success { background: var(--auth-success-tint); border: 1px solid var(--auth-success-border); color: var(--auth-success); }
-</style>
 </head>
-<body>
+<body class="auth-page">
     <div class="register-container">
         <div class="register-card">
             <div class="register-logo">

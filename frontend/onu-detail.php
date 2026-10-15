@@ -205,25 +205,6 @@ if (!empty($onu['onu_type'])) {
 }
         ?>
 
-<style>
-.animate-spin { animation: spin 1.2s linear infinite; display: inline-block; }
-.skel-text {
-    display: inline-block;
-    height: 0.85em;
-    border-radius: 3px;
-    background: linear-gradient(90deg, var(--border-subtle, #e2e2e2) 25%, var(--surface-hover, #f0f0f0) 50%, var(--border-subtle, #e2e2e2) 75%);
-    background-size: 200% 100%;
-    animation: skel-shimmer 1.3s ease-in-out infinite;
-    vertical-align: middle;
-}
-.skel-w-44 { width: 44px; }
-.skel-w-52 { width: 52px; }
-@keyframes skel-shimmer {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
-}
-</style>
-
 <div class="smartolt-layout">
     <h1 id="page-title" class="mb-4">Detail ONU — <?php echo htmlspecialchars($parsed_desc['clean_name'] ?: $onu['serial_number']); ?></h1>
 
@@ -4195,7 +4176,6 @@ document.querySelectorAll('.detail-plain-row[data-clickable]').forEach(el => {
 });
 </script>
 
-<?php require_once __DIR__ . '/onu-detail-css.php'; ?>
 
 <!-- Modal Configure Port -->
 <div class="modal" id="port-configure-modal" role="dialog" aria-modal="true">

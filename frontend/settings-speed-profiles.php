@@ -47,14 +47,14 @@ $olts = $pdo->query("SELECT id, name FROM olts ORDER BY name")->fetchAll();
     </div>
 </div>
 
-<div class="modal-overlay" id="sp-modal-overlay" style="display:none;">
-    <div class="modal-box modal-sm-inner">
-        <div class="modal-header">
+<div class="sp-modal-overlay" id="sp-modal-overlay" style="display:none;">
+    <div class="sp-modal-box modal-sm-inner">
+        <div class="sp-modal-header">
             <h3 id="sp-modal-title">Add Speed Profile</h3>
-            <button type="button" class="modal-close" id="sp-modal-close">&times;</button>
+            <button type="button" class="sp-modal-close" id="sp-modal-close">&times;</button>
         </div>
         <form id="sp-form">
-            <div class="modal-body flex-col">
+            <div class="sp-modal-body flex-col">
                 <div>
                     <label>Direction</label>
                     <select id="sp-f-direction" class="form-control" required>
@@ -73,30 +73,13 @@ $olts = $pdo->query("SELECT id, name FROM olts ORDER BY name")->fetchAll();
                 </div>
                 <div id="sp-form-error" class="text-danger fs-sm"></div>
             </div>
-            <div class="modal-footer">
+            <div class="sp-modal-footer">
                 <button type="button" class="btn btn-secondary" id="sp-form-cancel">Batal</button>
                 <button type="submit" class="btn btn-primary" id="sp-form-submit">Simpan ke OLT</button>
             </div>
         </form>
     </div>
 </div>
-
-<style>
-.sp-subnav { display:flex; gap:4px; border-bottom:1px solid var(--border-color); }
-.sp-subnav-tab {
-    padding:10px 16px; background:none; border:none; border-bottom:2px solid transparent;
-    font-size:0.9rem; font-weight:500; color:var(--text-muted); cursor:pointer; transition:var(--transition-fast);
-}
-.sp-subnav-tab:hover { color:var(--text-main); }
-.sp-subnav-tab.active { color:var(--text-accent); border-bottom-color:var(--text-accent); }
-.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:1000; }
-.modal-box { background:var(--bg-secondary); border-radius:var(--radius-sm); width:100%; }
-.modal-header { display:flex; justify-content:space-between; align-items:center; padding:14px 18px; border-bottom:1px solid var(--border-color); }
-.modal-close { background:none; border:none; font-size:1.4rem; cursor:pointer; color:var(--text-muted); }
-.modal-body { padding:18px; }
-.modal-body label { display:block; font-size:0.8rem; color:var(--text-muted); margin-bottom:4px; }
-.modal-footer { display:flex; justify-content:flex-end; gap:8px; padding:14px 18px; border-top:1px solid var(--border-color); }
-</style>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
