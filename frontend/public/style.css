@@ -259,11 +259,17 @@ body.light-mode .header-btn:hover {
 .btn-outline { background: none; border: 1px solid var(--border-color); color: var(--text-muted); }
 .btn-outline:hover { color: var(--text-main); border-color: var(--text-accent); }
 /* TABLES */
-.table-responsive { width: 100%; overflow-x: auto; border-radius: var(--radius-md); border: 1px solid var(--border-color); }
+.table-responsive { width: 100%; overflow-x: auto; }
+/* Saat table-responsive jadi satu-satunya isi card-body, tabel menyatu ke
+   tepi card (satu lapis bingkai saja, bukan card + table-responsive bertumpuk) */
+.card-body--flush { padding: 0; }
+.card-body--flush .table-responsive { border-radius: 0; }
 .data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; table-layout: fixed; }
-.data-table th, .data-table td { padding: 16px; border-bottom: 1px solid color-mix(in srgb, var(--border-color) 50%, transparent); white-space: normal; overflow-wrap: anywhere; word-break: break-word; }
-.data-table th { color: var(--text-muted); font-weight: 500; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; background-color: var(--bg-tertiary); position: sticky; top: 0; z-index: 2; }
-.data-table tbody tr:nth-child(even) { background-color: color-mix(in srgb, var(--bg-tertiary) 50%, transparent); }
+.data-table th, .data-table td { padding: 16px 12px; border-bottom: 1px solid color-mix(in srgb, var(--border-color) 50%, transparent); white-space: normal; overflow-wrap: anywhere; word-break: break-word; }
+.data-table th:first-child, .data-table td:first-child { padding-left: 20px; }
+.data-table th:last-child, .data-table td:last-child { padding-right: 20px; }
+.data-table th { color: var(--text-muted); font-weight: 500; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; background-color: transparent; border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 2; }
+.data-table tbody tr:nth-child(even) { background-color: transparent; }
 .data-table tbody tr:hover { background-color: color-mix(in srgb, var(--text-accent) 5%, transparent); }
 .data-table td { font-size: 13px; }
 .data-table .name-cell strong { font-weight: 600; color: var(--text-main); }

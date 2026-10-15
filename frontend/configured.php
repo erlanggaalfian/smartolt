@@ -717,7 +717,7 @@ $onus = $stmt_data->fetchAll();
             </select>
         </div>
     </div>
-    <div class="card-body">
+    <div class="card-body card-body--flush">
         <div class="table-responsive">
             <table class="data-table">
                 <thead>
