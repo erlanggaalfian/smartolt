@@ -304,45 +304,47 @@ $onus = $stmt_data->fetchAll();
             </datalist>
         </div>
 
-        <div class="filter-item">
-            <button type="submit" class="btn btn-primary btn-block">
-                <i data-lucide="filter"></i> Filter
-            </button>
+        <div class="filter-actions">
+            <div class="filter-item">
+                <button type="submit" class="btn btn-primary btn-block">
+                    <i data-lucide="filter"></i> Filter
+                </button>
+            </div>
+            <?php if (!empty($filter_zone) || !empty($filter_odb) || !empty($filter_pon) || !empty($search) || !empty($status) || !empty($filter_signal) || !empty($filter_type) || !empty($filter_vlan) || !empty($filter_profile) || $limit !== 100): ?>
+            <div class="filter-item">
+                <a href="configured.php" class="btn btn-outline">
+                    <i data-lucide="x"></i> Reset
+                </a>
+            </div>
+            <?php endif; ?>
+            <div class="filter-item">
+                <a href="action/export-csv.php?<?php echo http_build_query(array_filter([
+                    'olt_id' => !empty($selected_olts) ? $selected_olts : null,
+                    'search' => $search ?: null,
+                    'status' => $status ?: null,
+                    'zone' => $filter_zone ?: null,
+                    'odb' => $filter_odb ?: null,
+                    'pon_port' => $filter_pon ?: null,
+                    'signal' => $filter_signal ?: null,
+                    'onu_type' => $filter_type ?: null,
+                    'vlan' => $filter_vlan ?: null,
+                    'profile' => $filter_profile ?: null,
+                ], fn($v) => $v !== null && $v !== '')); ?>" class="btn btn-outline" title="Download CSV dengan filter saat ini">
+                    <i data-lucide="download"></i> CSV
+                </a>
+            </div>
+            <?php if (!empty($selected_olts)): ?>
+            <div class="filter-item inline-flex-center">
+                <button type="button" class="btn btn-xs btn-warning" id="btn-sync-pelanggan" onclick="triggerSyncPelanggan(event)">
+                    <i data-lucide="refresh-cw" class="icon-xs"></i> Sync Pelanggan
+                </button>
+                <label class="toggle-inline" title="Tampilkan detail error saat sync gagal">
+                    <input type="checkbox" id="toggle-debug" class="checkbox-xs">
+                    Debug
+                </label>
+            </div>
+            <?php endif; ?>
         </div>
-        <?php if (!empty($filter_zone) || !empty($filter_odb) || !empty($filter_pon) || !empty($search) || !empty($status) || !empty($filter_signal) || !empty($filter_type) || !empty($filter_vlan) || !empty($filter_profile) || $limit !== 100): ?>
-        <div class="filter-item">
-            <a href="configured.php" class="btn btn-outline">
-                <i data-lucide="x"></i> Reset
-            </a>
-        </div>
-        <?php endif; ?>
-        <div class="filter-item">
-            <a href="action/export-csv.php?<?php echo http_build_query(array_filter([
-                'olt_id' => !empty($selected_olts) ? $selected_olts : null,
-                'search' => $search ?: null,
-                'status' => $status ?: null,
-                'zone' => $filter_zone ?: null,
-                'odb' => $filter_odb ?: null,
-                'pon_port' => $filter_pon ?: null,
-                'signal' => $filter_signal ?: null,
-                'onu_type' => $filter_type ?: null,
-                'vlan' => $filter_vlan ?: null,
-                'profile' => $filter_profile ?: null,
-            ], fn($v) => $v !== null && $v !== '')); ?>" class="btn btn-outline" title="Download CSV dengan filter saat ini">
-                <i data-lucide="download"></i> CSV
-            </a>
-        </div>
-        <?php if (!empty($selected_olts)): ?>
-        <div class="filter-item inline-flex-center">
-            <button type="button" class="btn btn-xs btn-warning" id="btn-sync-pelanggan" onclick="triggerSyncPelanggan(event)">
-                <i data-lucide="refresh-cw" class="icon-xs"></i> Sync Pelanggan
-            </button>
-            <label class="toggle-inline" title="Tampilkan detail error saat sync gagal">
-                <input type="checkbox" id="toggle-debug" class="checkbox-xs">
-                Debug
-            </label>
-        </div>
-        <?php endif; ?>
     </form>
 </div>
 

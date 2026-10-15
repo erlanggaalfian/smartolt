@@ -291,10 +291,15 @@ body.light-mode .header-btn:hover {
 .status-icon-badge.icon-yellow { color: var(--color-amber); }
 .status-icon-badge.icon-gray { color: var(--text-muted); }
 /* FORMS */
-.filter-panel { background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 8px 16px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,.04); }
-.filter-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
-.filter-item { flex: 1; min-width: 150px; }
+.filter-panel { background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,.04); }
+.filter-row { display: flex; gap: 10px 12px; flex-wrap: wrap; align-items: flex-end; }
+.filter-item { flex: 1; min-width: 150px; max-width: 220px; }
 .filter-item .form-group { margin-bottom: 0; }
+/* Grup tombol aksi (Filter/Reset/CSV/Sync): dipisah dari filter-row utama supaya
+   tombol tak ikut melebar sama rata dgn input filter, melekat rata kanan */
+.filter-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-left: auto; }
+.filter-actions .filter-item { flex: 0 0 auto; min-width: 0; max-width: none; }
+.filter-actions .btn-block { width: auto; padding-left: 18px; padding-right: 18px; }
 .ms-dropdown { position: relative; }
 .ms-btn { display: flex; align-items: center; justify-content: space-between; cursor: pointer; text-align: left; background: var(--bg-secondary); }
 .ms-caret { font-size: 10px; color: var(--text-muted); }
@@ -304,7 +309,7 @@ body.light-mode .header-btn:hover {
 .ms-list { max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
 .ms-apply { margin-top: 6px; width: 100%; }
 .filter-item input[list] { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px; cursor: pointer; }
-.search-item { flex: 2; min-width: 250px; }
+.search-item { flex: 2; min-width: 250px; max-width: 420px; }
 .search-item .form-group { margin-bottom: 0; }
 .form-group { margin-bottom: 16px; }
 .form-group label { display: block; font-size: 13px; font-weight: 500; color: var(--text-muted); margin-bottom: 6px; }
