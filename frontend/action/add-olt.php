@@ -50,8 +50,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         return $prefix . '_' . $str;
     }
 
-    $snmp_community = generate_random_community('smartro');
-    $snmp_community_rw = generate_random_community('smartrw');
+    $snmp_community = trim($_POST['snmp_community'] ?? '') ?: generate_random_community('smartro');
+    $snmp_community_rw = trim($_POST['snmp_community_rw'] ?? '') ?: generate_random_community('smartrw');
 
     $olt = [
         'name' => $name,

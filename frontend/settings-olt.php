@@ -148,6 +148,22 @@ $olt_types = get_supported_olt_types();
                         <input type="number" id="olt-snmp-port" name="snmp_port" class="form-control" value="8161" required>
                     </div>
                 </div>
+                <div class="form-group toggle-inline">
+                    <label class="toggle-inline">
+                        <input type="checkbox" id="olt-snmp-manual" class="checkbox-xs">
+                        Isi SNMP Community manual (kosongkan untuk digenerate &amp; di-push otomatis ke OLT)
+                    </label>
+                </div>
+                <div class="form-row hidden" id="olt-snmp-manual-fields">
+                    <div class="form-group flex-1">
+                        <label for="olt-snmp-ro">SNMP Community RO</label>
+                        <input type="text" id="olt-snmp-ro" name="snmp_community" class="form-control" placeholder="Kosongkan = digenerate otomatis">
+                    </div>
+                    <div class="form-group flex-1">
+                        <label for="olt-snmp-rw">SNMP Community RW</label>
+                        <input type="text" id="olt-snmp-rw" name="snmp_community_rw" class="form-control" placeholder="Kosongkan = digenerate otomatis">
+                    </div>
+                </div>
                  <div class="error-box hidden" id="add-olt-error"></div>
                  <div class="alert alert-success hidden" id="add-olt-success"></div>
                  <div class="loading-spinner hidden" id="add-olt-loading">
@@ -277,6 +293,7 @@ $olt_types = get_supported_olt_types();
             verifyBtn.textContent = 'Cek Koneksi (Opsional)';
             cancelBtn.classList.remove('hidden');
             portLabel.textContent = 'Port SSH';
+            document.getElementById('olt-snmp-manual-fields').classList.add('hidden');
         };
 
         openBtn.addEventListener('click', () => {
@@ -295,6 +312,16 @@ $olt_types = get_supported_olt_types();
         const protocolSelect = document.getElementById('olt-protocol');
         const portInput = document.getElementById('olt-ssh-port');
         const portLabel = document.getElementById('lbl-ssh-port');
+
+        const snmpManualToggle = document.getElementById('olt-snmp-manual');
+        const snmpManualFields = document.getElementById('olt-snmp-manual-fields');
+        snmpManualToggle.addEventListener('change', () => {
+            snmpManualFields.classList.toggle('hidden', !snmpManualToggle.checked);
+            if (!snmpManualToggle.checked) {
+                document.getElementById('olt-snmp-ro').value = '';
+                document.getElementById('olt-snmp-rw').value = '';
+            }
+        });
 
         protocolSelect.addEventListener('change', () => {
             if (protocolSelect.value === 'TELNET') {
