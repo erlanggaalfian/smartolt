@@ -261,17 +261,19 @@ body.light-mode .header-btn:hover {
 /* TABLES */
 .table-responsive { width: 100%; overflow-x: auto; border-radius: var(--radius-md); border: 1px solid var(--border-color); }
 .data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; table-layout: fixed; }
-.data-table th, .data-table td { padding: 14px; border-bottom: 1px solid var(--border-color); white-space: normal; overflow-wrap: anywhere; word-break: break-word; }
+.data-table th, .data-table td { padding: 16px; border-bottom: 1px solid color-mix(in srgb, var(--border-color) 50%, transparent); white-space: normal; overflow-wrap: anywhere; word-break: break-word; }
 .data-table th { color: var(--text-muted); font-weight: 500; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; background-color: var(--bg-tertiary); position: sticky; top: 0; z-index: 2; }
-.data-table tbody tr { border-bottom: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent); }
-.data-table tbody tr:nth-child(even) { background-color: var(--bg-tertiary); }
+.data-table tbody tr:nth-child(even) { background-color: color-mix(in srgb, var(--bg-tertiary) 50%, transparent); }
+.data-table tbody tr:hover { background-color: color-mix(in srgb, var(--text-accent) 5%, transparent); }
 .data-table td { font-size: 13px; }
+.data-table .name-cell strong { font-weight: 600; color: var(--text-main); }
 .data-table .koneksi-cell { line-height: 1.5; }
-.data-table .koneksi-cell .text-muted { font-size: 12px; }
+.data-table .koneksi-cell .text-muted { font-size: 11.5px; color: var(--text-muted); }
+.data-table .odp-cell, .data-table .zone-cell { font-size: 12.5px; color: var(--text-muted); }
 .data-table .btn-detail { padding: 4px 10px; font-size: 12px; border-radius: 6px; background: none; border: 1px solid var(--border-color); color: var(--text-muted); cursor: pointer; transition: var(--transition-fast); font-weight: 500; }
 .data-table .btn-detail:hover { border-color: var(--text-accent); color: var(--text-accent); background: var(--text-accent-glow); }
-.data-table .btn-xs { white-space: nowrap; min-width: 84px; }
-.badge { padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; transition: transform var(--duration-micro) var(--ease-out); }
+.data-table .btn-xs { white-space: nowrap; min-width: 84px; border-radius: 999px; }
+.badge { padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; transition: transform var(--duration-micro) var(--ease-out); }
 .bg-green { background-color: var(--tint-success); color: var(--color-success); border: 1px solid var(--color-success); }
 .bg-red { background-color: var(--tint-danger); color: var(--color-danger); border: 1px solid var(--color-danger); }
 .bg-orange { background-color: var(--tint-warning); color: var(--color-orange); border: 1px solid var(--color-orange); }
