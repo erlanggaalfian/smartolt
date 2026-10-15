@@ -330,10 +330,9 @@ $onus = $stmt_data->fetchAll();
                             row.getAttribute('data-rx-onu') === String(onu.rx_onu) &&
                             row.getAttribute('data-rx-olt') === String(onu.rx_olt) &&
                             row.getAttribute('data-down-cause') === String(onu.last_down_cause || '-') &&
-                            row.getAttribute('data-wan') === String(onu.wan_mode || '') &&
+                            row.getAttribute('data-odp') === String(onu.splitter || '') &&
                             row.getAttribute('data-dl-prof') === String(onu.download_profile || '') &&
-                            row.getAttribute('data-ul-prof') === String(onu.upload_profile || '') &&
-                            row.getAttribute('data-onu-type') === String(onu.onu_type || '')) {
+                            row.getAttribute('data-ul-prof') === String(onu.upload_profile || '')) {
                             return;
                         }
                         domChanged = true;
@@ -415,21 +414,13 @@ $onus = $stmt_data->fetchAll();
                             }
                         }
 
-                        // Update WAN mode
-                        const wanCell = row.querySelector('.wan-cell');
-                        if (wanCell) {
-                            const wanDisplay = onu.wan_mode === 'Static' ? 'Static IP' : (onu.wan_mode || '-');
-                            wanCell.textContent = wanDisplay;
-                        }
-                        // Update ONU Type
-                        const typeCell = row.querySelector('.onu-type-cell');
-                        if (typeCell) {
-                            typeCell.textContent = onu.onu_type || '-';
+                        // Update Nama ODP
+                        const odpCell = row.querySelector('.odp-cell');
+                        if (odpCell) {
+                            odpCell.textContent = onu.splitter || '-';
                         }
 
                         // Update data-attributes for next comparison
-                        row.setAttribute('data-wan', onu.wan_mode || '');
-                        row.setAttribute('data-onu-type', onu.onu_type || '');
                         row.setAttribute('data-dl-prof', onu.download_profile || '');
                         row.setAttribute('data-ul-prof', onu.upload_profile || '');
                     });
@@ -652,20 +643,19 @@ $onus = $stmt_data->fetchAll();
                         <th>Serial Number</th>
                         <th>Koneksi OLT & PON</th>
                         <th>VLAN</th>
-                        <th>WAN</th>
+                        <th>Nama ODP</th>
                         <th>Sinyal Rx ONU</th>
                         <th>Sinyal Rx OLT</th>
-                        <th>Tipe ONU</th>
                     </tr>
                 </thead>
                 <tbody class="motion-fade-in">
                     <?php if (empty($onus)): ?>
                         <tr>
-                            <td colspan="10" class="empty-state">Tidak ada ONU terdaftar yang sesuai dengan kriteria filter.</td>
+                            <td colspan="9" class="empty-state">Tidak ada ONU terdaftar yang sesuai dengan kriteria filter.</td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($onus as $onu): ?>
-                            <tr class="onu-row" data-onu-id="<?php echo (int)$onu['id']; ?>" data-name="<?php echo htmlspecialchars($onu['name'] ?? ''); ?>" data-status="<?php echo htmlspecialchars($onu['status']); ?>" data-vlan="<?php echo htmlspecialchars($onu['vlan'] ?: 'None'); ?>" data-rx-onu="<?php echo $onu['last_rx_power'] !== null ? number_format((float)$onu['last_rx_power'], 2) : 'N/A'; ?>" data-rx-olt="<?php echo $onu['last_rx_olt_power'] !== null ? number_format((float)$onu['last_rx_olt_power'], 2) : 'N/A'; ?>" data-down-cause="<?php echo htmlspecialchars($onu['last_down_cause'] ?? '-'); ?>" data-wan="<?php echo htmlspecialchars($onu['wan_mode'] ?? ''); ?>" data-onu-type="<?php echo htmlspecialchars($onu['onu_type'] ?? ''); ?>" data-dl-prof="<?php echo htmlspecialchars($onu['download_profile'] ?? ''); ?>" data-ul-prof="<?php echo htmlspecialchars($onu['upload_profile'] ?? ''); ?>" data-olt-offline="<?php echo $olt_offline ? '1' : '0'; ?>">
+                            <tr class="onu-row" data-onu-id="<?php echo (int)$onu['id']; ?>" data-name="<?php echo htmlspecialchars($onu['name'] ?? ''); ?>" data-status="<?php echo htmlspecialchars($onu['status']); ?>" data-vlan="<?php echo htmlspecialchars($onu['vlan'] ?: 'None'); ?>" data-rx-onu="<?php echo $onu['last_rx_power'] !== null ? number_format((float)$onu['last_rx_power'], 2) : 'N/A'; ?>" data-rx-olt="<?php echo $onu['last_rx_olt_power'] !== null ? number_format((float)$onu['last_rx_olt_power'], 2) : 'N/A'; ?>" data-down-cause="<?php echo htmlspecialchars($onu['last_down_cause'] ?? '-'); ?>" data-odp="<?php echo htmlspecialchars($onu['splitter'] ?? ''); ?>" data-dl-prof="<?php echo htmlspecialchars($onu['download_profile'] ?? ''); ?>" data-ul-prof="<?php echo htmlspecialchars($onu['upload_profile'] ?? ''); ?>" data-olt-offline="<?php echo $olt_offline ? '1' : '0'; ?>">
                                 <td class="status-cell text-center">
                                     <?php $olt_offline = ($onu['last_snmp_status'] ?? '') !== 'Connected'; ?>
                                     <?php if ($olt_offline): ?>
@@ -704,7 +694,7 @@ $onus = $stmt_data->fetchAll();
                                     PON <?php echo htmlspecialchars($onu['pon_port'] . ':' . $onu['onu_id']); ?>
                                 </td>
                                 <td class="vlan-cell"><?php echo htmlspecialchars($onu['vlan'] ?: '-'); ?></td>
-                                <td class="wan-cell"><?php echo htmlspecialchars($onu['wan_mode'] === 'Static' ? 'Static IP' : ($onu['wan_mode'] ?: '-')); ?></td>
+                                <td class="odp-cell"><?php echo htmlspecialchars($onu['splitter'] ?: '-'); ?></td>
                                 <td class="signal-cell">
                                     <?php if ($olt_offline): ?>
                                         <span class="text-muted">—</span>
@@ -737,7 +727,6 @@ $onus = $stmt_data->fetchAll();
                                         <span class="badge bg-red">N/A</span>
                                     <?php endif; ?>
                                 </td>
-                                <td class="onu-type-cell text-muted fs-xs"><?php echo htmlspecialchars($onu['onu_type'] ?: '-'); ?></td>
                             </tr>
                         <?php endforeach; ?>
                     <?php endif; ?>
