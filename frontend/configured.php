@@ -193,7 +193,7 @@ $onus = $stmt_data->fetchAll();
 ?>
 
 <div class="filter-panel">
-    <form method="GET" id="form-filter" action="configured.php" class="filter-row form-inline">
+    <form method="GET" id="form-filter" action="configured.php" class="filter-row filter-row--grid form-inline">
         <input type="hidden" name="limit" id="filter-limit" value="<?php echo $limit; ?>">
         <script>
         (function(){
