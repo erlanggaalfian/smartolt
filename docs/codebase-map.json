@@ -1,0 +1,1765 @@
+{
+  "generated_at": "2026-10-15T13:01:19.450Z",
+  "files": {
+    "backend/api.php": {
+      "path": "backend/api.php",
+      "purpose": "Thin HTTP client wrapper that lets PHP frontend call the Node.js JS API (port 3001) for write operations, authenticating with a short-lived HMAC-signed JWT built from the current PHP session.",
+      "key_functions": [
+        "get_api_token(): builds/caches a per-request JWT (HS256, HMAC-signed with APP_KEY) encoding uid/role/exp from session",
+        "base64url_encode(string $data): base64url encode helper (no padding, URL-safe chars)",
+        "api_call(string $method, string $path, array $data = []): performs cURL GET/POST/PUT/DELETE to JS_API_URL with Bearer token, returns decoded JSON array or error shape",
+        "api_get(string $path): GET wrapper",
+        "api_post(string $path, array $data = []): POST wrapper",
+        "api_put(string $path, array $data = []): PUT wrapper",
+        "api_delete(string $path): DELETE wrapper"
+      ],
+      "db_tables_used": [],
+      "depends_on": [
+        "backend/config.php"
+      ],
+      "used_by": [
+        "frontend/header.php"
+      ],
+      "notable_patterns": "Custom JWT built manually (no library) signed with APP_KEY via HMAC-SHA256; mirrors engine_token() pattern in config.php. Defines JS_API_URL constant from env JS_API_PORT. Errors return uniform ['success'=>false,'message'=>...] shape rather than throwing.",
+      "last_updated": "2026-10-15"
+    },
+    "backend/background_pull_onus.php": {
+      "path": "backend/background_pull_onus.php",
+      "purpose": "CLI-only background worker invoked asynchronously (exec ... &) from add/edit-OLT forms to pull ONU list from an OLT's current-config via SSH and upsert into the onus table, so the web form doesn't block on slow SSH fetches.",
+      "key_functions": [],
+      "db_tables_used": [
+        "olts",
+        "onus"
+      ],
+      "depends_on": [
+        "backend/db.php",
+        "backend/driver.php"
+      ],
+      "used_by": [],
+      "notable_patterns": "No functions defined, straight-line script; takes OLT id from $argv[1]; uses INSERT ... ON DUPLICATE KEY UPDATE upsert keyed on unique serial_number; wraps work in try/catch writing to error_log on failure (no audit log).",
+      "last_updated": "2026-10-15"
+    },
+    "backend/config.php": {
+      "path": "backend/config.php",
+      "purpose": "Core bootstrap file for the PHP backend: loads .env, enforces APP_KEY, sets security headers (CSP/HSTS/X-Frame-Options), starts the PHP session with hardened cookie params, enforces CSRF on POST requests to /action/ scripts, and provides shared security/auth/RBAC/encryption helper functions used across the app.",
+      "key_functions": [
+        "load_env(string $path): parses a .env file into putenv/$_ENV/$_SERVER (does not override existing vars)",
+        "write_audit_log(?int $olt_id, string $action, string $message): inserts a row into logs table, swallowing errors",
+        "cli_safe(?string $str): strips to alphanumeric/space/dot/underscore/dash for OLT CLI interpolation",
+        "cli_safe_email(?string $str): like cli_safe but also allows '@' for PPPoE usernames",
+        "cli_safe_strict(?string $str): alphanumeric + dot/underscore/dash, no spaces",
+        "cli_safe_password(?string $str): strips only control chars (newline/CR/null) to prevent CLI injection in passwords",
+        "verify_csrf_token(): compares POST/header CSRF token against session token via hash_equals",
+        "encrypt_password(string $plaintext): AES-256-GCM encrypt, base64(iv+tag+ciphertext)",
+        "decrypt_password(string $data): tries AES-256-GCM first, falls back to legacy AES-256-CBC (16-byte IV)",
+        "engine_token(?int $user_id = null, ?string $role = null, int $ttl = 3600): builds HMAC-signed base64url token (payload keys sorted alphabetically) for Python Engine auth, mirroring json.dumps(sort_keys=True)",
+        "get_safe_redirect(string $url, string $fallback = '../dashboard.php'): prevents open-redirect by validating host matches current HTTP_HOST or is a safe relative path",
+        "get_allowed_olt_ids(): returns OLT ids visible to current user (all for superadmin, else via user_olts)",
+        "get_allowed_olts(): same as above but full OLT rows, ordered by name",
+        "has_olt_access(int $olt_id): bool check of current user's access to an OLT",
+        "can_access_settings(): bool, true for superadmin/admin roles only",
+        "can_manage_target_user(int $target_user_id, string $target_role): RBAC rule for admin managing other users based on overlapping OLT assignment",
+        "get_manageable_users(): list of users visible to current user per RBAC rules above",
+        "check_olt_access_or_redirect(int $olt_id, string $redirect_to = '../dashboard.php'): redirects with session error if no access",
+        "check_olt_access_json(int $olt_id): emits JSON error and exits if no access"
+      ],
+      "db_tables_used": [
+        "logs",
+        "olts",
+        "user_olts",
+        "users"
+      ],
+      "depends_on": [],
+      "used_by": [
+        "backend/api.php",
+        "backend/db.php",
+        "backend/test_registry_meta.php",
+        "backend/test_snmp_status.php",
+        "frontend/action/clear-logs.php",
+        "frontend/action/delete-olt.php"
+      ],
+      "notable_patterns": "Encryption: AES-256-GCM primary with legacy AES-256-CBC fallback for decrypt (migration path). CSRF: session token + header/POST field, auto-enforced globally for any POST to '/action/' scripts, differentiates JSON vs redirect error response. RBAC gating: 3 roles (superadmin/admin/user) with OLT-group-based admin scoping. Security headers + CSP set unconditionally at top of file. engine_token() payload key order is intentionally alphabetical to match Python's json.dumps(sort_keys=True) for signature compatibility.",
+      "last_updated": "2026-10-15"
+    },
+    "backend/cron_check_olt_status.php": {
+      "path": "backend/cron_check_olt_status.php",
+      "purpose": "Lightweight cron script (run every minute) that checks SSH and SNMP reachability for every OLT and writes a combined status ('Connected'/'SSH Only'/'SNMP Only'/'Disconnected'/'Error') plus last_health_check timestamp into the olts table.",
+      "key_functions": [],
+      "db_tables_used": [
+        "olts"
+      ],
+      "depends_on": [
+        "backend/db.php",
+        "backend/driver.php"
+      ],
+      "used_by": [],
+      "notable_patterns": "Uses a flock()-based lock file (sys_get_temp_dir()) to prevent overlapping cron runs, with try/finally cleanup (unlink lock file). Does NOT run heavy show-running-config pulls, intentionally kept fast (SSH checkConnection + raw SNMP ping only).",
+      "last_updated": "2026-10-15"
+    },
+    "backend/db.php": {
+      "path": "backend/db.php",
+      "purpose": "Establishes the global PDO MySQL connection ($pdo) from .env-configured credentials, runs a versioned idempotent schema-migration system (schema_migrations table, migrations 2-6) that creates/alters all core tables, and provides description-parsing helper functions for OLT structured descriptions.",
+      "key_functions": [
+        "extract_customer_name(?string $desc): extracts customer name from structured OLT description string (name_XXX_zone_... pattern) or normalizes underscores to spaces as fallback",
+        "parse_structured_description(?string $desc): regex-parses OLT description into zone/address/splitter/contact/external_id fields"
+      ],
+      "db_tables_used": [
+        "schema_migrations",
+        "olts",
+        "onus",
+        "onu_history",
+        "logs",
+        "users",
+        "user_olts",
+        "tr069_profiles (referenced via migrations)"
+      ],
+      "depends_on": [
+        "backend/config.php"
+      ],
+      "used_by": [
+        "backend/background_pull_onus.php",
+        "backend/cron_check_olt_status.php",
+        "backend/vlan_cache.php",
+        "backend/vpn_status_sync.php",
+        "frontend/action/add-olt.php",
+        "frontend/action/auth-onu.php",
+        "frontend/action/backup-config.php",
+        "frontend/action/clear-logs.php",
+        "frontend/action/delete-olt.php",
+        "frontend/action/delete-onu.php",
+        "frontend/action/edit-olt.php",
+        "frontend/action/export-csv.php",
+        "frontend/action/genieacs-proxy.php",
+        "frontend/action/get-autofind.php",
+        "frontend/action/get-next-onu-id.php",
+        "frontend/action/get-olt-health.php",
+        "frontend/action/get-olt-panel.php",
+        "frontend/action/get-onu-types.php",
+        "frontend/action/get-signals-db.php",
+        "frontend/action/get-splitters.php",
+        "frontend/action/login.php",
+        "frontend/action/logout.php",
+        "frontend/action/onu-data.php",
+        "frontend/action/onu-presets.php",
+        "frontend/action/onu-query.php",
+        "frontend/action/onu-set-mgmt-ip.php",
+        "frontend/action/onu-set-tr609.php",
+        "frontend/action/onu-state.php",
+        "frontend/action/port-config.php",
+        "frontend/action/reboot-onu.php",
+        "frontend/action/register.php",
+        "frontend/action/replace-onu.php",
+        "frontend/action/restore-factory.php",
+        "frontend/action/snmp-sync.php",
+        "frontend/action/speed-profiles.php",
+        "frontend/action/sync-olt.php",
+        "frontend/action/tr069-action.php",
+        "frontend/action/tr069-profile-delete.php",
+        "frontend/action/tr069-profile-save.php",
+        "frontend/action/update-onu-mode.php",
+        "frontend/action/update-onu-splitter.php",
+        "frontend/action/update-onu-type.php",
+        "frontend/action/user.php",
+        "frontend/action/verify-ssh-only.php",
+        "frontend/action/vlan.php",
+        "frontend/api-vpn-cert-toggle.php",
+        "frontend/api-vpn-cert.php",
+        "frontend/api-vpn-script.php",
+        "frontend/configured.php",
+        "frontend/header.php",
+        "frontend/login.php",
+        "frontend/onu-detail.php",
+        "frontend/register.php",
+        "frontend/splitters.php",
+        "frontend/tr069-management.php",
+        "frontend/vpn-tunnels.php"
+      ],
+      "notable_patterns": "Self-contained forward-only migration runner gated by version number in schema_migrations, each migration wrapped in individual try/catch so partial failures (e.g. column already exists) don't abort the whole run; `static $_migrations_done` ensures migrations run once per process/request. On PDOException: CLI mode sets $pdo=null and continues (degraded mode), web mode renders a styled HTML error page and exits. ENUM columns are widened before data migration then narrowed again (3-step ALTER pattern) to avoid data loss during RBAC role rename.",
+      "last_updated": "2026-10-15"
+    },
+    "backend/driver.php": {
+      "path": "backend/driver.php",
+      "purpose": "OLT vendor driver registry and bridge layer: defines the single source of truth for which OLT 'type' strings map to which Python Engine driver class/brand/panels, and exposes call_driver() plus many thin wrapper functions that proxy OLT operations (auth ONU, reboot, VLANs, speed profiles, port config, etc.) to the Python Engine via REST (primary) or CLI subprocess (fallback).",
+      "key_functions": [
+        "olt_driver_registry(): array: static registry of supported OLT types -> label/class/aliases/info/panels",
+        "get_supported_olt_types(): array: type->label map for frontend dropdown",
+        "normalize_olt_type(string $type): string: strips to uppercase alphanumeric for loose matching",
+        "find_olt_driver_meta(string $type): ?array: tiered lookup (exact key, normalized key, aliases) into registry",
+        "escape_cli_arg(string $arg): string: safely escapes shell args on Windows (fixes PHP's broken escapeshellarg for \" on Windows) vs Linux",
+        "call_driver(array $olt, string $method, array $args = [], array $fallback = []): array: core bridge — decrypts OLT password, POSTs to FastAPI engine (http://127.0.0.1:{ENGINE_PORT}/olt/call) with engine_token() auth; on 404 reports unsupported feature; on other failure falls back to spawning python_engine/cli.py via exec()",
+        "check_olt_connection(array $olt): array: calls checkConnection then strips driver's fake SNMP claim and replaces with real check_snmp_ping() result",
+        "get_olt_autofind(array $olt): array",
+        "authorize_onu(...): array",
+        "reboot_onu(array $olt, array $onu): array",
+        "restore_factory_onu(array $olt, array $onu): array",
+        "delete_onu_from_olt(array $olt, array $onu): array",
+        "update_onu_description(array $olt, string $pon_port, int $onu_id, string $description): array",
+        "configure_onu_full(array $olt, array $onu, array $wan): array",
+        "sync_onu_config_from_olt(array $olt, array $onu): array",
+        "get_onu_signal(array $olt, array $onu, bool $include_ip = true): array",
+        "pull_configured_onus(array $olt): array",
+        "pull_onus_from_current_config(array $olt): array",
+        "disable_onu_on_olt(array $olt, array $onu): array",
+        "enable_onu_on_olt(array $olt, array $onu): array",
+        "get_olt_panel_data(array $olt, string $panel): array",
+        "get_olt_supported_panels(array $olt): array: reads static panel metadata from registry (no device/driver call)",
+        "get_olt_vlans(array $olt): array",
+        "get_olt_speed_profiles(array $olt): array",
+        "save_olt_speed_profile(array $olt, string $direction, string $name, int $speed_kbps): array",
+        "delete_olt_speed_profile(array $olt, string $direction, string $name): array",
+        "assign_onu_speed_profile(array $olt, string $pon_port, int $onu_id, string $upload_name, string $download_name): array",
+        "save_olt_vlan_ports(array $olt, int $vlan_id, string $description, array $ports_config): array",
+        "add_olt_vlan(array $olt, int $vlan_id, string $description = ''): array",
+        "delete_olt_vlan(array $olt, int $vlan_id, bool $confirmed = false): array",
+        "get_olt_interfaces(array $olt): array",
+        "set_olt_port_vlan(array $olt, string $port, string $mode, ?string $tagged, ?string $untagged, ?int $pvid): array",
+        "set_olt_port_config(array $olt, string $port, string $auto_nego, string $speed, string $duplex): array",
+        "get_onu_full_status(array $olt, array $onu): array",
+        "get_next_free_onu_id(array $olt, string $pon_port): array",
+        "get_onu_running_config(array $olt, array $onu): array",
+        "get_onu_hw_sw(array $olt, array $onu): array",
+        "setup_olt_snmp(array $olt, string $community_ro, string $community_rw): array",
+        "get_olt_onu_config_maps(array $olt): array",
+        "get_olt_driver_info(array $olt): array: static brand/model/pon_type metadata from registry",
+        "is_demo_olt(array $olt): bool: true if OLT ip is 127.0.0.1 or 'demo'",
+        "check_snmp_ping(array $olt, int $timeout = 1): bool: hand-built raw SNMP v2c GetRequest over UDP via fsockopen, returns true if any response received"
+      ],
+      "db_tables_used": [],
+      "depends_on": [],
+      "used_by": [
+        "backend/background_pull_onus.php",
+        "backend/cron_check_olt_status.php",
+        "backend/test_registry_meta.php",
+        "backend/test_snmp_status.php",
+        "backend/vlan_cache.php",
+        "frontend/action/add-olt.php",
+        "frontend/action/auth-onu.php",
+        "frontend/action/delete-onu.php",
+        "frontend/action/edit-olt.php",
+        "frontend/action/genieacs-proxy.php",
+        "frontend/action/get-autofind.php",
+        "frontend/action/get-next-onu-id.php",
+        "frontend/action/get-olt-health.php",
+        "frontend/action/get-olt-panel.php",
+        "frontend/action/onu-data.php",
+        "frontend/action/onu-query.php",
+        "frontend/action/onu-set-mgmt-ip.php",
+        "frontend/action/onu-set-tr609.php",
+        "frontend/action/onu-state.php",
+        "frontend/action/port-config.php",
+        "frontend/action/reboot-onu.php",
+        "frontend/action/replace-onu.php",
+        "frontend/action/restore-factory.php",
+        "frontend/action/speed-profiles.php",
+        "frontend/action/sync-olt.php",
+        "frontend/action/update-onu-mode.php",
+        "frontend/action/update-onu-type.php",
+        "frontend/action/verify-ssh-only.php",
+        "frontend/action/vlan.php",
+        "frontend/olt-detail.php",
+        "frontend/onu-detail.php",
+        "frontend/settings-olt.php",
+        "frontend/settings-speed-profiles.php"
+      ],
+      "notable_patterns": "Driver resolution is tiered: exact match -> normalized match -> alias match; never silently falls back to a different vendor's driver (explicit safety comment: different CLI syntax could corrupt config). call_driver() has two transport paths: REST to FastAPI engine first, then raw Python CLI subprocess via exec() as fallback if REST unreachable, with HTTP 404 short-circuited as 'unsupported feature' (no need to try CLI). All OLT ops funnel through call_driver() uniformly as thin one-line wrapper functions. check_olt_connection() explicitly discards any 'SNMP Status' text claimed by the driver itself and recomputes it locally since no driver can be trusted to have actually tested SNMP (regression #238 guarded by test_snmp_status.php). No require_once for config.php/db.php — assumes caller already loaded them (relies on call_driver's use of decrypt_password/engine_token from config.php and globals).",
+      "last_updated": "2026-10-15"
+    },
+    "backend/genieacs.php": {
+      "path": "backend/genieacs.php",
+      "purpose": "Server-side-only client for GenieACS NBI API (TR-069 ACS) — handles device lookup/listing, health checks, and all read/write operations (WAN/WLAN/voice/user-interface param edits, reboot/factory-reset/delete, object add/delete) pushed to CPE devices via setParameterValues/RPC tasks, encapsulating vendor-specific (Huawei/ZTE/FiberHome) parameter path differences.",
+      "key_functions": [
+        "genieacs_request(string $method, string $path, $body = null, int $timeout = 10): low-level cURL call to NBI, returns decoded JSON or null on failure/HTTP>=400",
+        "genieacs_list_devices(): array: lists all devices with a fixed TR-098 projection",
+        "genieacs_get_device(string $id): ?array: fetch single device's full param tree by _id",
+        "genieacs_detect_vendor(string $manufacturer, string $productClass): string: 'zte'|'huawei'|'unknown' from Manufacturer string",
+        "genieacs_get_tr069_ip(string $deviceId): ?string: extracts host from device's ConnectionRequestURL",
+        "genieacs_get_ppp_wan_ip(string $deviceId): ?string: finds Connected WANPPPConnection's ExternalIPAddress across instances",
+        "genieacs_param_map(): array: static map of category(wan/lan/wlan/security/optical) -> field -> TR-098 dot path",
+        "genieacs_tree_get(array $device, string $path): mixed: walks nested device tree by dot-path, returns ['_value']",
+        "genieacs_set_params(string $deviceId, array $paramValues, int $timeout = 4): ?array: queues setParameterValues task with connection_request",
+        "genieacs_health_check(): array: pings CWMP/NBI/File-Server ports + MongoDB reachability + device/online counts",
+        "genieacs_get_faults(int $limit = 50): array: recent GenieACS tasks",
+        "tr069_get_profiles(PDO $pdo): array: SELECT * FROM tr069_profiles",
+        "genieacs_refresh(string $deviceId, string $objectName = ''): ?array: queues refreshObject task",
+        "genieacs_refresh_interfaces(string $serial): array: refreshObject scoped to WANDevice",
+        "genieacs_reboot_device(string $serial): array",
+        "genieacs_factory_reset_device(string $serial): array",
+        "genieacs_delete_device(string $serial): array: DELETE device record from GenieACS (cleans stale data when ONU unbound)",
+        "genieacs_find_device_id(string $serial, ?string $mgmt_ip = null): ?string: multi-strategy device ID resolution (direct ID, SerialNumber query, Huawei hex-serial conversion, mgmt-IP ConnectionRequestURL match, suffix-match fallback)",
+        "genieacs_edit_ppp_params(string $serial, array $fields): array: per-field setParameterValues for WANPPPConnection params (username/password/VLAN/NAT/etc.)",
+        "genieacs_edit_wlan_params(string $serial, array $fields, int $wlanIndex = 1): array: per-field WLANConfiguration edits (SSID/password/channel/security/etc.)",
+        "genieacs_edit_user_interface_params(string $serial, array $fields): array: SSH/Telnet/Web-login CLI access params",
+        "genieacs_edit_voice_line_params(string $serial, int $lineNum, array $fields, int $voiceServiceIdx = 1, int $voiceProfileIdx = 1): array: VoIP line Enable/DirectoryNumber/SIP settings",
+        "genieacs_edit_generic_params(string $serial, array $items): array: generic whitelisted-path (must start 'InternetGatewayDevice.') batch setParameterValues used by non-dedicated-card sections",
+        "genieacs_add_object(string $serial, string $objectName): array: addObject RPC, 45s timeout",
+        "genieacs_delete_object(string $serial, string $objectName): array: deleteObject RPC, 45s timeout",
+        "genieacs_ppp_reset(string $serial): array: disable then re-enable WANPPPConnection to force reconnect",
+        "genieacs_ppp_remove(string $serial): array: deleteObject on WANPPPConnection.1 (destructive)",
+        "genieacs_edit_ip_params(string $serial, string $wanPath, array $fields): array: Static/DHCP WANIPConnection param edits with dynamic (non-hardcoded) path validation via regex",
+        "genieacs_ip_remove(string $serial, string $wanPath): array: deleteObject on WANIPConnection (destructive)",
+        "genieacs_find_wan_instance_anywhere(string $deviceId, string $objectType): array: searches all WANDevice.*/WANConnectionDevice.* instances for an existing WANPPPConnection/WANIPConnection, returns path/index/needs_add flag so edits reuse existing instances instead of duplicating",
+        "genieacs_push_wan(string $serial, string $wan_mode, array $wan): array: full WAN provisioning (Bridging/PPPoE/Static/DHCP/'Setup via ONU webpage') including vendor-specific service-list params (X_HW_SERVICELIST, X_FH_ServiceList, X_CT-COM_ServiceList) and DefaultConnectionService routing"
+      ],
+      "db_tables_used": [
+        "tr069_profiles"
+      ],
+      "depends_on": [],
+      "used_by": [
+        "frontend/action/delete-onu.php",
+        "frontend/action/genieacs-proxy.php",
+        "frontend/action/onu-data.php",
+        "frontend/action/tr069-action.php",
+        "frontend/action/update-onu-mode.php",
+        "frontend/onu-detail.php",
+        "frontend/tr069-management.php"
+      ],
+      "notable_patterns": "Security-critical comment at top: GenieACS NBI has NO built-in auth (CVE-2025-56015) so this file must never be exposed to the browser — all access server-side only, proxied through 127.0.0.1. Edit functions mostly send each field as a SEPARATE setParameterValues task (not batched) to avoid cpeFault 9003 'Invalid arguments' killing the whole batch when one field is unsupported by firmware — except genieacs_edit_generic_params which intentionally batches into ONE atomic task (opposite tradeoff, chosen to avoid silent per-field loop timeouts). Vendor divergence handled by sending redundant vendor-prefixed params (X_HW_*, X_FH_*, X_CT-COM_*) for the same logical field rather than branching logic, letting unsupported params be silently ignored by firmware. `ponytail:`-style comment documents a deliberate simplification (hardcoded WAN index 1.1 in genieacs_edit_ppp_params) with upgrade trigger noted. genieacs_find_wan_instance_anywhere() pattern of 'reuse existing instance, only addObject if truly absent' is reused by genieacs_push_wan to avoid duplicate WAN instances on repeated saves. Null return from genieacs_request() specifically distinguishes HTTP/cURL failure from a valid-but-empty success response.",
+      "last_updated": "2026-10-15"
+    },
+    "backend/test_registry_meta.php": {
+      "path": "backend/test_registry_meta.php",
+      "purpose": "CLI self-check script asserting that get_olt_supported_panels() and get_olt_driver_info() work from static registry data alone, without ever loading any PHP driver file or the removed backend/drivers folder (regression guard for issue #234 driver-PHP removal).",
+      "key_functions": [
+        "ok($cond, $label): simple assert-and-print-or-exit(1) helper used throughout the script"
+      ],
+      "db_tables_used": [],
+      "depends_on": [
+        "backend/config.php",
+        "backend/driver.php"
+      ],
+      "used_by": [],
+      "notable_patterns": "Assert-based self-check script (no test framework) matching the 'ONE runnable check' convention; checks get_included_files() to prove no file under '/drivers/' was ever loaded, and confirms get_driver_instance() no longer exists. Run via `php backend/test_registry_meta.php`.",
+      "last_updated": "2026-10-15"
+    },
+    "backend/test_snmp_status.php": {
+      "path": "backend/test_snmp_status.php",
+      "purpose": "CLI self-check script verifying check_olt_connection() determines SNMP status from an actual check_snmp_ping() test rather than trusting/parsing the Python driver's fake 'SNMP Status' claim text (regression guard for issue #238, cross-checked against frontend/action/get-olt-health.php's expected string and the python_engine driver files).",
+      "key_functions": [
+        "cek(string $label, bool $ok): void: assert helper incrementing global $fail counter and printing failures"
+      ],
+      "db_tables_used": [],
+      "depends_on": [
+        "backend/config.php",
+        "backend/driver.php",
+        "frontend/action/get-olt-health.php (read via file_get_contents, not required)"
+      ],
+      "used_by": [],
+      "notable_patterns": "Source-inspection style testing: uses file_get_contents + preg_match on driver.php's own source code to assert it calls check_snmp_ping() and strips SNMP claims via preg_replace, rather than only testing behavior — a whitebox static-analysis-as-test pattern. Also scans every backend/python_engine/drivers/*.py file's text to assert none of them emit 'SNMP Status' themselves. Exits with non-zero status ($fail count) on any failure for CI/cron-friendly use.",
+      "last_updated": "2026-10-15"
+    },
+    "backend/vlan_cache.php": {
+      "path": "backend/vlan_cache.php",
+      "purpose": "Refreshes an OLT's VLAN list by reading live data from the device (via driver.php) and upserting it into the olt_vlans DB cache table, while preserving locally-set 'type' (management/common) metadata that OLTs never report themselves; also provides a setter for that metadata.",
+      "key_functions": [
+        "refresh_olt_vlans(array $olt): array: fetches live VLANs via get_olt_vlans(), normalizes mixed object/plain-int VLAN entries, preserves existing 'type' per vlan_id from DB, upserts into olt_vlans inside a transaction, then deletes stale VLANs no longer present on device; returns normalized VLAN list",
+        "set_olt_vlan_management(int $olt_id, int $vlan_id, bool $is_management): bool: toggles a VLAN's 'type' column between 'management'/'common'"
+      ],
+      "db_tables_used": [
+        "olt_vlans"
+      ],
+      "depends_on": [
+        "backend/db.php",
+        "backend/driver.php"
+      ],
+      "used_by": [
+        "frontend/action/vlan.php"
+      ],
+      "notable_patterns": "Read-before-write pattern to prevent device refresh from clobbering software-only metadata ('type' column intentionally excluded from the ON DUPLICATE KEY UPDATE clause). Wraps upsert+delete-stale in a PDO transaction (beginTransaction/commit) for atomicity. Upsert is 'race-proof' via unique key (olt_id, vlan_id) per inline comment. Delete-stale uses dynamic placeholder count based on $vlan_ids, with separate SQL branch when the list is empty (DELETE all for that olt_id).",
+      "last_updated": "2026-10-15"
+    },
+    "backend/vpn_status_sync.php": {
+      "path": "backend/vpn_status_sync.php",
+      "purpose": "Script (likely cron) that parses the OpenVPN status log (/var/log/openvpn/openvpn-status.log) for currently connected clients and syncs connection state (status/client_ip/tunnel_ip) into the vpn_tunnels DB table, matching by certificate common name (CN).",
+      "key_functions": [],
+      "db_tables_used": [
+        "vpn_tunnels"
+      ],
+      "depends_on": [
+        "backend/db.php"
+      ],
+      "used_by": [],
+      "notable_patterns": "No function definitions — straight-line procedural script. Silently exits(0) if the OpenVPN status log is unreadable (@file_get_contents suppressed). Only downgrades a tunnel to 'disconnected' if it isn't already (`AND status != 'disconnected'`), avoiding redundant writes/churn on unchanged rows.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/action/onu-set-mgmt-ip.php": {
+      "path": "frontend/action/onu-set-mgmt-ip.php",
+      "purpose": "Sets or clears an ONU's TR-069/management IP (Inactive/DHCP/Static mode, VLAN, IP, WAN remote access) by pushing config to the OLT and saving the result to DB.",
+      "key_functions": [
+        "Main logic: validate mode/vlan/IP, fetch ONU+OLT row, call_driver(olt, 'set_mgmt_ip', ...), update onus table"
+      ],
+      "db_tables_used": [
+        "onus",
+        "olts"
+      ],
+      "depends_on": [
+        "backend/db.php",
+        "backend/driver.php"
+      ],
+      "used_by": [
+        "frontend/onu-detail.php"
+      ],
+      "notable_patterns": "JSON AJAX endpoint; auth check only via $_SESSION['smartolt_role'] (no CSRF check, no has_olt_access check); delegates actual CLI/SNMP work to call_driver().",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/action/onu-set-tr609.php": {
+      "path": "frontend/action/onu-set-tr609.php",
+      "purpose": "Assigns or removes a TR-069 ACS profile on an ONU, computing management/internet VLAN and pushing TR-069 server params to the OLT via driver, then persisting profile name/vlan_mode to DB.",
+      "key_functions": [
+        "Main logic: resolve tr069_profiles row (default or named), compute mgmt_vlan/mgmt_priority/internet_vlan, call_driver(olt, 'set_tr069_profile', ...), update onus table"
+      ],
+      "db_tables_used": [
+        "onus",
+        "olts",
+        "tr069_profiles"
+      ],
+      "depends_on": [
+        "backend/db.php",
+        "backend/driver.php"
+      ],
+      "used_by": [
+        "frontend/onu-detail.php"
+      ],
+      "notable_patterns": "JSON AJAX endpoint; auth check only via $_SESSION['smartolt_role'] (no CSRF check, no has_olt_access check); 'Nonaktif' profile name disables TR-069 by sending empty acs_url.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/action/onu-state.php": {
+      "path": "frontend/action/onu-state.php",
+      "purpose": "Enables or disables an ONU administratively (form POST, redirect-based), trying fast SNMP set first (ZTE OLTs) then falling back to CLI driver function, updating status and writing audit log.",
+      "key_functions": [
+        "Main logic: $MAP config per action (enable/disable) selecting driver fn/status/audit text; SNMP fast-path via shell_exec to snmp_module.py for ZTE; CLI fallback via $cfg['fn']($olt, $onu) (enable_onu_on_olt/disable_onu_on_olt)"
+      ],
+      "db_tables_used": [
+        "onus",
+        "olts"
+      ],
+      "depends_on": [
+        "backend/db.php",
+        "backend/driver.php",
+        "backend/python_engine/snmp_module.py (shell_exec)"
+      ],
+      "used_by": [
+        "frontend/onu-detail.php"
+      ],
+      "notable_patterns": "Session-based form handler (not JSON); verify_csrf_token() check; check_olt_access_or_redirect(); session_write_close()/session_start() around long OLT calls; shell_exec to Python venv for SNMP fast path; write_audit_log(); debug_mode session log capture.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/action/port-config.php": {
+      "path": "frontend/action/port-config.php",
+      "purpose": "Configures physical uplink port parameters (auto-negotiation, speed, duplex) on an OLT via driver and returns JSON result.",
+      "key_functions": [
+        "Main logic: validate OLT access/CSRF, fetch olts row, call set_olt_port_config($olt_device, $port, $auto_nego, $speed, $duplex), strip log/password from response"
+      ],
+      "db_tables_used": [
+        "olts"
+      ],
+      "depends_on": [
+        "backend/db.php",
+        "backend/driver.php"
+      ],
+      "used_by": [
+        "frontend/olt-detail.php"
+      ],
+      "notable_patterns": "can_access_settings() gate (superadmin-only settings action); verify_csrf_token(); check_olt_access_or_redirect(); session_write_close() before CLI call; redacts OLT password from response message; write_audit_log().",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/action/reboot-onu.php": {
+      "path": "frontend/action/reboot-onu.php",
+      "purpose": "Sends a reboot command to an ONU via the OLT driver (form POST, redirect-based), marks it offline in DB, and writes an audit log.",
+      "key_functions": [
+        "Main logic: fetch ONU+OLT row, check_olt_access_or_redirect(), session_write_close()/reboot_onu($olt,$onu)/session_start(), update onus.status, write_audit_log()"
+      ],
+      "db_tables_used": [
+        "onus",
+        "olts"
+      ],
+      "depends_on": [
+        "backend/db.php",
+        "backend/driver.php"
+      ],
+      "used_by": [
+        "frontend/onu-detail.php"
+      ],
+      "notable_patterns": "Session-based form handler; verify_csrf_token(); set_time_limit(0) for long SSH calls; debug_mode session log capture.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/action/register.php": {
+      "path": "frontend/action/register.php",
+      "purpose": "Handles new user registration: first-run setup auto-creates a superadmin and logs them in; subsequent registrations require an existing superadmin/settings-capable session.",
+      "key_functions": [
+        "Main logic: detect is_initial_setup via COUNT(*) on users, enforce role restrictions, password_hash + INSERT INTO users, session_regenerate_id() on first setup, write_audit_log()"
+      ],
+      "db_tables_used": [
+        "users"
+      ],
+      "depends_on": [
+        "backend/db.php"
+      ],
+      "used_by": [
+        "frontend/register.php"
+      ],
+      "notable_patterns": "Session fixation protection via session_regenerate_id(true) on initial setup; verify_csrf_token(); can_access_settings() gate for non-initial registrations; catches PDOException 1062 (duplicate username).",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/action/replace-onu.php": {
+      "path": "frontend/action/replace-onu.php",
+      "purpose": "Replaces an ONU's serial number: deletes the old ONU from the OLT, authorizes a new one with the same identity/config, re-applies WAN/PPPoE config, checks signal, and updates DB.",
+      "key_functions": [
+        "Main logic: build structured description, delete_onu_from_olt() old SN, authorize_onu() new SN (with speed profiles to avoid GEM port error), rollback-authorize old SN on failure, configure_onu_full() for WAN, get_onu_signal(), UPDATE onus with new serial/status/rx_power/description"
+      ],
+      "db_tables_used": [
+        "onus",
+        "olts"
+      ],
+      "depends_on": [
+        "backend/db.php",
+        "backend/driver.php"
+      ],
+      "used_by": [
+        "frontend/onu-detail.php"
+      ],
+      "notable_patterns": "Session-based form handler; verify_csrf_token(); check_olt_access_or_redirect(); set_time_limit(0) for multi-step SSH round-trips; best-effort rollback re-authorize of old SN if new authorize fails; write_audit_log().",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/action/restore-factory.php": {
+      "path": "frontend/action/restore-factory.php",
+      "purpose": "Sends a factory-reset command to an ONU via the OLT driver (form POST, redirect-based), marks it offline in DB pending re-authorization, and writes an audit log.",
+      "key_functions": [
+        "Main logic: fetch ONU+OLT row, check_olt_access_or_redirect(), session_write_close()/restore_factory_onu($olt,$onu)/session_start(), update onus.status, write_audit_log()"
+      ],
+      "db_tables_used": [
+        "onus",
+        "olts"
+      ],
+      "depends_on": [
+        "backend/db.php",
+        "backend/driver.php"
+      ],
+      "used_by": [
+        "frontend/onu-detail.php"
+      ],
+      "notable_patterns": "Session-based form handler; verify_csrf_token(); set_time_limit(0); debug_mode session log capture; nearly identical structure to reboot-onu.php.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/action/snmp-sync.php": {
+      "path": "frontend/action/snmp-sync.php",
+      "purpose": "Triggers a fast bulk ONU data sync via SNMP (single OLT or 'all') by shelling out to a Python script, bypassing slower CLI sync.",
+      "key_functions": [
+        "Main logic: validate olt_id/access, build shell_exec command to python_engine/sync_snmp_onus.py, check output for 'Done.' to determine success"
+      ],
+      "db_tables_used": [],
+      "depends_on": [
+        "backend/db.php",
+        "backend/python_engine/sync_snmp_onus.py (shell_exec)"
+      ],
+      "used_by": [],
+      "notable_patterns": "Calls Python engine via shell_exec (not FastAPI HTTP); has_olt_access() check for specific OLT id; session_write_close() before long-running shell_exec; set_time_limit(300).",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/action/speed-profiles.php": {
+      "path": "frontend/action/speed-profiles.php",
+      "purpose": "Manages local cache of OLT speed profiles (list/sync/save/delete); only 'sync'/'save'/'delete' touch the actual OLT device, 'list' reads local cache only.",
+      "key_functions": [
+        "Main logic: switch($action) - list (SELECT cache), sync (get_olt_speed_profiles() + replace cache rows in transaction), save (save_olt_speed_profile() + INSERT...ON DUPLICATE KEY), delete (checks onu_count usage, requires force confirm if in use, delete_olt_speed_profile() + DELETE cache row)"
+      ],
+      "db_tables_used": [
+        "speed_profiles",
+        "olts"
+      ],
+      "depends_on": [
+        "backend/db.php",
+        "backend/driver.php"
+      ],
+      "used_by": [
+        "frontend/auth-onu.php",
+        "frontend/settings-speed-profiles.php"
+      ],
+      "notable_patterns": "can_access_settings() gate for non-list actions; verify_csrf_token() for non-list actions; check_olt_access_or_redirect(); transactional DB rewrite on sync; confirm-before-delete UX pattern (needs_confirm flag) when profile in use; write_audit_log(); catches Throwable with pdo rollback.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/action/sync-olt.php": {
+      "path": "frontend/action/sync-olt.php",
+      "purpose": "Full OLT sync: SNMP-pings the OLT, pulls configured ONU list via driver, upserts them into the onus table, prunes stale ONUs (5-min grace period), and kicks off an async Python cron_sync.py for signal/config refresh.",
+      "key_functions": [
+        "Main logic: check_snmp_ping() preflight, pull_configured_onus(), INSERT...ON DUPLICATE KEY UPDATE onus in transaction, delete stale rows older than grace_cutoff not in active_onu_keys, launch cron_sync.py --force-config via popen/exec in background, write_audit_log()"
+      ],
+      "db_tables_used": [
+        "onus",
+        "olts"
+      ],
+      "depends_on": [
+        "backend/db.php",
+        "backend/driver.php",
+        "backend/python_engine/cron_sync.py (background exec/popen)"
+      ],
+      "used_by": [
+        "frontend/configured.php"
+      ],
+      "notable_patterns": "Supports both AJAX (JSON, ?ajax=1) and form-redirect modes; verify_csrf_token(); has_olt_access()/check_olt_access_or_redirect() depending on mode; transactional upsert+prune; fires-and-forgets Python background process cross-platform (Windows 'start /B' vs Unix '&'); catches Throwable broadly.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/action/tr069-action.php": {
+      "path": "frontend/action/tr069-action.php",
+      "purpose": "Executes a TR-069 action (refresh interfaces / reboot / factory reset) on a GenieACS-managed ONU via NBI calls, equivalent to GenieACS UI buttons; only for ONUs with config_method=TR069.",
+      "key_functions": [
+        "Main logic: validate action in ['refresh','reboot','factory_reset'], enforce config_method==='TR069', dispatch to genieacs_refresh_interfaces()/genieacs_reboot_device()/genieacs_factory_reset_device(), mark onus offline on reboot/factory_reset success, write_audit_log()"
+      ],
+      "db_tables_used": [
+        "onus",
+        "olts"
+      ],
+      "depends_on": [
+        "backend/db.php",
+        "backend/genieacs.php"
+      ],
+      "used_by": [
+        "frontend/onu-detail.php"
+      ],
+      "notable_patterns": "JSON AJAX endpoint; verify_csrf_token(); has_olt_access() check; calls GenieACS NBI wrapper functions instead of OLT CLI driver (TR-069/ACS path, not SSH/Telnet).",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/action/tr069-profile-delete.php": {
+      "path": "frontend/action/tr069-profile-delete.php",
+      "purpose": "Deletes a TR-069 ACS profile from the tr069_profiles table, refusing to delete the default profile.",
+      "key_functions": [
+        "Main logic: can_access_settings() gate, parse JSON body, block delete if is_default=1, DELETE FROM tr069_profiles"
+      ],
+      "db_tables_used": [
+        "tr069_profiles"
+      ],
+      "depends_on": [
+        "backend/db.php"
+      ],
+      "used_by": [
+        "frontend/tr069-management.php"
+      ],
+      "notable_patterns": "JSON AJAX endpoint using php://input (not $_POST); no explicit CSRF token check; protects default profile from deletion.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/action/tr069-profile-save.php": {
+      "path": "frontend/action/tr069-profile-save.php",
+      "purpose": "Creates or updates a TR-069 ACS profile (name, URL, credentials, description); default profile only allows username/password edits.",
+      "key_functions": [
+        "Main logic: parse JSON body, validate acs_url scheme, branch on empty($body['id']) for INSERT vs UPDATE, restrict default-profile edits to acs_username/acs_password only, conditionally include password in UPDATE only if non-empty"
+      ],
+      "db_tables_used": [
+        "tr069_profiles"
+      ],
+      "depends_on": [
+        "backend/db.php"
+      ],
+      "used_by": [
+        "frontend/tr069-management.php"
+      ],
+      "notable_patterns": "JSON AJAX endpoint using php://input; can_access_settings() gate; no explicit CSRF token check; validates URL scheme with regex; avoids overwriting stored password when field left blank.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/action/update-onu-mode.php": {
+      "path": "frontend/action/update-onu-mode.php",
+      "purpose": "Comprehensive ONU update endpoint handling WAN mode (PPPoE/DHCP/Static/mgmt), ONU mode (Routing/Bridging), identity fields (name/zone/address/etc.), and speed profile changes, pushing to OLT (CLI) and/or GenieACS (TR-069) as needed, then persisting everything to DB.",
+      "key_functions": [
+        "Main logic: sanitize all POST fields via cli_safe*() helpers with DB fallback, build structured description string, branch by change_scope ('wan_config' triggers configure_onu_full()+genieacs_push_wan() for TR069; 'identity' triggers lightweight update_onu_description()), conditionally call assign_onu_speed_profile() if profiles changed, large UPDATE onus statement"
+      ],
+      "db_tables_used": [
+        "onus",
+        "olts"
+      ],
+      "depends_on": [
+        "backend/db.php",
+        "backend/driver.php",
+        "backend/genieacs.php"
+      ],
+      "used_by": [
+        "frontend/onu-detail.php"
+      ],
+      "notable_patterns": "Session-based form handler; verify_csrf_token(); check_olt_access_or_redirect(); uses cli_safe()/cli_safe_strict()/cli_safe_email()/cli_safe_password() sanitizers before sending to CLI; session_write_close()/session_start() around OLT calls; change_scope optimization to avoid unnecessary SSH round-trips; TR-069 WAN push failure treated as non-fatal warning; write_audit_log() not visible in viewed range but pattern present elsewhere.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/action/update-onu-splitter.php": {
+      "path": "frontend/action/update-onu-splitter.php",
+      "purpose": "Updates the splitter field for an ONU in the database only (no OLT CLI push).",
+      "key_functions": [
+        "Main logic: parse JSON or POST body, verify ONU exists + has_olt_access(), UPDATE onus.splitter, write_audit_log()"
+      ],
+      "db_tables_used": [
+        "onus"
+      ],
+      "depends_on": [
+        "backend/db.php"
+      ],
+      "used_by": [],
+      "notable_patterns": "Accepts both php://input JSON and $_POST; no CSRF token check; has_olt_access() guarded with function_exists() defensive check; DB-only write (no driver/SSH call) despite requiring db.php only.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/action/update-onu-type.php": {
+      "path": "frontend/action/update-onu-type.php",
+      "purpose": "Updates an ONU's type/model, saving to DB immediately then best-effort pushing the change to the OLT via driver (failure doesn't block DB update).",
+      "key_functions": [
+        "Main logic: parse JSON or POST body, verify ONU exists + has_olt_access(), UPDATE onus.onu_type, write_audit_log(), then fetch full onu+olt rows and call_driver($olt, 'onu_type', [...]) wrapped in try/catch as best-effort"
+      ],
+      "db_tables_used": [
+        "onus",
+        "olts"
+      ],
+      "depends_on": [
+        "backend/db.php",
+        "backend/driver.php"
+      ],
+      "used_by": [],
+      "notable_patterns": "DB update happens before/independent of OLT push (DB is source of truth even if CLI push fails); no CSRF token check; session_write_close() before CLI call; set_time_limit(0).",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/action/user.php": {
+      "path": "frontend/action/user.php",
+      "purpose": "Combined user-management endpoint (add/edit/delete users, get_user, get_access, update_access) for assigning OLT access permissions per user; restricted to superadmin/settings-capable roles.",
+      "key_functions": [
+        "Main logic: dispatch via $action param - get_user/get_access (JSON reads with can_manage_target_user() check), add (INSERT users + user_olts in transaction, admin role restricted to own allowed OLTs), edit (UPDATE users, conditional password change), delete (prevents self-delete, DELETE users), update_access (transactional DELETE+INSERT user_olts, admin-scoped via get_allowed_olt_ids())"
+      ],
+      "db_tables_used": [
+        "users",
+        "user_olts"
+      ],
+      "depends_on": [
+        "backend/db.php"
+      ],
+      "used_by": [
+        "frontend/settings-users.php"
+      ],
+      "notable_patterns": "can_access_settings() gate for all actions; verify_csrf_token() for POST mutating actions (not for GET-based get_user/get_access); can_manage_target_user() hierarchy check (admin can't manage superadmin); admin role scoped to get_allowed_olt_ids() when assigning OLT access; self-delete prevention; catches PDOException 1062.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/action/verify-ssh-only.php": {
+      "path": "frontend/action/verify-ssh-only.php",
+      "purpose": "Tests SSH/Telnet connectivity to an OLT (used when adding/editing OLT settings) without saving anything, returning JSON success/failure.",
+      "key_functions": [
+        "Main logic: validate type via find_olt_driver_meta(), fall back to stored decrypted password if form password blank and id given, session_write_close()/check_olt_connection($olt)/session_start()"
+      ],
+      "db_tables_used": [
+        "olts"
+      ],
+      "depends_on": [
+        "backend/db.php",
+        "backend/driver.php"
+      ],
+      "used_by": [
+        "frontend/settings-olt.php"
+      ],
+      "notable_patterns": "can_access_settings() gate; verify_csrf_token(); decrypt_password() used to reuse stored OLT password when field left blank during edit; set_time_limit(0).",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/action/vlan.php": {
+      "path": "frontend/action/vlan.php",
+      "purpose": "Manages OLT VLANs end-to-end: list (cached), add, delete, save-vlan-ports, port-vlan config, and set-management flag — all CLI command construction delegated to vendor-specific drivers, never built in frontend.",
+      "key_functions": [
+        "Main logic: switch($action) - list (cache-first from olt_vlans table, falls back to refresh_olt_vlans() on miss), add (add_olt_vlan()), delete (delete_olt_vlan()), save-vlan-ports (save_olt_vlan_ports()), port-vlan (set_olt_port_vlan()), set-management (set_olt_vlan_management() + vlan_cache.php)"
+      ],
+      "db_tables_used": [
+        "olt_vlans",
+        "olts"
+      ],
+      "depends_on": [
+        "backend/db.php",
+        "backend/driver.php",
+        "backend/vlan_cache.php"
+      ],
+      "used_by": [
+        "frontend/auth-onu.php",
+        "frontend/olt-detail.php",
+        "frontend/onu-detail.php"
+      ],
+      "notable_patterns": "can_access_settings() gate for non-list actions; verify_csrf_token() for non-list POST actions; check_olt_access_or_redirect(); cache-first read pattern via olt_vlans table; redacts OLT password and strips 'log' field unless debug_mode; write_audit_log() for write actions; catches Throwable.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/action/add-olt.php": {
+      "path": "frontend/action/add-olt.php",
+      "purpose": "Registers a new OLT: validates input, generates random SNMP community strings, configures SNMP on the device, tests connectivity, inserts the OLT row, triggers background ONU sync and speed-profile sync.",
+      "key_functions": [
+        "generate_random_community(prefix): builds random SNMP community string",
+        "main flow: validate POST -> setup_olt_snmp() -> check_olt_connection() -> INSERT olts -> exec background_pull_onus.php -> get_olt_speed_profiles() -> write_audit_log()"
+      ],
+      "db_tables_used": [
+        "olts",
+        "speed_profiles"
+      ],
+      "depends_on": [
+        "backend/db.php",
+        "backend/driver.php"
+      ],
+      "used_by": [
+        "frontend/settings-olt.php"
+      ],
+      "notable_patterns": "can_access_settings() permission check; verify_csrf_token(); set_time_limit(0); encrypt_password(); fires detached background PHP worker via exec(...' > /dev/null 2>&1 &'); redirects via $_SESSION['error']/['success'] + header Location (non-JSON form endpoint).",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/action/auth-onu.php": {
+      "path": "frontend/action/auth-onu.php",
+      "purpose": "Authorizes/provisions a discovered (unconfigured) ONU on an OLT: builds a structured description, calls the driver to run tcont/gemport/service-port/PPPoE setup in one SSH round-trip, then inserts the new ONU row into the local cache DB.",
+      "key_functions": [
+        "main flow: validate POST + CSRF -> check_olt_access_or_redirect() -> fetch olt row -> build structured_desc -> authorize_onu() -> INSERT onus -> write_audit_log()"
+      ],
+      "db_tables_used": [
+        "olts",
+        "onus"
+      ],
+      "depends_on": [
+        "backend/db.php",
+        "backend/driver.php"
+      ],
+      "used_by": [
+        "frontend/auth-onu.php"
+      ],
+      "notable_patterns": "session_write_close()/session_start() around SSH call to release session lock; cli_safe()/cli_safe_email()/cli_safe_password() sanitizers; debug_mode captures CLI command/log to $_SESSION['debug_log']; redirect-based (non-JSON) form handler.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/action/backup-config.php": {
+      "path": "frontend/action/backup-config.php",
+      "purpose": "Triggers a Python script (backup_configs.py) via shell_exec to back up one OLT's or all OLTs' running-config into the DB, returning JSON success/output.",
+      "key_functions": [
+        "main flow: check session + has_olt_access() -> shell_exec python backup_configs.py <olt_id|all> -> parse 'Done.' marker -> JSON response"
+      ],
+      "db_tables_used": [],
+      "depends_on": [
+        "backend/db.php"
+      ],
+      "used_by": [],
+      "notable_patterns": "JSON auth check (no redirect); session_write_close(); set_time_limit(300); shell_exec to python venv binary with escapeshellarg; olt_id='all' special value with per-OLT has_olt_access() check only when not 'all'.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/action/clear-logs.php": {
+      "path": "frontend/action/clear-logs.php",
+      "purpose": "Truncates the entire audit logs table; restricted to users who can access settings (superadmin).",
+      "key_functions": [
+        "main flow: can_access_settings() check -> verify_csrf_token() -> TRUNCATE TABLE logs"
+      ],
+      "db_tables_used": [
+        "logs"
+      ],
+      "depends_on": [
+        "backend/db.php",
+        "backend/config.php"
+      ],
+      "used_by": [
+        "frontend/logs.php"
+      ],
+      "notable_patterns": "can_access_settings() gate; verify_csrf_token(); redirect-based response via $_SESSION['error']/['success'].",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/action/delete-olt.php": {
+      "path": "frontend/action/delete-olt.php",
+      "purpose": "Deletes an OLT record (and its ONUs via DB cascade) after verifying the requesting user owns/has access to that OLT.",
+      "key_functions": [
+        "main flow: can_access_settings() -> verify_csrf_token() -> ownership check via get_allowed_olt_ids() -> SELECT olts -> DELETE olts -> write_audit_log()"
+      ],
+      "db_tables_used": [
+        "olts"
+      ],
+      "depends_on": [
+        "backend/db.php",
+        "backend/config.php"
+      ],
+      "used_by": [
+        "frontend/settings-olt.php"
+      ],
+      "notable_patterns": "non-superadmin restricted to in_array($id, get_allowed_olt_ids()); relies on DB-level cascade delete for onus; redirect-based response.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/action/delete-onu.php": {
+      "path": "frontend/action/delete-onu.php",
+      "purpose": "Deletes/unbinds an ONU: sends a delete command to the OLT via SSH, optionally removes the matching GenieACS device record (TR-069), then deletes the local DB cache row.",
+      "key_functions": [
+        "main flow: verify_csrf_token() -> SELECT onus JOIN olts -> check_olt_access_or_redirect() -> delete_onu_from_olt() -> genieacs_delete_device() if TR069 -> DELETE onus -> write_audit_log()"
+      ],
+      "db_tables_used": [
+        "onus",
+        "olts"
+      ],
+      "depends_on": [
+        "backend/db.php",
+        "backend/driver.php",
+        "backend/genieacs.php"
+      ],
+      "used_by": [
+        "frontend/onu-detail.php"
+      ],
+      "notable_patterns": "session_write_close()/session_start() around OLT SSH call; debug_mode captures commands/log to $_SESSION['debug_log']; GenieACS cleanup failure is non-fatal (logged as warning only); redirect-based response.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/action/edit-olt.php": {
+      "path": "frontend/action/edit-olt.php",
+      "purpose": "Edits an existing OLT's connection/SNMP settings, re-tests connectivity, updates the DB row, and triggers a background ONU resync.",
+      "key_functions": [
+        "main flow: can_access_settings() + ownership check -> fetch old_olt -> determine password (new or decrypt_password() of old) -> setup_olt_snmp() -> check_olt_connection() -> UPDATE olts -> exec background_pull_onus.php -> write_audit_log()"
+      ],
+      "db_tables_used": [
+        "olts"
+      ],
+      "depends_on": [
+        "backend/db.php",
+        "backend/driver.php"
+      ],
+      "used_by": [
+        "frontend/olt-detail.php",
+        "frontend/settings-olt.php"
+      ],
+      "notable_patterns": "non-superadmin restricted via get_allowed_olt_ids(); encrypt_password()/decrypt_password(); get_safe_redirect() for open-redirect protection on optional 'redirect' POST param; fires detached background exec().",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/action/export-csv.php": {
+      "path": "frontend/action/export-csv.php",
+      "purpose": "Streams a CSV export of configured ONUs applying the same filters (search, status, zone, odb, pon, signal, type, vlan, profile, olt_id) used on the configured.php listing page, scoped to OLTs the user has access to.",
+      "key_functions": [
+        "main flow: build dynamic $filter_sql/$params from $_GET filters -> SELECT onus JOIN olts -> stream rows with fputcsv() to php://output"
+      ],
+      "db_tables_used": [
+        "onus",
+        "olts"
+      ],
+      "depends_on": [
+        "backend/db.php"
+      ],
+      "used_by": [
+        "frontend/configured.php"
+      ],
+      "notable_patterns": "accepts array params olt_id[] and odb[]; get_allowed_olt_ids()/has_olt_access() scoping; session_write_close(); outputs UTF-8 BOM for Excel; Content-Disposition attachment headers instead of JSON.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/action/genieacs-proxy.php": {
+      "path": "frontend/action/genieacs-proxy.php",
+      "purpose": "Proxies/aggregates TR-069 device operations between the frontend and the GenieACS NBI (localhost:7559): device lookup by serial, provisioning tasks, WAN/WLAN/user-interface/voice-line parameter edits, add/delete objects, and PPPoE/WLAN password persistence in local DB (since TR-069 never reports write-only passwords back).",
+      "key_functions": [
+        "emit_device(data, dbPassword, wlanPasswords): injects DB-cached passwords into device payload, filters inactive WLAN profiles and trims VoiceService payload, then echoes JSON and exits",
+        "POST branch: routes on body keys (refresh, edit_ppp, ppp_reset, ppp_remove, sync_ppp_to_db, edit_ip, ip_remove, edit_wlan, edit_user_interface, edit_voice_line, edit_generic, add_object, delete_object) to corresponding genieacs_* functions or raw task curl calls",
+        "GET branch: resolves serial (incl. Huawei HWTC hex-encoding) to a device via cached tr069_device_id, direct ID lookup, SerialNumber query, suffix scan, then CDATA SNMP/CLI mgmt-IP fallback"
+      ],
+      "db_tables_used": [
+        "onus"
+      ],
+      "depends_on": [
+        "backend/genieacs.php",
+        "backend/db.php",
+        "backend/driver.php"
+      ],
+      "used_by": [
+        "frontend/onu-detail.php"
+      ],
+      "notable_patterns": "session auth check pattern via $_SESSION['smartolt_role']; set_time_limit(60) with comment on 45s TR-069 connection-request timeout; heavy input sanitization via preg_replace whitelist regex per field; curl_init to local GenieACS NBI; sync_ppp_to_db has config_method=TR069 guard to avoid clobbering OMCI-managed ONUs; last-resort device scan only runs if serial is known in local DB.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/action/get-autofind.php": {
+      "path": "frontend/action/get-autofind.php",
+      "purpose": "Returns the OLT's autofind (newly discovered, unconfigured) ONU list as JSON by querying the OLT CLI via the driver layer.",
+      "key_functions": [
+        "main flow: validate olt_id -> has_olt_access() -> SELECT olts -> get_olt_autofind() -> JSON response"
+      ],
+      "db_tables_used": [
+        "olts"
+      ],
+      "depends_on": [
+        "backend/db.php",
+        "backend/driver.php"
+      ],
+      "used_by": [
+        "frontend/unconfigured.php"
+      ],
+      "notable_patterns": "session_write_close()/session_start() around CLI call; set_time_limit(0); has_olt_access() checked via function_exists() guard; catches Throwable and restarts session if needed before responding.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/action/get-next-onu-id.php": {
+      "path": "frontend/action/get-next-onu-id.php",
+      "purpose": "Returns the next free ONU ID for a given OLT + PON port as JSON, used when manually assigning an ID during ONU authorization.",
+      "key_functions": [
+        "main flow: validate olt_id/pon_port -> check_olt_access_json() -> SELECT olts -> get_next_free_onu_id() -> JSON response"
+      ],
+      "db_tables_used": [
+        "olts"
+      ],
+      "depends_on": [
+        "backend/db.php",
+        "backend/driver.php"
+      ],
+      "used_by": [
+        "frontend/auth-onu.php"
+      ],
+      "notable_patterns": "check_olt_access_json() helper (JSON-style access denial instead of redirect); session_write_close()/session_start() around CLI call; strips 'log' key from result before echoing.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/action/get-olt-health.php": {
+      "path": "frontend/action/get-olt-health.php",
+      "purpose": "Fetches real-time OLT health metrics (CPU, RAM, temperature, uptime, sys name/location, SSH/SNMP connectivity) combining a fast SNMP probe and a CLI connectivity test, persisting results back to the olts table.",
+      "key_functions": [
+        "main flow: can_access_settings() -> check_olt_access_json() -> SELECT olts -> shell_exec python snmp_module.get_system_info() -> check_olt_connection() -> regex-parse CPU/RAM/Temp/Uptime from CLI message -> UPDATE olts last_cpu/last_ram/last_temp/last_uptime/last_snmp_status/last_health_check -> JSON response"
+      ],
+      "db_tables_used": [
+        "olts"
+      ],
+      "depends_on": [
+        "backend/db.php",
+        "backend/driver.php"
+      ],
+      "used_by": [
+        "frontend/olt-detail.php",
+        "frontend/onu-detail.php"
+      ],
+      "notable_patterns": "can_access_settings() gate; check_olt_access_json(); session_write_close(); set_time_limit(0); SNMP-first-then-CLI-fallback strategy for speed; persists health snapshot to DB on both success and failure paths; shell_exec invokes python venv binary with escapeshellarg-wrapped inline -c script.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/action/get-olt-panel.php": {
+      "path": "frontend/action/get-olt-panel.php",
+      "purpose": "Fetches structured JSON data for a named OLT CLI 'panel' (vendor-agnostic; actual CLI commands live in per-vendor driver files), validating that the requested panel is supported by that OLT's driver before querying it.",
+      "key_functions": [
+        "main flow: can_access_settings() -> check_olt_access_json() -> validate panel name via regex allowlist -> SELECT olts -> get_olt_supported_panels() -> get_olt_panel_data() -> redact device password from result message -> JSON response"
+      ],
+      "db_tables_used": [
+        "olts"
+      ],
+      "depends_on": [
+        "backend/db.php",
+        "backend/driver.php"
+      ],
+      "used_by": [
+        "frontend/olt-detail.php"
+      ],
+      "notable_patterns": "can_access_settings() gate; check_olt_access_json(); panel name validated with /^[a-z0-9\\-]{1,32}$/ allowlist regex; session_write_close(); redacts OLT password from any returned message text via str_ireplace(); catches Throwable around driver call.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/action/get-onu-types.php": {
+      "path": "frontend/action/get-onu-types.php",
+      "purpose": "Returns the list of ONU types (id, name, pon_type, capability) as JSON for populating a dropdown.",
+      "key_functions": [
+        "main flow: session auth check -> SELECT onu_types -> JSON response"
+      ],
+      "db_tables_used": [
+        "onu_types"
+      ],
+      "depends_on": [
+        "backend/db.php"
+      ],
+      "used_by": [],
+      "notable_patterns": "simple session auth check pattern via $_SESSION['smartolt_role']; no CSRF/OLT-access check needed (read-only, no OLT-specific data).",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/action/get-signals-db.php": {
+      "path": "frontend/action/get-signals-db.php",
+      "purpose": "Returns cached ONU signal/status data from the local MySQL DB (no live OLT query) for one OLT or all accessible OLTs, with ETag-based caching to skip payload when unchanged.",
+      "key_functions": [
+        "main flow: check_olt_access_json() if olt_id set, else get_allowed_olt_ids() -> compute BIT_XOR(CRC32(...)) ETag over relevant columns -> 304 short-circuit if If-None-Match matches -> SELECT onus -> format rows with extract_customer_name() -> JSON response"
+      ],
+      "db_tables_used": [
+        "onus"
+      ],
+      "depends_on": [
+        "backend/db.php"
+      ],
+      "used_by": [],
+      "notable_patterns": "accepts optional olt_id (empty = 'all OLTs' mode scoped by get_allowed_olt_ids()); lightweight ETag via BIT_XOR(CRC32(...)) per-row hash + row count to avoid GROUP_CONCAT 1024-byte limit; HTTP 304 Not Modified short-circuit.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/action/get-splitters.php": {
+      "path": "frontend/action/get-splitters.php",
+      "purpose": "Returns the list of splitters (ODBs), optionally filtered by zone, with a computed used-count from onus, as JSON for a dropdown.",
+      "key_functions": [
+        "main flow: session auth check -> SELECT splitters LEFT JOIN (count onus per splitter) -> optional WHERE zone = ? -> JSON response"
+      ],
+      "db_tables_used": [
+        "splitters",
+        "onus"
+      ],
+      "depends_on": [
+        "backend/db.php"
+      ],
+      "used_by": [
+        "frontend/auth-onu.php",
+        "frontend/onu-detail.php"
+      ],
+      "notable_patterns": "simple session auth check pattern; subquery LEFT JOIN to compute used capacity per splitter.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/action/login.php": {
+      "path": "frontend/action/login.php",
+      "purpose": "Authenticates a user against the users table with brute-force protection (max 5 failed attempts per 15 minutes per IP, tracked in a login_attempts table), regenerates the session ID on success, and sets session role data.",
+      "key_functions": [
+        "main flow: validate POST -> CREATE TABLE IF NOT EXISTS login_attempts -> count recent attempts by IP -> lockout check -> SELECT users -> password_verify() -> session_regenerate_id(true) + set $_SESSION -> write_audit_log(), else INSERT login_attempts + uniform error message"
+      ],
+      "db_tables_used": [
+        "login_attempts",
+        "users"
+      ],
+      "depends_on": [
+        "backend/db.php"
+      ],
+      "used_by": [
+        "frontend/login.php"
+      ],
+      "notable_patterns": "IP-based brute-force lockout (DB-tracked, not session-based); session_regenerate_id(true) to prevent session fixation; uniform 'username or password wrong' message (no username-enumeration leak); self-creating login_attempts table (idempotent CREATE TABLE IF NOT EXISTS); redirect-based response.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/action/logout.php": {
+      "path": "frontend/action/logout.php",
+      "purpose": "Logs out the current user: records an audit log entry, clears and destroys the session, expires the session cookie, then redirects to login.",
+      "key_functions": [
+        "main flow: capture username/user_id -> write_audit_log() if logged in -> clear $_SESSION -> expire session cookie -> session_destroy() -> session_start() to set a flash success message -> redirect"
+      ],
+      "db_tables_used": [],
+      "depends_on": [
+        "backend/db.php"
+      ],
+      "used_by": [],
+      "notable_patterns": "manually starts session if not started; explicitly expires the session cookie via setcookie() with past timestamp; re-starts a fresh session after destroy solely to carry a flash success message across the redirect.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/action/onu-data.php": {
+      "path": "frontend/action/onu-data.php",
+      "purpose": "Returns live/cached ONU data as JSON with three modes: full sync (CLI+SNMP, full config incl. VLAN/PPPoE/mode), snmp-only lite polling (signal/traffic, no SSH), and default (signal only); persists results to the local onus cache and reconciles TR-069 as source of truth for WAN info when config_method=TR069.",
+      "key_functions": [
+        "main flow: session auth + has_olt_access() -> SELECT onus JOIN olts -> branch on ?full=1 / ?mode=snmp / default -> sync_onu_config_from_olt() / shell_exec snmp_module.get_onu_signal_snmp() / get_onu_signal() -> UPDATE onus (COALESCE-based partial update) -> re-SELECT onu -> enrich with GenieACS TR-069 IP/PPPoE IP via genieacs_find_device_id()/genieacs_get_tr069_ip()/genieacs_get_ppp_wan_ip() -> JSON response"
+      ],
+      "db_tables_used": [
+        "onus",
+        "olts"
+      ],
+      "depends_on": [
+        "backend/db.php",
+        "backend/driver.php",
+        "backend/genieacs.php"
+      ],
+      "used_by": [
+        "frontend/configured.php",
+        "frontend/onu-detail.php"
+      ],
+      "notable_patterns": "session_write_close(); set_time_limit(0); three-mode polling design (full/snmp_lite/default) for performance; config_method=TR069 guard strips CLI-sourced WAN fields so TR-069/GenieACS remains source of truth; explicit NULL-clearing UPDATE queries for offline state since COALESCE can't null out stale pppoe_ip/mgmt_ip; parse_structured_description()/extract_customer_name() helpers for name/zone/splitter parsing from OLT description field.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/action/onu-presets.php": {
+      "path": "frontend/action/onu-presets.php",
+      "purpose": "CRUD JSON API for ONU presets (named combinations of ONU type, VLAN, download/upload speed profile names, mode, WAN mode, zone, splitter) used to quick-fill the authorization form; action routed via list/save/delete.",
+      "key_functions": [
+        "main flow: switch($action) 'list' -> SELECT onu_presets; 'save' -> validate + INSERT...ON DUPLICATE KEY UPDATE onu_presets + write_audit_log(); 'delete' -> DELETE onu_presets by id + write_audit_log()"
+      ],
+      "db_tables_used": [
+        "onu_presets"
+      ],
+      "depends_on": [
+        "backend/db.php"
+      ],
+      "used_by": [
+        "frontend/auth-onu.php"
+      ],
+      "notable_patterns": "session auth check pattern; action param read from both POST and GET; presets store only profile NAMEs (not OLT-specific), matched against the selected OLT's speed_profiles at use time; upsert via INSERT...ON DUPLICATE KEY UPDATE.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/action/onu-query.php": {
+      "path": "frontend/action/onu-query.php",
+      "purpose": "Unified endpoint (merge of former get-status.php + show-running-config.php) that queries an ONU's live status, running-config, or hardware/software info from the OLT CLI via a driver function map, enriches optical status with an SNMP Rx-power reading, and caches the formatted text back to the onus table.",
+      "key_functions": [
+        "main flow: validate id + action against $MAP ('status'=>get_onu_full_status, 'config'=>get_onu_running_config, 'hw_sw'=>get_onu_hw_sw) -> SELECT onus JOIN olts -> has_olt_access() -> call mapped driver function -> enrich status action with SNMP Rx via shell_exec snmp_module.get_onu_rx_power() -> UPDATE onus last_status_cli/last_running_config -> JSON response"
+      ],
+      "db_tables_used": [
+        "onus",
+        "olts"
+      ],
+      "depends_on": [
+        "backend/db.php",
+        "backend/driver.php"
+      ],
+      "used_by": [
+        "frontend/onu-detail.php"
+      ],
+      "notable_patterns": "function-name dispatch map ($MAP) selecting driver function by action param; session_write_close()/session_start() replaced with just session_write_close() before CLI call (no explicit session_start() restart needed since no further session writes); strips 'log' key before echoing; catches Throwable with HTTP 502 for OLT comm failures.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/api-vpn-cert.php": {
+      "path": "frontend/api-vpn-cert.php",
+      "purpose": "Serves VPN certificate/key files (.crt/.key) for MikroTik download, guarded by session auth or a time-limited token+lock-file bypass.",
+      "key_functions": [
+        "Validates session (can_access_settings) OR query-token against /opt/genieacs/certs/.api-token",
+        "Checks time-limited lock file .cert-access to gate non-token downloads",
+        "Validates filename via whitelist + regex, then readfile()s from /opt/genieacs/certs/"
+      ],
+      "db_tables_used": [],
+      "depends_on": [
+        "backend/db.php"
+      ],
+      "used_by": [],
+      "notable_patterns": "Dual-auth pattern (session OR secret token) for machine-to-human endpoint; filesystem-based temporary access lock instead of DB; strict filename whitelist/regex to prevent path traversal.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/api-vpn-cert-toggle.php": {
+      "path": "frontend/api-vpn-cert-toggle.php",
+      "purpose": "JSON API (session-only) to enable/disable the temporary 5-minute certificate download window used by api-vpn-cert.php, and to check its current status.",
+      "key_functions": [
+        "POST action=enable: writes now+300 to lock file",
+        "POST action=disable: writes 0 to lock file",
+        "GET: returns current expires/active JSON status"
+      ],
+      "db_tables_used": [],
+      "depends_on": [
+        "backend/db.php"
+      ],
+      "used_by": [],
+      "notable_patterns": "CSRF-protected POST mutating a filesystem lock file (not DB) shared with api-vpn-cert.php; superadmin-only via can_access_settings().",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/api-vpn-script.php": {
+      "path": "frontend/api-vpn-script.php",
+      "purpose": "Generates a downloadable MikroTik RouterOS (.rsc) script that auto-configures an OpenVPN client tunnel (fetches certs, imports them, adds ovpn-client, self-cleans) for a given vpn_tunnels row.",
+      "key_functions": [
+        "Dual auth (session or token) like api-vpn-cert.php",
+        "Looks up vpn_tunnels by id",
+        "Auto-generates client cert via shell exec if missing (sudo gen-client-cert.sh)",
+        "Emits plain-text single-line MikroTik CLI commands as attachment"
+      ],
+      "db_tables_used": [
+        "vpn_tunnels"
+      ],
+      "depends_on": [
+        "backend/db.php"
+      ],
+      "used_by": [],
+      "notable_patterns": "Token-based machine access pattern (same as api-vpn-cert.php); shells out to external cert-generation script; produces infrastructure-as-script output rather than HTML.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/auth-onu.php": {
+      "path": "frontend/auth-onu.php",
+      "purpose": "Form page to authorize/provision a newly detected (unconfigured) ONU on an OLT, collecting speed profile, VLAN, zone/splitter, WAN mode, and customer info before submitting to the backend auth action.",
+      "key_functions": [
+        "Validates olt_id/pon/sn/type from querystring, redirects to unconfigured.php if missing",
+        "check_olt_access_or_redirect() per-user OLT permission check",
+        "Loads onu_types and distinct splitter zones for dropdowns",
+        "JS: fetchNextOnuId(), fetchVlanList(), fetchSpeedProfiles(), fetchPresets(), zone→splitter cascading dropdown, preset load/save, GPS geolocation fill, PPPoE field toggle by WAN mode"
+      ],
+      "db_tables_used": [
+        "olts",
+        "onu_types",
+        "splitters"
+      ],
+      "depends_on": [
+        "frontend/header.php",
+        "frontend/footer.php",
+        "action/auth-onu.php",
+        "action/get-splitters.php",
+        "action/get-next-onu-id.php",
+        "action/vlan.php",
+        "action/speed-profiles.php",
+        "action/onu-presets.php"
+      ],
+      "used_by": [],
+      "notable_patterns": "Deferred-apply pattern for presets (pendingPresetVlan/Dl/Ul/Splitter) when a preset selects values from async-loaded dropdowns before those lists finish loading; cascading zone→splitter→port selects; staged progress-text feedback during slow submit.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/dashboard.php": {
+      "path": "frontend/dashboard.php",
+      "purpose": "Main landing dashboard showing OLT count, ONU online/offline totals, signal-quality distribution buckets, a per-OLT status summary table, and the 5 most recent activity logs.",
+      "key_functions": [
+        "get_allowed_olt_ids()/get_allowed_olts() to scope stats to user-permitted OLTs",
+        "Aggregates onus by status and by last_rx_power signal buckets (critical/weak/fair/good/unknown)",
+        "Renders OLT summary table with SNMP status/CPU/RAM/temp (color-coded)",
+        "Renders recent logs list"
+      ],
+      "db_tables_used": [
+        "onus",
+        "olts",
+        "logs"
+      ],
+      "depends_on": [
+        "frontend/header.php",
+        "frontend/footer.php"
+      ],
+      "used_by": [],
+      "notable_patterns": "Signal quality bucket links to configured.php?signal=critical/weak/fair/good filter; IntersectionObserver scroll-reveal animation for stat cards; temp cell inline-color-codes via PHP based on threshold.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/footer.php": {
+      "path": "frontend/footer.php",
+      "purpose": "Shared layout closing markup (closes view-panel/main/app-container), footer credit line, and global JS: Lucide icon init, topnav dropdown toggle, dark/light theme toggle persisted to localStorage.",
+      "key_functions": [
+        "lucide.createIcons()",
+        "Topnav dropdown open/close + outside-click close",
+        "Theme toggle button syncing documentElement/body light-mode class with localStorage key smartolt_theme"
+      ],
+      "db_tables_used": [],
+      "depends_on": [],
+      "used_by": [
+        "frontend/auth-onu.php",
+        "frontend/configured.php",
+        "frontend/dashboard.php",
+        "frontend/logs.php",
+        "frontend/olt-detail.php",
+        "frontend/onu-detail.php",
+        "frontend/onu-types.php",
+        "frontend/settings-olt.php",
+        "frontend/settings-speed-profiles.php",
+        "frontend/settings-users.php",
+        "frontend/splitters.php",
+        "frontend/tr069-management.php",
+        "frontend/unconfigured.php",
+        "frontend/vpn-tunnels.php"
+      ],
+      "notable_patterns": "Theme toggle works with header.php's anti-FOUC inline script that pre-applies light-mode class before paint.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/header.php": {
+      "path": "frontend/header.php",
+      "purpose": "Shared layout header/bootstrap included by nearly every frontend page: handles user/setup redirects, settings-page access guard, flash messages, debug-mode toggle, and renders the top nav bar plus a debug-log modal.",
+      "key_functions": [
+        "toggle_debug GET handler flips $_SESSION['debug_mode'] and redirects back via get_safe_redirect()",
+        "Redirects to register.php if no users exist, or login.php if not authenticated",
+        "Restricts settings pages (settings-olt.php, settings-users.php, onu-types.php, splitters.php, settings-speed-profiles.php, tr069-management.php, vpn-tunnels.php) to can_access_settings()",
+        "session_write_close() early to avoid blocking concurrent AJAX on same session",
+        "Defines window.apiCall() JS helper for Express '/api' calls with Bearer API_TOKEN",
+        "Auto-injects CSRF token into POST forms and fetch() POST requests globally",
+        "Renders top nav links, settings dropdown, user avatar/name, logout link, theme toggle button, debug-log terminal modal"
+      ],
+      "db_tables_used": [
+        "users"
+      ],
+      "depends_on": [
+        "backend/db.php",
+        "backend/api.php",
+        "frontend/public/style.css"
+      ],
+      "used_by": [
+        "frontend/auth-onu.php",
+        "frontend/configured.php",
+        "frontend/dashboard.php",
+        "frontend/logs.php",
+        "frontend/olt-detail.php",
+        "frontend/onu-detail.php",
+        "frontend/onu-types.php",
+        "frontend/settings-olt.php",
+        "frontend/settings-speed-profiles.php",
+        "frontend/settings-users.php",
+        "frontend/splitters.php",
+        "frontend/tr069-management.php",
+        "frontend/unconfigured.php",
+        "frontend/vpn-tunnels.php"
+      ],
+      "notable_patterns": "Global CSRF auto-injection pattern (monkey-patches window.fetch and listens on 'submit') so individual pages don't need manual CSRF wiring; anti-FOUC inline script applies light-mode class pre-render; debug_log session var renders a CLI-trace modal shown site-wide when set.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/index.php": {
+      "path": "frontend/index.php",
+      "purpose": "Simple router/redirect stub that sends all requests to dashboard.php.",
+      "key_functions": [
+        "header('Location: dashboard.php'); exit;"
+      ],
+      "db_tables_used": [],
+      "depends_on": [],
+      "used_by": [],
+      "notable_patterns": "No logic; pure redirect entrypoint.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/login.php": {
+      "path": "frontend/login.php",
+      "purpose": "Login form page; redirects to dashboard if already authenticated, or to register.php if no users exist yet (first-run setup).",
+      "key_functions": [
+        "Checks $_SESSION['smartolt_user_id'] to skip login if already authenticated",
+        "Checks users count to force register.php on first run",
+        "Renders username/password form posting to action/login.php with CSRF token",
+        "Displays flash error/success alerts"
+      ],
+      "db_tables_used": [
+        "users"
+      ],
+      "depends_on": [
+        "backend/db.php",
+        "action/login.php"
+      ],
+      "used_by": [],
+      "notable_patterns": "Standalone auth page (does not include header.php/footer.php) with its own inline CSS gradient card layout; motion-* CSS classes for entrance animation.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/logs.php": {
+      "path": "frontend/logs.php",
+      "purpose": "Activity/audit log viewer page with search, action-type filter, page-size selector, pagination, and a 'clear all logs' action.",
+      "key_functions": [
+        "Builds dynamic WHERE from search/action_type GET params",
+        "Paginated COUNT + SELECT with LIMIT/OFFSET against logs JOIN olts",
+        "log_page_url() helper to build pagination links preserving filters",
+        "Renders table with color-coded action badges (red=DELETE/CLEAR, orange=REBOOT/ADD, green=default)"
+      ],
+      "db_tables_used": [
+        "logs",
+        "olts"
+      ],
+      "depends_on": [
+        "frontend/header.php",
+        "frontend/footer.php",
+        "action/clear-logs.php"
+      ],
+      "used_by": [],
+      "notable_patterns": "Classic search+filter+paginate pattern with querystring-preserving pagination links; badge color derived from substring match on action name.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/onu-types.php": {
+      "path": "frontend/onu-types.php",
+      "purpose": "Settings page (superadmin only) to list, add, edit, and delete ONU type definitions (port counts, WiFi/VoIP capabilities, PON type, CATV, capability mode) with per-type usage counts.",
+      "key_functions": [
+        "can_access_settings() guard before any POST handling",
+        "Manual CSRF check (page is outside action/, so central middleware skips it)",
+        "POST action=add/update/delete against onu_types",
+        "GET edit= loads single record for edit form",
+        "Main list query LEFT JOINs onus usage count per type"
+      ],
+      "db_tables_used": [
+        "onu_types",
+        "onus"
+      ],
+      "depends_on": [
+        "frontend/header.php",
+        "frontend/footer.php"
+      ],
+      "used_by": [],
+      "notable_patterns": "Self-posting page pattern (own form target, no separate action/ file) with manual CSRF validation since it sits outside action/ middleware; edit-mode vs list-mode toggled by $_GET['edit']; add via modal, edit via full page swap.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/register.php": {
+      "path": "frontend/register.php",
+      "purpose": "First-run initial administrator (superadmin) account setup page; only accessible when zero users exist in the database, otherwise redirects to login.php.",
+      "key_functions": [
+        "Guards access: redirects to login.php if any user already exists",
+        "Renders username/password form posting to action/register.php with CSRF token, role locked to superadmin"
+      ],
+      "db_tables_used": [
+        "users"
+      ],
+      "depends_on": [
+        "backend/db.php",
+        "action/register.php"
+      ],
+      "used_by": [],
+      "notable_patterns": "One-time setup gate pattern identical in style to login.php (standalone page, own CSS, no header/footer include); role select is effectively read-only (single option).",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/settings-olt.php": {
+      "path": "frontend/settings-olt.php",
+      "purpose": "OLT management page: lists all OLTs (filtered by access for non-superadmin), with modals to add and edit OLT connection settings (SSH/Telnet + SNMP) including live CLI verification before save.",
+      "key_functions": [
+        "Renders OLT table (Nama, IP, Tipe, Aksi) with View/Edit/Delete per row",
+        "Add OLT modal: form posts to action/add-olt.php, with 'Verifikasi Koneksi SSH/Telnet' step calling action/verify-ssh-only.php before enabling submit",
+        "Edit OLT modal: pre-fills fields from data-* attributes on btn-edit-olt, also verifies via action/verify-ssh-only.php before enabling 'Set SNMP & Simpan Perubahan' submit to action/edit-olt.php",
+        "Delete OLT: inline form posts to action/delete-olt.php with confirm()",
+        "protocolSelect change handlers toggle port default (22/23) and button labels between SSH/Telnet for both add and edit modals"
+      ],
+      "db_tables_used": [
+        "olts"
+      ],
+      "depends_on": [
+        "frontend/header.php",
+        "backend/driver.php",
+        "action/add-olt.php",
+        "action/edit-olt.php",
+        "action/delete-olt.php",
+        "action/verify-ssh-only.php",
+        "frontend/footer.php"
+      ],
+      "used_by": [],
+      "notable_patterns": "Role-based row filtering (superadmin sees all OLTs, others via get_allowed_olt_ids()); two-step modal flow (verify connection via AJAX then reveal submit button) duplicated for both add and edit modals; OLT types rendered from get_supported_olt_types() driver registry so new vendors require no page change.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/settings-speed-profiles.php": {
+      "path": "frontend/settings-speed-profiles.php",
+      "purpose": "Page to view and manage Upload/Download speed profiles synced live from a selected OLT, including add/edit/delete operations pushed directly to the OLT.",
+      "key_functions": [
+        "OLT selector dropdown triggers loadList() which fetches profiles via action/speed-profiles.php?action=list&olt_id=",
+        "Tab toggle between 'Download Profile' and 'Upload Profile' (client-side filter of cached profiles by direction)",
+        "Add/Edit speed profile modal: posts action=save to action/speed-profiles.php (name pattern-validated, speed in kbps)",
+        "Delete profile: posts action=delete to action/speed-profiles.php, warns via confirm() if ONUs are using the profile and sets force=1 to proceed anyway"
+      ],
+      "db_tables_used": [
+        "olts"
+      ],
+      "depends_on": [
+        "frontend/header.php",
+        "backend/driver.php",
+        "action/speed-profiles.php",
+        "frontend/footer.php"
+      ],
+      "used_by": [],
+      "notable_patterns": "No server-side table rendering; entire profile table is client-rendered from a JSON AJAX response (cachedProfiles) keyed by direction tab. Inline <style> block for tab/modal styling. Profiles themselves live on the OLT (fetched live), not stored in local DB tables directly.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/settings-users.php": {
+      "path": "frontend/settings-users.php",
+      "purpose": "User management page: lists manageable users with role badges, and provides modals to add a user, edit a user's credentials/role, and manage per-user OLT access delegation.",
+      "key_functions": [
+        "Renders users table via get_manageable_users() with role-based action visibility (can_manage_target_user() hides actions for users outside admin's group)",
+        "Add User modal: posts action=add to action/user.php, includes OLT checkbox list (group access) hidden automatically when role=superadmin is selected",
+        "Edit User modal: fetches current data via action/user.php?action=get_user&user_id=, submits via fetch POST action=edit to action/user.php (AJAX, no page reload except on success alert)",
+        "Manage Access modal (btn-manage-access): fetches current OLT access via action/user.php?action=get_access&user_id=, submits form action=update_access to action/user.php",
+        "Delete user: inline form posts action=delete to action/user.php with confirm()"
+      ],
+      "db_tables_used": [
+        "users (implied via get_manageable_users()/can_manage_target_user(), not queried directly in this file)"
+      ],
+      "depends_on": [
+        "frontend/header.php",
+        "action/user.php",
+        "frontend/footer.php"
+      ],
+      "used_by": [],
+      "notable_patterns": "Three separate modals (add/edit/manage-access) each with open/close + Escape-key handling; role dropdown dynamically shows/hides OLT checkbox group; edit and access-fetch use async fetch() rather than full page navigation while add/delete use classic form POST.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/splitters.php": {
+      "path": "frontend/splitters.php",
+      "purpose": "CRUD page for fiber splitters (passive network nodes) with list view (search/zone filter/pagination/usage stats) and a dedicated edit view showing ONUs attached to a splitter.",
+      "key_functions": [
+        "POST handler (self-submitting form, CSRF-checked): add/update/delete splitter rows directly via PDO, then redirects to self",
+        "Edit mode (?edit=id): shows splitter detail stat cards and up to 50 attached ONUs (joined by splitter name) with edit form",
+        "List mode: search box, zone filter dropdown, paginated table with usage% badge (color-coded by thresholds), computed port/usage stats (total/used/free)",
+        "Add Splitter modal: inline form posting action=add"
+      ],
+      "db_tables_used": [
+        "splitters",
+        "onus"
+      ],
+      "depends_on": [
+        "backend/db.php",
+        "frontend/header.php",
+        "frontend/footer.php",
+        "onu-detail.php (link target, not fetched)"
+      ],
+      "used_by": [],
+      "notable_patterns": "Self-posting CRUD pattern (no action/ subfolder, PHP handles its own POST at top and PRG-redirects to itself) unlike most other pages which delegate to action/*.php; zone filter uses <datalist> autocomplete; pagination computed server-side with sliding window of page buttons; splitter-to-ONU relation is by matching 'name' string column (s.name = onus.splitter), not a foreign key.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/tr069-management.php": {
+      "path": "frontend/tr069-management.php",
+      "purpose": "TR-069/GenieACS management page with two tabs: ACS connection profiles (default + custom, CRUD) and live ACS status (service health, MongoDB, active faults/tasks, ONU device inventory from GenieACS).",
+      "key_functions": [
+        "tr069_get_profiles($pdo): loads profiles, strips acs_password before embedding in HTML/JS (edit form leaves password blank)",
+        "genieacs_health_check(), genieacs_list_devices(), genieacs_get_faults(20): pull live status/inventory/fault data from GenieACS backend",
+        "Tab switching (Profiles/Status) via client-side class toggling, no reload",
+        "Profile modal (add/edit): default profile has name/URL/description locked read-only (only auth editable); saveProfile() POSTs JSON to action/tr069-profile-save.php",
+        "deleteProfile(): POSTs JSON {id} to action/tr069-profile-delete.php with confirm()",
+        "Renders ONU inventory table and active faults/tasks list from GenieACS device/fault data"
+      ],
+      "db_tables_used": [
+        "tr069_profiles (implied via tr069_get_profiles(), not queried directly with raw SQL visible in this file)"
+      ],
+      "depends_on": [
+        "backend/db.php",
+        "backend/genieacs.php",
+        "frontend/header.php",
+        "action/tr069-profile-save.php",
+        "action/tr069-profile-delete.php",
+        "frontend/footer.php"
+      ],
+      "used_by": [],
+      "notable_patterns": "Two-tab CSS-driven layout (no routing); default profile protected from name/url/description edits in JS (readOnly + opacity) while custom profiles are fully editable; profile objects passed to onclick handlers via json_encode() inline in HTML attributes; sensitive acs_password explicitly unset server-side for the health/listing loop context before embedding into page (comment notes this).",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/unconfigured.php": {
+      "path": "frontend/unconfigured.php",
+      "purpose": "Scans all accessible OLTs in parallel for unconfigured/unauthorized ONUs (new devices detected but not yet provisioned) and lists them per-OLT section with pagination, linking each to a separate authorization page.",
+      "key_functions": [
+        "Renders one content-card section per OLT (from get_allowed_olts()) with a loading spinner placeholder tbody",
+        "fetchAllOlts(): triggers fetchSection() for every OLT section in parallel on page load and on 'Scan Ulang' click, disabling the rescan button while pending",
+        "fetchSection(): calls action/get-autofind.php?olt_id=X with a 60s AbortController timeout, renders rows or error/timeout message",
+        "renderSectionRows()/renderPagination(): client-side pagination per OLT section (per-OLT page state in a Map), limit selectable via GET param (20/50/100/200)",
+        "Each row links to auth-onu.php with olt_id/pon/sn/type query params for authorization"
+      ],
+      "db_tables_used": [],
+      "depends_on": [
+        "frontend/header.php",
+        "action/get-autofind.php",
+        "frontend/auth-onu.php (link target, not fetched)",
+        "frontend/footer.php"
+      ],
+      "used_by": [],
+      "notable_patterns": "No direct DB queries in this file (OLT list comes from get_allowed_olts() helper); parallel-scan-then-paginate pattern — all OLT sections fetched concurrently via Promise-returning fetchSection() calls tracked by a pending counter; client-side pagination entirely separate per OLT section via a Map keyed by oltId.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/vpn-tunnels.php": {
+      "path": "frontend/vpn-tunnels.php",
+      "purpose": "Admin page to manage L2TP/OpenVPN-style VPN tunnels used for remote MikroTik router access: add/edit/delete tunnel credentials, define routed subnets, sync system config (chap-secrets, CCD iroute, kernel routes), view live connection status, and generate a MikroTik auto-setup script with a time-limited cert download.",
+      "key_functions": [
+        "get_ovpn_tunnel_ips(): parses /var/log/openvpn/openvpn-status.log ROUTING TABLE section",
+        "write_ccd_iroute($cn, $routes): writes OpenVPN CCD iroute file per client cert CN",
+        "sync_vpn_status($pdo): parses OpenVPN CLIENT_LIST status lines, updates vpn_tunnels connection state, and applies/removes 'ip route' rules + CCD iroute based on DB routes_json",
+        "generate_tunnel_cert($username): shells out to gen-client-cert.sh to create an OpenVPN client cert if missing",
+        "POST handler (add/update/delete, CSRF-checked): manages vpn_tunnels rows, regenerates certs, applies/removes server routes via exec('ip route ...'), calls sync_chap_secrets()",
+        "sync_chap_secrets($pdo): rewrites /etc/ppp/chap-secrets from vpn_tunnels username/password rows",
+        "get_l2tp_sessions(): shells out to 'ip l2tp show session/tunnel' and 'ip -o link show type ppp' to detect live L2TP sessions",
+        "showMikrotik()/toggleCertAccess()/startCertCountdown(): client-side modal generating a MikroTik .rsc fetch+import script using a time-limited API token, calling /api-vpn-cert-toggle.php to enable/disable cert download window"
+      ],
+      "db_tables_used": [
+        "vpn_tunnels"
+      ],
+      "depends_on": [
+        "backend/db.php",
+        "frontend/header.php",
+        "frontend/footer.php",
+        "/api-vpn-cert-toggle.php (root-level endpoint, not in frontend/action)"
+      ],
+      "used_by": [],
+      "notable_patterns": "Self-posting CRUD like splitters.php (POST handled at top of same file, PRG redirect) rather than action/ delegation; heavy use of exec()/shell_exec() for system-level networking (ip route, l2tp session introspection, cert generation) — security-sensitive file manipulating /etc/ppp/chap-secrets, /etc/openvpn/ccd, and kernel routes; MikroTik script generator embeds a server API token read from /opt/genieacs/certs/.api-token directly into page JS.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/onu-detail-css.php": {
+      "path": "frontend/onu-detail-css.php",
+      "purpose": "Pure CSS stylesheet (no PHP logic) providing layout, table, badge, modal, and responsive styles for the ONU detail page.",
+      "key_functions": [
+        "Defines .smartolt-layout/.smartolt-top-section/.smartolt-left-col/.smartolt-right-col grid/flex layout for ONU detail header",
+        "Table/cell utility classes (.smartolt-details-table, .cell, .panel-table, .col-label--md)",
+        "Spacing/utility helper classes (.p-y-*, .mt-*, .mb-0, .nowrap, etc.)",
+        "Badge/tag styles (.tag-dark, .dot-xs) and skeleton-loading placeholder classes (.skel-line, .skel-45/60/70/80)",
+        "Responsive @media rule stacking the '#update-onu-mode-modal' table into block layout on screens <=500px"
+      ],
+      "db_tables_used": [],
+      "depends_on": [],
+      "used_by": [
+        "frontend/onu-detail.php",
+        "frontend/onu-detail.php (included for styling, per task description)"
+      ],
+      "notable_patterns": "Entirely wrapped in a single <style> block with zero PHP code — a pure CSS partial included by onu-detail.php; relies on CSS custom properties (var(--border-color), var(--bg-secondary), var(--text-main), etc.) defined elsewhere (theme file) for dark/light adaptive theming.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/onu-detail.php": {
+      "path": "frontend/onu-detail.php",
+      "purpose": "ONU detail/edit/monitoring page: shows a single ONU's identity, signal/traffic history, config, and allows editing WAN/mode, type, preset, identity/location, speed profiles, port config, TR-069 device management, mgmt IP/TR609 profile, plus reboot/restore/enable-disable/delete/replace actions.",
+      "key_functions": [
+        "Section 1: Identity & Status display (zone/address/splitter/contact parsed from description with DB-column priority + fallback parsing via parse_structured_description/extract_customer_name)",
+        "Section 2: Status action buttons row",
+        "Section 3: Traffic/Signal charts (Chart.js) built from onu_history rows (rx_power, rx_olt_power, rx/tx bytes->Mbps)",
+        "Section 4: Speed profiles table (download/upload) sourced from speed_profiles table",
+        "Section 5: Ethernet ports list (count from onu_types), with 'Configure' button opening port-configure-modal",
+        "Section 6: WiFi SSIDs list (count from onu_types)",
+        "Section 7: VoIP/CATV capability display (from onu_types)",
+        "Section 8: Action buttons - Reboot, Restore Factory, Resync config (JS full sync), Enable/Disable ONU, Delete ONU",
+        "Realtime data polling: fetchRealtimeData() calls action/onu-data.php every ~15s (light SNMP mode) and on load with full=1 (triggers sync_onu_config_from_olt)",
+        "Modal: Update ONU Mode (WAN/PPPoE config, VLAN select, speed profile dropdowns) -> action/update-onu-mode.php",
+        "Modal: Edit ONU Type -> action/update-onu-mode.php",
+        "Modal: Edit Config Preset -> action/update-onu-mode.php",
+        "Modal: Edit Identitas & Lokasi ONU (zone/splitter/address/contact) -> action/update-onu-mode.php, dynamic splitter loading via action/get-splitters.php",
+        "TR-069 tab/panel: loadTr069Status() fetches full TR-069 param tree via action/genieacs-proxy.php, renders dynamic cards (PPP/IP/WLAN/DHCP/Security/Voice/ACL sections) with per-card Save buttons pushing changes back via action/genieacs-proxy.php (edit_generic) and command buttons (refresh/reboot/factory_reset) via action/tr069-action.php",
+        "Live status queries: action/onu-query.php for status/config/hw_sw actions (likely SSH/SNMP live query to OLT)",
+        "Modal: Replace ONU / Ganti Serial Number -> action/replace-onu.php",
+        "Modal: IP Manajemen (set management IP) -> action/onu-set-mgmt-ip.php",
+        "Modal: TR609 Profile selection -> action/onu-set-tr609.php",
+        "Modal: Configure Port (ethernet/wifi port enable/mode/VLAN/DHCP) - saved via inline JS (uses TR-069 generic edit, same genieacs-proxy pattern)",
+        "OLT offline banner with recheckOltStatus() calling action/get-olt-health.php",
+        "Live VLAN loader (loadLiveVlans) hitting action/vlan.php?action=list"
+      ],
+      "db_tables_used": [
+        "onus",
+        "olts",
+        "onu_history",
+        "speed_profiles",
+        "onu_types",
+        "onu_presets",
+        "splitters",
+        "olt_vlans"
+      ],
+      "depends_on": [
+        "backend/db.php",
+        "backend/driver.php",
+        "backend/genieacs.php",
+        "frontend/header.php",
+        "frontend/footer.php",
+        "frontend/onu-detail-css.php",
+        "frontend/action/reboot-onu.php",
+        "frontend/action/restore-factory.php",
+        "frontend/action/onu-state.php",
+        "frontend/action/delete-onu.php",
+        "frontend/action/get-olt-health.php",
+        "frontend/action/onu-data.php",
+        "frontend/action/vlan.php",
+        "frontend/action/update-onu-mode.php",
+        "frontend/action/get-splitters.php",
+        "frontend/action/onu-query.php",
+        "frontend/action/genieacs-proxy.php",
+        "frontend/action/tr069-action.php",
+        "frontend/action/replace-onu.php",
+        "frontend/action/onu-set-mgmt-ip.php",
+        "frontend/action/onu-set-tr609.php"
+      ],
+      "used_by": [],
+      "notable_patterns": "Heavy use of comments (Bahasa Indonesia) documenting data-source-of-truth decisions (DB columns vs. live description parsing vs. TR-069 vs. running-config regex fallback) to avoid duplicate parsing logic across the codebase. Page renders instantly from DB only (no SSH on page load); JS then fetches live data async (onu-data.php full=1) and polls every 15s in lighter SNMP mode. TR-069 section dynamically builds editable device-config cards (PPP/WLAN/IP/DHCP/Voice/Security/ACL) by walking the GenieACS parameter tree client-side, with per-vendor sections (e.g. Huawei X_HW_Security, FiberHome X_FH_ACL) and writes pushed back individually via genieacs-proxy edit_generic calls. Reload-after-save pattern (reloadAfterSave) re-fetches TR-069 state while preserving which card/section was expanded.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/olt-detail.php": {
+      "path": "frontend/olt-detail.php",
+      "purpose": "OLT detail page with a tab-based sub-menu: shows OLT health/status, brand-specific driver panels (cards/ports/interfaces), VLAN management (read/write to live device), OLT config editing, and a list of ONUs registered on that OLT.",
+      "key_functions": [
+        "Tab: Monitoring - OLT health/status card (model/firmware/uptime etc.), polled via action/get-olt-health.php",
+        "Tab(s): dynamic driver-specific panels from get_olt_supported_panels() (e.g. OLT Details, OLT Cards, PON Ports) rendered client-side via loadPanel() fetching action/get-olt-panel.php?panel=<name>, with generic renderers renderMetrics/renderCards/renderTable/renderSections",
+        "Tab: VLANs - full CRUD VLAN management hitting live OLT device via action/vlan.php (list/add/edit/delete), rendered into vlan-tbody via renderVlanRows/loadVlans, modal openVlanModal for add/edit",
+        "Tab: Konfigurasi - OLT edit form (name/ip/credentials/protocol/snmp) posted to action/edit-olt.php, with protocol-based port default updates (updatePortDefaults)",
+        "Tab: Daftar ONU - table of ONUs on this OLT (name, serial, pon_port, zone, splitter, rx power, status) queried directly from onus table, link out to configured.php filtered by olt_id",
+        "Port Config modal: edit per-port auto-nego/speed/duplex settings via action/port-config.php",
+        "Debug modal (showDebugModal) for displaying raw CLI/debug log text from panel/health fetch failures"
+      ],
+      "db_tables_used": [
+        "olts",
+        "onus"
+      ],
+      "depends_on": [
+        "frontend/header.php",
+        "frontend/footer.php",
+        "backend/driver.php",
+        "frontend/action/edit-olt.php",
+        "frontend/action/get-olt-panel.php",
+        "frontend/action/get-olt-health.php",
+        "frontend/action/vlan.php",
+        "frontend/action/port-config.php"
+      ],
+      "used_by": [],
+      "notable_patterns": "Access control check has_olt_access($id) gating page render. Tab system is pure client-side show/hide (.olt-tab-panel.active) with URL hash restore-on-load (\"Restore tab from URL hash\"). Driver panels are lazily loaded per-tab click (loadPanel) rather than all rendered server-side, keeping initial page load light; panel rendering uses generic section-type dispatch (metrics/cards/table) driven by backend panel JSON shape. VLAN tab reads/writes live device state directly (not DB-cached) — table is empty until user clicks Refresh.",
+      "last_updated": "2026-10-15"
+    },
+    "frontend/configured.php": {
+      "path": "frontend/configured.php",
+      "purpose": "Daftar ONU yang sudah terkonfigurasi (customer list) dengan filter multi-kriteria, pagination, live-polling status, dan export CSV.",
+      "key_functions": [
+        "Filter parsing: search, olt_id[] (multi-select array), status, zone, odb[] (multi-select array, includes 'None'), pon_port, signal, onu_type, vlan, profile",
+        "SQL filter build: $filter_sql + $params, olt_id/odb pakai IN (...) dengan placeholder dinamis",
+        "Datalist/count queries: $olts, $olt_counts, $available_zones, $available_odbs, $odb_counts, $available_pon_ports, $available_onu_types, $available_vlans, $available_profiles -- semua di-scope ke $olt_filter_in",
+        "Live poller (JS setInterval): fetch ke action/onu-data.php? untuk update status/sinyal tanpa reload",
+        "CSV export link: action/export-csv.php? dengan semua filter saat ini diteruskan via http_build_query"
+      ],
+      "db_tables_used": [
+        "onus",
+        "olts"
+      ],
+      "depends_on": [
+        "backend/db.php",
+        "frontend/header.php",
+        "frontend/footer.php",
+        "frontend/action/onu-data.php",
+        "frontend/action/export-csv.php",
+        "frontend/action/sync-olt.php"
+      ],
+      "used_by": [],
+      "notable_patterns": "Filter lama pakai pola input type=text + <datalist> (searchable, auto-submit onchange). Filter OLT & ODB/Splitter sudah diupgrade jadi custom multi-select dropdown: class .ms-dropdown (tombol ringkasan + panel search+checkbox+counter+tombol Terapkan), vanilla JS toggle via classList, checked state dari $_GET array. $selected_olt_id (scalar) tetap dipertahankan sebagai turunan dari $selected_olts (array) HANYA kalau persis 1 OLT dipilih -- jangan dipakai untuk cek 'ada OLT dipilih', pakai !empty($selected_olts). $olt_filter_in = comma-separated ID untuk SQL IN clause, fallback ke $allowed_ids_str kalau kosong. Tabel pakai table-layout:fixed + overflow-wrap:anywhere di semua th/td supaya teks panjang wrap bukan melebar. Kolom WAN & Tipe ONU sudah dihapus, diganti Nama ODP (dari $onu['splitter']) + Zone.",
+      "last_updated": "2026-10-15"
+    }
+  },
+  "shared_conventions": [
+    "Hampir semua halaman frontend (kecuali login.php, register.php, index.php) require backend/db.php lalu frontend/header.php di awal, dan frontend/footer.php di akhir.",
+    "Akses OLT per-user dikontrol via has_olt_access($olt_id) dan get_allowed_olt_ids()/get_allowed_olts() di backend/config.php -- WAJIB dipanggil sebelum query/aksi yang menyentuh data OLT tertentu, supaya non-superadmin tidak bisa akses OLT di luar assignment-nya.",
+    "Semua endpoint POST di frontend/action/*.php WAJIB verify_csrf_token() (ditegakkan juga secara global di backend/config.php untuk request POST ke /action/).",
+    "Password OLT disimpan terenkripsi (encrypt_password()/decrypt_password() di backend/config.php, AES-256-GCM dengan fallback baca legacy AES-256-CBC). JANGAN simpan/transmit password OLT plaintext ke DB.",
+    "String yang diselipkan ke perintah CLI OLT (SSH/Telnet) WAJIB disaring via cli_safe()/cli_safe_strict()/cli_safe_password()/cli_safe_email() di backend/config.php untuk cegah command injection -- jangan interpolate user input mentah ke command string.",
+    "Semua pemanggilan ke driver OLT (ambil status, config VLAN, dsb) didelegasikan ke backend/driver.php (dispatcher per-vendor: ZTE C300/C320, CDATA FD1602SB1, dst) -- JANGAN build command CLI vendor-spesifik langsung di file frontend/action/*.php.",
+    "Filter pencarian di halaman list (configured.php, unconfigured.php) pakai pola input type=text + <datalist> (bukan <select>) supaya user bisa ketik sekaligus pilih dari daftar -- auto-submit via onchange=\"this.form.submit()\". Perkecualian: filter OLT & ODB/Splitter di configured.php sudah di-upgrade ke custom multi-select checkbox dropdown (class .ms-dropdown), karena butuh pilih lebih dari satu nilai sekaligus.",
+    "Nama pelanggan yang tersimpan di DB kadang pakai underscore sebagai pengganti spasi (artefak input lama) -- JANGAN diubah di DB, normalisasi HANYA saat tampil pakai extract_customer_name()/fungsi display_name sejenis di backend/db.php. Field zone/alamat/ODP TIDAK ikut dinormalisasi ini.",
+    "Tabel data besar (onu list dsb) pakai class .data-table dengan table-layout:fixed + overflow-wrap:anywhere pada th/td supaya teks panjang (nama, alamat, splitter) wrap ke bawah, bukan melebarkan kolom.",
+    "Live-polling status ONU/OLT pakai JS fetch() periodik ke endpoint action/*.php (onu-data.php, get-olt-health.php) tanpa reload halaman -- halaman awal selalu render cepat dari data DB dulu, data live menyusul async.",
+    "TR-069 read/write ke device lewat GenieACS NBI didelegasikan ke backend/genieacs.php, dipanggil dari frontend/action/genieacs-proxy.php dan action/tr069-action.php -- JANGAN panggil GenieACS API langsung dari file frontend/*.php di luar action/.",
+    "Reset link filter pada halaman list cukup link ke halaman itu sendiri tanpa query string (bukan daftar ulang semua param kosong satu-satu).",
+    "Olt_id dan field multi-select lain dikirim sebagai array via nama input name=\"xxx[]\"; backend menerima dengan isset($_GET['xxx']) lalu is_array() check, fallback ke single value jika bukan array (back-compat).",
+    "git workflow repo ini: workspace lokal TIDAK punya folder .git -- perubahan di-copy ke clone sementara ($env:TEMP\\smartolt-push) untuk commit & push ke https://github.com/erlanggaalfian/smartolt.git. Jangan asumsikan 'git status' di workspace lokal akan menunjukkan apa pun."
+  ],
+  "db_schema_notes": {
+    "onus": "Tabel utama data ONU (customer). Kolom penting: olt_id (FK ke olts), serial_number, name (nama pelanggan, kadang underscore->spasi butuh extract_customer_name()), status (online/offline/disabled), pon_port (format gabungan slot/board+port, contoh '1/4/10:12' -- JANGAN parse manual jadi board/port terpisah tanpa verifikasi ulang format asli di DB, pernah dicek dan berisiko salah match), zone, splitter (nama ODP/ODB, 'None' atau NULL/'' berarti belum diisi), odb_port, vlan, download_profile/upload_profile (nama speed profile, relasi ke speed_profiles), onu_type, wan_mode, onu_mode, config_method, config_preset, pppoe_username/pppoe_password, mgmt_ip, pppoe_ip, last_rx_power/last_rx_olt_power (dBm, dipakai untuk kategori sinyal: critical < -30, weak -30..-28, fair -28..-25, good >= -25), last_down_cause, address/contact/external_id/description, latitude/longitude, updated_at.",
+    "olts": "Daftar perangkat OLT. Kolom: name, ip, protocol (ssh/telnet), credentials (username/password terenkripsi), snmp community (random generated saat add-olt), brand/type (dipetakan ke driver di backend/driver.php).",
+    "onu_history": "Histori time-series per ONU: rx_power, rx_olt_power, rx/tx bytes (dipakai hitung Mbps) -- sumber data chart Chart.js di onu-detail.php.",
+    "speed_profiles": "Daftar paket kecepatan (download/upload) yang bisa dipasang ke ONU.",
+    "onu_types": "Metadata tipe/model ONU: jumlah port ethernet, jumlah SSID WiFi, kapabilitas VoIP/CATV.",
+    "onu_presets": "Preset konfigurasi ONU yang bisa dipilih cepat.",
+    "splitters": "Daftar ODP/splitter per zone, dipakai sebagai sumber datalist/dropdown ODB di configured.php & onu-detail.php.",
+    "olt_vlans": "Cache VLAN per OLT (cache-first read di action/vlan.php, refresh via refresh_olt_vlans() kalau cache miss).",
+    "user_olts": "Mapping user ke OLT yang boleh diakses (dasar has_olt_access()/get_allowed_olt_ids()).",
+    "logs": "Audit log aksi (write_audit_log() di backend/config.php): olt_id, action, message, timestamp."
+  }
+}
