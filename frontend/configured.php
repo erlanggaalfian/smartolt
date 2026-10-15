@@ -248,6 +248,7 @@ $onus = $stmt_data->fetchAll();
             });
         })();
         </script>
+        <div class="filter-line">
         <div class="filter-item search-item">
             <label class="filter-label-outside" for="f-search">Cari</label>
             <input type="text" id="f-search" name="search" class="form-control" aria-label="Cari pelanggan" placeholder="Nama, SN, alamat, PPPoE..." value="<?php echo htmlspecialchars($search); ?>">
@@ -284,16 +285,21 @@ $onus = $stmt_data->fetchAll();
         $status_labels = ['online'=>'Online','offline_power'=>'Offline - Power Down','offline_fiber'=>'Offline - Fiber Terputus','offline_other'=>'Offline - Lainnya','offline'=>'Offline - Semua','disabled'=>'Disabled'];
         $signal_labels = ['critical'=>'Sinyal Kritis (< -30 dBm)','weak'=>'Sinyal Lemah (-30 s/d -28)','fair'=>'Sinyal Sedang (-28 s/d -25)','good'=>'Sinyal Bagus (> -25 dBm)'];
         render_ms_dropdown('olt', 'OLT', 'olt_id', array_map(fn($o) => [(int)$o['id'], $o['name'], $olt_counts[$o['id']] ?? 0], $olts), $selected_olts);
-        render_ms_dropdown('status', 'Status', 'status', array_map(fn($k) => [$k, $status_labels[$k], $status_counts[$k] ?? 0], array_keys($status_labels)), $status);
-        render_ms_dropdown('zone', 'Zone', 'zone', array_merge([['None', 'None (belum diisi)', $zone_counts['None'] ?? 0]], array_map(fn($z) => [$z, $z, $zone_counts[$z] ?? 0], $available_zones)), $filter_zone);
-        render_ms_dropdown('odb', 'Splitter', 'odb', array_merge([['None', 'None (belum diisi)', $odb_counts['None'] ?? 0]], array_map(fn($o) => [$o, $o, $odb_counts[$o] ?? 0], $available_odbs)), $filter_odb);
         render_ms_dropdown('board', 'Board', 'board', array_map(fn($b) => [$b, $b, $board_counts[$b] ?? 0], $available_boards), $filter_board, true);
         render_ms_dropdown('port', 'Port', 'port', array_map(fn($p) => [$p, $p, $port_counts[$p] ?? 0], $available_ports), $filter_port, true);
-        render_ms_dropdown('signal', 'Sinyal', 'signal', array_map(fn($k) => [$k, $signal_labels[$k], $signal_counts[$k] ?? 0], array_keys($signal_labels)), $filter_signal);
-        render_ms_dropdown('type', 'Tipe', 'onu_type', array_map(fn($t) => [$t, $t, $type_counts[$t] ?? 0], $available_types), $filter_type, true);
+        render_ms_dropdown('zone', 'Zone', 'zone', array_merge([['None', 'None (belum diisi)', $zone_counts['None'] ?? 0]], array_map(fn($z) => [$z, $z, $zone_counts[$z] ?? 0], $available_zones)), $filter_zone);
+        render_ms_dropdown('odb', 'Splitter', 'odb', array_merge([['None', 'None (belum diisi)', $odb_counts['None'] ?? 0]], array_map(fn($o) => [$o, $o, $odb_counts[$o] ?? 0], $available_odbs)), $filter_odb);
         render_ms_dropdown('vlan', 'VLAN', 'vlan', array_map(fn($v) => [$v, $v, $vlan_counts[$v] ?? 0], $available_vlans), $filter_vlan, true);
-        render_ms_dropdown('profile', 'Profile', 'profile', array_map(fn($p) => [$p, $p, $profile_counts[$p] ?? 0], $available_profiles), $filter_profile);
         ?>
+        </div>
+        <div class="filter-line">
+        <?php
+        render_ms_dropdown('type', 'Tipe', 'onu_type', array_map(fn($t) => [$t, $t, $type_counts[$t] ?? 0], $available_types), $filter_type, true);
+        render_ms_dropdown('profile', 'Profile', 'profile', array_map(fn($p) => [$p, $p, $profile_counts[$p] ?? 0], $available_profiles), $filter_profile);
+        render_ms_dropdown('signal', 'Sinyal', 'signal', array_map(fn($k) => [$k, $signal_labels[$k], $signal_counts[$k] ?? 0], array_keys($signal_labels)), $filter_signal);
+        render_ms_dropdown('status', 'Status', 'status', array_map(fn($k) => [$k, $status_labels[$k], $status_counts[$k] ?? 0], array_keys($status_labels)), $status);
+        ?>
+        </div>
 
         <div class="filter-actions">
             <div class="filter-item">
