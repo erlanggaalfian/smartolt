@@ -295,10 +295,20 @@ body.light-mode .header-btn:hover {
 .filter-row { display: flex; gap: 10px 12px; flex-wrap: wrap; align-items: flex-end; }
 /* configured.php pakai grid supaya tiap field filter sejajar rapi (lebar & tinggi
    seragam per baris, tak seperti flex-wrap yg bisa miring antar baris) */
-.filter-row.filter-row--grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); align-items: stretch; }
+/* Grid filter: kolom tetap (bukan auto-fill) biar search(span2)+10 dropdown
+   = 12 slot selalu pas habis dibagi 4 kolom, tak ada dropdown menggantung
+   sendirian di baris terakhir. Responsif: 1 kol mobile, 2 kol tablet, 4 kol desktop. */
+.filter-row.filter-row--grid { display: grid; grid-template-columns: 1fr; align-items: stretch; }
 .filter-row--grid .filter-item { min-width: 0; display: flex; flex-direction: column; max-width: none; flex: none; }
 .filter-row--grid .filter-item--narrow { grid-column: span 1; }
-.filter-row--grid .search-item { grid-column: span 2; }
+.filter-row--grid .search-item { grid-column: span 1; }
+@media (min-width: 640px) {
+    .filter-row.filter-row--grid { grid-template-columns: repeat(2, 1fr); }
+    .filter-row--grid .search-item { grid-column: span 2; }
+}
+@media (min-width: 1024px) {
+    .filter-row.filter-row--grid { grid-template-columns: repeat(4, 1fr); }
+}
 .filter-item .form-group { margin-bottom: 0; }
 /* Fused label+input pill: label menyatu di kiri, tanpa border/gap terpisah */
 .filter-fused { display: flex; align-items: stretch; height: 40px; border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; background: var(--bg-primary); }
