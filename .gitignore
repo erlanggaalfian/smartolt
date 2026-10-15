@@ -6,7 +6,6 @@ backend/cron_sync.lock
 backend/last_config_sync.txt
 backend/cron_debug.log
 backend/python_engine/debug_cli.log
-
 backend/python_engine/pending_writes.json
 node_modules/
 .vscode/
@@ -14,6 +13,5 @@ node_modules/
 docs/screenshots/
 REVIEW.md
 *_manual_book.md
-
-*.sql
-*.bak
+*.log
+*.lock
