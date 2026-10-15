@@ -722,16 +722,16 @@ $onus = $stmt_data->fetchAll();
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th class="w-60 text-center" style="width:50px">Status</th>
-                        <th style="width:70px">Aksi</th>
-                        <th style="width:18%">Nama Pelanggan</th>
-                        <th style="width:11%">Serial Number</th>
-                        <th style="width:14%">Koneksi OLT & PON</th>
-                        <th style="width:6%">VLAN</th>
-                        <th style="width:13%">Nama ODP</th>
-                        <th style="width:13%">Zone</th>
-                        <th style="width:9%">Sinyal Rx ONU</th>
-                        <th style="width:9%">Sinyal Rx OLT</th>
+                        <th class="w-60 text-center" style="width:40px">Status</th>
+                        <th style="width:56px">Aksi</th>
+                        <th style="width:17%">Nama Pelanggan</th>
+                        <th style="width:10%">Serial Number</th>
+                        <th style="width:12%">Koneksi OLT & PON</th>
+                        <th class="text-center" style="width:5%">VLAN</th>
+                        <th style="width:16%">Nama ODP</th>
+                        <th style="width:12%">Zone</th>
+                        <th class="text-center" style="width:9%">Sinyal Rx ONU</th>
+                        <th class="text-center" style="width:9%">Sinyal Rx OLT</th>
                     </tr>
                 </thead>
                 <tbody class="motion-fade-in">
@@ -779,10 +779,10 @@ $onus = $stmt_data->fetchAll();
                                     <?php echo htmlspecialchars($onu['olt_name']); ?><br>
                                     PON <?php echo htmlspecialchars($onu['pon_port'] . ':' . $onu['onu_id']); ?>
                                 </td>
-                                <td class="vlan-cell"><?php echo htmlspecialchars($onu['vlan'] ?: '-'); ?></td>
+                                <td class="vlan-cell text-center"><?php echo htmlspecialchars($onu['vlan'] ?: '-'); ?></td>
                                 <td class="odp-cell"><?php echo htmlspecialchars($onu['splitter'] ?: '-'); ?></td>
                                 <td class="zone-cell"><?php echo htmlspecialchars($onu['zone'] ?: '-'); ?></td>
-                                <td class="signal-cell">
+                                <td class="signal-cell text-center">
                                     <?php if ($olt_offline): ?>
                                         <span class="text-muted">—</span>
                                     <?php elseif ($onu['status'] === 'online' && $onu['last_rx_power'] !== null): ?>
@@ -798,7 +798,7 @@ $onus = $stmt_data->fetchAll();
                                         <span class="badge bg-red">N/A</span>
                                     <?php endif; ?>
                                 </td>
-                                <td class="signal-olt-cell">
+                                <td class="signal-olt-cell text-center">
                                     <?php if ($olt_offline): ?>
                                         <span class="text-muted">—</span>
                                     <?php elseif ($onu['status'] === 'online' && $onu['last_rx_olt_power'] !== null): ?>
