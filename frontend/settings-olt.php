@@ -523,8 +523,7 @@ $olt_types = get_supported_olt_types();
             editSubmitBtn.classList.add('hidden');
             cancelEditBtn.classList.add('hidden');
         });
-
-
+    });
 </script>
 
 <?php require_once __DIR__ . '/footer.php'; ?>
