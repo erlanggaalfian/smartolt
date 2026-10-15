@@ -157,8 +157,8 @@ $olt_types = get_supported_olt_types();
              </div>
              <div class="modal-footer">
                  <button type="button" class="btn btn-secondary" id="btn-cancel-olt-modal">Batal</button>
-                 <button type="button" class="btn btn-warning" id="btn-verify-ssh">Verifikasi Koneksi SSH</button>
-                 <button type="submit" class="btn btn-success hidden" id="btn-submit-olt">Set SNMP & Simpan OLT</button>
+                 <button type="button" class="btn btn-warning" id="btn-verify-ssh">Cek Koneksi (Opsional)</button>
+                 <button type="submit" class="btn btn-success" id="btn-submit-olt">Simpan OLT</button>
              </div>
         </form>
     </div>
@@ -274,8 +274,7 @@ $olt_types = get_supported_olt_types();
             successBox.classList.add('hidden');
             loadingSpinner.classList.add('hidden');
             verifyBtn.classList.remove('hidden');
-            verifyBtn.textContent = 'Verifikasi Koneksi SSH';
-            submitBtn.classList.add('hidden');
+            verifyBtn.textContent = 'Cek Koneksi (Opsional)';
             cancelBtn.classList.remove('hidden');
             portLabel.textContent = 'Port SSH';
         };
@@ -346,8 +345,6 @@ $olt_types = get_supported_olt_types();
                 if (data.success) {
                     successBox.textContent = data.message;
                     successBox.classList.remove('hidden');
-                    verifyBtn.classList.add('hidden');
-                    submitBtn.classList.remove('hidden');
                 } else {
                     errorBox.textContent = data.message;
                     errorBox.classList.remove('hidden');
@@ -360,13 +357,14 @@ $olt_types = get_supported_olt_types();
             });
         });
 
-        // Submit form (Set SNMP & Save) logic
+        // Submit form: simpan OLT langsung (verifikasi SNMP/CLI jalan di
+        // background setelah ini, hasilnya muncul via toast - lihat di bawah),
+        // jadi form tak perlu menunggu proses CLI yang bisa berjarak detik-menit.
         form.addEventListener('submit', () => {
             errorBox.classList.add('hidden');
             successBox.classList.add('hidden');
-            loadingText.textContent = 'Sedang memproses provisi SNMP & menyimpan OLT...';
+            loadingText.textContent = 'Menyimpan OLT...';
             loadingSpinner.classList.remove('hidden');
-            submitBtn.classList.add('hidden');
             cancelBtn.classList.add('hidden');
         });
 

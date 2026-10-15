@@ -66,19 +66,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'snmp_community_rw' => $snmp_community_rw
     ];
 
-    // 1. Konfigurasi SNMP community baru di OLT — sintaks CLI ditentukan driver vendor.
-    $snmp_setup = setup_olt_snmp($olt, $snmp_community, $snmp_community_rw);
-    if (!$snmp_setup['success']) {
-        error_log("[SmartOLT] Gagal konfigurasi SNMP community: " . $snmp_setup['message']);
-    }
-
-    // 2. Tes Koneksi OLT (CLI & SNMP yang baru saja dikonfigurasi)
-    $test = check_olt_connection($olt);
-    if (!$test['success']) {
-        $_SESSION['error'] = "Gagal Verifikasi OLT: " . $test['message'];
-        header('Location: ../settings-olt.php');
-        exit;
-    }
+    // SNMP setup, verifikasi koneksi, dan sync speed profile dipindah ke
+    // background_provision_olt.php (lihat di bawah) — semua itu CLI yang bisa
+    // butuh detik-menit, dan form tak perlu menunggunya. OLT langsung disimpan
+    // dengan status "provisioning", hasil verifikasi menyusul via toast di frontend.
 
     try {
         $encrypted_password = encrypt_password($password);
@@ -97,30 +88,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exec(escapeshellarg($php_bin) . ' ' . $worker . ' ' . (int)$olt_id
             . ' > /dev/null 2>&1 &');
 
-        // Sinkronkan speed profile (Upload/Download) dari OLT ke cache lokal.
-        try {
-            $sp = get_olt_speed_profiles($olt);
-            if ($sp['success'] ?? false) {
-                $stmt_sp = $pdo->prepare("
-                    INSERT INTO speed_profiles (olt_id, direction, name, speed_kbps, onu_count, synced_at)
-                    VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-                    ON DUPLICATE KEY UPDATE
-                        speed_kbps = VALUES(speed_kbps),
-                        onu_count = VALUES(onu_count),
-                        synced_at = CURRENT_TIMESTAMP
-                ");
-                foreach (($sp['profiles'] ?? []) as $p) {
-                    $stmt_sp->execute([$olt_id, $p['direction'], $p['name'], $p['speed_kbps'], $p['onu_count'] ?? 0]);
-                }
-            }
-        } catch (Exception $e) {
-            error_log("[SmartOLT] Gagal sinkronisasi speed profile saat tambah OLT: " . $e->getMessage());
-        }
+        // Provisioning SNMP + verifikasi koneksi + speed profile — semuanya
+        // di background juga (lihat komentar di atas).
+        $provision_worker = escapeshellarg(__DIR__ . '/../../backend/background_provision_olt.php');
+        exec(escapeshellarg($php_bin) . ' ' . $provision_worker . ' ' . (int)$olt_id
+            . ' > /dev/null 2>&1 &');
 
         // Audit Log
-        write_audit_log($olt_id, 'OLT_ADD', "OLT {$name} ({$ip}) berhasil didaftarkan. SNMP RO '{$snmp_community}' dan RW '{$snmp_community_rw}' dikonfigurasi otomatis.");
+        write_audit_log($olt_id, 'OLT_ADD', "OLT {$name} ({$ip}) didaftarkan. SNMP RO '{$snmp_community}' dan RW '{$snmp_community_rw}' sedang dikonfigurasi di background.");
 
-        $_SESSION['success'] = "OLT {$name} ({$ip}) berhasil ditambahkan, dikonfigurasi SNMP, dan diverifikasi!";
+        $_SESSION['success'] = "OLT {$name} ({$ip}) berhasil ditambahkan! Verifikasi koneksi & konfigurasi SNMP sedang berjalan di background.";
+        $_SESSION['new_olt_id'] = $olt_id; // dibaca frontend untuk poll status verifikasi via toast
     } catch (PDOException $e) {
         if ($e->errorInfo[1] == 1062) {
             $_SESSION['error'] = "Kombinasi IP {$ip} + SSH port sudah terdaftar di sistem! Gunakan port SSH berbeda.";

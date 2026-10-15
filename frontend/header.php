@@ -46,7 +46,8 @@ if (in_array($current_page, ['settings-olt.php', 'settings-users.php', 'onu-type
 //    Tanpa ini, AJAX calls dari halaman yang sama nge-block menunggu lock → lambat.
 $_flash_success = $_SESSION['success'] ?? '';
 $_flash_error = $_SESSION['error'] ?? '';
-unset($_SESSION['success'], $_SESSION['error']);
+$_flash_new_olt_id = $_SESSION['new_olt_id'] ?? 0;
+unset($_SESSION['success'], $_SESSION['error'], $_SESSION['new_olt_id']);
 session_write_close();
 ?>
 <!DOCTYPE html>
@@ -247,3 +248,118 @@ session_write_close();
                         <span><?php echo htmlspecialchars($_flash_error); ?></span>
                     </div>
                 <?php endif; ?>
+
+<script>
+// Toast global non-blocking - dipakai lintas halaman untuk notifikasi
+// hasil proses background (verifikasi OLT, sync, dst) tanpa mengunci UI.
+if (typeof window.showToast !== 'function') {
+    window.showToast = function (message, type = 'info', duration = 5000) {
+        let container = document.getElementById('toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            container.setAttribute('role', 'status');
+            container.setAttribute('aria-live', 'polite');
+            container.style.cssText = 'position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;';
+            document.body.appendChild(container);
+        }
+
+        const esc = (v) => String(v ?? '')
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 0.875rem;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            pointer-events: auto;
+            animation: slideIn 0.3s ease forwards;
+            max-width: 350px;
+        `;
+
+        if (!document.getElementById('toast-animation-style')) {
+            const style = document.createElement('style');
+            style.id = 'toast-animation-style';
+            style.innerHTML = `
+                @keyframes slideIn {
+                    from { transform: translateY(-20px) scale(0.95); opacity: 0; }
+                    to { transform: translateY(0) scale(1); opacity: 1; }
+                }
+                @keyframes fadeOut {
+                    from { transform: translateY(0) scale(1); opacity: 1; }
+                    to { transform: translateY(-10px) scale(0.95); opacity: 0; }
+                }
+                @keyframes spin {
+                    to { transform: rotate(360deg); }
+                }
+                .spinner-small {
+                    width: 14px;
+                    height: 14px;
+                    border: 2px solid rgba(255, 255, 255, 0.3);
+                    border-top-color: #fff;
+                    border-radius: 50%;
+                    animation: spin 0.8s linear infinite;
+                    display: inline-block;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        if (type === 'info') {
+            toast.style.background = 'var(--bg-tertiary, #1e3a8a)';
+            toast.style.border = '1px solid var(--text-accent, #3081d1)';
+            toast.style.color = 'var(--text-main, #fff)';
+            toast.innerHTML = `<span class="spinner-small"></span> <span>${esc(message)}</span>`;
+        } else if (type === 'success') {
+            toast.style.background = 'var(--bg-tertiary, #064e3b)';
+            toast.style.border = '1px solid var(--color-success, #10b981)';
+            toast.style.color = 'var(--text-main, #fff)';
+            toast.innerHTML = `<span>${esc(message)}</span>`;
+        } else {
+            toast.style.background = 'var(--bg-tertiary, #7f1d1d)';
+            toast.style.border = '1px solid var(--color-danger, #ef4444)';
+            toast.style.color = 'var(--text-main, #fff)';
+            toast.innerHTML = `<span>${esc(message)}</span>`;
+        }
+
+        document.getElementById('toast-container').appendChild(toast);
+
+        if (duration > 0) {
+            setTimeout(() => {
+                toast.style.animation = 'fadeOut 0.5s ease forwards';
+                setTimeout(() => toast.remove(), 500);
+            }, duration);
+        }
+
+        return toast;
+    };
+}
+
+<?php if (!empty($_flash_new_olt_id)): ?>
+// Poll status verifikasi OLT yang baru ditambahkan (provisioning SNMP+CLI
+// berjalan di background sejak add-olt.php) - hasil muncul via toast, tidak
+// mengunci UI manapun selagi menunggu.
+(function () {
+    const oltId = <?php echo (int)$_flash_new_olt_id; ?>;
+    const t = window.showToast(`Memverifikasi koneksi OLT (ID ${oltId}) di background...`, 'info', 0);
+    fetch(`action/get-olt-health.php?id=${oltId}`)
+        .then(r => r.json())
+        .then(data => {
+            t.remove();
+            if (data.success) {
+                window.showToast(`OLT ID ${oltId} terverifikasi! SNMP: ${data.snmp_status}, CPU: ${data.cpu}`, 'success');
+            } else {
+                window.showToast(`OLT ID ${oltId} tersimpan, tapi verifikasi koneksi gagal: ${data.message}`, 'error', 8000);
+            }
+        })
+        .catch(() => { t.remove(); });
+})();
+<?php endif; ?>
+</script>
