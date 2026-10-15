@@ -172,69 +172,59 @@ $onus = $stmt_data->fetchAll();
             <input type="text" name="search" class="form-control" aria-label="Cari pelanggan" placeholder="Cari nama, SN, alamat, PPPoE, OLT, VLAN, splitter, zone..." value="<?php echo htmlspecialchars($search); ?>">
         </div>
         <div class="filter-item">
-            <select name="olt_id" class="form-control" aria-label="Filter OLT" onchange="this.closest('form').querySelectorAll('[name=zone],[name=odb],[name=pon_port]').forEach(i=>i.value='');this.closest('form').submit();">
-                <option value="" <?php echo $selected_olt_id === '' ? 'selected' : ''; ?>>Semua OLT</option>
-                <?php foreach ($olts as $olt): ?>
-                    <option value="<?php echo (int)$olt['id']; ?>" <?php echo ($selected_olt_id !== '' && $selected_olt_id == $olt['id']) ? 'selected' : ''; ?>>
-                        <?php echo htmlspecialchars($olt['name']); ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
+            <input type="text" name="olt_id" class="form-control" list="dl-olt" autocomplete="off" aria-label="Filter OLT" placeholder="🔍 Semua OLT" value="<?php echo $selected_olt_id !== '' ? htmlspecialchars(array_column($olts,'name','id')[$selected_olt_id] ?? $selected_olt_id) : ''; ?>" onchange="const v=this.value.trim();const m=Array.from(this.list.options).find(o=>o.label===v||o.value===v);this.closest('form').querySelectorAll('[name=zone],[name=odb],[name=pon_port]').forEach(i=>i.value='');this.value=m?m.value:(v?'':v);this.closest('form').submit();">
+            <datalist id="dl-olt">
+                <option value="">Semua OLT</option>
+                <?php foreach ($olts as $olt): ?><option value="<?php echo (int)$olt['id']; ?>" label="<?php echo htmlspecialchars($olt['name']); ?>"></option><?php endforeach; ?>
+            </datalist>
         </div>
         <div class="filter-item">
-            <select name="status" class="form-control" aria-label="Filter Status" onchange="this.form.submit()">
+            <input type="text" name="status" class="form-control" list="dl-status" autocomplete="off" aria-label="Filter Status" placeholder="🔍 Semua Status" value="<?php echo $status ? htmlspecialchars(['online'=>'Online','offline_power'=>'Offline - Power Down','offline_fiber'=>'Offline - Fiber Terputus','offline_other'=>'Offline - Lainnya','offline'=>'Offline - Semua','disabled'=>'Disabled'][$status] ?? $status) : ''; ?>" onchange="const v=this.value.trim();const t={'Online':'online','Offline - Power Down':'offline_power','Offline - Fiber Terputus':'offline_fiber','Offline - Lainnya':'offline_other','Offline - Semua':'offline','Disabled':'disabled'};this.value=v?(t[v]||v):'';this.form.submit();">
+            <datalist id="dl-status">
                 <option value="">Semua Status</option>
-                <option value="online" <?php echo $status === 'online' ? 'selected' : ''; ?>>Online</option>
-                <option value="offline_power" <?php echo $status === 'offline_power' ? 'selected' : ''; ?>>Offline - Power Down</option>
-                <option value="offline_fiber" <?php echo $status === 'offline_fiber' ? 'selected' : ''; ?>>Offline - Fiber Terputus</option>
-                <option value="offline_other" <?php echo $status === 'offline_other' ? 'selected' : ''; ?>>Offline - Lainnya</option>
-                <option value="offline" <?php echo $status === 'offline' ? 'selected' : ''; ?>>Offline - Semua</option>
-                <option value="disabled" <?php echo $status === 'disabled' ? 'selected' : ''; ?>>Disabled</option>
-            </select>
+                <?php foreach (['online'=>'Online','offline_power'=>'Offline - Power Down','offline_fiber'=>'Offline - Fiber Terputus','offline_other'=>'Offline - Lainnya','offline'=>'Offline - Semua','disabled'=>'Disabled'] as $v=>$l): ?><option value="<?php echo $l; ?>" label="<?php echo $l; ?>"></option><?php endforeach; ?>
+            </datalist>
         </div>
         <div class="filter-item">
-            <select name="zone" class="form-control" aria-label="Filter Zone" onchange="this.form.submit()">
+            <input type="text" name="zone" class="form-control" list="dl-zone" autocomplete="off" aria-label="Filter Zone" placeholder="🔍 Semua Zone" value="<?php echo htmlspecialchars($filter_zone); ?>" onchange="this.form.submit()">
+            <datalist id="dl-zone">
                 <option value="">Semua Zone</option>
-                <option value="None" <?php echo $filter_zone === 'None' ? 'selected' : ''; ?>>None (belum diisi)</option>
-                <?php foreach ($available_zones as $z): ?>
-                    <option value="<?php echo htmlspecialchars($z); ?>" <?php echo $filter_zone === $z ? 'selected' : ''; ?>><?php echo htmlspecialchars($z); ?></option>
-                <?php endforeach; ?>
-            </select>
+                <option value="None">None (belum diisi)</option>
+                <?php foreach ($available_zones as $z): ?><option value="<?php echo htmlspecialchars($z); ?>"><?php endforeach; ?>
+            </datalist>
         </div>
         <div class="filter-item">
-            <select name="odb" class="form-control" aria-label="Filter ODB" onchange="this.form.submit()">
+            <input type="text" name="odb" class="form-control" list="dl-odb" autocomplete="off" aria-label="Filter ODB" placeholder="🔍 Semua ODB" value="<?php echo htmlspecialchars($filter_odb); ?>" onchange="this.form.submit()">
+            <datalist id="dl-odb">
                 <option value="">Semua ODB</option>
-                <option value="None" <?php echo $filter_odb === 'None' ? 'selected' : ''; ?>>None (belum diisi)</option>
-                <?php foreach ($available_odbs as $o): ?>
-                    <option value="<?php echo htmlspecialchars($o); ?>" <?php echo $filter_odb === $o ? 'selected' : ''; ?>><?php echo htmlspecialchars($o); ?></option>
-                <?php endforeach; ?>
-            </select>
+                <option value="None">None (belum diisi)</option>
+                <?php foreach ($available_odbs as $o): ?><option value="<?php echo htmlspecialchars($o); ?>"><?php endforeach; ?>
+            </datalist>
         </div>
         <div class="filter-item">
-            <select name="pon_port" class="form-control" aria-label="Filter PON" onchange="this.form.submit()">
+            <input type="text" name="pon_port" class="form-control" list="dl-pon" autocomplete="off" aria-label="Filter PON" placeholder="🔍 Semua PON" value="<?php echo htmlspecialchars($filter_pon); ?>" onchange="this.form.submit()">
+            <datalist id="dl-pon">
                 <option value="">Semua PON</option>
-                <?php foreach ($available_pons as $p): ?>
-                    <option value="<?php echo htmlspecialchars($p); ?>" <?php echo $filter_pon === $p ? 'selected' : ''; ?>><?php echo htmlspecialchars($p); ?></option>
-                <?php endforeach; ?>
-            </select>
+                <?php foreach ($available_pons as $p): ?><option value="<?php echo htmlspecialchars($p); ?>"><?php endforeach; ?>
+            </datalist>
         </div>
 
         <div class="filter-item">
-            <select name="signal" class="form-control" aria-label="Filter Sinyal" onchange="this.form.submit()">
+            <input type="text" name="signal" class="form-control" list="dl-signal" autocomplete="off" aria-label="Filter Sinyal" placeholder="🔍 Semua Sinyal" value="<?php echo $filter_signal ? htmlspecialchars(['critical'=>'Sinyal Kritis','weak'=>'Sinyal Lemah','fair'=>'Sinyal Sedang','good'=>'Sinyal Bagus'][$filter_signal] ?? $filter_signal) : ''; ?>" onchange="const v=this.value.trim();const t={'Sinyal Kritis':'critical','Sinyal Lemah':'weak','Sinyal Sedang':'fair','Sinyal Bagus':'good'};this.value=v?(t[v]||v):'';this.form.submit();">
+            <datalist id="dl-signal">
                 <option value="">Semua Sinyal</option>
-                <option value="critical" <?php echo $filter_signal === 'critical' ? 'selected' : ''; ?>>Sinyal Kritis (&lt; -30 dBm)</option>
-                <option value="weak" <?php echo $filter_signal === 'weak' ? 'selected' : ''; ?>>Sinyal Lemah (-30 s/d -28)</option>
-                <option value="fair" <?php echo $filter_signal === 'fair' ? 'selected' : ''; ?>>Sinyal Sedang (-28 s/d -25)</option>
-                <option value="good" <?php echo $filter_signal === 'good' ? 'selected' : ''; ?>>Sinyal Bagus (&gt; -25 dBm)</option>
-            </select>
+                <option value="Sinyal Kritis">Sinyal Kritis (&lt; -30 dBm)</option>
+                <option value="Sinyal Lemah">Sinyal Lemah (-30 s/d -28)</option>
+                <option value="Sinyal Sedang">Sinyal Sedang (-28 s/d -25)</option>
+                <option value="Sinyal Bagus">Sinyal Bagus (&gt; -25 dBm)</option>
+            </datalist>
         </div>
         <div class="filter-item">
-            <select name="onu_type" class="form-control" aria-label="Filter Tipe ONU" onchange="this.form.submit()">
+            <input type="text" name="onu_type" class="form-control" list="dl-type" autocomplete="off" aria-label="Filter Tipe ONU" placeholder="🔍 Semua Tipe" value="<?php echo htmlspecialchars($filter_type); ?>" onchange="this.form.submit()">
+            <datalist id="dl-type">
                 <option value="">Semua Tipe</option>
-                <?php foreach ($available_types as $t): ?>
-                    <option value="<?php echo htmlspecialchars($t); ?>" <?php echo $filter_type === $t ? 'selected' : ''; ?>><?php echo htmlspecialchars($t); ?></option>
-                <?php endforeach; ?>
-            </select>
+                <?php foreach ($available_types as $t): ?><option value="<?php echo htmlspecialchars($t); ?>"><?php endforeach; ?>
+            </datalist>
         </div>
 
         <div class="filter-item">
