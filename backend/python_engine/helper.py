@@ -178,10 +178,14 @@ def log_debug_cli(ip: str, protocol: str, commands: list, raw_output: str, error
     except Exception:
         pass
 
-def execute_telnet_commands(ip: str, port: int, username: str, password: str, commands: list) -> str:
+def execute_telnet_commands(ip: str, port: int, username: str, password: str, commands: list, cmd_timeout: int = 20) -> str:
     """
     Connect to OLT via raw TCP socket and execute commands.
     This replicates the exact behavior of PHP fsockopen, avoiding Telnet Option Negotiation issues.
+
+    cmd_timeout: detik tunggu maksimal per command (default 20, cukup untuk health-check
+    singkat seperti show cpu/show temp). Caller yang perintahnya memang berat/panjang
+    (backup config, show running-config) boleh kirim nilai lebih besar.
     """
     login_log = ""
     try:
@@ -298,7 +302,7 @@ def execute_telnet_commands(ip: str, port: int, username: str, password: str, co
                 continue
             _drain(s)
             s.sendall(cmd_clean.encode('ascii') + b"\n")
-            res_text = read_until(s, [r'[#>]\s*$'], timeout=120)
+            res_text = read_until(s, [r'[#>]\s*$'], timeout=cmd_timeout)
             output += f"\nOLT# show {cmd_clean}\n"
             output += res_text + "\n"
 
@@ -310,9 +314,12 @@ def execute_telnet_commands(ip: str, port: int, username: str, password: str, co
         log_debug_cli(ip, 'TELNET', commands, login_log, err_msg)
         return err_msg
 
-def execute_ssh_commands(olt: dict, commands: list) -> str:
+def execute_ssh_commands(olt: dict, commands: list, cmd_timeout: int = 20) -> str:
     """
     Connect to OLT via SSH/Telnet and execute commands.
+
+    cmd_timeout: diteruskan ke execute_telnet_commands untuk jalur TELNET saja
+    (Netmiko/SSH punya timeout sendiri, tidak dipengaruhi parameter ini).
     """
     if 'write' in [c.strip().lower() for c in commands]:
         commands = _strip_write_commands(commands)
@@ -326,7 +333,7 @@ def execute_ssh_commands(olt: dict, commands: list) -> str:
 
     # Use custom telnet runner if protocol is TELNET to avoid negotiation issues
     if protocol == 'TELNET':
-        return execute_telnet_commands(ip, port, username, password, commands)
+        return execute_telnet_commands(ip, port, username, password, commands, cmd_timeout=cmd_timeout)
 
     olt_type_upper = str(olt.get('type', '')).upper()
     is_zte = 'ZTE' in olt_type_upper or 'C320' in olt_type_upper or 'C300' in olt_type_upper

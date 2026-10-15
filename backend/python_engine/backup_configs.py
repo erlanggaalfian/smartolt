@@ -42,10 +42,11 @@ def backup_olt(olt):
     if protocol == 'TELNET':
         raw = helper.execute_telnet_commands(
             olt['ip'], olt.get('ssh_port', 23),
-            olt['username'], olt['password'], commands
+            olt['username'], olt['password'], commands,
+            cmd_timeout=120  # show running-config bisa panjang, butuh waktu lebih dari default
         )
     else:
-        raw = helper.execute_ssh_commands(olt, commands)
+        raw = helper.execute_ssh_commands(olt, commands, cmd_timeout=120)
 
     if not raw or len(raw) < 100:
         log.warning(f"  Config too short ({len(raw or '')} chars), skipping.")

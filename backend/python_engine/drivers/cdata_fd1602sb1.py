@@ -527,7 +527,7 @@ class OltCdataFd1602sb1Driver(BaseDriver):
         interface_path = "/".join(parts[:-1]) if len(parts) >= 3 else pon_port
 
         if onu_id is None:
-            list_out = execute_ssh_commands(olt, ["enable", "show ont info all"])
+            list_out = execute_ssh_commands(olt, ["enable", "show ont info all"], cmd_timeout=60)
             # Parse free ID
             used_ids = []
             for line in list_out.split('\n'):
@@ -1045,7 +1045,7 @@ class OltCdataFd1602sb1Driver(BaseDriver):
                 ]
             }
 
-        raw = execute_ssh_commands(olt, ['enable', 'show ont info all'])
+        raw = execute_ssh_commands(olt, ['enable', 'show ont info all'], cmd_timeout=60)
         onus = []
         for line in raw.split('\n'):
             line = line.strip()
@@ -1108,7 +1108,7 @@ class OltCdataFd1602sb1Driver(BaseDriver):
         if is_demo_olt(olt):
             return self.pull_configured_onus(olt)
 
-        raw = execute_ssh_commands(olt, ['enable', 'show current-config'])
+        raw = execute_ssh_commands(olt, ['enable', 'show current-config'], cmd_timeout=90)
         onus = {}
         current_interface = ''
         
@@ -1205,7 +1205,7 @@ class OltCdataFd1602sb1Driver(BaseDriver):
         if is_demo_olt(olt):
             return {**empty, 'success': True, 'message': 'OLT demo, tidak ada config nyata.'}
 
-        raw = execute_ssh_commands(olt, ['enable', 'terminal length 0', 'show current-config'])
+        raw = execute_ssh_commands(olt, ['enable', 'terminal length 0', 'show current-config'], cmd_timeout=90)
         if not raw.strip():
             return {**empty, 'success': False, 'message': 'Konfigurasi OLT kosong / gagal dibaca.'}
 

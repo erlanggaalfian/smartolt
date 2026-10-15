@@ -1951,9 +1951,9 @@ class OltZteC300Driver(BaseDriver):
         if is_demo_olt(olt):
             return {**empty, 'success': True, 'message': 'OLT demo.'}
 
-        raw = execute_ssh_commands(olt, ['show running-config'])
+        raw = execute_ssh_commands(olt, ['show running-config'], cmd_timeout=90)
         if not raw or 'pon-onu-mng' not in raw:
-            raw_mng = execute_ssh_commands(olt, ['show onu running config all'])
+            raw_mng = execute_ssh_commands(olt, ['show onu running config all'], cmd_timeout=90)
             raw = (raw or '') + '\n' + (raw_mng or '')
         if not raw.strip():
             return {**empty, 'success': False, 'message': 'Running-config kosong.'}
@@ -2347,7 +2347,7 @@ class OltZteC300Driver(BaseDriver):
                 {'name': '5M', 'direction': 'download', 'speed_kbps': 3072, 'onu_count': 5},
             ]}
 
-        raw = strip_command_markers(execute_ssh_commands(olt, ['show running-config']))
+        raw = strip_command_markers(execute_ssh_commands(olt, ['show running-config'], cmd_timeout=90))
         err = detect_transport_error(raw)
         if err:
             return {'success': False, 'message': err, 'profiles': []}
