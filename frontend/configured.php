@@ -9,11 +9,15 @@ $olts = get_allowed_olts();
 $allowed_ids = array_map(function($o) { return (int)$o['id']; }, $olts);
 $allowed_ids_str = implode(',', $allowed_ids) ?: '0';
 
-$olt_id_raw = $_GET['olt_id'] ?? '';
-$selected_olt_id = ($olt_id_raw !== '' && $olt_id_raw !== null) ? (int)$olt_id_raw : '';
-if ($selected_olt_id !== '' && !has_olt_access($selected_olt_id)) {
-    $selected_olt_id = '';
+$olt_ids_raw = $_GET['olt_id'] ?? [];
+if (!is_array($olt_ids_raw)) $olt_ids_raw = $olt_id_raw !== '' ? [(int)$olt_id_raw] : [];
+$selected_olts = [];
+foreach ($olt_ids_raw as $oid) {
+    $oid = (int)$oid;
+    if ($oid > 0 && has_olt_access($oid)) $selected_olts[] = $oid;
 }
+$selected_olts = array_values(array_unique($selected_olts));
+$selected_olt_id = count($selected_olts) === 1 ? $selected_olts[0] : '';
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $status = isset($_GET['status']) ? $_GET['status'] : '';
 $filter_zone = isset($_GET['zone']) ? trim($_GET['zone']) : '';
@@ -21,24 +25,28 @@ $filter_odb  = isset($_GET['odb'])  ? trim($_GET['odb'])  : '';
 $filter_pon     = isset($_GET['pon_port']) ? trim($_GET['pon_port']) : '';
 $filter_signal  = isset($_GET['signal']) ? $_GET['signal'] : '';
 $filter_type    = isset($_GET['onu_type']) ? trim($_GET['onu_type']) : '';
+$filter_vlan    = isset($_GET['vlan'])     ? trim($_GET['vlan'])     : '';
+$filter_profile = isset($_GET['profile'])  ? trim($_GET['profile'])  : '';
 
 // Catatan: Sinkronisasi otomatis OLT kini dijalankan di latar belakang oleh cron job (backend/python_engine/cron_sync.py).
 // Halaman ini memuat data secara instan dari database lokal MySQL.
 
 // Ambil daftar Zone, ODB, & PON unik dari database untuk dropdown
-if ($selected_olt_id !== '') {
-    $zone_query_base = "SELECT DISTINCT zone FROM onus WHERE olt_id = " . (int)$selected_olt_id . " AND zone IS NOT NULL AND zone != ''";
-    $odb_query_base  = "SELECT DISTINCT splitter FROM onus WHERE olt_id = " . (int)$selected_olt_id . " AND splitter IS NOT NULL AND splitter != ''";
-    $pon_query_base  = "SELECT DISTINCT pon_port FROM onus WHERE olt_id = " . (int)$selected_olt_id . " AND pon_port IS NOT NULL AND pon_port != ''";
+if (!empty($selected_olts)) {
+    $olt_filter_in = implode(',', $selected_olts);
 } else {
-    $zone_query_base = "SELECT DISTINCT zone FROM onus WHERE olt_id IN ($allowed_ids_str) AND zone IS NOT NULL AND zone != ''";
-    $odb_query_base  = "SELECT DISTINCT splitter FROM onus WHERE olt_id IN ($allowed_ids_str) AND splitter IS NOT NULL AND splitter != ''";
-    $pon_query_base  = "SELECT DISTINCT pon_port FROM onus WHERE olt_id IN ($allowed_ids_str) AND pon_port IS NOT NULL AND pon_port != ''";
+    $olt_filter_in = $allowed_ids_str;
 }
+$zone_query_base = "SELECT DISTINCT zone FROM onus WHERE olt_id IN ($olt_filter_in) AND zone IS NOT NULL AND zone != ''";
+$odb_query_base  = "SELECT DISTINCT splitter FROM onus WHERE olt_id IN ($olt_filter_in) AND splitter IS NOT NULL AND splitter != ''";
+$pon_query_base  = "SELECT DISTINCT pon_port FROM onus WHERE olt_id IN ($olt_filter_in) AND pon_port IS NOT NULL AND pon_port != ''";
 $available_zones = $pdo->query($zone_query_base . " ORDER BY zone ASC")->fetchAll(PDO::FETCH_COLUMN);
 $available_odbs  = $pdo->query($odb_query_base  . " ORDER BY splitter ASC")->fetchAll(PDO::FETCH_COLUMN);
 $available_pons  = $pdo->query($pon_query_base  . " ORDER BY pon_port ASC")->fetchAll(PDO::FETCH_COLUMN);
-$available_types = $pdo->query("SELECT DISTINCT onu_type FROM onus WHERE onu_type IS NOT NULL AND onu_type != ''" . ($selected_olt_id !== '' ? " AND olt_id = " . (int)$selected_olt_id : " AND olt_id IN ($allowed_ids_str)") . " ORDER BY onu_type ASC")->fetchAll(PDO::FETCH_COLUMN);
+$available_types = $pdo->query("SELECT DISTINCT onu_type FROM onus WHERE onu_type IS NOT NULL AND onu_type != '' AND olt_id IN ($olt_filter_in) ORDER BY onu_type ASC")->fetchAll(PDO::FETCH_COLUMN);
+$available_vlans = $pdo->query("SELECT DISTINCT vlan FROM onus WHERE vlan IS NOT NULL AND vlan != '' AND olt_id IN ($olt_filter_in) ORDER BY vlan ASC")->fetchAll(PDO::FETCH_COLUMN);
+$available_profiles = $pdo->query("SELECT DISTINCT download_profile FROM onus WHERE download_profile IS NOT NULL AND download_profile != '' AND olt_id IN ($olt_filter_in) ORDER BY download_profile ASC")->fetchAll(PDO::FETCH_COLUMN);
+$olt_counts = $pdo->query("SELECT olt_id, COUNT(*) as cnt FROM onus WHERE olt_id IN ($allowed_ids_str) GROUP BY olt_id")->fetchAll(PDO::FETCH_KEY_PAIR);
 
 // Pagination limit logic (default to 100)
 $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 100;
@@ -56,9 +64,10 @@ if ($search !== '') {
     $filter_sql .= " AND (onus.name LIKE ? OR onus.serial_number LIKE ? OR onus.onu_id LIKE ? OR onus.pppoe_username LIKE ? OR onus.address LIKE ? OR onus.description LIKE ? OR onus.external_id LIKE ? OR onus.contact LIKE ? OR olts.name LIKE ? OR olts.ip LIKE ? OR onus.vlan LIKE ? OR onus.pon_port LIKE ? OR onus.wan_mode LIKE ? OR onus.onu_type LIKE ? OR onus.last_down_cause LIKE ? OR onus.splitter LIKE ? OR onus.zone LIKE ? OR onus.download_profile LIKE ? OR onus.upload_profile LIKE ? OR onus.config_preset LIKE ? OR onus.mgmt_ip LIKE ? OR onus.odb_port LIKE ? OR onus.pppoe_ip LIKE ?)";
     for ($i = 0; $i < 23; $i++) $params[] = "%{$search}%";
 }
-if ($selected_olt_id !== '') {
-    $filter_sql .= " AND onus.olt_id = ?";
-    $params[] = $selected_olt_id;
+if (!empty($selected_olts)) {
+    $ph = implode(',', array_fill(0, count($selected_olts), '?'));
+    $filter_sql .= " AND onus.olt_id IN ($ph)";
+    foreach ($selected_olts as $oid) $params[] = $oid;
 } else {
     $filter_sql .= " AND onus.olt_id IN ($allowed_ids_str)";
 }
@@ -108,6 +117,14 @@ if ($filter_signal !== '') {
 if ($filter_type !== '') {
     $filter_sql .= " AND onus.onu_type = ?";
     $params[] = $filter_type;
+}
+if ($filter_vlan !== '') {
+    $filter_sql .= " AND onus.vlan = ?";
+    $params[] = $filter_vlan;
+}
+if ($filter_profile !== '') {
+    $filter_sql .= " AND onus.download_profile = ?";
+    $params[] = $filter_profile;
 }
 // Simpan filter TANPA kondisi status untuk stats summary (Online/Offline/Disabled count).
 // Harus diambil SETELAH zone/odb/pon/signal filter tapi SEBELUM status filter.
@@ -168,15 +185,37 @@ $onus = $stmt_data->fetchAll();
 <div class="filter-panel">
     <form method="GET" id="form-filter" action="configured.php" class="filter-row form-inline">
         <input type="hidden" name="limit" id="filter-limit" value="<?php echo $limit; ?>">
+        <script>
+        (function(){
+            document.addEventListener('click',e=>{document.querySelectorAll('.ms-dropdown.open').forEach(d=>{if(!d.contains(e.target))d.classList.remove('open')})});
+            document.querySelectorAll('.ms-dropdown').forEach(dd=>{
+                const btn=dd.querySelector('.ms-btn .ms-label');
+                const cbs=dd.querySelectorAll('input[type=checkbox]');
+                function upd(){const n=Array.from(cbs).filter(c=>c.checked).length;btn.textContent=n?n+' dipilih':'🔍 Semua';}
+                cbs.forEach(c=>c.addEventListener('change',upd));upd();
+            });
+        })();
+        </script>
         <div class="filter-item search-item">
             <input type="text" name="search" class="form-control" aria-label="Cari pelanggan" placeholder="Cari nama, SN, alamat, PPPoE, OLT, VLAN, splitter, zone..." value="<?php echo htmlspecialchars($search); ?>">
         </div>
-        <div class="filter-item">
-            <input type="text" name="olt_id" class="form-control" list="dl-olt" autocomplete="off" aria-label="Filter OLT" placeholder="🔍 Semua OLT" value="<?php echo $selected_olt_id !== '' ? htmlspecialchars(array_column($olts,'name','id')[$selected_olt_id] ?? $selected_olt_id) : ''; ?>" onchange="const v=this.value.trim();const m=Array.from(this.list.options).find(o=>o.label===v||o.value===v);this.closest('form').querySelectorAll('[name=zone],[name=odb],[name=pon_port]').forEach(i=>i.value='');this.value=m?m.value:(v?'':v);this.closest('form').submit();">
-            <datalist id="dl-olt">
-                <option value="">Semua OLT</option>
-                <?php foreach ($olts as $olt): ?><option value="<?php echo (int)$olt['id']; ?>" label="<?php echo htmlspecialchars($olt['name']); ?>"></option><?php endforeach; ?>
-            </datalist>
+        <div class="filter-item ms-dropdown" id="ms-olt">
+            <button type="button" class="form-control ms-btn" onclick="this.closest('.ms-dropdown').classList.toggle('open')">
+                <span class="ms-label">🔍 Semua OLT</span>
+                <span class="ms-caret">▾</span>
+            </button>
+            <div class="ms-panel">
+                <input type="text" class="form-control ms-search" placeholder="Cari OLT..." oninput="const q=this.value.toLowerCase();this.closest('.ms-panel').querySelectorAll('.ms-opt').forEach(o=>{o.style.display=o.textContent.toLowerCase().includes(q)?'':'none'})">
+                <div class="ms-list">
+                    <?php foreach ($olts as $olt): ?>
+                    <label class="ms-opt checkbox-row">
+                        <input type="checkbox" name="olt_id[]" value="<?php echo (int)$olt['id']; ?>" <?php echo in_array((int)$olt['id'], $selected_olts) ? 'checked' : ''; ?>>
+                        <span><?php echo htmlspecialchars($olt['name']); ?> <span class="text-muted">(<?php echo (int)($olt_counts[$olt['id']] ?? 0); ?>)</span></span>
+                    </label>
+                    <?php endforeach; ?>
+                </div>
+                <button type="submit" class="btn btn-primary btn-xs ms-apply">Terapkan</button>
+            </div>
         </div>
         <div class="filter-item">
             <input type="text" name="status" class="form-control" list="dl-status" autocomplete="off" aria-label="Filter Status" placeholder="🔍 Semua Status" value="<?php echo $status ? htmlspecialchars(['online'=>'Online','offline_power'=>'Offline - Power Down','offline_fiber'=>'Offline - Fiber Terputus','offline_other'=>'Offline - Lainnya','offline'=>'Offline - Semua','disabled'=>'Disabled'][$status] ?? $status) : ''; ?>" onchange="const v=this.value.trim();const t={'Online':'online','Offline - Power Down':'offline_power','Offline - Fiber Terputus':'offline_fiber','Offline - Lainnya':'offline_other','Offline - Semua':'offline','Disabled':'disabled'};this.value=v?(t[v]||v):'';this.form.submit();">
@@ -226,22 +265,36 @@ $onus = $stmt_data->fetchAll();
                 <?php foreach ($available_types as $t): ?><option value="<?php echo htmlspecialchars($t); ?>"><?php endforeach; ?>
             </datalist>
         </div>
+        <div class="filter-item">
+            <input type="text" name="vlan" class="form-control" list="dl-vlan" autocomplete="off" aria-label="Filter VLAN" placeholder="🔍 Semua VLAN" value="<?php echo htmlspecialchars($filter_vlan); ?>" onchange="this.form.submit()">
+            <datalist id="dl-vlan">
+                <option value="">Semua VLAN</option>
+                <?php foreach ($available_vlans as $v): ?><option value="<?php echo htmlspecialchars($v); ?>"><?php endforeach; ?>
+            </datalist>
+        </div>
+        <div class="filter-item">
+            <input type="text" name="profile" class="form-control" list="dl-profile" autocomplete="off" aria-label="Filter Profile" placeholder="🔍 Semua Profile" value="<?php echo htmlspecialchars($filter_profile); ?>" onchange="this.form.submit()">
+            <datalist id="dl-profile">
+                <option value="">Semua Profile</option>
+                <?php foreach ($available_profiles as $p): ?><option value="<?php echo htmlspecialchars($p); ?>"><?php endforeach; ?>
+            </datalist>
+        </div>
 
         <div class="filter-item">
             <button type="submit" class="btn btn-primary btn-block">
                 <i data-lucide="filter"></i> Filter
             </button>
         </div>
-        <?php if (!empty($filter_zone) || !empty($filter_odb) || !empty($filter_pon) || !empty($search) || !empty($status) || !empty($filter_signal) || !empty($filter_type) || $limit !== 100): ?>
+        <?php if (!empty($filter_zone) || !empty($filter_odb) || !empty($filter_pon) || !empty($search) || !empty($status) || !empty($filter_signal) || !empty($filter_type) || !empty($filter_vlan) || !empty($filter_profile) || $limit !== 100): ?>
         <div class="filter-item">
-            <a href="configured.php?olt_id=<?php echo htmlspecialchars($selected_olt_id); ?>" class="btn btn-outline">
+            <a href="configured.php" class="btn btn-outline">
                 <i data-lucide="x"></i> Reset
             </a>
         </div>
         <?php endif; ?>
         <div class="filter-item">
             <a href="action/export-csv.php?<?php echo http_build_query(array_filter([
-                'olt_id' => $selected_olt_id ?: null,
+                'olt_id' => !empty($selected_olts) ? $selected_olts : null,
                 'search' => $search ?: null,
                 'status' => $status ?: null,
                 'zone' => $filter_zone ?: null,
@@ -249,11 +302,13 @@ $onus = $stmt_data->fetchAll();
                 'pon_port' => $filter_pon ?: null,
                 'signal' => $filter_signal ?: null,
                 'onu_type' => $filter_type ?: null,
+                'vlan' => $filter_vlan ?: null,
+                'profile' => $filter_profile ?: null,
             ], fn($v) => $v !== null && $v !== '')); ?>" class="btn btn-outline" title="Download CSV dengan filter saat ini">
                 <i data-lucide="download"></i> CSV
             </a>
         </div>
-        <?php if (!empty($selected_olt_id)): ?>
+        <?php if (!empty($selected_olts)): ?>
         <div class="filter-item inline-flex-center">
             <button type="button" class="btn btn-xs btn-warning" id="btn-sync-pelanggan" onclick="triggerSyncPelanggan(event)">
                 <i data-lucide="refresh-cw" class="icon-xs"></i> Sync Pelanggan
@@ -438,7 +493,7 @@ $onus = $stmt_data->fetchAll();
 
                     // Update stats cards from full ONU dataset (only when no extra filters active)
                     // get-signals-db.php returns full OLT data, not filtered subset
-                    const hasExtraFilters = <?php echo ($search !== '' || !empty($filter_zone) || !empty($filter_odb) || !empty($filter_pon) || !empty($filter_signal) || !empty($filter_type) || $status !== '') ? 'true' : 'false'; ?>;
+                    const hasExtraFilters = <?php echo ($search !== '' || !empty($filter_zone) || !empty($filter_odb) || !empty($filter_pon) || !empty($filter_signal) || !empty($filter_type) || !empty($filter_vlan) || !empty($filter_profile) || !empty($selected_olts) || $status !== '') ? 'true' : 'false'; ?>;
                     if (!hasExtraFilters) {
                         const statusCounts = { online: 0, offline: 0, disabled: 0 };
                         data.onus.forEach(o => {
@@ -745,7 +800,7 @@ $onus = $stmt_data->fetchAll();
         <?php if ($total_pages > 1): ?>
             <?php
             $link_params = [
-                'olt_id' => $selected_olt_id,
+                'olt_id' => $selected_olts ?: null,
                 'search' => $search,
                 'status' => $status,
                 'zone' => $filter_zone,
