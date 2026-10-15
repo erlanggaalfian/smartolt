@@ -18,7 +18,7 @@ $all_olts = get_allowed_olts();
 </div>
 
 <div class="content-card">
-    <div class="card-header border-accent">
+    <div class="card-header card-header--seamless">
         <h1 id="page-title">Manajemen User &amp; Hak Akses</h1>
     </div>
     <div class="card-body">

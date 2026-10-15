@@ -93,7 +93,7 @@ unset($_SESSION['success']);
 </div>
 
 <div class="content-card">
-    <div class="card-header border-accent">
+    <div class="card-header card-header--seamless">
         <h1 id="page-title">Audit Logs Aktivitas Sistem</h1>
         <span class="text-muted fs-sm"><?php echo number_format($total_items); ?> total</span>
     </div>

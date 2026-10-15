@@ -32,7 +32,7 @@ $olt_types = get_supported_olt_types();
 </div>
 
 <div class="content-card">
-    <div class="card-header border-accent">
+    <div class="card-header card-header--seamless">
         <h1 id="page-title">Daftar Management OLT</h1>
     </div>
     <div class="card-body">

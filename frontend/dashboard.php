@@ -95,7 +95,7 @@ $logs = $pdo->query("SELECT l.*, o.name as olt_name FROM logs l LEFT JOIN olts o
 <div class="content-row">
     <!-- Tabel Ringkasan OLT -->
     <div class="content-card col-8">
-        <div class="card-header border-accent">
+        <div class="card-header card-header--seamless">
             <h1 id="page-title">Ringkasan OLT Terdaftar</h1>
         </div>
         <div class="card-body">

@@ -52,7 +52,7 @@ $board_port_display = count($pon_parts) === 3 ? "Shelf {$pon_parts[0]} / Slot {$
 </style>
 
 <div class="content-card">
-    <div class="card-header border-accent">
+    <div class="card-header card-header--seamless">
         <h1 id="page-title">Otorisasi Pelanggan Baru <span class="fw-400 text-muted title-suffix">(<?php echo htmlspecialchars($olt['name']); ?>)</span></h1>
     </div>
     <div class="card-body">
