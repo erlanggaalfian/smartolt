@@ -6,14 +6,6 @@
 // ==============================================================================
 
 /**
- * Format nama pelanggan untuk TAMPILAN SAJA — ganti underscore jadi spasi.
- * Data mentah di database TIDAK diubah; panggil ini di setiap titik echo/output nama.
- */
-function display_name(?string $name): string {
-    return trim(str_replace('_', ' ', (string)$name));
-}
-
-/**
  * Memuat variabel dari berkas .env ke dalam environment PHP.
  */
 function load_env(string $path): void {

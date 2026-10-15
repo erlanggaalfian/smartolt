@@ -287,7 +287,7 @@ if ($tr069_dev_id && ($onu['wan_mode'] ?? '') === 'PPPoE' && ($status ?? '') !==
 echo json_encode([
     'success'           => true,
     'status'            => $onu['status'],
-    'name'              => display_name($onu['name']),
+    'name'              => $onu['name'],
     'serial_number'     => $onu['serial_number'],
     'pon_port'          => $onu['pon_port'],
     'onu_id'            => $onu['onu_id'],

@@ -368,7 +368,7 @@ include __DIR__ . '/header.php';
                     <div id="edit-routes-container">
                         <?php foreach ($edit_routes as $r): ?>
                             <div class="inline-flex-center mb-1">
-                                <input type="text" name="routes[]" class="form-control flex-1" value="<?= htmlspecialchars($r) ?>" placeholder="192.168.1.0/24">
+                                <input type="text" name="routes[]" class="form-control" value="<?= htmlspecialchars($r) ?>" placeholder="192.168.1.0/24" class="flex-1">
                                 <button type="button" class="btn btn-xs btn-outline text-danger btn-x" onclick="this.parentElement.remove()">×</button>
                             </div>
                         <?php endforeach; ?>

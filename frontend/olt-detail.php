@@ -469,7 +469,7 @@ a.btn { text-decoration: none; }
             <?php else: ?>
                 <?php foreach ($onus as $o): ?>
                 <tr>
-                    <td><?php echo htmlspecialchars(display_name($o['name'])); ?></td>
+                    <td><?php echo htmlspecialchars($o['name']); ?></td>
                     <td><code class="fs-xs"><?php echo htmlspecialchars($o['serial_number']); ?></code></td>
                     <td class="mono fs-sm"><?php echo htmlspecialchars($o['pon_port']); ?>:<?php echo htmlspecialchars($o['onu_id']); ?></td>
                     <td><?php echo $o['zone'] ? '<span class="chip chip-purple">'.htmlspecialchars($o['zone']).'</span>' : '<span class="text-muted">-</span>'; ?></td>

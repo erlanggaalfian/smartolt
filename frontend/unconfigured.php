@@ -40,7 +40,7 @@ if (!in_array($limit, [20, 50, 100, 200])) $limit = 100;
 <?php else: ?>
     <div id="autofind-olt-sections">
         <?php foreach ($olts as $olt): ?>
-            <div class="content-card autofind-olt-section mb-4" data-olt-id="<?php echo (int)$olt['id']; ?>">
+            <div class="content-card autofind-olt-section" data-olt-id="<?php echo (int)$olt['id']; ?>" class="mb-4">
                 <div class="card-header border-accent">
                     <h2><?php echo htmlspecialchars($olt['name']); ?></h2>
                 </div>

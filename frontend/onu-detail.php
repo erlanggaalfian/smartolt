@@ -124,7 +124,7 @@ $parsed_desc = [
     'contact' => $onu['contact'] ?: 'None',
     'external_id' => $onu['external_id'] ?: null,
     'auth_date' => null,
-    'clean_name' => display_name($onu['name'])
+    'clean_name' => $onu['name']
 ];
 
 // Fallback: HANYA jika kolom DB kosong (data lama belum pernah di-sync ulang),
@@ -3993,7 +3993,7 @@ $tr069_profiles = tr069_get_profiles($pdo);
                 
                 <div class="form-group">
                     <label>Serial Number Lama</label>
-                    <input type="text" class="modal-input form-control form-control--mono" value="<?php echo htmlspecialchars($onu['serial_number']); ?>" readonly>
+                    <input type="text" class="modal-input" value="<?php echo htmlspecialchars($onu['serial_number']); ?>" readonly class="form-control form-control--mono">
                 </div>
                 
                 <div class="form-group">
