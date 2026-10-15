@@ -643,16 +643,16 @@ $onus = $stmt_data->fetchAll();
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th class="w-60 text-center">Status</th>
-                        <th>Aksi</th>
-                        <th>Nama Pelanggan</th>
-                        <th>Serial Number</th>
-                        <th>Koneksi OLT & PON</th>
-                        <th>VLAN</th>
-                        <th>Nama ODP</th>
-                        <th>Zone</th>
-                        <th>Sinyal Rx ONU</th>
-                        <th>Sinyal Rx OLT</th>
+                        <th class="w-60 text-center" style="width:50px">Status</th>
+                        <th style="width:70px">Aksi</th>
+                        <th style="width:18%">Nama Pelanggan</th>
+                        <th style="width:11%">Serial Number</th>
+                        <th style="width:14%">Koneksi OLT & PON</th>
+                        <th style="width:6%">VLAN</th>
+                        <th style="width:13%">Nama ODP</th>
+                        <th style="width:13%">Zone</th>
+                        <th style="width:9%">Sinyal Rx ONU</th>
+                        <th style="width:9%">Sinyal Rx OLT</th>
                     </tr>
                 </thead>
                 <tbody class="motion-fade-in">
