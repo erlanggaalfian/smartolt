@@ -49,7 +49,7 @@ def main():
                 conn3 = db.get_db_connection()
                 db_map = {}
                 with conn3.cursor() as c3:
-                    c3.execute("SELECT id, pon_port, onu_id, serial_number, name, description, last_down_cause FROM onus WHERE olt_id = %s", (olt['id'],))
+                    c3.execute("SELECT id, pon_port, onu_id, serial_number, name, description, last_down_cause, zone, splitter, address, contact FROM onus WHERE olt_id = %s", (olt['id'],))
                     for r in c3.fetchall():
                         db_map[(r['pon_port'], r['onu_id'])] = r
 
@@ -86,6 +86,25 @@ def main():
                     if onu.get('desc') and onu['desc'] != db_desc:
                         set_parts.append('description = %s')
                         vals.append(onu['desc'])
+                    # Parse zone/splitter/address/contact dari description terstruktur
+                    # (format sama dgn CLI-sync), independen dari perubahan description
+                    # itu sendiri - OLT seperti NGD yang CLI-nya sering connection-reset
+                    # bisa sudah punya description benar tapi zone/splitter masih NULL
+                    # karena belum pernah lolos parsing (dulu cuma CLI-sync yang parse).
+                    if onu.get('desc'):
+                        parsed = db.parse_structured_description(onu['desc'])
+                        if parsed['zone'] and parsed['zone'] != db_row.get('zone'):
+                            set_parts.append('zone = %s')
+                            vals.append(parsed['zone'])
+                        if parsed['splitter'] and parsed['splitter'] != db_row.get('splitter'):
+                            set_parts.append('splitter = %s')
+                            vals.append(parsed['splitter'])
+                        if parsed['address'] and parsed['address'] != db_row.get('address'):
+                            set_parts.append('address = %s')
+                            vals.append(parsed['address'])
+                        if parsed['contact'] and parsed['contact'] != db_row.get('contact'):
+                            set_parts.append('contact = %s')
+                            vals.append(parsed['contact'])
                     # down_cause=0 ('Normal') / None -> tak sedang down, clear.
                     cause_label = onu.get('down_cause_label')
                     new_cause = cause_label if onu.get('down_cause') else None
