@@ -216,6 +216,7 @@ session_write_close();
                                 <button type="button" class="btn btn-success" onclick="document.getElementById('debug-log-modal').style.display='none'">Close</button>
                             </div>
                         </div>
+                    </div>
                     <script>
                         // ESC key closer for debug modal
                         document.addEventListener('keydown', function(e) {
