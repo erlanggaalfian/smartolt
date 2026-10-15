@@ -15,3 +15,4 @@ REVIEW.md
 *_manual_book.md
 *.log
 *.lock
+smartolt_db_backup_*.sql
