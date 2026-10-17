@@ -289,11 +289,11 @@ $onus = $stmt_data->fetchAll();
         render_ms_dropdown('port', 'Port', 'port', array_map(fn($p) => [$p, $p, $port_counts[$p] ?? 0], $available_ports), $filter_port, true);
         render_ms_dropdown('zone', 'Zone', 'zone', array_merge([['None', 'None (belum diisi)', $zone_counts['None'] ?? 0]], array_map(fn($z) => [$z, $z, $zone_counts[$z] ?? 0], $available_zones)), $filter_zone);
         render_ms_dropdown('odb', 'Splitter', 'odb', array_merge([['None', 'None (belum diisi)', $odb_counts['None'] ?? 0]], array_map(fn($o) => [$o, $o, $odb_counts[$o] ?? 0], $available_odbs)), $filter_odb);
-        render_ms_dropdown('vlan', 'VLAN', 'vlan', array_map(fn($v) => [$v, $v, $vlan_counts[$v] ?? 0], $available_vlans), $filter_vlan, true);
         ?>
         </div>
         <div class="filter-line">
         <?php
+        render_ms_dropdown('vlan', 'VLAN', 'vlan', array_map(fn($v) => [$v, $v, $vlan_counts[$v] ?? 0], $available_vlans), $filter_vlan, true);
         render_ms_dropdown('type', 'Tipe', 'onu_type', array_map(fn($t) => [$t, $t, $type_counts[$t] ?? 0], $available_types), $filter_type, true);
         render_ms_dropdown('profile', 'Profile', 'profile', array_map(fn($p) => [$p, $p, $profile_counts[$p] ?? 0], $available_profiles), $filter_profile);
         render_ms_dropdown('signal', 'Sinyal', 'signal', array_map(fn($k) => [$k, $signal_labels[$k], $signal_counts[$k] ?? 0], array_keys($signal_labels)), $filter_signal);
