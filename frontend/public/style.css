@@ -275,9 +275,9 @@ html.light-mode .header-btn:hover, body.light-mode .header-btn:hover { backgroun
 /* configured.php: kotak luar filter+tabel dibuat transparan (tanpa bg/border/
    shadow) atas permintaan user, isi (input, tabel) tetap tampil normal. */
 .filter-panel--transparent { background: transparent; border: none; box-shadow: none; padding: 0; margin-bottom: 16px; }
-.content-card--transparent { background: transparent; border: none; box-shadow: none; }
-.content-card--transparent .card-header { background: transparent; padding-left: 0; padding-right: 0; }
-.content-card--transparent .card-body { padding-left: 0; padding-right: 0; }
+.content-card--transparent { background: transparent; border: 1px solid var(--border-color); box-shadow: none; }
+.content-card--transparent .card-header { background: transparent; padding-left: 20px; padding-right: 20px; }
+.content-card--transparent .card-body { padding-left: 20px; padding-right: 20px; }
 .filter-row { display: flex; gap: 10px 12px; flex-wrap: wrap; align-items: flex-end; }
 /* configured.php: compact flexbox, label DI LUAR box (bukan fused di dalam),
    lebar tiap dropdown pas isi (bukan grid full-width) - mencegah mekar/gemuk */
