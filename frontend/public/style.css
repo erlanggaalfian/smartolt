@@ -275,7 +275,7 @@ html.light-mode .header-btn:hover, body.light-mode .header-btn:hover { backgroun
 /* configured.php: compact flexbox, label DI LUAR box (bukan fused di dalam),
    lebar tiap dropdown pas isi (bukan grid full-width) - mencegah mekar/gemuk */
 .filter-row.filter-row--grid { display: flex; flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 10px; }
-.filter-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.filter-line { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
 .filter-row--grid .filter-item { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
 .filter-label-outside { font-size: 13px; font-weight: 600; color: var(--text-main); white-space: nowrap; }
 .filter-row--grid .search-item input { width: 210px; }
