@@ -258,6 +258,7 @@ html.light-mode .header-btn:hover, body.light-mode .header-btn:hover { backgroun
 .data-table .btn-detail { padding: 4px 10px; font-size: 12px; border-radius: 6px; background: none; border: 1px solid var(--border-color); color: var(--text-muted); cursor: pointer; transition: var(--transition-fast); font-weight: 500; }
 .data-table .btn-detail:hover { border-color: var(--text-accent); color: var(--text-accent); background: var(--text-accent-glow); }
 .data-table .btn-xs { white-space: nowrap; min-width: 84px; border-radius: 999px; }
+.data-table .num { font-variant-numeric: tabular-nums; font-family: var(--font-mono, 'Courier New', monospace); }
 .badge { padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; transition: transform var(--duration-micro) var(--ease-out); }
 .bg-green { background-color: var(--tint-success); color: var(--color-success); border: 1px solid var(--color-success); }
 .bg-red { background-color: var(--tint-danger); color: var(--color-danger); border: 1px solid var(--color-danger); }

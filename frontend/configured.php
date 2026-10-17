@@ -419,9 +419,9 @@ $onus = $stmt_data->fetchAll();
                         const statusCell = row.querySelector('.status-cell');
                         if (statusCell) {
                             if (onu.status === 'online') {
-                                statusCell.innerHTML = `<span class="status-icon-badge icon-green" title="Online"><i data-lucide="globe"></i></span>`;
+                                statusCell.innerHTML = `<span class="status-icon-badge icon-green" role="img" aria-label="Online" title="Online"><i data-lucide="globe"></i></span>`;
                             } else if (onu.status === 'disabled') {
-                                statusCell.innerHTML = `<span class="status-icon-badge icon-yellow" title="Disabled"><i data-lucide="shield-off"></i></span>`;
+                                statusCell.innerHTML = `<span class="status-icon-badge icon-yellow" role="img" aria-label="Disabled" title="Disabled"><i data-lucide="shield-off"></i></span>`;
                             } else {
                                 const cause = onu.last_down_cause || '';
                                 const isPower = cause === 'Power Down' || cause === 'Manual';
@@ -430,7 +430,7 @@ $onus = $stmt_data->fetchAll();
                                 if (isPower) { icon = 'plug'; cls = 'icon-gray'; title = 'Offline - Power Down'; }
                                 else if (isFiber) { icon = 'link-2-off'; cls = 'icon-red'; title = `Offline - Fiber Terputus (${cause})`; }
                                 else { icon = 'globe'; cls = 'icon-red'; title = 'Offline'; }
-                                statusCell.innerHTML = `<span class="status-icon-badge ${cls}" title="${title}"><i data-lucide="${icon}"></i></span>`;
+                                statusCell.innerHTML = `<span class="status-icon-badge ${cls}" role="img" aria-label="${title}" title="${title}"><i data-lucide="${icon}"></i></span>`;
                             }
                         }
                         row.setAttribute('data-status', onu.status);
@@ -452,6 +452,7 @@ $onus = $stmt_data->fetchAll();
                         if (vlanCell) {
                             const vlanVal = onu.vlan || '-';
                             vlanCell.textContent = vlanVal;
+                            vlanCell.classList.add('num');
                         }
 
                         // Update signal badges — skip jika OLT offline
@@ -467,7 +468,7 @@ $onus = $stmt_data->fetchAll();
                                     if (rx >= -25) sigClass = 'bg-green';
                                     else if (rx >= -28) sigClass = 'bg-yellow';
                                     else if (rx >= -30) sigClass = 'bg-orange';
-                                    signalCell.innerHTML = `<span class="badge ${sigClass}">${esc(onu.rx_onu)} dBm</span>`;
+                                    signalCell.innerHTML = `<span class="badge ${sigClass} num">${esc(onu.rx_onu)} dBm</span>`;
                                 }
                             } else {
                                 signalCell.innerHTML = '';
@@ -485,7 +486,7 @@ $onus = $stmt_data->fetchAll();
                                     if (rxOlt >= -25) sigClassOlt = 'bg-green';
                                     else if (rxOlt >= -28) sigClassOlt = 'bg-yellow';
                                     else if (rxOlt >= -30) sigClassOlt = 'bg-orange';
-                                    signalOltCell.innerHTML = `<span class="badge ${sigClassOlt}">${esc(onu.rx_olt)} dBm</span>`;
+                                    signalOltCell.innerHTML = `<span class="badge ${sigClassOlt} num">${esc(onu.rx_olt)} dBm</span>`;
                                 }
                             } else {
                                 signalOltCell.innerHTML = '';
@@ -735,7 +736,11 @@ $onus = $stmt_data->fetchAll();
                 <tbody class="motion-fade-in">
                     <?php if (empty($onus)): ?>
                         <tr>
-                            <td colspan="10" class="empty-state">Tidak ada ONU terdaftar yang sesuai dengan kriteria filter.</td>
+                            <td colspan="10" class="empty-state">
+                                <i data-lucide="search-x" style="width:32px;height:32px;opacity:.5;margin-bottom:8px;display:block;margin-left:auto;margin-right:auto;"></i>
+                                Tidak ada ONU yang cocok dengan filter saat ini.<br>
+                                <a href="configured.php" class="text-accent">Reset filter</a> untuk melihat semua ONU.
+                            </td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($onus as $onu): ?>
@@ -743,11 +748,11 @@ $onus = $stmt_data->fetchAll();
                             <tr class="onu-row" data-onu-id="<?php echo (int)$onu['id']; ?>" data-name="<?php echo htmlspecialchars($onu['name'] ?? ''); ?>" data-status="<?php echo htmlspecialchars($onu['status']); ?>" data-vlan="<?php echo htmlspecialchars($onu['vlan'] ?: 'None'); ?>" data-rx-onu="<?php echo $onu['last_rx_power'] !== null ? number_format((float)$onu['last_rx_power'], 2) : 'N/A'; ?>" data-rx-olt="<?php echo $onu['last_rx_olt_power'] !== null ? number_format((float)$onu['last_rx_olt_power'], 2) : 'N/A'; ?>" data-down-cause="<?php echo htmlspecialchars($onu['last_down_cause'] ?? '-'); ?>" data-odp="<?php echo htmlspecialchars($onu['splitter'] ?? ''); ?>" data-zone="<?php echo htmlspecialchars($onu['zone'] ?? ''); ?>" data-dl-prof="<?php echo htmlspecialchars($onu['download_profile'] ?? ''); ?>" data-ul-prof="<?php echo htmlspecialchars($onu['upload_profile'] ?? ''); ?>" data-olt-offline="<?php echo $olt_offline ? '1' : '0'; ?>">
                                 <td class="status-cell text-center">
                                     <?php if ($olt_offline): ?>
-                                        <span class="status-icon-badge icon-red" title="OLT Offline — <?php echo htmlspecialchars($onu['olt_name']); ?>"><i data-lucide="server-crash"></i></span>
+                                        <span class="status-icon-badge icon-red" role="img" aria-label="OLT Offline — <?php echo htmlspecialchars($onu['olt_name']); ?>" title="OLT Offline — <?php echo htmlspecialchars($onu['olt_name']); ?>"><i data-lucide="server-crash"></i></span>
                                     <?php elseif ($onu['status'] === 'online'): ?>
-                                        <span class="status-icon-badge icon-green" title="Online"><i data-lucide="globe"></i></span>
+                                        <span class="status-icon-badge icon-green" role="img" aria-label="Online" title="Online"><i data-lucide="globe"></i></span>
                                     <?php elseif ($onu['status'] === 'disabled'): ?>
-                                        <span class="status-icon-badge icon-yellow" title="Disabled"><i data-lucide="shield-off"></i></span>
+                                        <span class="status-icon-badge icon-yellow" role="img" aria-label="Disabled" title="Disabled"><i data-lucide="shield-off"></i></span>
                                     <?php else: ?>
                                         <?php
                                         // Icon+warna beda tergantung penyebab down: fiber terputus (LOS) = merah,
@@ -763,7 +768,7 @@ $onus = $stmt_data->fetchAll();
                                             $offline_icon = 'globe'; $offline_class = 'icon-red'; $offline_title = 'Offline';
                                         }
                                         ?>
-                                        <span class="status-icon-badge <?php echo $offline_class; ?>" title="<?php echo $offline_title; ?>"><i data-lucide="<?php echo $offline_icon; ?>"></i></span>
+                                        <span class="status-icon-badge <?php echo $offline_class; ?>" role="img" aria-label="<?php echo $offline_title; ?>" title="<?php echo $offline_title; ?>"><i data-lucide="<?php echo $offline_icon; ?>"></i></span>
                                     <?php endif; ?>
                                 </td>
                                 <td>
@@ -777,7 +782,7 @@ $onus = $stmt_data->fetchAll();
                                     <?php echo htmlspecialchars($onu['olt_name']); ?><br>
                                     <span class="text-muted">PON <?php echo htmlspecialchars($onu['pon_port'] . ':' . $onu['onu_id']); ?></span>
                                 </td>
-                                <td class="vlan-cell text-center"><?php echo htmlspecialchars($onu['vlan'] ?: '-'); ?></td>
+                                <td class="vlan-cell text-center num"><?php echo htmlspecialchars($onu['vlan'] ?: '-'); ?></td>
                                 <td class="odp-cell"><?php echo htmlspecialchars($onu['splitter'] ?: '-'); ?></td>
                                 <td class="zone-cell"><?php echo htmlspecialchars($onu['zone'] ?: '-'); ?></td>
                                 <td class="signal-cell text-center">
@@ -791,7 +796,7 @@ $onus = $stmt_data->fetchAll();
                                         else if ($rx >= -28) $sig_class = 'bg-yellow';
                                         else if ($rx >= -30) $sig_class = 'bg-orange';
                                         ?>
-                                        <span class="badge <?php echo $sig_class; ?>"><?php echo htmlspecialchars($onu['last_rx_power']); ?> dBm</span>
+                                        <span class="badge <?php echo $sig_class; ?> num"><?php echo htmlspecialchars($onu['last_rx_power']); ?> dBm</span>
                                     <?php elseif ($onu['status'] === 'online'): ?>
                                         <span class="badge bg-red">N/A</span>
                                     <?php endif; ?>
@@ -807,7 +812,7 @@ $onus = $stmt_data->fetchAll();
                                         else if ($rx_olt >= -28) $sig_class_olt = 'bg-yellow';
                                         else if ($rx_olt >= -30) $sig_class_olt = 'bg-orange';
                                         ?>
-                                        <span class="badge <?php echo $sig_class_olt; ?>"><?php echo htmlspecialchars($onu['last_rx_olt_power']); ?> dBm</span>
+                                        <span class="badge <?php echo $sig_class_olt; ?> num"><?php echo htmlspecialchars($onu['last_rx_olt_power']); ?> dBm</span>
                                     <?php elseif ($onu['status'] === 'online'): ?>
                                         <span class="badge bg-red">N/A</span>
                                     <?php endif; ?>
