@@ -92,18 +92,21 @@ def process_olt(olt, should_sync_config, sync_start_time, now_ts):
 
         print(f"  [{tag}] Found {len(pulled_onus)} configured ONUs.")
 
-        # Safety: if pull returns 0 ONUs but DB already has rows for this OLT,
-        # skip this OLT entirely to prevent mass-delete from a transient connection failure.
-        # ponynail: no auto-recovery if OLT genuinely removes all ONUs — next successful
-        # pull with non-zero count will resume normal stale cleanup.
+        # Safety: if pull returns significantly fewer ONUs than DB already has
+        # for this OLT, skip stale cleanup entirely to prevent mass-delete from
+        # a transient connection failure or truncated CLI dump (lihat fix
+        # cmd_timeout di pull_configured_onus -- command SSH berat bisa
+        # kepotong & cuma balikin SEBAGIAN ONU, bukan cuma pas 0).
+        # Threshold 90%: toleransi wajar utk ONU yg memang baru dihapus admin.
+        # ponynail: no auto-recovery kalau OLT genuinely kehilangan banyak ONU
+        # sekaligus — next successful pull dgn count penuh akan resume cleanup.
         skip_stale_cleanup = False
-        if len(pulled_onus) == 0:
-            with conn.cursor() as cnt_cur:
-                cnt_cur.execute("SELECT COUNT(*) as c FROM onus WHERE olt_id = %s", (olt['id'],))
-                db_count = cnt_cur.fetchone()['c']
-            if db_count > 0:
-                print(f"  ⚠️ [{tag}] Pull returned 0 ONUs but DB has {db_count} for this OLT — skipping stale cleanup to prevent data loss.")
-                skip_stale_cleanup = True
+        with conn.cursor() as cnt_cur:
+            cnt_cur.execute("SELECT COUNT(*) as c FROM onus WHERE olt_id = %s", (olt['id'],))
+            db_count = cnt_cur.fetchone()['c']
+        if db_count > 0 and len(pulled_onus) < db_count * 0.9:
+            print(f"  ⚠️ [{tag}] Pull returned {len(pulled_onus)} ONUs but DB has {db_count} for this OLT — skipping stale cleanup to prevent data loss (kemungkinan dump CLI terpotong).")
+            skip_stale_cleanup = True
 
         local_onus_map = []
         active_onu_keys = []

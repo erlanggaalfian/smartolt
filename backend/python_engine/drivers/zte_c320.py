@@ -1858,7 +1858,12 @@ class OltZteC320Driver(BaseDriver):
                 ]
             }
 
-        raw = execute_ssh_commands(olt, ['show gpon onu state'])
+        # cmd_timeout dinaikkan dari default 20s: OLT besar (1000+ ONU, cth TGR)
+        # butuh jauh lebih lama buat dump "show gpon onu state" penuh. Kalau
+        # terpotong, ONU yg tak ke-parse dianggap stale -> DIHAPUS lalu
+        # di-INSERT ulang dgn ID baru di siklus berikutnya (merusak link
+        # onu-detail.php?id=... & riwayat sinyal onu_history).
+        raw = execute_ssh_commands(olt, ['show gpon onu state'], cmd_timeout=90)
         onus = []
         matches = re.findall(r'^\s*(\d+(?:/\d+){2,3}):(\d+)\s+\S+\s+\S+\s+(\S+)', raw, re.MULTILINE | re.IGNORECASE)
         for m in matches:
@@ -1875,7 +1880,7 @@ class OltZteC320Driver(BaseDriver):
 
         # Try to pull all baseinfo globally in one command to save CPU and time
         sn_map = {}
-        global_raw = execute_ssh_commands(olt, ["show gpon onu baseinfo"])
+        global_raw = execute_ssh_commands(olt, ["show gpon onu baseinfo"], cmd_timeout=90)
         if global_raw and not any(x in global_raw.lower() for x in ["error", "invalid", "parameter"]):
             matches_sn = re.findall(r'gpon-onu_([0-9\/]+):(\d+)\s+.*?\s+SN:(\S+)', global_raw, re.IGNORECASE)
             for m in matches_sn:
@@ -1885,7 +1890,7 @@ class OltZteC320Driver(BaseDriver):
         if not sn_map:
             pon_ports = list(set([o['pon_port'] for o in onus]))
             for port in pon_ports:
-                raw_sn = execute_ssh_commands(olt, [f"show gpon onu baseinfo gpon-olt_{port}"])
+                raw_sn = execute_ssh_commands(olt, [f"show gpon onu baseinfo gpon-olt_{port}"], cmd_timeout=60)
                 matches_sn = re.findall(r'gpon-onu_([0-9\/]+):(\d+)\s+.*?\s+SN:(\S+)', raw_sn, re.IGNORECASE)
                 for m in matches_sn:
                     sn_map[f"{m[0]}_{m[1]}"] = m[2]
