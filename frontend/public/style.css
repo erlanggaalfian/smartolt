@@ -274,18 +274,19 @@ html.light-mode .header-btn:hover, body.light-mode .header-btn:hover { backgroun
 .filter-row { display: flex; gap: 10px 12px; flex-wrap: wrap; align-items: flex-end; }
 /* configured.php: compact flexbox, label DI LUAR box (bukan fused di dalam),
    lebar tiap dropdown pas isi (bukan grid full-width) - mencegah mekar/gemuk */
-.filter-row.filter-row--grid { display: flex; flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 10px; }
-.filter-line { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
+.filter-row.filter-row--grid { display: flex; flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 12px; }
+.filter-line { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
 .filter-row--grid .filter-item { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
 .filter-label-outside { font-size: 13px; font-weight: 600; color: var(--text-main); white-space: nowrap; }
 .filter-row--grid .search-item input { width: 210px; }
 .filter-row--grid .ms-dropdown .form-control { width: auto; min-width: 100px; max-width: 170px; }
-/* Poin 5: input/select filter bg putih polos, tinggi seragam h-9, border abu tipis rounded-md */
+
 .filter-row--grid .form-control { height: 36px; padding: 6px 10px; border-radius: 6px; background-color: var(--color-white); border-color: var(--border-color); }
 .filter-item .form-group { margin-bottom: 0; }
 .filter-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-left: auto; }
 .filter-actions .filter-item { flex: 0 0 auto; min-width: 0; max-width: none; }
-.filter-actions .btn-block { width: auto; padding-left: 18px; padding-right: 18px; }
+.filter-actions .btn { height: 36px; padding-left: 14px; padding-right: 14px; }
+.filter-actions .btn-block { width: auto; }
 .ms-dropdown { position: relative; }
 .ms-btn { display: flex; align-items: center; justify-content: space-between; gap: 8px; cursor: pointer; text-align: left; background: var(--color-white); border: 1px solid var(--border-color); }
 .ms-caret { font-size: 10px; color: var(--text-muted); }

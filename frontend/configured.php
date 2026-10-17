@@ -299,8 +299,6 @@ $onus = $stmt_data->fetchAll();
         render_ms_dropdown('signal', 'Sinyal', 'signal', array_map(fn($k) => [$k, $signal_labels[$k], $signal_counts[$k] ?? 0], array_keys($signal_labels)), $filter_signal);
         render_ms_dropdown('status', 'Status', 'status', array_map(fn($k) => [$k, $status_labels[$k], $status_counts[$k] ?? 0], array_keys($status_labels)), $status);
         ?>
-        </div>
-
         <div class="filter-actions">
             <div class="filter-item">
                 <button type="submit" class="btn btn-primary btn-block">
