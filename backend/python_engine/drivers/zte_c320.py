@@ -787,7 +787,10 @@ class OltZteC320Driver(BaseDriver):
             commands.append(f"show pon power onu-rx gpon-olt_{port}")
             commands.append(f"show pon power olt-rx gpon-olt_{port}")
 
-        raw_output = execute_ssh_commands(olt, commands)
+        # cmd_timeout dinaikkan dari default 20s: PON padat (40+ ONU) butuh
+        # ~22s buat dump "show pon power onu-rx" selesai di ZTE C300 -- di
+        # 20s output kepotong, ONU ID besar (akhir list) hilang jadi N/A.
+        raw_output = execute_ssh_commands(olt, commands, cmd_timeout=60)
         result = {}
 
         current_cmd = None
