@@ -79,6 +79,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $olt_id = $pdo->lastInsertId();
         $olt['id'] = $olt_id;
 
+        // Admin (non-superadmin) otomatis dapat akses ke OLT yang baru dia
+        // buat sendiri — superadmin sudah lihat semua OLT tanpa baris ini.
+        if (($_SESSION['smartolt_role'] ?? null) === 'admin') {
+            $pdo->prepare("INSERT INTO user_olts (user_id, olt_id) VALUES (?, ?)")
+                ->execute([$_SESSION['smartolt_user_id'], $olt_id]);
+        }
+
         // Sinkronisasi ONU (nama, VLAN, status) dijalankan di background —
         // fetch show current-config bisa detik-menit untuk OLT besar, dan
         // form tak perlu menunggunya (cron_sync.py juga akan sinkron ulang
