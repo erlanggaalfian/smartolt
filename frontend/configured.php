@@ -234,7 +234,7 @@ $stmt_data->execute($params);
 $onus = $stmt_data->fetchAll();
 ?>
 
-<div class="filter-panel">
+<div class="filter-panel filter-panel--transparent">
     <form method="GET" id="form-filter" action="configured.php" class="filter-row filter-row--grid form-inline">
         <input type="hidden" name="limit" id="filter-limit" value="<?php echo $limit; ?>">
         <script>
@@ -703,7 +703,7 @@ $onus = $stmt_data->fetchAll();
     }
 </script>
 
-<div class="content-card">
+<div class="content-card content-card--transparent">
     <div class="card-header card-header--wrap card-header--seamless">
         <h1 id="page-title">Daftar Pelanggan Terdaftar (Configured)</h1>
         <div class="inline-flex-center">
