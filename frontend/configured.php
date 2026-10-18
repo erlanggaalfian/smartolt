@@ -243,7 +243,7 @@ $onus = $stmt_data->fetchAll();
             document.querySelectorAll('.ms-dropdown').forEach(dd=>{
                 const btn=dd.querySelector('.ms-btn .ms-label');
                 const cbs=dd.querySelectorAll('input[type=checkbox]');
-                function upd(){const n=Array.from(cbs).filter(c=>c.checked).length;btn.textContent=n?n+' dipilih':'🔍 Semua';}
+                function upd(){const n=Array.from(cbs).filter(c=>c.checked).length;btn.textContent=n?n+' dipilih':'Semua';}
                 cbs.forEach(c=>c.addEventListener('change',upd));upd();
             });
         })();
