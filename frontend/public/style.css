@@ -196,14 +196,14 @@ html.light-mode .status-badge-container, body.light-mode .status-badge-container
   50% { transform: scale(1.3); opacity: 0.5; }
   100% { transform: scale(1); opacity: 1; }
 }
-.header-btn { background: none; border: none; color: var(--text-muted); width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition-fast); font-size: 14px; }
+.header-btn { background: none; border: none; color: var(--text-muted); width: 32px; height: 32px; border-radius: var(--radius-xs); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition-fast); font-size: 14px; }
 .header-btn:hover { background-color: var(--bg-tertiary); color: var(--text-main); }
 html.light-mode .header-btn, body.light-mode .header-btn { color: rgba(255,255,255,.75); }
 html.light-mode .header-btn:hover, body.light-mode .header-btn:hover { background: rgba(255,255,255,.15); color: #fff; }
 /* CARDS & GRIDS */
-.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 24px; }
-.stat-card { background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px 20px; display: flex; align-items: center; gap: 14px; transition: var(--transition-normal); box-shadow: 0 1px 3px rgba(0,0,0,.04); }
-.stat-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--color-white); flex-shrink: 0; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-5); margin-bottom: var(--space-6); }
+.stat-card { background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px 20px; display: flex; align-items: center; gap: 14px; transition: var(--transition-normal); }
+.stat-icon { width: 40px; height: 40px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--color-white); flex-shrink: 0; }
 .stat-icon.bg-blue { background-color: var(--color-info); }
 .stat-icon.bg-green { background-color: var(--color-success); }
 .stat-icon.bg-red { background-color: var(--color-danger); }
@@ -219,14 +219,14 @@ html.light-mode .header-btn:hover, body.light-mode .header-btn:hover { backgroun
   .col-8, .col-4 { width: 100%; }
   .main-content { margin-left: 0; padding: 16px; }
 }
-.content-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); display: flex; flex-direction: column; box-shadow: 0 1px 3px rgba(0,0,0,.06); overflow: hidden; }
+.content-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); display: flex; flex-direction: column; overflow: hidden; }
 .card-header { padding: 14px 20px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; background: var(--bg-tertiary); }
 .card-header h1, .card-header h2 { font-size: 14px; font-weight: 600; }
 .border-accent { border-left: 4px solid var(--text-accent); }
 .card-body { padding: 20px; flex: 1; }
 /* BUTTONS */
 .section-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 16px; font-family: var(--font-family); font-size: 13px; font-weight: 600; border-radius: 8px; border: 1px solid transparent; cursor: pointer; transition: var(--transition-fast); height: 40px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 16px; font-family: var(--font-family); font-size: 13px; font-weight: 600; border-radius: var(--radius-sm); border: 1px solid transparent; cursor: pointer; transition: var(--transition-fast); height: var(--control-height); }
 .btn-primary { background-color: var(--text-accent); color: var(--bg-primary); }
 .btn-primary:hover { background-color: var(--color-accent-hover); box-shadow: 0 0 10px var(--color-accent-hover-glow); }
 .btn-secondary { background-color: var(--bg-tertiary); border-color: var(--border-color); color: var(--text-main); }
@@ -255,11 +255,11 @@ html.light-mode .header-btn:hover, body.light-mode .header-btn:hover { backgroun
 .data-table .koneksi-cell { line-height: 1.5; }
 .data-table .koneksi-cell .text-muted { font-size: 11.5px; color: var(--text-muted); }
 .data-table .odp-cell, .data-table .zone-cell { font-size: 12.5px; color: var(--text-muted); }
-.data-table .btn-detail { padding: 4px 10px; font-size: 12px; border-radius: 6px; background: none; border: 1px solid var(--border-color); color: var(--text-muted); cursor: pointer; transition: var(--transition-fast); font-weight: 500; }
+.data-table .btn-detail { padding: 4px 10px; font-size: 12px; border-radius: var(--radius-xs); background: none; border: 1px solid var(--border-color); color: var(--text-muted); cursor: pointer; transition: var(--transition-fast); font-weight: 500; }
 .data-table .btn-detail:hover { border-color: var(--text-accent); color: var(--text-accent); background: var(--text-accent-glow); }
-.data-table .btn-xs { white-space: nowrap; min-width: 84px; border-radius: 999px; }
+.data-table .btn-xs { white-space: nowrap; min-width: 84px; border-radius: var(--radius-pill); }
 .data-table .num { font-variant-numeric: tabular-nums; font-family: var(--font-mono, 'Courier New', monospace); }
-.badge { padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; transition: transform var(--duration-micro) var(--ease-out); }
+.badge { padding: 4px 10px; border-radius: var(--radius-pill); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; transition: transform var(--duration-micro) var(--ease-out); }
 .bg-green { background-color: var(--tint-success); color: var(--color-success); border: 1px solid var(--color-success); }
 .bg-red { background-color: var(--tint-danger); color: var(--color-danger); border: 1px solid var(--color-danger); }
 .bg-orange { background-color: var(--tint-warning); color: var(--color-orange); border: 1px solid var(--color-orange); }
@@ -271,10 +271,10 @@ html.light-mode .header-btn:hover, body.light-mode .header-btn:hover { backgroun
 .status-icon-badge.icon-yellow { color: var(--color-amber); }
 .status-icon-badge.icon-gray { color: var(--text-muted); }
 /* FORMS */
-.filter-panel { background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,.04); }
+.filter-panel { background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px; margin-bottom: var(--space-5); }
 /* configured.php: kotak luar filter+tabel dibuat transparan (tanpa bg/border/
    shadow) atas permintaan user, isi (input, tabel) tetap tampil normal. */
-.filter-panel--transparent { background: transparent; border: none; box-shadow: none; padding: 0; margin-bottom: 16px; }
+.filter-panel--transparent { background: transparent; border: none; box-shadow: none; padding: 0; margin-bottom: var(--space-5); }
 .content-card--transparent { background: transparent; border: 1px solid var(--border-color); box-shadow: none; }
 .content-card--transparent .card-header { background: transparent; padding-left: 20px; padding-right: 20px; }
 .content-card--transparent .card-body { padding-left: 20px; padding-right: 20px; }
@@ -288,11 +288,11 @@ html.light-mode .header-btn:hover, body.light-mode .header-btn:hover { backgroun
 .filter-row--grid .search-item input { width: 210px; }
 .filter-row--grid .ms-dropdown .form-control { width: auto; min-width: 100px; max-width: 170px; }
 
-.filter-row--grid .form-control { height: 36px; padding: 6px 10px; border-radius: 6px; background-color: var(--color-white); border-color: var(--border-color); }
+.filter-row--grid .form-control { height: var(--control-height); padding: 6px 10px; border-radius: var(--radius-xs); background-color: var(--color-white); border-color: var(--border-color); }
 .filter-item .form-group { margin-bottom: 0; }
 .filter-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-left: auto; }
 .filter-actions .filter-item { flex: 0 0 auto; min-width: 0; max-width: none; }
-.filter-actions .btn { height: 36px; padding-left: 14px; padding-right: 14px; }
+.filter-actions .btn { height: var(--control-height); padding-left: 14px; padding-right: 14px; }
 .filter-actions .btn-block { width: auto; }
 .ms-dropdown { position: relative; }
 .ms-btn { display: flex; align-items: center; justify-content: space-between; gap: 8px; cursor: pointer; text-align: left; background: var(--color-white); border: 1px solid var(--border-color); }
@@ -306,7 +306,7 @@ html.light-mode .header-btn:hover, body.light-mode .header-btn:hover { backgroun
 .search-item .form-group { margin-bottom: 0; }
 .form-group { margin-bottom: 16px; }
 .form-group label { display: block; font-size: 13px; font-weight: 500; color: var(--text-muted); margin-bottom: 6px; }
-.form-control { width: 100%; background-color: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 14px; color: var(--text-main); font-family: var(--font-family); font-size: 13px; transition: border-color 0.15s, box-shadow 0.15s; height: 40px; }
+.form-control { width: 100%; background-color: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 10px 14px; color: var(--text-main); font-family: var(--font-family); font-size: 13px; transition: border-color 0.15s, box-shadow 0.15s; height: var(--control-height); }
 .form-row { display: flex; gap: 12px; }
 .row-inline { display: flex; align-items: center; gap: 12px; }
 .inline-select { width: auto; min-width: 180px; }
@@ -684,8 +684,8 @@ a { transition: color var(--duration-short) var(--ease-out); }
 .onu-card-signals { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex: 0 0 auto; font-size: 11px; }
 .onu-card-signals .meta-label { font-size: 10px; text-transform: uppercase; letter-spacing: .4px; color: var(--text-muted); }
 .skel-50 { width:50%; }
-.statstrip { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:16px; }
-.statstrip-item { display:flex; align-items:center; gap:8px; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:10px 16px; }
+.statstrip { display:flex; gap:var(--space-4); flex-wrap:wrap; margin-bottom:var(--space-6); }
+.statstrip-item { display:flex; align-items:center; gap:var(--space-2); background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:10px var(--space-4); }
 .statstrip-value { font-size:1.25rem; font-weight:700; }
 .dot-sm { width:8px; height:8px; border-radius:50%; display:inline-block; }
 .dot-success { background:var(--color-success); }
@@ -907,7 +907,7 @@ a.btn { text-decoration: none; }
 .action-link:hover { color: var(--text-main); text-decoration: underline; }
 .edit-icon-btn { background: none; border: none; padding: 0; cursor: pointer; color: var(--text-accent, #0284c7); margin-left: 6px; vertical-align: middle; display: inline-flex; align-items: center; transition: var(--transition-fast); }
 .edit-icon-btn:hover { color: var(--text-main); transform: scale(1.1); }
-.status-live-indicator { background: var(--color-success, #28a745); color: #ffffff; font-size: 0.75rem; font-weight: bold; padding: 2px 6px; border-radius: 3px; text-transform: uppercase; display: inline-block; margin-left: 8px; animation: pulse-glow 2s infinite; }
+.status-live-indicator { background: var(--color-success); color: var(--color-white); font-size: 0.75rem; font-weight: bold; padding: 2px 6px; border-radius: var(--radius-xs); text-transform: uppercase; display: inline-block; margin-left: 8px; animation: pulse-glow 2s infinite; }
 .status-tab-btn { width: 100%; padding: 12px 18px; background: none; border: none; border-left: 3px solid transparent; text-align: left; font-size: 0.88rem; font-weight: 500; color: var(--text-muted, #475569); cursor: pointer; transition: var(--transition-fast); }
 .status-tab-btn:hover { background: var(--bg-tertiary, #f1f5f9); color: var(--text-main, #0f172a); }
 .status-tab-btn.active { background: var(--bg-tertiary, #e2e8f0); color: var(--text-accent, #0284c7); border-left-color: var(--text-accent, #0284c7); font-weight: 600; }
