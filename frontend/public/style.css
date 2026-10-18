@@ -91,15 +91,6 @@
   --chip-slate-fg: var(--text-muted);
   --chip-slate-bd: var(--border-color);
   /* ===== AUTH (login/register, selalu gelap) ===== */
-  --auth-bg: var(--bg-primary);
-  --auth-bg-deep: color-mix(in srgb, var(--bg-primary) 55%, var(--color-black));
-  --auth-card: var(--bg-tertiary);
-  --auth-border: color-mix(in srgb, var(--bg-tertiary) 55%, var(--text-muted));
-  --auth-text: var(--text-main);
-  --auth-muted: var(--text-muted);
-  --auth-accent: var(--color-teal);
-  --auth-glow: color-mix(in srgb, var(--color-teal) 30%, transparent);
-  --auth-glow-strong: color-mix(in srgb, var(--color-teal) 45%, transparent);
   --auth-success: var(--color-green);
   --auth-success-tint: color-mix(in srgb, var(--color-green) 15%, transparent);
   --auth-success-border: color-mix(in srgb, var(--color-green) 30%, transparent);
