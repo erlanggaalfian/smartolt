@@ -1318,10 +1318,18 @@ class OltZteC300Driver(BaseDriver):
         errors = self._vlan_errors(log)
         BENIGN_CODES = ('62391', '66661', '66662', '63869', '63873', '63856', '63933', '63953', '62397', '63993')
         errors = [e for e in errors if not any(c in e for c in BENIGN_CODES)]
+        # security-mgmt wan (toggle remote access) tidak didukung sebagian model ONT
+        # -- fitur opsional, bukan bagian inti setup IP management (ip-host/vlan sudah
+        # diterapkan sukses di command sebelumnya). Jangan gagalkan seluruh operasi.
+        skipped_security = [e for e in errors if '63991' in e]
+        errors = [e for e in errors if '63991' not in e]
         ok = len(errors) == 0
+        message = f'IP Manajemen berhasil diubah ke {mode}.' if ok else f'OLT menolak: {"; ".join(errors)}'
+        if ok and skipped_security:
+            message += ' (Catatan: fitur blokir akses WAN tidak didukung ONT ini, dilewati.)'
         return {
             'success': ok,
-            'message': f'IP Manajemen berhasil diubah ke {mode}.' if ok else f'OLT menolak: {"; ".join(errors)}',
+            'message': message,
             'log': log
         }
 
