@@ -98,7 +98,14 @@ try {
                 $tr069_dev_id_full = genieacs_find_device_id($onu['serial_number'] ?? '');
                 if ($tr069_dev_id_full) {
                     $ppp_ip = genieacs_get_ppp_wan_ip($tr069_dev_id_full);
-                    if ($ppp_ip) $d['pppoe_ip'] = $ppp_ip;
+                    if ($ppp_ip) {
+                        $d['pppoe_ip'] = $ppp_ip;
+                    } else {
+                        // Device online (GPON) tapi sesi PPPoE tidak Connected -- JANGAN diamkan.
+                        // COALESCE(NULL, pppoe_ip) di query UPDATE di bawah akan MEMPERTAHANKAN IP
+                        // basi kalau $d['pppoe_ip'] tidak diisi sama sekali, jadi clear eksplisit di sini.
+                        $pdo->prepare("UPDATE onus SET pppoe_ip = NULL WHERE id = ?")->execute([$id]);
+                    }
                 }
             }
             // Offline: COALESCE tidak bisa dipakai untuk clear (NULL diabaikan),
@@ -280,9 +287,15 @@ if ($has_tr069 && ($status ?? '') !== 'offline') {
 // TR-069 = sumber kebenaran untuk IP PPPoE (bukan CLI OLT) saat wan_mode=PPPoE.
 // Sama seperti tr069_ip: kalau offline, cache lama jangan ditampilkan seolah aktif.
 $tr069_ppp_ip = null;
-if ($tr069_dev_id && ($onu['wan_mode'] ?? '') === 'PPPoE' && ($status ?? '') !== 'offline') {
+$is_tr069_pppoe_check = $tr069_dev_id && ($onu['wan_mode'] ?? '') === 'PPPoE' && ($status ?? '') !== 'offline';
+if ($is_tr069_pppoe_check) {
     $tr069_ppp_ip = genieacs_get_ppp_wan_ip($tr069_dev_id);
 }
+// pppoe_ip final: kalau sudah dicek live dan hasilnya null (PPPoE tidak Connected),
+// JANGAN jatuh balik ke cache DB basi -- itu bug yg bikin IP lama terus tampil
+// seolah aktif walau sesi PPPoE sudah putus. Fallback ke cache DB hanya berlaku
+// utk kasus yg memang tidak dicek live (bukan PPPoE+TR069, atau device offline).
+$pppoe_ip_response = $is_tr069_pppoe_check ? ($tr069_ppp_ip ?: 'N/A') : ($onu['pppoe_ip'] ?: 'N/A');
 
 echo json_encode([
     'success'           => true,
@@ -293,7 +306,7 @@ echo json_encode([
     'onu_id'            => $onu['onu_id'],
     'rx_onu'            => $rx_onu ?? 'N/A',
     'rx_olt'            => $rx_olt ?? 'N/A',
-    'pppoe_ip'          => $tr069_ppp_ip ?: ($onu['pppoe_ip'] ?: 'N/A'),
+    'pppoe_ip'          => $pppoe_ip_response,
     'pppoe_username'    => $onu['pppoe_username'] ?: '',
     'pppoe_password'    => $onu['pppoe_password'] ?: '',
     'vlan'              => $onu['vlan'],

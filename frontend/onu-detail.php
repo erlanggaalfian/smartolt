@@ -447,18 +447,30 @@ if (!empty($onu['onu_type'])) {
                         <?php
                         // TR-069 = sumber kebenaran IP PPPoE saat config_method=TR069 (bukan cache CLI OLT).
                         // Kalau status offline, jangan tampilkan IP cache lama -- device sudah tidak terhubung.
+                        $is_tr069_pppoe = ($onu['wan_mode'] ?? '') === 'PPPoE' && ($onu['config_method'] ?? null) === 'TR069';
                         $pppoe_ip_display = ($onu['status'] ?? '') !== 'offline' ? ($onu['pppoe_ip'] ?: null) : null;
-                        if (($onu['wan_mode'] ?? '') === 'PPPoE' && ($onu['config_method'] ?? null) === 'TR069' && ($onu['status'] ?? '') !== 'offline') {
+                        $tr069_checked_disconnected = false;
+                        if ($is_tr069_pppoe && ($onu['status'] ?? '') !== 'offline') {
                             $tr069_dev_id_ppp = genieacs_find_device_id($onu['serial_number'] ?? '');
                             $tr069_ppp_ip_display = $tr069_dev_id_ppp ? genieacs_get_ppp_wan_ip($tr069_dev_id_ppp) : null;
-                            if ($tr069_ppp_ip_display) $pppoe_ip_display = $tr069_ppp_ip_display;
+                            // Live TR-069 adalah sumber kebenaran mutlak untuk kombinasi ini: kalau ia bilang
+                            // "tidak Connected" (null), JANGAN jatuh balik ke cache DB basi -- itu salah satu
+                            // bug yg bikin IP lama tetap tampil seolah konek padahal PPPoE sudah putus.
+                            if ($tr069_ppp_ip_display) {
+                                $pppoe_ip_display = $tr069_ppp_ip_display;
+                            } elseif ($tr069_dev_id_ppp) {
+                                $pppoe_ip_display = null;
+                                $tr069_checked_disconnected = true;
+                            }
                         }
                         ?>
                         <?php if (!empty($pppoe_ip_display)): ?>
                             <a href="http://<?php echo htmlspecialchars($pppoe_ip_display); ?>" target="_blank" class="chip chip-green" onclick="event.stopPropagation();">
                                 <i data-lucide="external-link" class="icon-xs"></i><?php echo htmlspecialchars($pppoe_ip_display); ?>
                             </a>
-                        <?php elseif (($onu['wan_mode'] ?? '') === 'PPPoE' && ($onu['status'] ?? '') !== 'offline'): ?>
+                        <?php elseif ($tr069_checked_disconnected): ?>
+                            <span class="chip chip-red" title="ONT online (GPON) tapi sesi PPPoE belum/tidak Connected">PPPoE tidak terhubung</span>
+                        <?php elseif ($is_tr069_pppoe && ($onu['status'] ?? '') !== 'offline'): ?>
                             <span class="text-muted">Memuat...</span>
                         <?php else: ?>
                             <span class="text-muted">-</span>
