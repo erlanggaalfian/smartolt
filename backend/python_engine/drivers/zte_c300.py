@@ -1112,12 +1112,22 @@ class OltZteC300Driver(BaseDriver):
         # 63873 = gem port binding sudah ada.
         BENIGN_CODES = ('62391', '66661', '66662', '63869', '63873', '63856', '63933', '63953', '62397', '63993')
         errors = [e for e in errors if not any(c in e for c in BENIGN_CODES)]
+        # security-mgmt 998/999 (hardening akses LAN) tidak didukung sebagian model ONT
+        # (balas %Code 63991 "command not supported") -- fitur ini opsional, BUKAN
+        # bagian inti registrasi ONU (interface/tcont/service-port/vlan-filter sudah
+        # diterapkan sukses di command sebelumnya). Jangan gagalkan seluruh otorisasi
+        # kalau error 63991 itu berasal dari baris security-mgmt, cukup catatan.
+        skipped_security = [e for e in errors if '63991' in e]
+        errors = [e for e in errors if '63991' not in e]
         ok = len(errors) == 0
 
+        message = f"ONU berhasil terdaftar dengan ID {onu_id}." if ok \
+                  else f"OLT menolak perintah: {'; '.join(errors)}"
+        if ok and skipped_security:
+            message += ' (Catatan: fitur hardening akses LAN tidak didukung ONT ini, dilewati.)'
         return {
             'success': ok,
-            'message': f"ONU berhasil terdaftar dengan ID {onu_id}." if ok
-                       else f"OLT menolak perintah: {'; '.join(errors)}",
+            'message': message,
             'onu_id': onu_id,
             'pon_port': pon_port,
             'log': log
